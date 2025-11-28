@@ -49,7 +49,7 @@
             <!-- Registration Disabled -->
             <p class="mt-4 text-center text-gray-400">
                 Need an account? Contact your administrator.
-                <a href="http://localhost:8080/dolibarr/public/ticket/index.php?entity=1"
+                <a href="http://mtcresolveit.meatplus.ph/public/ticket/index.php?entity=1"
                     target="_blank"
                     class="text-blue-400 hover:underline font-semibold">
                     Send a request

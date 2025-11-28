@@ -126,7 +126,7 @@ class DeliveriesController extends Controller
     // 👁️ Show single delivery
     public function show($id)
     {
-        $delivery = Deliveries::with('salesOrder')->findOrFail($id);
+        $delivery = Deliveries::with(['items','salesOrder'])->findOrFail($id);
         return view('deliveries.show', compact('delivery'));
     }
 
@@ -532,203 +532,399 @@ class DeliveriesController extends Controller
     // Export Excel
     public function exportExcel(Request $request)
     {
-        $dateFrom = $request->input('date_from');
-        $dateTo = $request->input('date_to');
-        $search = $request->input('search');
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        error_reporting(E_ALL);
 
-        $query = Deliveries::with(['salesOrder.customer']);
+        try {
+            $dateFrom = $request->input('date_from');
+            $dateTo = $request->input('date_to');
+            $search = $request->input('search');
 
-        if ($dateFrom) {
-            $query->whereDate('created_at', '>=', $dateFrom);
-        }
-
-        if ($dateTo) {
-            $query->whereDate('created_at', '<=', $dateTo);
-        }
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('dr_no', 'like', '%' . $search . '%')
-                  ->orWhere('customer_code', 'like', '%' . $search . '%')
-                  ->orWhere('customer_name', 'like', '%' . $search . '%')
-                  ->orWhereHas('salesOrder', function ($sq) use ($search) {
-                      $sq->where('customer_name', 'like', '%' . $search . '%');
-                  })
-                  ->orWhereHas('salesOrder.customer', function ($cq) use ($search) {
-                      $cq->where('customer_name', 'like', '%' . $search . '%');
-                  });
-            });
-        }
-
-        $deliveries = $query->orderByDesc('created_at')->get();
-
-        $filename = 'deliveries_' . now()->format('Y-m-d_H-i-s') . '.csv';
-
-        $headers = [
-            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            'Expires'             => '0',
-            'Pragma'              => 'public',
-        ];
-
-        $callback = function () use ($deliveries) {
-            $file = fopen('php://output', 'w');
-
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-
-            fputcsv($file, [
-                'DR No',
-                'Sales Order',
-                'Customer',
-                'Tin',
-                'Branch',
-                'Sales Rep',
-                'Sales Executive',
-                'Quantity',
-                'total_amount',
-                'Status',
-                'Date Created'
+            Log::info('Export deliveries started', [
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'search' => $search
             ]);
 
-            foreach ($deliveries as $delivery) {
-                $customerName = $delivery->customer_name
-                    ?? $delivery->salesOrder?->customer?->customer_name
-                    ?? 'N/A';
+            // ✅ Build query with filters
+            $query = Deliveries::with(['items', 'salesOrder.customer', 'salesOrder.items']);
 
-                fputcsv($file, [
-                    $delivery->dr_no,
-                    $delivery->sales_order_number,
-                    $customerName,
-                    $salesOrder->customer->tin,
-                    $delivery->branch ?? '',
-                    $delivery->sales_representative ?? '',
-                    $delivery->sales_executive ?? '',
-                    $delivery->quantity,
-                    $delivery->total_amount,
-                    $delivery->status,
-                    optional($delivery->created_at)->format('Y-m-d H:i:s')
-                ]);
+            if ($dateFrom) {
+                $query->whereDate('created_at', '>=', $dateFrom);
             }
 
-            fclose($file);
-        };
+            if ($dateTo) {
+                $query->whereDate('created_at', '<=', $dateTo);
+            }
 
-        return response()->stream($callback, 200, $headers);
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('dr_no', 'like', '%' . $search . '%')
+                      ->orWhere('customer_code', 'like', '%' . $search . '%')
+                      ->orWhere('customer_name', 'like', '%' . $search . '%')
+                      ->orWhereHas('salesOrder', function ($sq) use ($search) {
+                          $sq->where('customer_name', 'like', '%' . $search . '%');
+                      })
+                      ->orWhereHas('salesOrder.customer', function ($cq) use ($search) {
+                          $cq->where('customer_name', 'like', '%' . $search . '%');
+                      });
+                });
+            }
+
+            $deliveries = $query->orderByDesc('created_at')->get();
+
+            Log::info('Deliveries found', ['count' => $deliveries->count()]);
+
+            $filename = 'deliveries_items_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+            $headers = [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"$filename\"",
+                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+                'Expires' => '0',
+                'Pragma' => 'public',
+            ];
+
+            $callback = function () use ($deliveries) {
+                try {
+                    $file = fopen('php://output', 'w');
+
+                    if ($file === false) {
+                        Log::error('Failed to open output stream');
+                        return;
+                    }
+
+                    // ✅ UTF-8 BOM
+                    fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+                    // Column headers
+                    fputcsv($file, [
+                        'DR No',
+                        'Sales Order No',
+                        'Customer Code',
+                        'Customer Name',
+                        'TIN',
+                        'Branch',
+                        'Sales Representative',
+                        'Sales Executive',
+                        'Plate No',
+                        'Sales Invoice No',
+                        'PO Number',
+                        'Request Delivery Date',
+                        'Status',
+                        'Approved By',
+                        'Additional Instructions',
+                        'Date Created',
+                        'Item Code',
+                        'Item Category',
+                        'Brand',
+                        'Item Description',
+                        'UOM',
+                        'SO Qty',
+                        'DR Qty',
+                        'Variance',
+                        'Unit Price',
+                        'Total Amount'
+                    ]);
+
+                    $overallGrandTotal = 0;
+
+                    foreach ($deliveries as $delivery) {
+                        // Prepare delivery-level info
+                        $deliveryDate = '—';
+                        try {
+                            if ($delivery->request_delivery_date) {
+                                $deliveryDate = \Carbon\Carbon::parse($delivery->request_delivery_date)->format('m/d/Y');
+                            } elseif ($delivery->salesOrder?->request_delivery_date) {
+                                $deliveryDate = \Carbon\Carbon::parse($delivery->salesOrder->request_delivery_date)->format('m/d/Y');
+                            }
+                        } catch (\Exception $e) {
+                            Log::warning('Date parsing failed', ['error' => $e->getMessage()]);
+                        }
+
+                        $deliveryInfo = [
+                            $delivery->dr_no ?? '—',
+                            $delivery->sales_order_number ?? '—',
+                            $delivery->customer_code ?? $delivery->salesOrder?->customer_code ?? '—',
+                            $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? $delivery->salesOrder?->client_name ?? '—',
+                            $delivery->salesOrder?->customer?->tin ?? $delivery->tin ?? '—',
+                            $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
+                            $delivery->sales_representative ?? $delivery->salesOrder?->sales_representative ?? '—',
+                            $delivery->sales_executive ?? $delivery->salesOrder?->sales_executive ?? '—',
+                            $delivery->plate_no ?? '—',
+                            $delivery->sales_invoice_no ?? '—',
+                            $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
+                            $deliveryDate,
+                            $delivery->status ?? '—',
+                            $delivery->approved_by ?? $delivery->salesOrder?->approved_by ?? '—',
+                            $delivery->additional_instructions ?? $delivery->salesOrder?->additional_instructions ?? '—',
+                            $delivery->created_at ? $delivery->created_at->format('m/d/Y h:i A') : '—'
+                        ];
+
+                        // Map SO items by item_code for comparison
+                        $soItemsMap = collect();
+                        if ($delivery->salesOrder && $delivery->salesOrder->items) {
+                            $soItemsMap = $delivery->salesOrder->items->keyBy('item_code');
+                        }
+
+                        $deliveryTotal = 0;
+
+                        if ($delivery->items && $delivery->items->count() > 0) {
+                            foreach ($delivery->items as $item) {
+                                $soItem = $soItemsMap->get($item->item_code);
+                                $soQty = $soItem?->quantity ?? 0;
+                                $drQty = $item->quantity ?? 0;
+                                $variance = $drQty - $soQty;
+
+                                fputcsv($file, array_merge($deliveryInfo, [
+                                    $item->item_code ?? '—',
+                                    $item->item_category ?? '—',
+                                    $item->brand ?? '—',
+                                    $item->item_description ?? '—',
+                                    $item->uom ?? '—',
+                                    number_format($soQty, 2),
+                                    number_format($drQty, 2),
+                                    ($variance > 0 ? '+' : '') . number_format($variance, 2),
+                                    number_format($item->unit_price ?? 0, 2),
+                                    number_format($item->total_amount ?? 0, 2),
+                                ]));
+
+                                $deliveryTotal += $item->total_amount ?? 0;
+                            }
+
+                            $overallGrandTotal += $deliveryTotal;
+
+                            // Add subtotal row for this delivery
+                            $subtotalRow = array_fill(0, 24, '');
+                            $subtotalRow[24] = 'SUBTOTAL:';
+                            $subtotalRow[25] = number_format($deliveryTotal, 2);
+                            fputcsv($file, $subtotalRow);
+
+                            // Add blank row between deliveries
+                            fputcsv($file, []);
+                        } else {
+                            // No items - just output delivery info with empty item columns
+                            fputcsv($file, array_merge($deliveryInfo, array_fill(0, 10, '—')));
+                            fputcsv($file, []);
+                        }
+                    }
+
+                    // ✅ Add overall grand total at the end
+                    fputcsv($file, []);
+                    $grandTotalRow = array_fill(0, 24, '');
+                    $grandTotalRow[24] = '>>> GRAND TOTAL <<<';
+                    $grandTotalRow[25] = number_format($overallGrandTotal, 2);
+                    fputcsv($file, $grandTotalRow);
+
+                    fclose($file);
+                    
+                } catch (\Exception $e) {
+                    Log::error('Error in export callback', [
+                        'message' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine()
+                    ]);
+                    throw $e;
+                }
+            };
+
+            return response()->stream($callback, 200, $headers);
+
+        } catch (\Exception $e) {
+            Log::error('Export deliveries failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            abort(500, 'Failed to export: ' . $e->getMessage());
+        }
     }
 
     public function exportDeliveryItemsExcel(Request $request)
     {
-        $deliveryId = $request->query('delivery_id');
-        $delivery = Deliveries::with(['items', 'salesOrder.customer', 'salesOrder.items'])->findOrFail($deliveryId);
+        // Enable error display for debugging
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        error_reporting(E_ALL);
 
-        $filename = 'delivery_' . ($delivery->dr_no ?? 'export') . '_' . now()->format('Y-m-d_H-i-s') . '.csv';
-        
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
-            'Pragma' => 'public',
-        ];
+        try {
+            $deliveryId = $request->query('delivery_id');
 
-        $callback = function () use ($delivery) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+            // Log the request
+            Log::info('Export delivery items started', ['delivery_id' => $deliveryId]);
 
-            // ✅ SINGLE HEADER ROW WITH ALL COLUMNS
-            fputcsv($file, [
-                'DR No',
-                'Sales Order No',
-                'Customer Code',
-                'Customer Name',
-                'Tin',
-                'Branch',
-                'Sales Representative',
-                'Sales Executive',
-                'Plate No',
-                'Sales Invoice No',
-                'PO Number',
-                'Request Delivery Date',
-                'Status',
-                'Approved By',
-                'Additional Instructions',
-                'Date Created',
-                'Item Code',
-                'Item Category',
-                'Brand',
-                'Item Description',
-                'UOM',
-                'SO Qty',
-                'DR Qty',
-                'Variance',
-                'Unit Price',
-                'Total Amount'
-            ]);
-
-            // ✅ PREPARE DELIVERY INFO (reusable for each item row)
-            $deliveryDate = $delivery->request_delivery_date 
-                ? \Carbon\Carbon::parse($delivery->request_delivery_date)->format('m/d/Y')
-                : ($delivery->salesOrder?->request_delivery_date 
-                    ? \Carbon\Carbon::parse($delivery->salesOrder->request_delivery_date)->format('m/d/Y') 
-                    : '—');
-
-            $deliveryInfo = [
-                $delivery->dr_no ?? '—',
-                $delivery->sales_order_number ?? '—',
-                $delivery->customer_code ?? $delivery->salesOrder?->customer_code ?? '—',
-                $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? $delivery->salesOrder?->client_name ?? '—',
-                $delivery->$salesOrder->customer->tin ?? '',
-                $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
-                $delivery->sales_representative ?? $delivery->salesOrder?->sales_representative ?? '—',
-                $delivery->sales_executive ?? $delivery->salesOrder?->sales_executive ?? '—',
-                $delivery->plate_no ?? '—',
-                $delivery->sales_invoice_no ?? '—',
-                $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
-                $deliveryDate,
-                $delivery->status ?? '—',
-                $delivery->approved_by ?? $delivery->salesOrder?->approved_by ?? '—',
-                $delivery->additional_instructions ?? $delivery->salesOrder?->additional_instructions ?? '—',
-                $delivery->created_at ? $delivery->created_at->format('m/d/Y h:i A') : '—'
-            ];
-
-            // ✅ Get SO items for comparison
-            $soItems = $delivery->salesOrder?->items ?? collect();
-            $soItemsMap = $soItems->keyBy('item_code');
-
-            // ✅ EACH ITEM ROW INCLUDES ALL DELIVERY INFO + SO/DR QTY COMPARISON
-            $grandTotal = 0;
-            foreach ($delivery->items as $item) {
-                // ✅ Get corresponding SO item for quantity comparison
-                $soItem = $soItemsMap->get($item->item_code);
-                $soQty = $soItem ? $soItem->quantity : 0;
-                $drQty = $item->quantity ?? 0;
-                $variance = $drQty - $soQty;
-
-                fputcsv($file, array_merge($deliveryInfo, [
-                    $item->item_code ?? '—',
-                    $item->item_category ?? '—',
-                    $item->brand ?? '—',
-                    $item->item_description ?? '—',
-                    $item->uom ?? '—',
-                    number_format($soQty, 2),
-                    number_format($drQty, 2),
-                    ($variance > 0 ? '+' : '') . number_format($variance, 2),
-                    number_format($item->unit_price ?? 0, 2),
-                    number_format($item->total_amount ?? 0, 2),
-                ]));
-                $grandTotal += $item->total_amount ?? 0;
+            if (!$deliveryId) {
+                Log::error('No delivery ID provided');
+                abort(400, 'Delivery ID is required');
             }
 
-            // ✅ GRAND TOTAL ROW
-            fputcsv($file, array_merge(
-                array_fill(0, 14, ''), // 14 empty cells for delivery info columns
-                ['', '', '', '', '', '', '', '', 'GRAND TOTAL:', number_format($grandTotal, 2)]
-            ));
+            // ✅ Find delivery with related items and sales order
+            $delivery = Deliveries::with(['items', 'salesOrder.customer', 'salesOrder.items'])
+                ->find($deliveryId);
 
-            fclose($file);
-        };
+            if (!$delivery) {
+                Log::error('Delivery not found', ['delivery_id' => $deliveryId]);
+                abort(404, 'Delivery not found');
+            }
 
-        return response()->stream($callback, 200, $headers);
-    }                                                                             
+            Log::info('Delivery found', [
+                'delivery_id' => $deliveryId,
+                'items_count' => $delivery->items->count(),
+                'has_sales_order' => $delivery->salesOrder ? 'yes' : 'no'
+            ]);
+
+            $filename = 'delivery_' . ($delivery->dr_no ?? 'export') . '_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+            $headers = [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"$filename\"",
+                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+                'Expires' => '0',
+                'Pragma' => 'public',
+            ];
+
+            $callback = function () use ($delivery) {
+                try {
+                    $file = fopen('php://output', 'w');
+
+                    if ($file === false) {
+                        Log::error('Failed to open output stream');
+                        return;
+                    }
+
+                    // ✅ UTF-8 BOM
+                    fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+                    // Column headers
+                    fputcsv($file, [
+                        'DR No',
+                        'Sales Order No',
+                        'Customer Code',
+                        'Customer Name',
+                        'TIN',
+                        'Branch',
+                        'Sales Representative',
+                        'Sales Executive',
+                        'Plate No',
+                        'Sales Invoice No',
+                        'PO Number',
+                        'Request Delivery Date',
+                        'Status',
+                        'Approved By',
+                        'Additional Instructions',
+                        'Date Created',
+                        'Item Code',
+                        'Item Category',
+                        'Brand',
+                        'Item Description',
+                        'UOM',
+                        'SO Qty',
+                        'DR Qty',
+                        'Variance',
+                        'Unit Price',
+                        'Total Amount'
+                    ]);
+
+                    // Prepare delivery-level info
+                    $deliveryDate = '—';
+                    try {
+                        if ($delivery->request_delivery_date) {
+                            $deliveryDate = \Carbon\Carbon::parse($delivery->request_delivery_date)->format('m/d/Y');
+                        } elseif ($delivery->salesOrder?->request_delivery_date) {
+                            $deliveryDate = \Carbon\Carbon::parse($delivery->salesOrder->request_delivery_date)->format('m/d/Y');
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning('Date parsing failed', ['error' => $e->getMessage()]);
+                    }
+
+                    $deliveryInfo = [
+                        $delivery->dr_no ?? '—',
+                        $delivery->sales_order_number ?? '—',
+                        $delivery->customer_code ?? $delivery->salesOrder?->customer_code ?? '—',
+                        $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? $delivery->salesOrder?->client_name ?? '—',
+                        $delivery->salesOrder?->customer?->tin ?? $delivery->tin ?? '—',
+                        $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
+                        $delivery->sales_representative ?? $delivery->salesOrder?->sales_representative ?? '—',
+                        $delivery->sales_executive ?? $delivery->salesOrder?->sales_executive ?? '—',
+                        $delivery->plate_no ?? '—',
+                        $delivery->sales_invoice_no ?? '—',
+                        $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
+                        $deliveryDate,
+                        $delivery->status ?? '—',
+                        $delivery->approved_by ?? $delivery->salesOrder?->approved_by ?? '—',
+                        $delivery->additional_instructions ?? $delivery->salesOrder?->additional_instructions ?? '—',
+                        $delivery->created_at ? $delivery->created_at->format('m/d/Y h:i A') : '—'
+                    ];
+
+                    // Map SO items by item_code for comparison
+                    $soItemsMap = collect();
+                    if ($delivery->salesOrder && $delivery->salesOrder->items) {
+                        $soItemsMap = $delivery->salesOrder->items->keyBy('item_code');
+                    }
+
+                    $grandTotal = 0;
+
+                    if ($delivery->items && $delivery->items->count() > 0) {
+                        foreach ($delivery->items as $item) {
+                            $soItem = $soItemsMap->get($item->item_code);
+                            $soQty = $soItem?->quantity ?? 0;
+                            $drQty = $item->quantity ?? 0;
+                            $variance = $drQty - $soQty;
+
+                            fputcsv($file, array_merge($deliveryInfo, [
+                                $item->item_code ?? '—',
+                                $item->item_category ?? '—',
+                                $item->brand ?? '—',
+                                $item->item_description ?? '—',
+                                $item->uom ?? '—',
+                                number_format($soQty, 2),
+                                number_format($drQty, 2),
+                                ($variance > 0 ? '+' : '') . number_format($variance, 2),
+                                number_format($item->unit_price ?? 0, 2),
+                                number_format($item->total_amount ?? 0, 2),
+                            ]));
+
+                            $grandTotal += $item->total_amount ?? 0;
+                        }
+
+                        // Add grand total row - Fixed column count
+                        $emptyColumns = array_fill(0, 25, ''); // 16 delivery info + 9 item columns before total
+                        $emptyColumns[24] = 'GRAND TOTAL:';
+                        $emptyColumns[25] = number_format($grandTotal, 2);
+                        fputcsv($file, $emptyColumns);
+                    } else {
+                        // No items - just output delivery info with empty item columns
+                        fputcsv($file, array_merge($deliveryInfo, array_fill(0, 10, '—')));
+                    }
+
+                    fclose($file);
+                    
+                } catch (\Exception $e) {
+                    Log::error('Error in export callback', [
+                        'message' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine()
+                    ]);
+                    throw $e;
+                }
+            };
+
+            return response()->stream($callback, 200, $headers);
+
+        } catch (\Exception $e) {
+            Log::error('Export delivery items failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'delivery_id' => $deliveryId ?? null
+            ]);
+            
+            // Return a proper error response instead of JSON for easier debugging
+            abort(500, 'Failed to export: ' . $e->getMessage());
+        }
+    }                                                              
 }

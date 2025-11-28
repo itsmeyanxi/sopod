@@ -253,4 +253,78 @@ class ItemController extends Controller
 
         return redirect()->back()->with('success', "Item '{$item->item_code}' has been {$status}.");
     }
+
+    public function bulkReject(Request $request)
+    {
+        try {
+            $itemIds = json_decode($request->input('item_ids'), true);
+            $rejectionReason = $request->input('rejection_reason');
+            
+            if (empty($itemIds)) {
+                return redirect()->back()->with('error', 'No items selected');
+            }
+
+            // ✅ Update items to rejected status (correct column name)
+            Item::whereIn('id', $itemIds)->update([
+                'approval_status' => 'rejected',  // ✅ Changed from 'status' to 'approval_status'
+                'rejection_reason' => $rejectionReason,
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+            ]);
+
+            // Log activity
+            Activity::create([
+                'user_name' => auth()->user()->name ?? 'System',
+                'action' => 'Bulk Rejected',
+                'item' => count($itemIds) . ' items',
+                'target' => 'Items',
+                'type' => 'Item',
+                'message' => 'Bulk rejected ' . count($itemIds) . ' items' . ($rejectionReason ? ' | Reason: ' . $rejectionReason : ''),
+            ]);
+
+            return redirect()->back()->with('success', count($itemIds) . ' item(s) rejected successfully!');
+
+        } catch (\Exception $e) {
+            \Log::error('Bulk reject failed', ['error' => $e->getMessage()]);
+            
+            return redirect()->back()->with('error', 'Failed to reject items: ' . $e->getMessage());
+        }
+    }
+
+    // ✅ Add this bulk approve method too
+    public function bulkApprove(Request $request)
+    {
+        try {
+            $itemIds = json_decode($request->input('item_ids'), true);
+            
+            if (empty($itemIds)) {
+                return redirect()->back()->with('error', 'No items selected');
+            }
+
+            // Update items to approved status
+            Item::whereIn('id', $itemIds)->update([
+                'approval_status' => 'approved',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'rejection_reason' => null,
+            ]);
+
+            // Log activity
+            Activity::create([
+                'user_name' => auth()->user()->name ?? 'System',
+                'action' => 'Bulk Approved',
+                'item' => count($itemIds) . ' items',
+                'target' => 'Items',
+                'type' => 'Item',
+                'message' => 'Bulk approved ' . count($itemIds) . ' items',
+            ]);
+
+            return redirect()->back()->with('success', count($itemIds) . ' item(s) approved successfully!');
+
+        } catch (\Exception $e) {
+            \Log::error('Bulk approve failed', ['error' => $e->getMessage()]);
+            
+            return redirect()->back()->with('error', 'Failed to approve items: ' . $e->getMessage());
+        }
+    }
 }

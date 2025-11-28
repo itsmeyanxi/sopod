@@ -1,7 +1,5 @@
 @extends('layouts.app')
-
 @section('title', 'All Recent Activities')
-
 @section('content')
 <div class="max-w-7xl mx-auto bg-gray-800 p-8 rounded-lg shadow-md mt-8">
     <div class="flex justify-between items-center mb-6">
@@ -11,7 +9,6 @@
             ← Back to Dashboard
         </a>
     </div>
-
     @if($recentActivities->isEmpty())
         <p class="text-gray-300">No recent activities found 💤</p>
     @else
@@ -29,12 +26,12 @@
                 <tbody>
                     @foreach($recentActivities as $activity)
                         <tr class="hover:bg-gray-700 border-b border-gray-700">
-                            <td class="px-4 py-2">
+                            <td class="px-4 py-2 whitespace-nowrap">
                                 {{ \Carbon\Carbon::parse($activity->created_at)->format('Y-m-d H:i') }}
                             </td>
                             <td class="px-4 py-2">{{ $activity->message ?? '—' }}</td>
                             <td class="px-4 py-2">
-                                <span class="px-2 py-1 rounded-full text-xs 
+                                <span class="inline-block px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap
                                     {{ $activity->type === 'Customer' ? 'bg-blue-100 text-blue-700' : 
                                        ($activity->type === 'Item' ? 'bg-green-100 text-green-700' :
                                        ($activity->type === 'Sales Order' ? 'bg-yellow-100 text-yellow-700' :
@@ -50,11 +47,9 @@
                 </tbody>
             </table>
         </div>
-
-            <div class="mt-8 flex justify-center pr-2">
+        <div class="mt-8 flex justify-center pr-2">
             {{ $recentActivities->onEachSide(1)->links('vendor.pagination.elegant') }}
         </div>
-
     @endif
 </div>
 @endsection

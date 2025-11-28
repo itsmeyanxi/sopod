@@ -148,14 +148,16 @@
                 </tr>
             </thead>
             <tbody class="bg-gray-900">
-                <tr class="border-b border-gray-800 hover:bg-gray-800">
-                    <td class="px-4 py-2">{{ $delivery->item_code ?? '—' }}</td>
-                    <td class="px-4 py-2">{{ $delivery->item_description ?? '—' }}</td>
-                    <td class="px-4 py-2">{{ number_format($delivery->quantity ?? 0, 2) }}</td>
-                    <td class="px-4 py-2">{{ $delivery->uom ?? '—' }}</td>
-                    <td class="px-4 py-2">₱{{ number_format($delivery->unit_price ?? 0, 2) }}</td>
-                    <td class="px-4 py-2">₱{{ number_format($delivery->amount ?? 0, 2) }}</td>
-                </tr>
+                @foreach($delivery->items as $item)
+<tr class="border-b border-gray-800 hover:bg-gray-800">
+    <td class="px-4 py-2">{{ $item->item_code }}</td>
+    <td class="px-4 py-2">{{ $item->item_description }}</td>
+    <td class="px-4 py-2">{{ number_format($item->quantity, 2) }}</td>
+    <td class="px-4 py-2">{{ $item->uom }}</td>
+    <td class="px-4 py-2">₱{{ number_format($item->unit_price, 2) }}</td>
+    <td class="px-4 py-2">₱{{ number_format($item->total_amount, 2) }}</td>
+</tr>
+@endforeach
             </tbody>
         </table>
 

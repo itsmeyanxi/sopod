@@ -6,7 +6,7 @@
     <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-2">
         <h1 class="text-2xl text-white font-bold">Items List</h1>
         
-        @if(auth()->user()->role === 'accounting_approver')
+        @if(auth()->user()->canApproveItems())
             <a href="{{ route('items.pending') }}" 
                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition">
                 View Pending Approvals
@@ -28,7 +28,7 @@
     @endif
 
     <!-- Search + Add Button -->
-    <div class="flex items-center justify-end gap-4 mb-4">
+    <div class="flex items-center justify-between gap-4 mb-4">
         <input id="itemSearchInput" 
             type="text" 
             placeholder="Search item code / name / brand / category"
@@ -58,7 +58,7 @@
             </thead>
             <tbody>
                 @forelse($items as $item)
-                <tr class="border-b border-gray-700 hover:bg-gray-700 transition">
+                <tr class="border-b border-gray-700 hover:bg-gray-700 transition item-row" data-status="{{ $item->approval_status }}">
                     <td class="px-4 py-3">
                         @if($item->approval_status === 'approved')
                             <span class="bg-green-600 text-white px-2 py-1 rounded text-xs">Approved</span>
@@ -85,8 +85,8 @@
                                 View
                             </a>
 
-                            {{-- Approval Actions (for accounting_approver) --}}
-                            @if(auth()->user()->role === 'accounting_approver' && $item->approval_status === 'pending')
+                            {{-- Approval Actions (for users who can approve) --}}
+                            @if(auth()->user()->canApproveItems() && $item->approval_status === 'pending')
                                 <form action="{{ route('items.approve', $item->id) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit"
@@ -155,7 +155,7 @@
     <div class="mt-4 text-sm text-gray-400 text-left" id="itemCount"></div>
 </div>
 
-<!-- Reject Modal -->
+<!-- Individual Reject Modal -->
 <div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
         <h2 class="text-xl font-bold text-white mb-4">Reject Item</h2>
@@ -191,18 +191,18 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('itemSearchInput');
-    const rows = document.querySelectorAll('#itemsTable tbody tr');
+    const rows = document.querySelectorAll('#itemsTable tbody tr.item-row');
     const countDisplay = document.getElementById('itemCount');
 
     function updateVisibleCount() {
-        const visible = Array.from(rows).filter(r => r.style.display !== 'none' && !r.querySelector('td[colspan]'));
-        countDisplay.textContent = `Showing ${visible.length} item${visible.length !== 1 ? 's' : ''}`;
+        const visible = Array.from(rows).filter(r => r.style.display !== 'none');
+        const pending = visible.filter(r => r.dataset.status === 'pending').length;
+        countDisplay.innerHTML = `Showing ${visible.length} item${visible.length !== 1 ? 's' : ''} ${pending > 0 ? `<span class="text-yellow-400">(${pending} pending)</span>` : ''}`;
     }
 
     searchInput.addEventListener('input', function () {
         const q = this.value.toLowerCase().trim();
         rows.forEach(row => {
-            if (row.querySelector('td[colspan]')) return; // Skip "no items" row
             const txt = row.innerText.toLowerCase();
             row.style.display = txt.includes(q) ? '' : 'none';
         });
@@ -212,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
     updateVisibleCount();
 });
 
+// Individual reject modal
 function openRejectModal(itemId) {
     const modal = document.getElementById('rejectModal');
     const form = document.getElementById('rejectForm');

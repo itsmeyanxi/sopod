@@ -114,6 +114,43 @@
         }
     </style>
 
+        @if($type === 'sales_orders' && !$report)
+<div class="bg-gray-800 p-4 rounded-lg mb-5 border border-gray-700">
+
+    <h2 class="text-xl font-semibold mb-3">Search Sales Order Range</h2>
+
+    <form method="GET" action="{{ route('records.index') }}" class="flex items-end gap-4">
+        <input type="hidden" name="type" value="sales_orders">
+
+        <div>
+            <label class="text-gray-300 text-sm">From SO #</label>
+            <input type="text" name="from" value="{{ request('from') }}"
+                placeholder="SO-0010"
+                class="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 w-40">
+        </div>
+
+        <div>
+            <label class="text-gray-300 text-sm">To SO #</label>
+            <input type="text" name="to" value="{{ request('to') }}"
+                placeholder="SO-0020"
+                class="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 w-40">
+        </div>
+
+        <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white font-medium">
+            Filter
+        </button>
+    </form>
+
+    <form method="POST" action="{{ route('records.batchPrintSO') }}" id="batchPrintForm" class="mt-4">
+    @csrf
+    <button type="submit"
+        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium">
+        Batch Print Selected
+    </button>
+</form>
+@endif
+
+
     <!-- ====================== -->
     <!-- 📄 TABLE SECTION -->
     <!-- ====================== -->
@@ -142,7 +179,9 @@
                         <th class="px-4 py-2">Total Amount</th>
 
                     @else
-                        <th class="px-4 py-2">#</th>
+                        <th class="px-4 py-2">
+                        <input type="checkbox" id="selectAll" class="w-4 h-4">
+                        </th>
                         <th class="px-4 py-2">Customer</th>
                         <th class="px-4 py-2">Branch</th>
                         <th class="px-4 py-2">Item Description</th>
@@ -189,9 +228,9 @@
                         {{-- ===================== DEFAULT TABLE ===================== --}}
                         @else
                             <td class="px-4 py-2">
-                                {{ $type === 'deliveries' ? $record->dr_no : $record->sales_order_number }}
+                            <input type="checkbox" name="sales_orders[]" value="{{ $record->id }}" form="batchPrintForm" class="w-4 h-4">
+                            {{ $type === 'deliveries' ? $record->dr_no : $record->sales_order_number }}
                             </td>
-
                             <td class="px-4 py-2">{{ $so->customer_name }}</td>
                             <td class="px-4 py-2">{{ $so->branch }}</td>
                             <td class="px-4 py-2">{{ $so->item_description }}</td>
@@ -243,5 +282,12 @@
         </p>
     @endif
 
+    <script>
+document.getElementById('selectAll')?.addEventListener('change', function() {
+    document.querySelectorAll('input[name="sales_orders[]"]').forEach(cb => {
+        cb.checked = this.checked;
+    });
+});
+</script>
 </div>
 @endsection

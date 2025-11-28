@@ -31,7 +31,7 @@ class DeliveryItem extends Model
 
     public function delivery()
     {
-        return $this->belongsTo(Deliveries::class, 'delivery_id');
+        return $this->belongsTo(Deliveries::class, 'delivery_id', 'id');
     }
 
     // ✅ ADD THIS RELATIONSHIP - THIS IS WHAT'S MISSING!

@@ -98,38 +98,36 @@
         </div>
         <!-- ================= END CUSTOMER DETAILS ================= -->
 
-<!-- ================= ORDER DETAILS SECTION ================= -->
-<div class="bg-gray-800 p-6 rounded-lg mb-8">
-    <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-1">Order Details</h2>
-    <div class="grid grid-cols-2 gap-4">
-        <div>
-            <label class="block text-sm">Request Delivery Date <span class="text-red-500">*</span></label>
-            <input type="date" id="request_delivery_date" name="request_delivery_date" required
-                class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
-        </div>
+        <!-- ================= ORDER DETAILS SECTION ================= -->
+        <div class="bg-gray-800 p-6 rounded-lg mb-8">
+            <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-1">Order Details</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm">Request Delivery Date <span class="text-red-500">*</span></label>
+                    <input type="date" id="request_delivery_date" name="request_delivery_date" required
+                        class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
+                </div>
 
-        <div>
-            <label class="block text-sm">PO Reference No <span class="text-red-500">*</span></label>
-            <input type="text" id="po_reference_no" name="po_reference_no" required
-                class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
-        </div>
+                <div>
+                    <label class="block text-sm">PO Reference No <span class="text-red-500">*</span></label>
+                    <input type="text" id="po_reference_no" name="po_reference_no" required
+                        class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
+                </div>
 
-        <div>
-            <label class="block text-sm">Sales Representative <span class="text-red-500">*</span></label>
-            <input type="text" id="sales_representative" name="sales_representative" required
-                class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
-        </div>
+                <div>
+                    <label class="block text-sm">Sales Representative <span class="text-red-500">*</span></label>
+                    <input type="text" id="sales_representative" name="sales_representative" required
+                        class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
+                </div>
 
-        <!-- 🏢 Branch Field -->
-        <div>
-            <label class="block text-sm">Branch <span class="text-red-500">*</span></label>
-            <input type="text" id="branch" name="branch" required
-                class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500">
+                <div>
+                    <label class="block text-sm">Branch <span class="text-red-500">*</span></label>
+                    <input type="text" id="branch" name="branch" required
+                        class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-<!-- ================= END ORDER DETAILS ================= -->
-
+        <!-- ================= END ORDER DETAILS ================= -->
 
         <!-- ================= ITEM TABLE ================= -->
         <div class="bg-gray-900 text-white p-6 rounded-xl mt-8">
@@ -141,6 +139,7 @@
                         <tr>
                             <th class="px-3 py-2 border border-gray-700">Item Description</th>
                             <th class="px-3 py-2 border border-gray-700">Item Code</th>
+                            <th class="px-3 py-2 border border-gray-700">Item Category</th>
                             <th class="px-3 py-2 border border-gray-700">Brand</th>
                             <th class="px-3 py-2 border border-gray-700">Quantity</th>
                             <th class="px-3 py-2 border border-gray-700">UOM (kgs)</th>
@@ -160,12 +159,12 @@
                                         @if($item->is_enabled && $item->approval_status === 'approved')
                                             <option 
                                                 value="{{ $item->id }}" 
-                                                data-code="{{ $item->item_code }}" 
-                                                data-brand="{{ $item->brand }}" 
                                                 data-description="{{ $item->item_description }}"
-                                                data-category="{{ $item->item_category }}"
+                                                data-code="{{ $item->item_code }}" 
+                                                data-category="{{ $item->item_category }}" 
+                                                data-brand="{{ $item->brand }}" 
                                                 data-price="{{ $item->unit_price }}">
-                                                    {{ $item->item_description ?? '' }} 
+                                                   {{ $item->item_description ?? '' }}  -  {{ $item->brand ?? '' }}     
                                             </option>
                                         @endif
                                     @endforeach
@@ -173,14 +172,17 @@
                                 <!-- Hidden fields for item details -->
                                 <input type="hidden" name="items[0][item_description]" class="item-description-hidden">
                                 <input type="hidden" name="items[0][item_code]" class="item-code-hidden">
-                                <input type="hidden" name="items[0][brand]" class="item-brand-hidden">
                                 <input type="hidden" name="items[0][item_category]" class="item-category-hidden">
+                                <input type="hidden" name="items[0][brand]" class="item-brand-hidden">
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
-                                <input type="text" name="items[0][code]" class="item-code w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-400" readonly>
+                                <input type="text" name="items[0][code_display]" class="item-code w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-400" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
-                                <input type="text" name="items[0][brand]" class="item-brand w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-400" readonly>
+                                <input type="text" name="items[0][category_display]" class="item-category w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-400" readonly>
+                            </td>
+                            <td class="px-2 py-2 border border-gray-700">
+                                <input type="text" name="items[0][brand_display]" class="item-brand w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-400" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
                                 <input type="number" name="items[0][quantity]" class="item-quantity w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-white" min="0.01" step="0.01" required>
@@ -225,7 +227,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-// ✅ Show SUCCESS popup after sales order created
 @if(session('success'))
     Swal.fire({
         icon: 'success',
@@ -236,7 +237,6 @@
     });
 @endif
 
-// Show error message if validation fails or other errors
 @if(session('error'))
     Swal.fire({
         icon: 'error',
@@ -331,29 +331,32 @@ document.addEventListener('DOMContentLoaded', function () {
                     required>
                     <option value="">-- Select Item --</option>
                     @foreach($items as $item)
-                        <option 
-                            value="{{ $item->id }}" 
-                            data-code="{{ $item->item_code }}" 
-                            data-brand="{{ $item->brand }}" 
-                            data-description="{{ $item->item_description }}"
-                            data-category="{{ $item->item_category }}"
-                            data-price="{{ $item->unit_price }}">
-                                {{ $item->item_description ?? '' }} 
-                        </option>
+                        @if($item->is_enabled && $item->approval_status === 'approved')
+                            <option 
+                                value="{{ $item->id }}" 
+                                data-description="{{ $item->item_description }}"
+                                data-code="{{ $item->item_code }}" 
+                                data-category="{{ $item->item_category }}" 
+                                data-brand="{{ $item->brand }}" 
+                                data-price="{{ $item->unit_price }}">
+                                   {{ $item->item_description ?? '' }} -  {{ $item->brand ?? '' }} 
+                            </option>
+                        @endif
                     @endforeach
                 </select>
-            </td>
-            <td class="border border-gray-700 px-2 py-1" style="display:none;">
                 <input type="hidden" name="items[${rowCount}][item_description]" class="item-description-hidden">
                 <input type="hidden" name="items[${rowCount}][item_code]" class="item-code-hidden">
-                <input type="hidden" name="items[${rowCount}][brand]" class="item-brand-hidden">
                 <input type="hidden" name="items[${rowCount}][item_category]" class="item-category-hidden">
+                <input type="hidden" name="items[${rowCount}][brand]" class="item-brand-hidden">
             </td>
             <td class="border border-gray-700 px-2 py-1">
-                <input type="text" name="items[${rowCount}][code]" class="item-code w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-400" readonly>
+                <input type="text" name="items[${rowCount}][code_display]" class="item-code w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-400" readonly>
             </td>
             <td class="border border-gray-700 px-2 py-1">
-                <input type="text" name="items[${rowCount}][brand]" class="item-brand w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-400" readonly>
+                <input type="text" name="items[${rowCount}][category_display]" class="item-category w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-400" readonly>
+            </td>
+            <td class="border border-gray-700 px-2 py-1">
+                <input type="text" name="items[${rowCount}][brand_display]" class="item-brand w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-400" readonly>
             </td>
             <td class="border border-gray-700 px-2 py-1">
                 <input type="number" name="items[${rowCount}][quantity]" class="item-quantity w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-white" min="0.01" step="0.01" required>
@@ -390,78 +393,31 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================= ITEM AUTOFILL + CALCULATION ================= 
     const table = document.getElementById('itemsTable');
 
-    // Use event delegation on tbody instead of table
     table.querySelector('tbody').addEventListener('change', function(e) {
         if (e.target.classList.contains('item-description')) {
-            console.log('🔥 Item dropdown changed!'); // First check if this fires
-            
             const selected = e.target.options[e.target.selectedIndex];
             const row = e.target.closest('tr');
 
-            console.log('Selected option:', selected);
-            console.log('Selected option value:', e.target.value);
-
             const description = selected.getAttribute('data-description') || '';
             const code = selected.getAttribute('data-code') || '';
-            const brand = selected.getAttribute('data-brand') || '';
             const category = selected.getAttribute('data-category') || '';
+            const brand = selected.getAttribute('data-brand') || '';
             const price = selected.getAttribute('data-price') || '';
 
-            console.log('Raw data attributes:', {
-                description: selected.getAttribute('data-description'),
-                code: selected.getAttribute('data-code'),
-                brand: selected.getAttribute('data-brand'),
-                category: selected.getAttribute('data-category'),
-                price: selected.getAttribute('data-price')
-            });
-
-            // Store all data in hidden fields
-            const hiddenDesc = row.querySelector('.item-description-hidden');
-            const hiddenCode = row.querySelector('.item-code-hidden');
-            const hiddenBrand = row.querySelector('.item-brand-hidden');
-            const hiddenCategory = row.querySelector('.item-category-hidden');
+            // Store in hidden fields
+            row.querySelector('.item-description-hidden').value = description;
+            row.querySelector('.item-code-hidden').value = code;
+            row.querySelector('.item-category-hidden').value = category;
+            row.querySelector('.item-brand-hidden').value = brand;
             
-            console.log('Found hidden fields:', {
-                desc: !!hiddenDesc,
-                code: !!hiddenCode,
-                brand: !!hiddenBrand,
-                category: !!hiddenCategory
-            });
-            
-            if (hiddenDesc) {
-                hiddenDesc.value = description;
-                console.log('✅ Set description hidden field to:', hiddenDesc.value);
-            } else {
-                console.error('❌ Hidden description field not found!');
-            }
-            if (hiddenCode) {
-                hiddenCode.value = code;
-                console.log('✅ Set code hidden field to:', hiddenCode.value);
-            } else {
-                console.error('❌ Hidden code field not found!');
-            }
-            if (hiddenBrand) {
-                hiddenBrand.value = brand;
-                console.log('✅ Set brand hidden field to:', hiddenBrand.value);
-            } else {
-                console.error('❌ Hidden brand field not found!');
-            }
-            if (hiddenCategory) {
-                hiddenCategory.value = category;
-                console.log('✅ Set category hidden field to:', hiddenCategory.value);
-            } else {
-                console.error('❌ Hidden category field not found!');
-            }
-            
-            // Update visible fields
+            // Update visible readonly fields
             row.querySelector('.item-code').value = code;
+            row.querySelector('.item-category').value = category;
             row.querySelector('.item-brand').value = brand;
             row.querySelector('.item-price').value = price;
 
             const qty = parseFloat(row.querySelector('.item-quantity').value) || 0;
             row.querySelector('.item-amount').value = (qty * parseFloat(price)).toFixed(2);
-            
-            console.log('✅ Item data saved:', {description, code, brand, category}); // Debug log
         }
     });
 

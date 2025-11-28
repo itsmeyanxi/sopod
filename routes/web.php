@@ -22,16 +22,21 @@ use App\Http\Controllers\{
     // ===================== AUTHENTICATED ROUTES =====================
     Route::middleware(['auth'])->group(function () {
 
-    // ===================== IMPORTS =======================
-    // Customer Import Routes
-    Route::get('/import/customers', [App\Http\Controllers\ImportController::class, 'showCustomersForm'])->name('import.customers');
-    Route::post('/import/customers', [App\Http\Controllers\ImportController::class, 'importCustomers'])->name('import.customers.store');
-    Route::get('/import/customers/template', [App\Http\Controllers\ImportController::class, 'downloadCustomersTemplate'])->name('import.customers.template');
+    // ===================== BATCH PRINT =====================
+    Route::post('/records/sales-orders/batch-print',
+    [RecordsController::class, 'batchPrintSalesOrders']
+    )->name('records.batchPrintSO');
 
-    // Items Import Routes
-    Route::get('/import/items', [App\Http\Controllers\ImportController::class, 'showItemsForm'])->name('import.items');
-    Route::post('/import/items', [App\Http\Controllers\ImportController::class, 'importItems'])->name('import.items.store');
-    Route::get('/import/items/template', [App\Http\Controllers\ImportController::class, 'downloadItemsTemplate'])->name('import.items.template');
+    // ===================== IMPORTS =======================
+    Route::get('/excel-import', function () {
+        return view('excel.excel-import');  // Changed from 'excel-import' to 'excel.excel-import'
+    })->name('excel.import');
+
+    Route::post('/excel-import/items', [App\Http\Controllers\ExcelImportController::class, 'importItems'])
+        ->name('excel.import.items');
+
+    Route::post('/excel-import/customers', [App\Http\Controllers\ExcelImportController::class, 'importCustomers'])
+        ->name('excel.import.customers');
 
     // ===================== DASHBOARD =====================
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -179,69 +184,90 @@ use App\Http\Controllers\{
 
     // ===================== ITEMS =====================
     Route::prefix('items')->name('items.')->group(function () {
-
+        // ✅ BULK ACTIONS - Place at the top before parameterized routes
+        Route::post('/bulk-approve', [ItemController::class, 'bulkApprove'])->name('bulk-approve');
+        Route::post('/bulk-reject', [ItemController::class, 'bulkReject'])->name('bulk-reject');
+        
         // TOGGLE ENABLE/DISABLE
         Route::post('/{item}/toggle', [ItemController::class, 'toggleStatus'])->name('toggle');
-
+        
         // ✅ Index
         Route::get('/', function () {
-            $user = auth()->user(); if (in_array($user->role, [
+            $user = auth()->user(); 
+            if (in_array($user->role, [
                 'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Creator', 'CC_Approver',
-            ])) {return app(ItemController::class)->index(); }return view('errors.noaccess');
+            ])) {
+                return app(ItemController::class)->index(); 
+            }
+            return view('errors.noaccess');
         })->name('index');
-
+        
         // ✅ Create
         Route::get('/create', function () {
             $user = auth()->user();
             if (in_array($user->role, [
                 'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver','CC_Creator', 'CC_Approver',
-            ])) { return app(ItemController::class)->create();} return view('errors.noaccess');
-         })->name('create');
-
+            ])) { 
+                return app(ItemController::class)->create();
+            } 
+            return view('errors.noaccess');
+        })->name('create');
+        
         // ✅ Store
         Route::post('/', function () {
             $user = auth()->user();
             if (in_array($user->role, [
                 'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
-            ])) {return app(ItemController::class)->store(request()); } return view('errors.noaccess');
+            ])) {
+                return app(ItemController::class)->store(request()); 
+            } 
+            return view('errors.noaccess');
         })->name('store');
-
+        
+        // Item Approval Routes
+        Route::post('/{id}/approve', [ItemController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [ItemController::class, 'reject'])->name('reject');
+        Route::get('/pending', [ItemController::class, 'pending'])->name('pending');
+        
         // ✅ Edit
         Route::get('/{id}/edit', function ($id) {
             $user = auth()->user();
             if (in_array($user->role, [
                 'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
-            ])) {  return app(ItemController::class)->edit($id);}
+            ])) {  
+                return app(ItemController::class)->edit($id);
+            }
             return view('errors.noaccess');
         })->name('edit');
-
+        
         // ✅ Update
         Route::put('/{id}', function ($id) {
             $user = auth()->user();
             if (in_array($user->role, [
                 'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
-            ])) { return app(ItemController::class)->update(request(), $id); }
+            ])) { 
+                return app(ItemController::class)->update(request(), $id); 
+            }
             return view('errors.noaccess');
         })->name('update');
-
-        // Item Approval Routes
-        Route::post('/{id}/approve', [ItemController::class, 'approve'])->name('approve');
-        Route::post('/{id}/reject', [ItemController::class, 'reject'])->name('reject');
-        Route::get('/pending', [ItemController::class, 'pending'])->name('pending');
-
+        
         // ✅ Delete
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT','Accounting_Approver'])) { return app(ItemController::class)->destroy($id); }
+            if (in_array($user->role, ['Admin', 'IT','Accounting_Approver'])) { 
+                return app(ItemController::class)->destroy($id); 
+            }
             return view('errors.noaccess');
         })->name('destroy');
-
-        // ✅ Show
+        
+        // ✅ Show - Must be LAST to avoid conflicts
         Route::get('/{id}', function ($id) {
             $user = auth()->user();
             if (in_array($user->role, [
                 'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver',  'CC_Creator', 'CC_Approver'
-            ])) {return app(ItemController::class)->show($id);}
+            ])) {
+                return app(ItemController::class)->show($id);
+            }
             return view('errors.noaccess');
         })->name('show');
     });
@@ -337,7 +363,7 @@ Route::prefix('customers')->name('customers.')->group(function () {
     // ===================== DELIVERIES =====================
     Route::prefix('deliveries')->name('deliveries.')->group(function () {
         
-       // PRINT ROUTES (must be first to avoid conflicts)
+        // PRINT ROUTES (must be first to avoid conflicts)
         Route::get('/print-list', function() {
             if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
                 return app(DeliveriesController::class)->printList(request());
@@ -345,7 +371,7 @@ Route::prefix('customers')->name('customers.')->group(function () {
             return view('errors.noaccess');
         })->name('printList');
 
-        //  EXCEL EXPORT 
+        // EXCEL EXPORT (LIST)
         Route::get('/export-excel', function() {
             if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
                 return app(DeliveriesController::class)->exportExcel(request());
@@ -353,7 +379,13 @@ Route::prefix('customers')->name('customers.')->group(function () {
             return view('errors.noaccess');
         })->name('exportExcel');
 
-        Route::get('/export-items', [DeliveriesController::class, 'exportDeliveryItemsExcel'])->name('exportDeliveryItemsExcel');
+        // ✅ FIXED: EXCEL EXPORT (SINGLE DELIVERY WITH ITEMS)
+        Route::get('/export-items', function() {
+            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(DeliveriesController::class)->exportDeliveryItemsExcel(request());
+            }
+            return view('errors.noaccess');
+        })->name('exportDeliveryItemsExcel');
         
         // DELIVERIES LIST PAGE (for deliveries.deliveries view)
         Route::get('/list', function() {
@@ -362,7 +394,6 @@ Route::prefix('customers')->name('customers.')->group(function () {
             }
             return view('errors.noaccess');
         })->name('deliveries');
-        
         
         // SEARCH
         Route::get('/search', [DeliveriesController::class, 'search'])->name('search');

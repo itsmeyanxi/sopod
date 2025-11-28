@@ -114,12 +114,16 @@
             </div>
         </div>
 
-        
+    <a href="{{ route('records.index') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+        <span>📁</span>
+        <span class="sidebar-text">Records</span>
+    </a>
 
-        <a href="{{ route('records.index') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
-    <span>📁</span>
-    <span class="sidebar-text">Records</span>
-</a>
+    <!-- Excel Import -->
+    <a href="{{ route('excel.import') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+        <span>📊</span>
+        <span class="sidebar-text">Excel Import</span>
+    </a>
     </nav>
 </div>
 
@@ -164,7 +168,7 @@
                         <p class="text-xs text-gray-600">{{ Auth::user()->role }}</p>
                     </div>
                     <div>
-                       <a href="http://localhost:8080/dolibarr/public/ticket/index.php?entity=1" target="_blank"> 
+                       <a href="http://mtcresolveit.meatplus.ph/public/ticket/index.php?entity=1" target="_blank"> 
                         <button id="reports" class="w-full text-left px-4 py-2 hover:bg-gray-100">Reports</button></a>
                     </div>
                     <form method="POST" action="{{ route('logout') }}">

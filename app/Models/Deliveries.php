@@ -48,7 +48,7 @@ class Deliveries extends Model
 
     public function items()
     {
-        return $this->hasMany(DeliveryItem::class, 'delivery_id');
+        return $this->hasMany(DeliveryItem::class, 'delivery_id', 'id');
     }
 
     /**

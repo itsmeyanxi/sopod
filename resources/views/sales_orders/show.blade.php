@@ -68,8 +68,8 @@
         <table class="w-full border border-gray-700 rounded-lg overflow-hidden text-gray-200">
             <thead class="bg-gray-700 text-gray-300">
                 <tr>
-                    <th class="px-3 py-2 text-left">Name</th>
                     <th class="px-3 py-2 text-left">Description</th>
+                    <th class="px-3 py-2 text-left">Category</th>
                     <th class="px-3 py-2 text-left">Brand</th>
                     <th class="px-3 py-2 text-right">Quantity</th>
                     <th class="px-3 py-2 text-right">Unit Price</th>
@@ -80,6 +80,7 @@
                 @forelse($salesOrder->items as $item)
                     <tr class="border-b border-gray-700 hover:bg-gray-700/40">
                         <td class="px-3 py-2">{{ $item->item_description ?: ($item->item->item_description ?? '') }}</td>
+                        <td class="px-3 py-2">{{ $item->item_category ?: ($item->item->item_category ?? '') }}</td>
                         <td class="px-3 py-2">{{ $item->brand ?? '—' }}</td>
                         <td class="px-3 py-2 text-right">{{ $item->quantity }}</td>
                         <td class="px-3 py-2 text-right">₱{{ number_format($item->unit_price, 2) }}</td>
