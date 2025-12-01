@@ -42,11 +42,37 @@
         @endif
     </div>
 
+    <!-- Bulk Actions Bar (only shown when items are selected) -->
+    @if(auth()->user()->canApproveItems())
+    <div id="bulkActionsBar" class="hidden bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-4 mb-4 shadow-lg">
+        <div class="flex items-center justify-between">
+            <span id="selectedCount" class="text-white font-semibold">0 items selected</span>
+            <div class="flex gap-3">
+                <button onclick="bulkApprove()" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition font-medium">
+                    Approve Selected
+                </button>
+                <button onclick="clearSelection()" 
+                    class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition">
+                    Clear Selection
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Items Table -->
     <div class="bg-gray-800 rounded-xl shadow-md overflow-x-auto">
         <table id="itemsTable" class="w-full text-sm">
             <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                 <tr>
+                    @if(auth()->user()->canApproveItems())
+                    <th class="px-4 py-3 text-center w-12">
+                        <input type="checkbox" id="selectAll" 
+                            class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer"
+                            title="Select All">
+                    </th>
+                    @endif
                     <th class="px-4 py-3 text-left">Approval Status</th>
                     <th class="px-4 py-3 text-left">Visibility Status</th>
                     <th class="px-4 py-3 text-left">Item Code</th>
@@ -59,6 +85,16 @@
             <tbody>
                 @forelse($items as $item)
                 <tr class="border-b border-gray-700 hover:bg-gray-700 transition item-row" data-status="{{ $item->approval_status }}">
+                    @if(auth()->user()->canApproveItems())
+                    <td class="px-4 py-3 text-center">
+                        @if($item->approval_status === 'pending')
+                        <input type="checkbox" 
+                            class="item-checkbox w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer" 
+                            value="{{ $item->id }}"
+                            data-item-code="{{ $item->item_code }}">
+                        @endif
+                    </td>
+                    @endif
                     <td class="px-4 py-3">
                         @if($item->approval_status === 'approved')
                             <span class="bg-green-600 text-white px-2 py-1 rounded text-xs">Approved</span>
@@ -84,24 +120,6 @@
                                class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs">
                                 View
                             </a>
-
-                            {{-- Approval Actions (for users who can approve) --}}
-                            @if(auth()->user()->canApproveItems() && $item->approval_status === 'pending')
-                                <form action="{{ route('items.approve', $item->id) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit"
-                                        class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs"
-                                        onclick="return confirm('Approve this item?')">
-                                        Approve
-                                    </button>
-                                </form>
-
-                                <button 
-                                    onclick="openRejectModal({{ $item->id }})"
-                                    class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs">
-                                    Reject
-                                </button>
-                            @endif
 
                             {{-- Edit (only for Admin & IT) --}}
                             @if(auth()->user()->canEditItems())
@@ -142,7 +160,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-4 py-6 text-center text-gray-400">
+                    <td colspan="8" class="px-4 py-6 text-center text-gray-400">
                         No items found.
                     </td>
                 </tr>
@@ -187,12 +205,41 @@
     </div>
 </div>
 
+<!-- Bulk Approval Confirmation Modal -->
+<div id="bulkApprovalModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 class="text-xl font-bold text-white mb-4">Confirm Bulk Approval</h2>
+        <p class="text-gray-300 mb-4">Are you sure you want to approve <span id="bulkApprovalCount" class="font-bold text-green-400"></span> item(s)?</p>
+        <div id="bulkItemsList" class="bg-gray-900 rounded p-3 mb-4 max-h-48 overflow-y-auto">
+            <!-- Item codes will be listed here -->
+        </div>
+        <div class="flex justify-end gap-3">
+            <button 
+                type="button" 
+                onclick="closeBulkApprovalModal()"
+                class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-md transition">
+                Cancel
+            </button>
+            <button 
+                type="button" 
+                onclick="confirmBulkApproval()"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition">
+                Confirm Approval
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Scripts -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('itemSearchInput');
     const rows = document.querySelectorAll('#itemsTable tbody tr.item-row');
     const countDisplay = document.getElementById('itemCount');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+    const bulkActionsBar = document.getElementById('bulkActionsBar');
+    const selectedCountSpan = document.getElementById('selectedCount');
 
     function updateVisibleCount() {
         const visible = Array.from(rows).filter(r => r.style.display !== 'none');
@@ -200,6 +247,29 @@ document.addEventListener('DOMContentLoaded', function () {
         countDisplay.innerHTML = `Showing ${visible.length} item${visible.length !== 1 ? 's' : ''} ${pending > 0 ? `<span class="text-yellow-400">(${pending} pending)</span>` : ''}`;
     }
 
+    function updateBulkActionsBar() {
+        const selectedCheckboxes = Array.from(itemCheckboxes).filter(cb => cb.checked);
+        const count = selectedCheckboxes.length;
+        
+        if (count > 0) {
+            bulkActionsBar.classList.remove('hidden');
+            selectedCountSpan.textContent = `${count} item${count !== 1 ? 's' : ''} selected`;
+        } else {
+            bulkActionsBar.classList.add('hidden');
+        }
+
+        // Update "Select All" checkbox state
+        if (selectAllCheckbox) {
+            const visibleCheckboxes = Array.from(itemCheckboxes).filter(cb => cb.offsetParent !== null);
+            const allChecked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(cb => cb.checked);
+            const someChecked = visibleCheckboxes.some(cb => cb.checked);
+            
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = someChecked && !allChecked;
+        }
+    }
+
+    // Search functionality
     searchInput.addEventListener('input', function () {
         const q = this.value.toLowerCase().trim();
         rows.forEach(row => {
@@ -207,10 +277,92 @@ document.addEventListener('DOMContentLoaded', function () {
             row.style.display = txt.includes(q) ? '' : 'none';
         });
         updateVisibleCount();
+        updateBulkActionsBar();
+    });
+
+    // Select All functionality
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function () {
+            const visibleCheckboxes = Array.from(itemCheckboxes).filter(cb => cb.offsetParent !== null);
+            visibleCheckboxes.forEach(cb => {
+                cb.checked = this.checked;
+            });
+            updateBulkActionsBar();
+        });
+    }
+
+    // Individual checkbox change
+    itemCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActionsBar);
     });
 
     updateVisibleCount();
 });
+
+// Clear selection
+function clearSelection() {
+    document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = false);
+    if (document.getElementById('selectAll')) {
+        document.getElementById('selectAll').checked = false;
+        document.getElementById('selectAll').indeterminate = false;
+    }
+    document.getElementById('bulkActionsBar').classList.add('hidden');
+}
+
+// Bulk approve
+function bulkApprove() {
+    const selectedCheckboxes = Array.from(document.querySelectorAll('.item-checkbox:checked'));
+    
+    if (selectedCheckboxes.length === 0) {
+        alert('Please select at least one item to approve.');
+        return;
+    }
+
+    // Show confirmation modal with item details
+    const modal = document.getElementById('bulkApprovalModal');
+    const countSpan = document.getElementById('bulkApprovalCount');
+    const itemsList = document.getElementById('bulkItemsList');
+    
+    countSpan.textContent = selectedCheckboxes.length;
+    
+    // Build list of items
+    itemsList.innerHTML = selectedCheckboxes.map(cb => 
+        `<div class="text-sm text-gray-300 py-1">• ${cb.dataset.itemCode}</div>`
+    ).join('');
+    
+    modal.classList.remove('hidden');
+}
+
+function closeBulkApprovalModal() {
+    document.getElementById('bulkApprovalModal').classList.add('hidden');
+}
+
+function confirmBulkApproval() {
+    const selectedCheckboxes = Array.from(document.querySelectorAll('.item-checkbox:checked'));
+    const itemIds = selectedCheckboxes.map(cb => cb.value);
+    
+    // Create a form and submit
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ route("items.bulk-approve") }}';
+    
+    // Add CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = '{{ csrf_token() }}';
+    form.appendChild(csrfInput);
+    
+    // Add item IDs as JSON string (matching your backend expectation)
+    const itemIdsInput = document.createElement('input');
+    itemIdsInput.type = 'hidden';
+    itemIdsInput.name = 'item_ids';
+    itemIdsInput.value = JSON.stringify(itemIds);
+    form.appendChild(itemIdsInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
 
 // Individual reject modal
 function openRejectModal(itemId) {

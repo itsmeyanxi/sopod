@@ -45,8 +45,8 @@
 
             <div>
                 <label class="block text-sm mb-1 text-gray-300">Sales Representative</label>
-                <input type="text" name="sales_representative" 
-                    value="{{ old('sales_representative', $salesOrder->sales_representative) }}"
+                <input type="text" name="sales_rep" 
+                    value="{{ old('sales_rep', $salesOrder->sales_rep) }}"
                     class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2">
             </div>
         </div>

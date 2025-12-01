@@ -4,14 +4,12 @@
 <div class="p-6 bg-gray-900 min-h-screen text-gray-200">
     <h1 class="text-2xl font-bold mb-6">Create Customer</h1>
 
-    {{-- ✅ Success message --}}
     @if(session('success'))
         <div class="bg-green-600 text-white p-3 rounded mb-4">
             {{ session('success') }}
         </div>
     @endif
 
-    {{-- ❌ Validation errors --}}
     @if ($errors->any())
         <div class="bg-red-700 text-white p-3 rounded mb-4">
             <ul class="list-disc ml-5">
@@ -22,12 +20,10 @@
         </div>
     @endif
 
-    <!-- 💠 Form Container -->
     <div class="bg-gray-800/90 border border-gray-700 p-6 rounded-xl shadow-lg max-w-3xl mx-auto">
         <form action="{{ route('customers.store') }}" method="POST">
             @csrf
 
-            {{-- 🔹 Customer Code (manual) --}}
             <div class="mb-5">
                 <label class="block text-sm font-medium text-gray-300 mb-1">Customer Code <span class="text-red-400">*</span></label>
                 <input 
@@ -39,7 +35,6 @@
                 >
             </div>
 
-            {{-- 🔹 Customer Name --}}
             <div class="mb-5">
                 <label class="block text-sm font-medium text-gray-300 mb-1">Customer Name <span class="text-red-400">*</span></label>
                 <input 
@@ -51,30 +46,26 @@
                 >
             </div>
 
-            {{-- 🔹Branch --}}
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-300 mb-1">Branch <span class="text-red-400">*</span></label>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Branch</label>
                 <input 
                     type="text" 
                     name="branch" 
                     class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                    placeholder="Enter Branch" 
-                    required
+                    placeholder="Enter Branch"
                 >
             </div>
 
-            {{-- 🔹 Sales Executive --}}
-           <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-300 mb-1">Sales Executive</label>
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-300 mb-1">Sales Representative</label>
                 <input 
                     type="text" 
-                    name="sales_executive" 
+                    name="sales_rep" 
                     class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
                     placeholder="Enter Sales Executive Name"
                 >
             </div>
 
-            {{-- 🔹 Business Style --}}
             <div class="mb-5">
                 <label class="block text-sm font-medium text-gray-300 mb-1">Business Style</label>
                 <input 
@@ -85,7 +76,6 @@
                 >
             </div>
 
-            {{-- 🔹 Billing Address --}}
             <div class="mb-5">
                 <label class="block text-sm font-medium text-gray-300 mb-1">Billing Address</label>
                 <textarea 
@@ -96,18 +86,16 @@
                 ></textarea>
             </div>
 
-            {{-- 🔹 TIN --}}
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-300 mb-1">TIN</label>
+                <label class="block text-sm font-medium text-gray-300 mb-1">TIN No</label>
                 <input 
                     type="text" 
-                    name="tin" 
+                    name="tin_no" 
                     class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
                     placeholder="Enter TIN"
                 >
             </div>
 
-            {{-- 🔹 Shipping Address --}}
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-300 mb-1">Shipping Address</label>
                 <textarea 
@@ -118,7 +106,6 @@
                 ></textarea>
             </div>
 
-            {{-- 🔘 Buttons --}}
             <div class="flex justify-end gap-3">
                 <a href="{{ route('customers.index') }}" 
                    class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-md transition">

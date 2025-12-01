@@ -73,8 +73,8 @@
             </div>
 
             <div class="mt-4">
-                <label for="tin" class="block text-sm font-medium text-gray-300 mb-1">TIN</label>
-                <input type="text" id="tin" name="tin" readonly
+                <label for="tin_no" class="block text-sm font-medium text-gray-300 mb-1">TIN</label>
+                <input type="text" id="tin_no" name="tin_no" readonly
                     class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500" />
             </div>
 
@@ -85,8 +85,8 @@
             </div>
 
             <div class="mb-4">
-                <label for="sales_executive" class="block text-sm font-medium text-gray-300 mb-1">Sales Executive</label>
-                <input type="text" id="sales_executive" name="sales_executive" readonly
+                <label for="sales_rep" class="block text-sm font-medium text-gray-300 mb-1">Sales Representative</label>
+                <input type="text" id="sales_rep" name="sales_rep" readonly
                   class=" w-full bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500">
             </div>
 
@@ -115,8 +115,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm">Sales Representative <span class="text-red-500">*</span></label>
-                    <input type="text" id="sales_representative" name="sales_representative" required
+                    <label class="block text-sm">Sales Executive <span class="text-red-500">*</span></label>
+                    <input type="text" id="sales_executive" name="sales_executive" required
                         class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
                 </div>
 
@@ -130,14 +130,14 @@
         <!-- ================= END ORDER DETAILS ================= -->
 
         <!-- ================= ITEM TABLE ================= -->
-        <div class="bg-gray-900 text-white p-6 rounded-xl mt-8">
+        <div class="bg-gray-900 text-white p-6 rounded-xl mt-8" style="overflow: visible;">
             <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">Items <span class="text-red-500">*</span></h2>
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full border border-gray-700 rounded-lg text-left" id="itemsTable">
+            <div style="overflow: visible; position: relative;">
+                <table class="min-w-full border border-gray-700 rounded-lg text-left" id="itemsTable" style="position: relative;">
                     <thead class="bg-gray-800 text-gray-300">
                         <tr>
-                            <th class="px-3 py-2 border border-gray-700">Item Description</th>
+                            <th class="px-3 py-2 border border-gray-700" style="position: relative;">Item Description</th>
                             <th class="px-3 py-2 border border-gray-700">Item Code</th>
                             <th class="px-3 py-2 border border-gray-700">Item Category</th>
                             <th class="px-3 py-2 border border-gray-700">Brand</th>
@@ -149,27 +149,46 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="px-2 py-2 border border-gray-700">
-                                <select 
-                                    name="items[0][item_id]" 
-                                    class="item-description w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-white"
-                                    required>
-                                   <option value="">-- Select Item --</option>
-                                    @foreach($items as $item)
-                                        @if($item->is_enabled && $item->approval_status === 'approved')
-                                            <option 
-                                                value="{{ $item->id }}" 
-                                                data-description="{{ $item->item_description }}"
-                                                data-code="{{ $item->item_code }}" 
-                                                data-category="{{ $item->item_category }}" 
-                                                data-brand="{{ $item->brand }}" 
-                                                data-price="{{ $item->unit_price }}">
-                                                   {{ $item->item_description ?? '' }}  -  {{ $item->brand ?? '' }}     
-                                            </option>
-                                        @endif
-                                    @endforeach
-                                </select>
+                            <td class="px-2 py-2 border border-gray-700" style="position: relative; overflow: visible;">
+                                <div class="relative item-search-container" style="position: relative;">
+                                    <div class="relative">
+                                        <input 
+                                            type="text" 
+                                            class="item-search w-full bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 pr-10 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
+                                            placeholder="Type to search items..."
+                                            autocomplete="off">
+                                        <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="item-dropdown absolute z-[9999] w-full bg-gray-800 border-2 border-gray-600 rounded-lg mt-1 shadow-2xl hidden max-h-80 overflow-y-auto" style="position: absolute; left: 0;">
+                                        <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-300 font-semibold border-b border-gray-600">
+                                            Select an item
+                                        </div>
+                                        @foreach($items as $item)
+                                            @if($item->is_enabled && $item->approval_status === 'approved')
+                                                <div 
+                                                    class="item-option px-4 py-3 hover:bg-blue-600 cursor-pointer text-white border-b border-gray-700 last:border-b-0 transition-colors"
+                                                    data-id="{{ $item->id }}"
+                                                    data-description="{{ $item->item_description }}"
+                                                    data-code="{{ $item->item_code }}" 
+                                                    data-category="{{ $item->item_category }}" 
+                                                    data-brand="{{ $item->brand }}" 
+                                                    data-price="{{ $item->unit_price }}"
+                                                    data-search="{{ strtolower($item->item_description . ' ' . $item->item_code . ' ' . $item->item_category . ' ' . $item->brand) }}">
+                                                    <div class="font-semibold text-base mb-1">{{ $item->item_description ?? '' }}</div>
+                                                    <div class="text-sm text-gray-300 flex items-center gap-3">
+                                                        <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">{{ $item->brand ?? '' }}</span>
+                                                        <span class="text-gray-400">{{ $item->item_category ?? '' }}</span>
+                                                        <span class="text-gray-500">Code: {{ $item->item_code ?? '' }}</span>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
                                 <!-- Hidden fields for item details -->
+                                <input type="hidden" name="items[0][item_id]" class="item-id-hidden" required>
                                 <input type="hidden" name="items[0][item_description]" class="item-description-hidden">
                                 <input type="hidden" name="items[0][item_code]" class="item-code-hidden">
                                 <input type="hidden" name="items[0][item_category]" class="item-category-hidden">
@@ -250,6 +269,130 @@
 <!-- ================= SCRIPTS ================= -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Store items data globally for dynamic rows
+    const itemsData = [
+        @foreach($items as $item)
+            @if($item->is_enabled && $item->approval_status === 'approved')
+                {
+                    id: "{{ $item->id }}",
+                    description: "{{ $item->item_description }}",
+                    code: "{{ $item->item_code }}",
+                    category: "{{ $item->item_category }}",
+                    brand: "{{ $item->brand }}",
+                    price: "{{ $item->unit_price }}",
+                    search: "{{ strtolower($item->item_description . ' ' . $item->item_code . ' ' . $item->item_category . ' ' . $item->brand) }}"
+                },
+            @endif
+        @endforeach
+    ];
+
+    // ================= SEARCHABLE DROPDOWN FUNCTIONALITY =================
+    function initializeItemSearch(row) {
+        const searchInput = row.querySelector('.item-search');
+        const dropdown = row.querySelector('.item-dropdown');
+        const allOptions = dropdown.querySelectorAll('.item-option');
+        let originalDropdownHTML = dropdown.innerHTML; // Store original HTML
+
+        // Show dropdown on focus
+        searchInput.addEventListener('focus', function() {
+            dropdown.classList.remove('hidden');
+            if (this.value === '') {
+                filterOptions('');
+            }
+        });
+
+        // Filter options on input
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            // If search is cleared, restore original dropdown
+            if (searchTerm === '') {
+                dropdown.innerHTML = originalDropdownHTML;
+                rebindOptionClicks();
+                dropdown.classList.remove('hidden');
+                return;
+            }
+            
+            filterOptions(searchTerm);
+            dropdown.classList.remove('hidden');
+        });
+
+        // Filter function
+        function filterOptions(searchTerm) {
+            let visibleCount = 0;
+            const options = dropdown.querySelectorAll('.item-option');
+            
+            options.forEach(option => {
+                const searchText = option.getAttribute('data-search');
+                if (searchText.includes(searchTerm)) {
+                    option.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+
+            // Show "no results" message if no items match
+            if (visibleCount === 0) {
+                dropdown.innerHTML = '<div class="px-4 py-8 text-center text-gray-400"><svg class="w-12 h-12 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><div class="font-medium">No items found</div><div class="text-sm mt-1">Try a different search term</div></div>';
+            }
+        }
+
+        // Function to rebind click events after innerHTML change
+        function rebindOptionClicks() {
+            const options = dropdown.querySelectorAll('.item-option');
+            options.forEach(option => {
+                option.addEventListener('click', handleOptionClick);
+            });
+        }
+
+        // Handle option click
+        function handleOptionClick() {
+            const id = this.getAttribute('data-id');
+            const description = this.getAttribute('data-description');
+            const code = this.getAttribute('data-code');
+            const category = this.getAttribute('data-category');
+            const brand = this.getAttribute('data-brand');
+            const price = this.getAttribute('data-price');
+
+            // Set search input value
+            searchInput.value = description + ' - ' + brand;
+
+            // Store in hidden fields
+            row.querySelector('.item-id-hidden').value = id;
+            row.querySelector('.item-description-hidden').value = description;
+            row.querySelector('.item-code-hidden').value = code;
+            row.querySelector('.item-category-hidden').value = category;
+            row.querySelector('.item-brand-hidden').value = brand;
+
+            // Update visible readonly fields
+            row.querySelector('.item-code').value = code;
+            row.querySelector('.item-category').value = category;
+            row.querySelector('.item-brand').value = brand;
+            row.querySelector('.item-price').value = price;
+
+            // Calculate amount
+            const qty = parseFloat(row.querySelector('.item-quantity').value) || 0;
+            row.querySelector('.item-amount').value = (qty * parseFloat(price)).toFixed(2);
+
+            // Hide dropdown
+            dropdown.classList.add('hidden');
+        }
+
+        // Bind initial clicks
+        rebindOptionClicks();
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!row.querySelector('.item-search-container').contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    // Initialize the first row
+    initializeItemSearch(document.querySelector('#itemsTable tbody tr'));
+
     // ================= FORM VALIDATION =================
     window.validateForm = function() {
         const customerCode = document.getElementById('customer_code').value;
@@ -267,11 +410,11 @@ document.addEventListener('DOMContentLoaded', function () {
         let hasValidItem = false;
         
         rows.forEach(row => {
-            const itemSelect = row.querySelector('.item-description');
+            const itemId = row.querySelector('.item-id-hidden').value;
             const qty = row.querySelector('.item-quantity').value;
             const price = row.querySelector('.item-price').value;
             
-            if (itemSelect.value && qty && price && parseFloat(qty) > 0 && parseFloat(price) >= 0) {
+            if (itemId && qty && price && parseFloat(qty) > 0 && parseFloat(price) >= 0) {
                 hasValidItem = true;
             }
         });
@@ -310,9 +453,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('customer_name').value = data.customer_name || '';
                 document.getElementById('business_style').value = data.business_style || '';
                 document.getElementById('billing_address').value = data.billing_address || '';
-                document.getElementById('tin').value = data.tin || '';
+                document.getElementById('tin_no').value = data.tin_no || '';
                 document.getElementById('shipping_address').value = data.shipping_address || '';
-                document.getElementById('sales_executive').value = data.sales_executive || '';
+                document.getElementById('sales_rep').value = data.sales_rep || '';
             })
             .catch(err => console.error(err));
     });
@@ -323,27 +466,47 @@ document.addEventListener('DOMContentLoaded', function () {
         const rowCount = table.querySelectorAll("tr").length;
         const newRow = document.createElement("tr");
 
+        // Build dropdown HTML from items data
+        let dropdownHTML = '<div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-300 font-semibold border-b border-gray-600">Select an item</div>';
+        itemsData.forEach(item => {
+            dropdownHTML += `
+                <div 
+                    class="item-option px-4 py-3 hover:bg-blue-600 cursor-pointer text-white border-b border-gray-700 last:border-b-0 transition-colors"
+                    data-id="${item.id}"
+                    data-description="${item.description}"
+                    data-code="${item.code}" 
+                    data-category="${item.category}" 
+                    data-brand="${item.brand}" 
+                    data-price="${item.price}"
+                    data-search="${item.search}">
+                    <div class="font-semibold text-base mb-1">${item.description}</div>
+                    <div class="text-sm text-gray-300 flex items-center gap-3">
+                        <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">${item.brand}</span>
+                        <span class="text-gray-400">${item.category}</span>
+                        <span class="text-gray-500">Code: ${item.code}</span>
+                    </div>
+                </div>
+            `;
+        });
+
         newRow.innerHTML = `
             <td class="border border-gray-700 px-2 py-1">
-                <select 
-                    name="items[${rowCount}][item_id]" 
-                    class="item-description w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-white"
-                    required>
-                    <option value="">-- Select Item --</option>
-                    @foreach($items as $item)
-                        @if($item->is_enabled && $item->approval_status === 'approved')
-                            <option 
-                                value="{{ $item->id }}" 
-                                data-description="{{ $item->item_description }}"
-                                data-code="{{ $item->item_code }}" 
-                                data-category="{{ $item->item_category }}" 
-                                data-brand="{{ $item->brand }}" 
-                                data-price="{{ $item->unit_price }}">
-                                   {{ $item->item_description ?? '' }} -  {{ $item->brand ?? '' }} 
-                            </option>
-                        @endif
-                    @endforeach
-                </select>
+                <div class="relative item-search-container">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            class="item-search w-full bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 pr-10 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
+                            placeholder="Type to search items..."
+                            autocomplete="off">
+                        <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="item-dropdown absolute z-50 w-full bg-gray-800 border-2 border-gray-600 rounded-lg mt-1 shadow-2xl hidden max-h-80 overflow-y-auto">
+                        ${dropdownHTML}
+                    </div>
+                </div>
+                <input type="hidden" name="items[${rowCount}][item_id]" class="item-id-hidden" required>
                 <input type="hidden" name="items[${rowCount}][item_description]" class="item-description-hidden">
                 <input type="hidden" name="items[${rowCount}][item_code]" class="item-code-hidden">
                 <input type="hidden" name="items[${rowCount}][item_category]" class="item-category-hidden">
@@ -372,6 +535,9 @@ document.addEventListener('DOMContentLoaded', function () {
             </td>
         `;
         table.appendChild(newRow);
+        
+        // Initialize search functionality for the new row
+        initializeItemSearch(newRow);
     });
 
     // ================= REMOVE ROW =================
@@ -390,36 +556,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ================= ITEM AUTOFILL + CALCULATION ================= 
+    // ================= CALCULATION ================= 
     const table = document.getElementById('itemsTable');
-
-    table.querySelector('tbody').addEventListener('change', function(e) {
-        if (e.target.classList.contains('item-description')) {
-            const selected = e.target.options[e.target.selectedIndex];
-            const row = e.target.closest('tr');
-
-            const description = selected.getAttribute('data-description') || '';
-            const code = selected.getAttribute('data-code') || '';
-            const category = selected.getAttribute('data-category') || '';
-            const brand = selected.getAttribute('data-brand') || '';
-            const price = selected.getAttribute('data-price') || '';
-
-            // Store in hidden fields
-            row.querySelector('.item-description-hidden').value = description;
-            row.querySelector('.item-code-hidden').value = code;
-            row.querySelector('.item-category-hidden').value = category;
-            row.querySelector('.item-brand-hidden').value = brand;
-            
-            // Update visible readonly fields
-            row.querySelector('.item-code').value = code;
-            row.querySelector('.item-category').value = category;
-            row.querySelector('.item-brand').value = brand;
-            row.querySelector('.item-price').value = price;
-
-            const qty = parseFloat(row.querySelector('.item-quantity').value) || 0;
-            row.querySelector('.item-amount').value = (qty * parseFloat(price)).toFixed(2);
-        }
-    });
 
     table.addEventListener('input', function(e) {
         if (e.target.classList.contains('item-quantity') || e.target.classList.contains('item-price')) {

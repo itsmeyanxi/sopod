@@ -12,13 +12,29 @@ class Customer extends Model
     protected $fillable = [
         'customer_code',
         'customer_name',
-        'sales_executive',
         'business_style',
         'billing_address',
         'branch',
-        'tin',
+        'tin_no',
         'shipping_address',
         'status',
+        'customer_group', 
+        'customer_type',
+        'currency', 
+        'telephone_1',
+        'telephone_2', 
+        'mobile', 
+        'email', 
+        'website', 
+        'name_of_contact',
+        'whtrate', 
+        'whtcode',
+        'require_si', 
+        'ar_type', 'tin_no', 
+        'collection_terms',
+        'sales_rep', 
+        'credit_limit', 
+        'assigned_bank'
     ];
 }
 

@@ -24,7 +24,7 @@
 
     {{-- 📅 Date Filter Form --}}
     <div class="bg-gray-800 rounded-lg p-4 mb-4">
-        <form method="GET" action="{{ route('deliveries.index') }}" class="flex gap-3 items-end">
+        <form method="GET" action="{{ route('deliveries.index') }}" class="flex gap-3 items-end flex-wrap">
             <div>
                 <label class="block text-sm text-gray-300 mb-1">Date From</label>
                 <input type="date" name="date_from" value="{{ request('date_from') }}" 
@@ -75,6 +75,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left">DR No</th>
                         <th class="px-4 py-3 text-left">Sales Order</th>
+                        <th class="px-4 py-3 text-left">Batch</th>
                         <th class="px-4 py-3 text-left">Customer</th>
                         <th class="px-4 py-3 text-left">Quantity</th>
                         <th class="px-4 py-3 text-left">Amount</th>
@@ -88,7 +89,24 @@
                         <td class="px-4 py-3">{{ $delivery->dr_no }}</td>
                         <td class="px-4 py-3">{{ $delivery->sales_order_number }}</td>
                         <td class="px-4 py-3">
-                            {{-- ✅ Fixed: Use customer_name from deliveries table first --}}
+                            @if($delivery->delivery_batch)
+                                @php
+                                    $parts = explode('-', $delivery->delivery_batch);
+                                    $dateStr = end($parts);
+                                    try {
+                                        $batchDate = \Carbon\Carbon::parse($dateStr)->format('M d');
+                                    } catch (\Exception $e) {
+                                        $batchDate = $delivery->delivery_batch;
+                                    }
+                                @endphp
+                                <span class="bg-purple-600/30 text-purple-300 px-2 py-1 rounded text-xs">
+                                    📦 {{ $batchDate }}
+                                </span>
+                            @else
+                                <span class="text-gray-500 text-xs">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3">
                             {{ $delivery->customer_name 
                                ?? $delivery->salesOrder?->customer?->customer_name 
                                ?? $delivery->salesOrder?->client_name 
@@ -116,7 +134,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center text-gray-400 py-4">No deliveries found.</td>
+                        <td colspan="8" class="text-center text-gray-400 py-4">No deliveries found.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -166,12 +184,14 @@ searchInput.addEventListener('input', function () {
     rows.forEach(row => {
         const drNo = row.cells[0]?.textContent.toLowerCase().trim() || '';
         const soNo = row.cells[1]?.textContent.toLowerCase().trim() || '';
-        const customer = row.cells[2]?.textContent.toLowerCase().trim() || '';
-        const status = row.cells[5]?.textContent.toLowerCase().trim() || '';
+        const batch = row.cells[2]?.textContent.toLowerCase().trim() || '';
+        const customer = row.cells[3]?.textContent.toLowerCase().trim() || '';
+        const status = row.cells[6]?.textContent.toLowerCase().trim() || '';
 
         const match =
             drNo.includes(q) ||
             soNo.includes(q) ||
+            batch.includes(q) ||
             customer.includes(q) ||
             status.includes(q);
 
@@ -180,6 +200,5 @@ searchInput.addEventListener('input', function () {
 });
 </script>
 
-{{-- ✅ FontAwesome --}}
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 @endsection

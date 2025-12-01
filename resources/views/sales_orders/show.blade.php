@@ -24,6 +24,18 @@
         </div>
     @endif
 
+    @if($salesOrder->status === 'Approved')
+        <a href="{{ route('sales_orders.addItemsForm', $salesOrder->id) }}" 
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-4 inline-block">
+            ➕ Add Items
+        </a>
+        
+        <a href="{{ route('sales_orders.deliveryBatches', $salesOrder->id) }}" 
+        class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded mb-4 inline-block">
+            📦 View Delivery Batches
+        </a>
+    @endif
+
     <!-- Sales Order Info -->
     <div class="bg-gray-800/80 p-6 rounded-xl shadow-lg mb-6 border border-gray-700">
         <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">Sales Order Information</h2>
@@ -32,11 +44,11 @@
                 <p><span class="font-semibold text-gray-300">Sales Order #:</span> {{ $salesOrder->sales_order_number }}</p>
                 <p><span class="font-semibold text-gray-300">Customer:</span> {{ $salesOrder->customer->customer_name ?? 'N/A' }}</p>
                 <p><span class="font-semibold text-gray-300">PO Number:</span> {{ $salesOrder->po_number ?? '—' }}</p>
-                <p><span class="font-semibold text-gray-300">TIN:</span> {{ $salesOrder->customer->tin ?? 'N/A' }}</p>
+                <p><span class="font-semibold text-gray-300">TIN:</span> {{ $salesOrder->customer->tin_no ?? 'N/A' }}</p>
                 <p><span class="font-semibold text-gray-300">Request Delivery Date:</span> {{ $salesOrder->request_delivery_date ?? '—' }}</p>
             </div>
             <div class="space-y-1">
-                <p><span class="font-semibold text-gray-300">Sales Representative:</span> {{ $salesOrder->sales_representative ?? '—' }}</p>
+                <p><span class="font-semibold text-gray-300">Sales Representative:</span> {{ $salesOrder->sales_rep ?? '—' }}</p>
                 <p>
                     <span class="font-semibold text-gray-300">Sales Executive:</span> 
                     {{ $salesOrder->customer->sales_executive ?? $salesOrder->sales_executive ?? '—' }}

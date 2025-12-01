@@ -180,6 +180,32 @@ use App\Http\Controllers\{
             }
             return view('errors.noaccess');
         })->name('show');
+
+            // ✅ Add Items to Approved SO
+    Route::get('/{id}/add-items', function ($id) {
+        $user = auth()->user();
+        if (in_array($user->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator'])) {
+            return app(SalesOrderController::class)->addItemsForm($id);
+        }
+        return view('errors.noaccess');
+    })->name('addItemsForm');
+
+    Route::post('/{id}/add-items', function ($id) {
+        $user = auth()->user();
+        if (in_array($user->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator'])) {
+            return app(SalesOrderController::class)->storeAdditionalItems(request(), $id);
+        }
+        return view('errors.noaccess');
+    })->name('storeAdditionalItems');
+
+    // ✅ View Delivery Batches
+    Route::get('/{id}/delivery-batches', function ($id) {
+        $user = auth()->user();
+        if (in_array($user->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator', 'Delivery_Creator', 'Delivery_Approver'])) {
+            return app(SalesOrderController::class)->viewDeliveryBatches($id);
+        }
+        return view('errors.noaccess');
+    })->name('deliveryBatches');
     });
 
     // ===================== ITEMS =====================

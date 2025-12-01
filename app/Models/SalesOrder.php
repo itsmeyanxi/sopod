@@ -20,7 +20,7 @@ class SalesOrder extends Model
         'request_delivery_date',
         'po_number',
         'branch',
-        'sales_representative',
+        'sales_rep',
         'sales_executive',
         'customer_name',
         'item_description', 

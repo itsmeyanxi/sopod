@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\Customer;
+use App\Models\DeliveryItem;
 use App\Models\Deliveries;
 use App\Models\Item;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ class SalesOrderController extends Controller
                 $q->where('sales_order_number', 'LIKE', "%$keyword%")
                 ->orWhere('status', 'LIKE', "%$keyword%")
                 ->orWhere('po_number', 'LIKE', "%$keyword%")
-                ->orWhere('sales_representative', 'LIKE', "%$keyword%")
+                ->orWhere('sales_rep', 'LIKE', "%$keyword%")  // ✅ CHANGED
                 ->orWhereHas('customer', function ($c) use ($keyword) {
                     $c->where('customer_name', 'LIKE', "%$keyword%");
                 })
@@ -83,7 +84,7 @@ class SalesOrderController extends Controller
             'customer_code' => 'required|exists:customers,customer_code',
             'request_delivery_date' => 'required|date',
             'po_reference_no' => 'required|unique:sales_orders,po_number',
-            'sales_representative' => 'required|string',
+            'sales_rep' => 'required|string',  // ✅ CHANGED from sales_representative
             'items' => 'required|array|min:1',
             'items.*.item_id' => 'required',
             'items.*.quantity' => 'required|numeric|min:0.01',
@@ -100,21 +101,22 @@ class SalesOrderController extends Controller
             $salesOrderNumber = $this->generateSalesOrderNumber();
 
             $items = $request->items;
-            \Log::info('Items Array:', $items);
-            
             $totalAmount = collect($items)->sum(fn($i) => $i['quantity'] * $i['price']);
             $firstItem = $items[0] ?? [];
-            \Log::info('First Item:', $firstItem);
+            
+            // ✅ Use the main request_delivery_date as default batch date
+            $defaultDeliveryDate = $request->request_delivery_date;
+            $deliveryBatch = $salesOrderNumber . '-' . date('Ymd', strtotime($defaultDeliveryDate));
 
             $salesOrder = SalesOrder::create([
                 'sales_order_number' => $salesOrderNumber,
                 'customer_id' => $customer->id,
                 'prepared_by' => auth()->id(),
                 'approved_by' => null, 
-                'request_delivery_date' => $request->request_delivery_date,
+                'request_delivery_date' => $defaultDeliveryDate,
                 'po_number' => $request->po_reference_no,
                 'customer_name' => $request->customer_name ?? $customer->customer_name,
-                'sales_representative' => $request->sales_representative,
+                'sales_rep' => $request->sales_rep,  // ✅ CHANGED
                 'sales_executive' => $request->sales_executive ?? null,
                 'branch' => $request->branch ?? null,
                 'total_amount' => $totalAmount,
@@ -125,11 +127,7 @@ class SalesOrderController extends Controller
                 'additional_instructions' => $request->additional_instructions,
             ]);
 
-            // 🔥 FIXED: Fetch Item data from database if missing
             foreach ($request->items as $index => $itemData) {
-                \Log::info("Saving Item {$index}:", $itemData);
-                
-                // Get full item details from database
                 $item = Item::find($itemData['item_id']);
                 
                 SalesOrderItem::create([
@@ -143,6 +141,8 @@ class SalesOrderController extends Controller
                     'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
                     'unit_price' => $itemData['price'],
                     'total_amount' => $itemData['amount'] ?? ($itemData['quantity'] * $itemData['price']),
+                    'delivery_batch' => $deliveryBatch,
+                    'request_delivery_date' => $defaultDeliveryDate,
                 ]);
             }
 
@@ -161,10 +161,8 @@ class SalesOrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Sales Order Error:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            return back()
-                ->withInput()
-                ->with('error', 'Failed to save sales order: ' . $e->getMessage());
+            \Log::error('Sales Order Error:', ['message' => $e->getMessage()]);
+            return back()->withInput()->with('error', 'Failed to save sales order: ' . $e->getMessage());
         }
     }
 
@@ -219,7 +217,7 @@ class SalesOrderController extends Controller
             'status' => $request->status ?? $salesOrder->status,
             'order_date' => $request->order_date ?? $salesOrder->order_date,
             'remarks' => $request->remarks ?? $salesOrder->remarks,
-            'sales_representative' => $request->sales_representative ?? $salesOrder->sales_representative,
+            'sales_rep' => $request->sales_rep ?? $salesOrder->sales_rep,  // ✅ CHANGED
             'request_delivery_date' => $request->request_delivery_date ?? $salesOrder->request_delivery_date,
             'additional_instructions' => $request->additional_instructions,
             'sales_executive' => optional(Customer::find($request->customer_id))->sales_executive ?? $salesOrder->sales_executive,
@@ -245,7 +243,6 @@ class SalesOrderController extends Controller
                 $unitPrice = (float) ($itemData['unit_price'] ?? 0);
                 $itemTotal = $quantity * $unitPrice;
 
-                // 🔥 FIXED: Get Item from database to fill missing data
                 $item = Item::find($itemData['item_id']);
 
                 $salesOrder->items()->create([
@@ -384,7 +381,7 @@ class SalesOrderController extends Controller
                     'customer_code' => $customer->customer_code ?? null,
                     'client' => $customer->customer_name ?? null,
                     'branch' => $customer->branch ?? null,
-                    'sales_representative' => $salesOrder->sales_representative ?? null,
+                    'sales_representative' => $salesOrder->sales_rep?? null,
                     'sales_executive' => $customer->sales_executive ?? null,
                     'po_number' => $salesOrder->po_number ?? null,
                     'request_delivery_date' => $salesOrder->request_delivery_date ?: now()->toDateString(),
@@ -602,7 +599,7 @@ class SalesOrderController extends Controller
                     $order->status,
                     $order->preparer->name ?? '—',
                     $order->approver->name ?? '—',
-                    $order->sales_representative ?? '',
+                    $order->sales_rep ?? '',
                     $order->branch ?? '',
                     $order->po_number ?? ''
                 ]);
@@ -612,5 +609,182 @@ class SalesOrderController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+        // Show form to add items to existing approved SO
+    public function addItemsForm($id)
+    {
+        $salesOrder = SalesOrder::with(['customer', 'items'])->findOrFail($id);
+        
+        // Only allow adding items to approved orders
+        if ($salesOrder->status !== 'Approved') {
+            return back()->with('error', 'Can only add items to approved sales orders.');
+        }
+        
+        $customers = Customer::all();
+        $items = Item::where('approval_status', 'approved')->get();
+        
+        return view('sales_orders.add_items', compact('salesOrder', 'customers', 'items'));
+    }
+
+    // ✅ Store additional items to existing SO
+    public function storeAdditionalItems(Request $request, $id)
+    {
+        $salesOrder = SalesOrder::with(['customer', 'items'])->findOrFail($id);
+        
+        if ($salesOrder->status !== 'Approved') {
+            return back()->with('error', 'Can only add items to approved sales orders.');
+        }
+        
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.item_id' => 'required',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.price' => 'required|numeric|min:0',
+            'items.*.request_delivery_date' => 'required|date',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $addedItems = [];
+            $newTotalAmount = 0;
+
+            foreach ($request->items as $itemData) {
+                $item = Item::find($itemData['item_id']);
+                $quantity = (float) $itemData['quantity'];
+                $unitPrice = (float) $itemData['price'];
+                $itemTotal = $quantity * $unitPrice;
+                $deliveryDate = $itemData['request_delivery_date'];
+                
+                // Generate delivery batch identifier (SO_NUMBER-DATE)
+                $deliveryBatch = $salesOrder->sales_order_number . '-' . date('Ymd', strtotime($deliveryDate));
+
+                $newItem = SalesOrderItem::create([
+                    'sales_order_id' => $salesOrder->id,
+                    'item_id' => $itemData['item_id'],
+                    'item_code' => $itemData['item_code'] ?? $item->item_code ?? null,
+                    'item_description' => $itemData['item_description'] ?? $item->item_description ?? null,
+                    'brand' => $itemData['brand'] ?? $item->brand ?? null,
+                    'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
+                    'quantity' => $quantity,
+                    'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
+                    'unit_price' => $unitPrice,
+                    'total_amount' => $itemTotal,
+                    'delivery_batch' => $deliveryBatch,              // ✅ NEW
+                    'request_delivery_date' => $deliveryDate,         // ✅ NEW
+                ]);
+
+                $addedItems[] = $newItem;
+                $newTotalAmount += $itemTotal;
+                
+                // ✅ Create or update delivery for this batch
+                $this->createOrUpdateDeliveryBatch($salesOrder, $deliveryBatch, $deliveryDate);
+            }
+
+            // Update SO total amount
+            $salesOrder->total_amount += $newTotalAmount;
+            $salesOrder->save();
+
+            // Log activity
+            \App\Models\Activity::create([
+                'user_name' => auth()->user()->name ?? 'System',
+                'action' => 'Added Items',
+                'item' => $salesOrder->sales_order_number,
+                'target' => $salesOrder->customer->customer_name ?? 'N/A',
+                'type' => 'Sales Order',
+                'message' => 'Added ' . count($addedItems) . ' item(s) to sales order: ' . $salesOrder->sales_order_number,
+            ]);
+
+            DB::commit();
+            return redirect()->route('sales_orders.show', $salesOrder->id)
+                ->with('success', 'Items added successfully! Delivery batches updated.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Add Items Error:', ['message' => $e->getMessage()]);
+            return back()->withInput()->with('error', 'Failed to add items: ' . $e->getMessage());
+        }
+    }
+
+    // ✅ Create or update delivery batch
+    private function createOrUpdateDeliveryBatch($salesOrder, $deliveryBatch, $deliveryDate)
+    {
+        // Get all items for this delivery batch
+        $batchItems = SalesOrderItem::where('sales_order_id', $salesOrder->id)
+            ->where('delivery_batch', $deliveryBatch)
+            ->get();
+        
+        // Check if delivery already exists for this batch
+        $delivery = Deliveries::where('sales_order_number', $salesOrder->sales_order_number)
+            ->where('request_delivery_date', $deliveryDate)
+            ->first();
+        
+        $batchTotal = $batchItems->sum('total_amount');
+        $batchQuantity = $batchItems->sum('quantity');
+        
+        if (!$delivery) {
+            // Create new delivery for this batch
+            $delivery = Deliveries::create([
+                'sales_order_number' => $salesOrder->sales_order_number,
+                'customer_code' => $salesOrder->customer->customer_code ?? null,
+                'customer_name' => $salesOrder->customer->customer_name ?? null,
+                'branch' => $salesOrder->customer->branch ?? null,
+                'sales_representative' => $salesOrder->sales_rep ?? null,
+                'sales_executive' => $salesOrder->sales_executive ?? null,
+                'po_number' => $salesOrder->po_number ?? null,
+                'request_delivery_date' => $deliveryDate,
+                'status' => 'Pending',
+                'quantity' => $batchQuantity,
+                'total_amount' => $batchTotal,
+                'approved_by' => auth()->user()->name ?? 'System',
+            ]);
+        } else {
+            // Update existing delivery totals
+            $delivery->update([
+                'quantity' => $batchQuantity,
+                'total_amount' => $batchTotal,
+            ]);
+        }
+        
+        // Sync delivery items
+        foreach ($batchItems as $soItem) {
+            DeliveryItem::updateOrCreate(
+                [
+                    'delivery_id' => $delivery->id,
+                    'sales_order_item_id' => $soItem->id,
+                ],
+                [
+                    'item_code' => $soItem->item_code,
+                    'item_description' => $soItem->item_description,
+                    'brand' => $soItem->brand,
+                    'item_category' => $soItem->item_category,
+                    'quantity' => $soItem->quantity,
+                    'uom' => $soItem->unit,
+                    'unit_price' => $soItem->unit_price,
+                    'total_amount' => $soItem->total_amount,
+                    'delivery_batch' => $deliveryBatch,
+                ]
+            );
+        }
+    }
+
+    // ✅ View all delivery batches for a sales order
+    public function viewDeliveryBatches($id)
+    {
+        $salesOrder = SalesOrder::with(['customer', 'items'])->findOrFail($id);
+        
+        // Group items by delivery batch
+        $deliveryBatches = $salesOrder->items()
+            ->orderBy('request_delivery_date')
+            ->get()
+            ->groupBy('delivery_batch');
+        
+        // Get deliveries for this SO
+        $deliveries = Deliveries::where('sales_order_number', $salesOrder->sales_order_number)
+            ->orderBy('request_delivery_date')
+            ->get();
+        
+        return view('sales_orders.delivery_batches', compact('salesOrder', 'deliveryBatches', 'deliveries'));
     }
 }

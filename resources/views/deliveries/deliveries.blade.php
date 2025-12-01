@@ -26,6 +26,21 @@
         </div>
     </div>
 
+    {{-- ✅ NEW: Batch Selector (Hidden by default) --}}
+    <div id="batch_selector_container" class="mb-6 bg-yellow-900/20 border border-yellow-700 p-4 rounded-lg hidden">
+        <label class="block text-yellow-300 font-medium mb-2">
+            📦 Multiple Delivery Batches Found - Select One:
+        </label>
+        <select id="delivery_batch_select" 
+                class="w-full bg-gray-900 border border-yellow-700 text-gray-200 rounded-md p-2 focus:ring-2 focus:ring-yellow-500">
+            <option value="">-- Select Delivery Batch --</option>
+        </select>
+        <p class="text-xs text-gray-400 mt-2">This Sales Order has multiple delivery dates. Please select the batch you want to create/edit a delivery for.</p>
+    </div>
+
+    {{-- Hidden field to store selected batch --}}
+    <input type="hidden" id="delivery_batch" name="delivery_batch">
+
     <!-- 🧾 Sales Order Information -->
     <div class="mb-8">
         <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-1">Sales Order Information</h3>
@@ -34,7 +49,7 @@
                 'sales_order_number' => 'Sales Order Number',
                 'customer_code' => 'Customer Code',
                 'customer_name' => 'Customer Name',
-                'tin' => 'Tin',
+                'tin_no' => 'TIN',
                 'branch' => 'Branch',
                 'sales_representative' => 'Sales Representative',
                 'sales_executive' => 'Sales Executive',
@@ -85,6 +100,16 @@
             @endforeach
 
             <div>
+                <label class="block text-gray-400 text-sm">Type of Delivery</label>
+                <select id="delivery_type"
+                        class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
+                        {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
+                    <option value="Full Delivery">Full Delivery</option>
+                    <option value="Partial Order">Partial Order</option>
+                </select>
+            </div>
+
+            <div>
                 <label class="block text-gray-400 text-sm">Attachment (Optional)</label>
                 <input id="attachment" type="file" accept="image/*,application/pdf"
                        class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-500"
@@ -110,16 +135,18 @@
 
     <!-- 📋 Delivery Items Table -->
     <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-1">Delivery Items</h3>
-    <table class="w-full border border-gray-700 mb-4 rounded-md overflow-hidden">
-        <thead class="bg-gray-800 text-gray-300">
-            <tr>
-                @foreach(['Item Code', 'Description', 'Brand', 'Category','Quantity', 'UOM', 'Unit Price', 'Amount'] as $header)
-                    <th class="border border-gray-700 px-4 py-2 text-left">{{ $header }}</th>
-                @endforeach
-            </tr>
-        </thead>
-        <tbody class="bg-gray-900" id="items_tbody"></tbody>
-    </table>
+    <div class="overflow-x-auto">
+        <table class="w-full border border-gray-700 mb-4 rounded-md overflow-hidden">
+            <thead class="bg-gray-800 text-gray-300">
+                <tr>
+                    @foreach(['Item Code', 'Description', 'Brand', 'Category','Quantity', 'UOM', 'Unit Price', 'Amount'] as $header)
+                        <th class="border border-gray-700 px-4 py-2 text-left">{{ $header }}</th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody class="bg-gray-900" id="items_tbody"></tbody>
+        </table>
+    </div>
 
     @if(\App\Helpers\RoleHelper::canManageDeliveries())
         <div class="text-right mt-6">
@@ -137,6 +164,7 @@ const searchUrl = "{{ route('deliveries.search') }}";
 const storeUrl = "{{ route('deliveries.store') }}";
 const baseUpdateUrl = "{{ url('/deliveries') }}";
 let deliveryId = null;
+let selectedBatch = null;
 
 const attachmentContainer = document.getElementById("current_attachment_container");
 const attachmentLink = document.getElementById("current_attachment_link");
@@ -170,6 +198,48 @@ function handleQuantityChange(e) {
     calculateRowAmount(row);
 }
 
+// ✅ NEW: Show batch selector
+function showBatchSelector(batches) {
+    const container = document.getElementById('batch_selector_container');
+    const select = document.getElementById('delivery_batch_select');
+    
+    // Clear previous options
+    select.innerHTML = '<option value="">-- Select Delivery Batch --</option>';
+    
+    // Add batch options
+    batches.forEach(batch => {
+        const option = document.createElement('option');
+        option.value = batch.batch_id;
+        
+        let batchLabel = batch.batch_name;
+        if (batch.delivery_date) {
+            const date = new Date(batch.delivery_date);
+            batchLabel += ` (Delivery: ${date.toLocaleDateString()})`;
+        }
+        
+        option.textContent = batchLabel;
+        select.appendChild(option);
+    });
+    
+    container.classList.remove('hidden');
+    
+    Swal.fire({
+        icon: 'info',
+        title: 'Multiple Delivery Batches',
+        text: 'This Sales Order has multiple delivery batches. Please select one to continue.',
+        confirmButtonText: 'OK'
+    });
+}
+
+// ✅ Handle batch selection
+document.getElementById('delivery_batch_select').addEventListener('change', function() {
+    selectedBatch = this.value;
+    if (selectedBatch) {
+        // Re-trigger search with selected batch
+        document.getElementById("search_btn").click();
+    }
+});
+
 // 🔍 Search
 document.getElementById("search_btn").addEventListener("click", async () => {
     const soNumber = document.getElementById("so_search").value.trim();
@@ -179,7 +249,15 @@ document.getElementById("search_btn").addEventListener("click", async () => {
     }
 
     try {
-        const response = await fetch(`${searchUrl}?so_number=${encodeURIComponent(soNumber)}`, {
+        const url = new URL(searchUrl, window.location.origin);
+        url.searchParams.append('so_number', soNumber);
+        
+        // ✅ NEW: Include selected batch if exists
+        if (selectedBatch) {
+            url.searchParams.append('delivery_batch', selectedBatch);
+        }
+
+        const response = await fetch(url, {
             method: "GET",
             headers: {
                 "Accept": "application/json",
@@ -194,13 +272,29 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             return;
         }
 
+        // ✅ NEW: Handle multiple batches response
+        if (data.multiple_batches) {
+            showBatchSelector(data.batches);
+            // Clear items table
+            document.getElementById("items_tbody").innerHTML = "";
+            return;
+        }
+
+        // ✅ Hide batch selector if showing single batch/selected batch
+        if (!data.has_multiple_batches || selectedBatch) {
+            document.getElementById('batch_selector_container').classList.add('hidden');
+        }
+        
+        // ✅ Store delivery batch
+        document.getElementById('delivery_batch').value = data.delivery_batch || '';
+        
         deliveryId = data.id;
 
         // Populate headers
         const headerFields = [
-            'sales_order_number', 'customer_code', 'customer_name', 'branch', 'tin',
+            'sales_order_number', 'customer_code', 'customer_name', 'branch', 'tin_no',
             'sales_representative', 'sales_executive', 'po_number', 'request_delivery_date',
-            'approved_by', 'plate_no', 'sales_invoice_no', 'dr_no', 'status', 'additional_instructions'
+            'approved_by', 'plate_no', 'sales_invoice_no', 'dr_no', 'status', 'delivery_type', 'additional_instructions'
         ];
 
         headerFields.forEach(field => {
@@ -232,17 +326,19 @@ document.getElementById("search_btn").addEventListener("click", async () => {
                 const tr = document.createElement("tr");
                 tr.classList.add("hover:bg-gray-800/70");
                 tr.innerHTML = `
-                    <td class="border border-gray-700 px-4 py-2">${item.item_code}</td>
-                    <td class="border border-gray-700 px-4 py-2">${item.item_description}</td>
-                    <td class="border border-gray-700 px-4 py-2">${item.brand}</td>
-                    <td class="border border-gray-700 px-4 py-2">${item.item_category}</td>
+                    <td class="border border-gray-700 px-4 py-2">${item.item_code || '—'}</td>
+                    <td class="border border-gray-700 px-4 py-2">${item.item_description || '—'}</td>
+                    <td class="border border-gray-700 px-4 py-2">${item.brand || '—'}</td>
+                    <td class="border border-gray-700 px-4 py-2">${item.item_category || '—'}</td>
                     <td class="border border-gray-700 px-4 py-2">
-                        <input type="number" class="qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1" value="${item.quantity}" ${canManageDeliveries ? '' : 'readonly'}>
+                        <input type="number" class="qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1" 
+                               value="${item.quantity}" step="0.01" ${canManageDeliveries ? '' : 'readonly'}>
                     </td>
-                    <td class="border border-gray-700 px-4 py-2">${item.uom}</td>
-                    <td class="border border-gray-700 px-4 py-2 price-cell">${item.unit_price}</td>
+                    <td class="border border-gray-700 px-4 py-2">${item.uom || '—'}</td>
+                    <td class="border border-gray-700 px-4 py-2 price-cell">${item.unit_price || 0}</td>
                     <td class="border border-gray-700 px-4 py-2">
-                        <input type="number" class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1" value="${(item.quantity * item.unit_price).toFixed(2)}" readonly>
+                        <input type="number" class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1" 
+                               value="${((item.quantity || 0) * (item.unit_price || 0)).toFixed(2)}" readonly>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -251,12 +347,17 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             attachQuantityListeners();
         }
 
+        let successMsg = deliveryId ? 'Existing delivery loaded for editing.' : 'Sales Order loaded successfully.';
+        if (data.delivery_batch) {
+            successMsg += ` (Batch: ${data.delivery_batch})`;
+        }
+
         Swal.fire({
             icon: 'success',
             title: 'Found!',
-            text: deliveryId ? 'Existing delivery loaded for editing.' : 'Sales Order loaded successfully.',
+            text: successMsg,
             showConfirmButton: false,
-            timer: 1500
+            timer: 2000
         });
 
     } catch (err) {
@@ -274,32 +375,36 @@ if (canManageDeliveries) {
             return; 
         }
 
-        // ✅ NEW: Validate DR No is filled
-        const drNo = document.getElementById("dr_no").value.trim();
-        if(!drNo) {
-            Swal.fire("Required Field", "Please enter a DR Number before saving.", "warning");
-            return;
-        }
-
-        // ✅ NEW: Validate Sales Invoice No is filled
+      const drNo = document.getElementById("dr_no").value.trim();
         const salesInvoiceNo = document.getElementById("sales_invoice_no").value.trim();
-        if(!salesInvoiceNo) {
-            Swal.fire("Required Field", "Please enter a Sales Invoice Number before saving.", "warning");
-            return;
+
+        // Only require DR No and SI if creating a new delivery
+        if (!deliveryId) {
+            if(!drNo) {
+                Swal.fire("Required Field", "Please enter a DR Number before saving.", "warning");
+                return;
+            }
+
+            if(!salesInvoiceNo) {
+                Swal.fire("Required Field", "Please enter a Sales Invoice Number before saving.", "warning");
+                return;
+            }
         }
 
         const payload = {
             sales_order_number: document.getElementById("sales_order_number").value.trim(),
-            dr_no: drNo,  // ✅ CHANGED: Use validated drNo variable
+            delivery_batch: document.getElementById("delivery_batch").value.trim() || null, // ✅ NEW
+            dr_no: drNo,
             customer_name: document.getElementById("customer_name").value.trim() || null,
-            tin: document.getElementById("tin").value.trim() || null,
+            tin_no: document.getElementById("tin_no").value.trim() || null,
             branch: document.getElementById("branch").value.trim() || null,
             sales_representative: document.getElementById("sales_representative").value.trim() || null,
             sales_executive: document.getElementById("sales_executive").value.trim() || null,
             po_number: document.getElementById("po_number").value.trim() || null,
             request_delivery_date: document.getElementById("request_delivery_date").value || null,
+            delivery_type: document.getElementById("delivery_type").value,
             plate_no: document.getElementById("plate_no").value.trim() || null,
-            sales_invoice_no: salesInvoiceNo,  // ✅ CHANGED: Use validated salesInvoiceNo variable
+            sales_invoice_no: salesInvoiceNo,
             approved_by: document.getElementById("approved_by").value.trim() || null,
             status: document.getElementById("status").value,
             additional_instructions: document.getElementById("additional_instructions").value.trim() || null,

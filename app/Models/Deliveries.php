@@ -13,13 +13,16 @@ class Deliveries extends Model
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
-    protected $fillable = [ 
+   // app/Models/Deliveries.php
+        protected $fillable = [
         'sales_order_number',
+        'delivery_batch', 
+        'delivery_type',
         'customer_code',
         'customer_name',
         'sales_executive',
         'branch',
-        'sales_representative',
+        'sales_rep',
         'po_number',
         'request_delivery_date',
         'plate_no',
@@ -38,70 +41,56 @@ class Deliveries extends Model
         'dr_weight',
     ];
 
-    protected $casts = [
-        'quantity' => 'integer',
-        'unit_price' => 'decimal:2',
-        'total_amount' => 'decimal:2',
-        'request_delivery_date' => 'date',
-        'dr_weight' => 'decimal:2',
-    ];
-
-    public function items()
+    // ✅ NEW: Scope for filtering by batch
+    public function scopeByBatch($query, $batch)
     {
-        return $this->hasMany(DeliveryItem::class, 'delivery_id', 'id');
+        return $query->where('delivery_batch', $batch);
     }
 
-    /**
-     * Relationship with User (approver)
-     */
-    public function approver()
+    // ✅ NEW: Get delivery batch display name
+    public function getBatchNameAttribute()
     {
-        return $this->belongsTo(User::class, 'approved_by', 'id');
-    }
-
-    /**
-     * Relationship with User (preparer)
-     */
-    public function preparer()
-    {
-        return $this->belongsTo(User::class, 'prepared_by', 'id');
-    }
-
-    /**
-     * Relationship with SalesOrder
-     */
-    public function salesOrder()
-    {
-        return $this->belongsTo(SalesOrder::class, 'sales_order_number', 'sales_order_number');
-    }
-    
-
-    /**
-     * Get customer name with fallback logic
-     */
-    public function getCustomerNameAttribute($value)
-    {
-        // First, use the stored value if it exists
-        if ($value) {
-            return $value;
-        }
-
-        // Try salesOrder -> customer
-        if ($this->salesOrder && $this->salesOrder->customer) {
-            return $this->salesOrder->customer->customer_name;
+        if (!$this->delivery_batch) return 'Single Delivery';
+        
+        // Extract date from batch: SO-0001-20250115 -> 2025-01-15
+        $parts = explode('-', $this->delivery_batch);
+        if (count($parts) >= 3) {
+            $dateStr = end($parts); // 20250115
+            try {
+                return 'Batch ' . \Carbon\Carbon::parse($dateStr)->format('M d, Y');
+            } catch (\Exception $e) {
+                return $this->delivery_batch;
+            }
         }
         
-        // Try salesOrder -> customer_name field
-        if ($this->salesOrder && $this->salesOrder->customer_name) {
-            return $this->salesOrder->customer_name;
-        }
-        
-        // Try direct lookup by customer_code
-        if ($this->customer_code) {
-            $customer = \App\Models\Customer::where('customer_code', $this->customer_code)->first();
-            return $customer ? $customer->customer_name : 'N/A';
-        }
-        
-        return 'N/A';
+        return $this->delivery_batch;
+    }
+
+    // ✅ NEW: Check if SO has multiple batches
+    public static function hasMultipleBatches($soNumber)
+    {
+        return self::where('sales_order_number', $soNumber)
+            ->distinct('delivery_batch')
+            ->count('delivery_batch') > 1;
+    }
+
+    // ✅ NEW: Get all batches for an SO
+    public static function getBatchesForSO($soNumber)
+    {
+        return self::where('sales_order_number', $soNumber)
+            ->select('delivery_batch', 'request_delivery_date')
+            ->distinct()
+            ->orderBy('request_delivery_date')
+            ->get();
+    }
+
+        public function items()
+    {
+        return $this->hasMany(\App\Models\DeliveryItem::class, 'delivery_id');
+    }
+
+        public function salesOrder()
+    {
+        return $this->belongsTo(\App\Models\SalesOrder::class, 'sales_order_id');
     }
 }

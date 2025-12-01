@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,14 +12,17 @@ class DeliveryItem extends Model
 
     protected $fillable = [
         'delivery_id',
+        'item_id',
+        'sales_order_item_id',  
         'item_code',
         'item_description',
-        'brand',            
-        'item_category',     
+        'brand',
+        'item_category',
         'quantity',
         'uom',
         'unit_price',
         'total_amount',
+        'delivery_batch',
     ];
 
     protected $casts = [
@@ -34,9 +36,14 @@ class DeliveryItem extends Model
         return $this->belongsTo(Deliveries::class, 'delivery_id', 'id');
     }
 
-    // ✅ ADD THIS RELATIONSHIP - THIS IS WHAT'S MISSING!
     public function item()
     {
         return $this->belongsTo(Item::class, 'item_id');
+    }
+    
+    // Link back to original SO item
+    public function salesOrderItem()
+    {
+        return $this->belongsTo(SalesOrderItem::class, 'sales_order_item_id');
     }
 }

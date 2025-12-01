@@ -143,11 +143,12 @@ class DeliveriesController extends Controller
         try {
             $validated = $request->validate([
                 'sales_order_number' => 'required|string|max:255',
+                'delivery_batch' => 'nullable|string|max:255', // ✅ ADD THIS
                 'dr_no' => 'nullable|string|max:255',
                 'customer_name' => 'nullable|string|max:255',
-                'tin' => 'nullable|string|max:255',
+                'tin_no' => 'nullable|string|max:255',
                 'branch' => 'nullable|string|max:255',
-                'sales_representative' => 'nullable|string|max:255',
+                'sales_rep' => 'nullable|string|max:255',
                 'sales_executive' => 'nullable|string|max:255',
                 'po_number' => 'nullable|string|max:255',
                 'request_delivery_date' => 'nullable|date',
@@ -167,7 +168,7 @@ class DeliveriesController extends Controller
             ]);
 
             // Clean empty strings to null
-            foreach (['customer_code', 'customer_name', 'branch', 'tin', 'sales_representative', 'sales_executive', 'po_number', 'plate_no', 'sales_invoice_no'] as $field) {
+            foreach (['customer_code', 'customer_name', 'branch', 'tin_no', 'sales_rep', 'sales_executive', 'po_number', 'plate_no', 'sales_invoice_no'] as $field) {
                 if (isset($validated[$field]) && $validated[$field] === '') {
                     $validated[$field] = null;
                 }
@@ -190,28 +191,32 @@ class DeliveriesController extends Controller
             $items = $validated['items'];
             unset($validated['items']);
 
+            // ✅ NEW: Set delivery_batch if not provided
+            if (empty($validated['delivery_batch'])) {
+                $validated['delivery_batch'] = $validated['sales_order_number'] . '-' . 
+                    date('Ymd', strtotime($validated['request_delivery_date'] ?? now()));
+            }
+
             $delivery = Deliveries::create($validated);
 
-            // ✅ Get sales order items for reference
+            // Get sales order items for reference
             $salesOrder = SalesOrder::with('items.item')->where('sales_order_number', $validated['sales_order_number'])->first();
             $soItemsMap = $salesOrder ? $salesOrder->items->keyBy('item_code') : collect();
 
-            // ✅ Create delivery items with full item details
+            // Create delivery items
             foreach ($items as $item) {
                 $itemCode = $item['item_code'] ?? null;
-                
-                // ✅ Try to get item details from sales order items first
                 $soItem = $soItemsMap->get($itemCode);
-                
-                // ✅ Fallback to items table if not in SO
                 $itemRecord = null;
+                
                 if (!$soItem && $itemCode) {
                     $itemRecord = Item::where('item_code', $itemCode)->first();
                 }
 
-               DeliveryItem::create([
+                DeliveryItem::create([
                     'delivery_id' => $delivery->id,
                     'item_id' => $soItem?->item_id ?? $itemRecord?->id ?? null,
+                    'sales_order_item_id' => $soItem?->id ?? null, // ✅ Link to SO item
                     'item_code' => $itemCode,
                     'item_description' => $item['item_description'] ?? null,
                     'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
@@ -220,13 +225,9 @@ class DeliveriesController extends Controller
                     'uom' => $item['uom'] ?? null,
                     'unit_price' => $item['unit_price'] ?? 0,
                     'total_amount' => $item['total_amount'],
+                    'delivery_batch' => $validated['delivery_batch'], // ✅ ADD THIS
                 ]);
             }
-
-            Log::info('Delivery created with items', [
-                'delivery_id' => $delivery->id,
-                'items_count' => count($items)
-            ]);
 
             Activity::create([
                 'user_name' => auth()->user()->name ?? 'System',
@@ -234,7 +235,8 @@ class DeliveriesController extends Controller
                 'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
                 'target' => $delivery->sales_order_number ?? 'N/A',
                 'type' => 'Delivery',
-                'message' => 'Created delivery: ' . $delivery->dr_no . ' for SO: ' . $delivery->sales_order_number,
+                'message' => 'Created delivery: ' . $delivery->dr_no . ' for SO: ' . $delivery->sales_order_number . 
+                            ($delivery->delivery_batch ? ' (Batch: ' . $delivery->delivery_batch . ')' : ''),
             ]);
 
             return response()->json([
@@ -242,14 +244,6 @@ class DeliveriesController extends Controller
                 'message' => 'Delivery created successfully!',
                 'delivery_id' => $delivery->id
             ]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Validation failed', ['errors' => $e->errors()]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
 
         } catch (\Exception $e) {
             Log::error('Delivery store failed', [
@@ -265,7 +259,7 @@ class DeliveriesController extends Controller
         }
     }
 
-    // ✅ UPDATED UPDATE METHOD - Now saves item_id, brand, item_category
+    //  UPDATE
     public function update(Request $request, $id)
     {
         try {
@@ -282,19 +276,27 @@ class DeliveriesController extends Controller
                     'required',
                     'string',
                     'max:255',
-                    Rule::unique('deliveries', 'dr_no')->ignore($id)
+                    Rule::unique('deliveries', 'dr_no')
+                        ->ignore($delivery->id)
+                        ->where(function ($query) use ($request) {
+                            return $query->where('sales_order_number', $request->sales_order_number);
+                        }),
                 ],
                 'sales_invoice_no' => [
-                    'required',
+                    'nullable',
                     'string',
                     'max:255',
-                    Rule::unique('deliveries', 'sales_invoice_no')->ignore($id)
+                    Rule::unique('deliveries', 'sales_invoice_no')
+                        ->ignore($delivery->id)
+                        ->where(function ($query) use ($request) {
+                            return $query->where('sales_order_number', $request->sales_order_number);
+                        }),
                 ],
                 'customer_code' => 'nullable|string|max:255',
                 'customer_name' => 'nullable|string|max:255',
-                'tin' => 'nullable|string|max:255',
+                'tin_no' => 'nullable|string|max:255',
                 'branch' => 'nullable|string|max:255',
-                'sales_representative' => 'nullable|string|max:255',
+                'sales_rep' => 'nullable|string|max:255',
                 'sales_executive' => 'nullable|string|max:255',
                 'po_number' => 'nullable|string|max:255',
                 'request_delivery_date' => 'nullable|date',
@@ -312,13 +314,12 @@ class DeliveriesController extends Controller
                 'items.*.total_amount' => 'required|numeric|min:0',
             ], [
                 'dr_no.required' => 'DR Number is required.',
-                'dr_no.unique' => 'This DR Number already exists. Please use a unique DR Number.',
-                'sales_invoice_no.required' => 'Sales Invoice Number is required.',
-                'sales_invoice_no.unique' => 'This Sales Invoice Number already exists. Please use a unique Sales Invoice Number.',
+                'dr_no.unique' => 'This DR Number already exists for this Sales Order. Please use a unique DR Number.',
+                'sales_invoice_no.unique' => 'This Sales Invoice Number already exists for this Sales Order. Please use a unique Sales Invoice Number.',
             ]);
 
             // Clean empty strings to null
-            foreach (['customer_code', 'customer_name', 'branch', 'tin', 'sales_representative', 'sales_executive', 'po_number', 'plate_no'] as $field) {
+            foreach (['customer_code', 'customer_name', 'branch', 'tin_no', 'sales_rep', 'sales_executive', 'po_number', 'plate_no'] as $field) {
                 if (isset($validated[$field]) && $validated[$field] === '') {
                     $validated[$field] = null;
                 }
@@ -330,14 +331,12 @@ class DeliveriesController extends Controller
                 $filename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
                 
                 $uploadPath = public_path('delivery_images');
-                if (!file_exists($uploadPath)) {
-                    mkdir($uploadPath, 0755, true);
-                }
-                
+                if (!file_exists($uploadPath)) mkdir($uploadPath, 0755, true);
+
                 if ($delivery->attachment && file_exists(public_path('delivery_images/' . $delivery->attachment))) {
                     @unlink(public_path('delivery_images/' . $delivery->attachment));
                 }
-                
+
                 $file->move($uploadPath, $filename);
                 $validated['attachment'] = $filename;
             }
@@ -347,22 +346,16 @@ class DeliveriesController extends Controller
 
             $delivery->update($validated);
 
-            // Get sales order items for reference
+            // Update delivery items
             $salesOrder = SalesOrder::with('items.item')->where('sales_order_number', $validated['sales_order_number'])->first();
             $soItemsMap = $salesOrder ? $salesOrder->items->keyBy('item_code') : collect();
 
-            // Delete old items and create new ones
             DeliveryItem::where('delivery_id', $delivery->id)->delete();
-            
+
             foreach ($items as $item) {
                 $itemCode = $item['item_code'] ?? null;
-                
                 $soItem = $soItemsMap->get($itemCode);
-                
-                $itemRecord = null;
-                if (!$soItem && $itemCode) {
-                    $itemRecord = Item::where('item_code', $itemCode)->first();
-                }
+                $itemRecord = !$soItem && $itemCode ? Item::where('item_code', $itemCode)->first() : null;
 
                 DeliveryItem::create([
                     'delivery_id' => $delivery->id,
@@ -419,6 +412,7 @@ class DeliveriesController extends Controller
         }
     }
 
+
     // ✅ FIXED DESTROY METHOD - WITH ACTIVITY LOGGING
     public function destroy($id)
     {
@@ -446,6 +440,7 @@ class DeliveriesController extends Controller
    public function search(Request $request)
 {
     $soNumber = $request->input('so_number');
+    $deliveryBatch = $request->input('delivery_batch'); // ✅ Batch filter
     
     if (!$soNumber) {
         return response()->json([
@@ -453,7 +448,7 @@ class DeliveriesController extends Controller
         ], 400);
     }
 
-    // ✅ First check if SO exists at all
+    // Check if SO exists
     $soExists = SalesOrder::where('sales_order_number', $soNumber)->first();
     
     if (!$soExists) {
@@ -462,25 +457,68 @@ class DeliveriesController extends Controller
         ], 404);
     }
 
-    // ✅ Then check if it's approved
+    // Check if approved
     if ($soExists->status !== 'Approved') {
         return response()->json([
             'error' => "Sales Order {$soNumber} exists but has not been approved yet (Status: {$soExists->status}). Only approved sales orders can be delivered."
         ], 403);
     }
 
-    // ✅ Fetch approved sales order with items AND their item details
-    $salesOrder = SalesOrder::with(['items.item'])
-        ->where('sales_order_number', $soNumber)
-        ->where('status', 'Approved')
-        ->first();
+    // ✅ FIX: Check if SO has multiple delivery batches by looking at SO ITEMS
+    $soItemBatches = \App\Models\SalesOrderItem::where('sales_order_id', $soExists->id)
+        ->whereNotNull('delivery_batch')
+        ->select('delivery_batch', 'request_delivery_date')
+        ->distinct()
+        ->orderBy('request_delivery_date')
+        ->get();
 
-    $delivery = Deliveries::with('items')
-        ->where('sales_order_number', $soNumber)
-        ->first();
+    $hasMultipleBatches = $soItemBatches->count() > 1;
+    $availableBatches = [];
+    
+    // ✅ If multiple batches exist and none selected, show batch selector
+    if ($hasMultipleBatches && !$deliveryBatch) {
+        foreach ($soItemBatches as $batch) {
+            $availableBatches[] = [
+                'batch_id' => $batch->delivery_batch,
+                'batch_name' => $batch->delivery_batch,
+                'delivery_date' => $batch->request_delivery_date ? 
+                    \Carbon\Carbon::parse($batch->request_delivery_date)->format('Y-m-d') : null,
+            ];
+        }
+        
+        return response()->json([
+            'multiple_batches' => true,
+            'batches' => $availableBatches,
+            'message' => 'This Sales Order has multiple delivery batches. Please select one.'
+        ]);
+    }
+
+    // ✅ Fetch sales order with customer only (we'll load items separately)
+    $salesOrder = SalesOrder::with(['customer'])->findOrFail($soExists->id);
+    
+    // ✅ FIX: Get SO items with proper batch filtering
+    $soItemsQuery = \App\Models\SalesOrderItem::where('sales_order_id', $soExists->id)
+        ->with('item');
+    
+    if ($deliveryBatch) {
+        $soItemsQuery->where('delivery_batch', $deliveryBatch);
+    }
+    
+    $soItems = $soItemsQuery->get();
+
+    // ✅ Find existing delivery for this batch
+    $deliveryQuery = Deliveries::with('items')
+        ->where('sales_order_number', $soNumber);
+    
+    if ($deliveryBatch) {
+        $deliveryQuery->where('delivery_batch', $deliveryBatch);
+    }
+    
+    $delivery = $deliveryQuery->first();
 
     $items = [];
     
+    // ✅ If delivery exists, show its items
     if ($delivery && $delivery->items->count() > 0) {
         foreach ($delivery->items as $deliveryItem) {
             $items[] = [
@@ -495,37 +533,48 @@ class DeliveriesController extends Controller
             ];
         }
     } else {
-        foreach ($salesOrder->items as $item) {
+        // ✅ Show SO items for the selected batch (or all if no batch selected)
+        foreach ($soItems as $item) {
             $items[] = [
                 'item_code' => $item->item_code ?? '',
-                'item_description' => $item->item_description ?? $item->description ?? '',
+                'item_description' => $item->item_description ?? $item->item->item_description ?? '',
+                'brand' => $item->brand ?? $item->item->brand ?? '',
+                'item_category' => $item->item_category ?? $item->item->item_category ?? '',
                 'quantity' => $item->quantity ?? 0,
-                'uom' => $item->unit ?? $item->uom ?? '',
+                'uom' => $item->unit ?? 'Kgs',
                 'unit_price' => $item->unit_price ?? 0,
                 'total_amount' => (($item->quantity ?? 0) * ($item->unit_price ?? 0)),
             ];
         }
     }
 
+    // ✅ Get request delivery date for this batch
+    $requestDeliveryDate = $deliveryBatch && $soItems->count() > 0 
+        ? $soItems->first()->request_delivery_date 
+        : $salesOrder->request_delivery_date;
+
     return response()->json([
         'id' => $delivery->id ?? null,
         'sales_order_number' => $salesOrder->sales_order_number,
+        'delivery_batch' => $deliveryBatch ?? $delivery->delivery_batch ?? null,
         'customer_code' => $salesOrder->customer->customer_code ?? '',
         'customer_name' => $salesOrder->customer->customer_name ?? '',
-        'tin' => $salesOrder->customer->tin ?? '',
-        'branch' => $salesOrder->branch,
-        'sales_representative' => $salesOrder->sales_representative,
-        'sales_executive' => $salesOrder->sales_executive,
-        'po_number' => $salesOrder->po_number,
-        'request_delivery_date' => $salesOrder->request_delivery_date,
-        'approved_by' => auth()->user()->name,
+        'tin_no' => $salesOrder->customer->tin_no ?? '',
+        'branch' => $salesOrder->branch ?? '',
+        'sales_representative' => $salesOrder->sales_rep ?? '',
+        'sales_executive' => $salesOrder->sales_executive ?? '',
+        'po_number' => $salesOrder->po_number ?? '',
+        'request_delivery_date' => $requestDeliveryDate,
+        'approved_by' => auth()->user()->name ?? 'System',
         'plate_no' => $delivery->plate_no ?? '',
         'sales_invoice_no' => $delivery->sales_invoice_no ?? '',
         'dr_no' => $delivery->dr_no ?? '',
         'status' => $delivery->status ?? 'Delivered',
-        'additional_instructions' => $salesOrder->additional_instructions,
+        'additional_instructions' => $salesOrder->additional_instructions ?? '',
         'attachment' => $delivery->attachment ?? null,
         'items' => $items,
+        'has_multiple_batches' => $hasMultipleBatches,
+        'available_batches' => $availableBatches,
     ]);
 }
 
@@ -648,9 +697,9 @@ class DeliveriesController extends Controller
                             $delivery->sales_order_number ?? '—',
                             $delivery->customer_code ?? $delivery->salesOrder?->customer_code ?? '—',
                             $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? $delivery->salesOrder?->client_name ?? '—',
-                            $delivery->salesOrder?->customer?->tin ?? $delivery->tin ?? '—',
+                            $delivery->salesOrder?->customer?->tin_no ?? $delivery->tin_no ?? '—',
                             $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
-                            $delivery->sales_representative ?? $delivery->salesOrder?->sales_representative ?? '—',
+                            $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
                             $delivery->sales_executive ?? $delivery->salesOrder?->sales_executive ?? '—',
                             $delivery->plate_no ?? '—',
                             $delivery->sales_invoice_no ?? '—',
@@ -845,9 +894,9 @@ class DeliveriesController extends Controller
                         $delivery->sales_order_number ?? '—',
                         $delivery->customer_code ?? $delivery->salesOrder?->customer_code ?? '—',
                         $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? $delivery->salesOrder?->client_name ?? '—',
-                        $delivery->salesOrder?->customer?->tin ?? $delivery->tin ?? '—',
+                        $delivery->salesOrder?->customer?->tin_no ?? $delivery->tin_no ?? '—',
                         $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
-                        $delivery->sales_representative ?? $delivery->salesOrder?->sales_representative ?? '—',
+                        $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
                         $delivery->sales_executive ?? $delivery->salesOrder?->sales_executive ?? '—',
                         $delivery->plate_no ?? '—',
                         $delivery->sales_invoice_no ?? '—',

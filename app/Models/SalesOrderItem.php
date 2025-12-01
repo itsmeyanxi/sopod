@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,14 +14,20 @@ class SalesOrderItem extends Model
         'item_code',
         'item_description',
         'brand',
-        'item_category',  
+        'item_category',
         'quantity',
-        'unit',           
+        'unit',
         'unit_price',
         'total_amount',
+        'delivery_batch',           
+        'request_delivery_date',    
     ];
 
-     public function item()
+    protected $casts = [
+        'request_delivery_date' => 'date', 
+    ];
+
+    public function item()
     {
         return $this->belongsTo(Item::class, 'item_id');
     }
@@ -32,4 +37,9 @@ class SalesOrderItem extends Model
         return $this->belongsTo(SalesOrder::class);
     }
     
+    //  Get delivery batch items are assigned to
+    public function deliveryItems()
+    {
+        return $this->hasMany(DeliveryItem::class, 'sales_order_item_id');
+    }
 }
