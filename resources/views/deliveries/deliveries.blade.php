@@ -76,9 +76,11 @@
                        class="w-full bg-gray-800 border border-gray-700 text-gray-300 rounded-md p-2" readonly>
             </div>
 
+            <!-- Find this section in your blade file and replace it: -->
+
             @foreach([
                 'plate_no' => 'Plate No',
-                'sales_invoice_no' => 'Sales Invoice No',
+                'sales_invoice_no' => 'Sales Invoice No (Optional)', // ✅ Added (Optional)
                 'dr_no' => 'DR No',
                 'status' => 'Status'
             ] as $id => $label)
@@ -94,19 +96,26 @@
                     @else
                         <input id="{{ $id }}" type="text"
                             class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
-                            {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}>
+                            {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}
+                            placeholder="{{ $id === 'sales_invoice_no' ? 'Optional' : '' }}"> <!-- ✅ Added placeholder -->
                     @endif
                 </div>
             @endforeach
 
+            <!-- Replace the delivery type section with this: -->
+
             <div>
-                <label class="block text-gray-400 text-sm">Type of Delivery</label>
-                <select id="delivery_type"
-                        class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
-                        {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
-                    <option value="Full Delivery">Full Delivery</option>
-                    <option value="Partial Order">Partial Order</option>
-                </select>
+                <label class="block text-gray-400 text-sm mb-1">Type of Delivery</label>
+                
+                <div id="delivery_type_display" class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2 flex items-center justify-between">
+                    <span id="delivery_type_text">Not set</span>
+                    <span id="delivery_type_badge" class="px-2 py-1 rounded text-xs border bg-gray-600/20 text-gray-400 border-gray-600">
+                        —
+                    </span>
+                </div>
+                
+                <!-- Hidden input to store the value -->
+                <input type="hidden" id="delivery_type" name="delivery_type" value="">
             </div>
 
             <div>
@@ -183,6 +192,34 @@ function calculateRowAmount(row) {
     }
 }
 
+// ✅ FIXED: Single quantity change handler with validation
+function handleQuantityChange(e) {
+    const input = e.target;
+    const row = input.closest('tr');
+    const maxQty = parseFloat(input.getAttribute('data-max')) || 0;
+    const currentQty = parseFloat(input.value) || 0;
+    
+    // Prevent quantity from exceeding original SO quantity
+    if (currentQty > maxQty) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Quantity Limit Exceeded',
+            text: `Quantity cannot exceed the original Sales Order quantity of ${maxQty}. You can only decrease the quantity.`,
+            showConfirmButton: true
+        });
+        input.value = maxQty;
+    }
+    
+    // Visual feedback if at max
+    if (currentQty === maxQty) {
+        input.classList.add('border-yellow-500');
+    } else {
+        input.classList.remove('border-yellow-500');
+    }
+    
+    calculateRowAmount(row);
+}
+
 // Attach listeners to quantity inputs
 function attachQuantityListeners() {
     if (!canManageDeliveries) return;
@@ -193,20 +230,13 @@ function attachQuantityListeners() {
     });
 }
 
-function handleQuantityChange(e) {
-    const row = e.target.closest('tr');
-    calculateRowAmount(row);
-}
-
-// ✅ NEW: Show batch selector
+// ✅ Show batch selector
 function showBatchSelector(batches) {
     const container = document.getElementById('batch_selector_container');
     const select = document.getElementById('delivery_batch_select');
     
-    // Clear previous options
     select.innerHTML = '<option value="">-- Select Delivery Batch --</option>';
     
-    // Add batch options
     batches.forEach(batch => {
         const option = document.createElement('option');
         option.value = batch.batch_id;
@@ -235,29 +265,31 @@ function showBatchSelector(batches) {
 document.getElementById('delivery_batch_select').addEventListener('change', function() {
     selectedBatch = this.value;
     if (selectedBatch) {
-        // Re-trigger search with selected batch
         document.getElementById("search_btn").click();
     }
 });
 
-// 🔍 Search
+// ✅ FIXED SEARCH FUNCTION
 document.getElementById("search_btn").addEventListener("click", async () => {
     const soNumber = document.getElementById("so_search").value.trim();
+    
+    console.log('🔍 Search initiated for:', soNumber);
+    
     if (!soNumber) {
         Swal.fire("Oops!", "Please enter a Sales Order Number.", "warning");
         return;
     }
 
     try {
-        const url = new URL(searchUrl, window.location.origin);
-        url.searchParams.append('so_number', soNumber);
-        
-        // ✅ NEW: Include selected batch if exists
-        if (selectedBatch) {
-            url.searchParams.append('delivery_batch', selectedBatch);
-        }
+        // Construct URL properly
+        const url = `${searchUrl}?so_number=${encodeURIComponent(soNumber)}`;
+        const finalUrl = selectedBatch 
+            ? `${url}&delivery_batch=${encodeURIComponent(selectedBatch)}`
+            : url;
 
-        const response = await fetch(url, {
+        console.log('📡 Fetching URL:', finalUrl);
+
+        const response = await fetch(finalUrl, {
             method: "GET",
             headers: {
                 "Accept": "application/json",
@@ -265,47 +297,73 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             }
         });
 
+        console.log('📥 Response status:', response.status);
+
         const data = await response.json();
+        console.log('📦 Response data:', data);
 
         if (!response.ok) {
             Swal.fire("Not Found", data.error || "Sales Order not found.", "error");
             return;
         }
 
-        // ✅ NEW: Handle multiple batches response
+        // Handle multiple batches response
         if (data.multiple_batches) {
             showBatchSelector(data.batches);
-            // Clear items table
             document.getElementById("items_tbody").innerHTML = "";
             return;
         }
 
-        // ✅ Hide batch selector if showing single batch/selected batch
+        // Hide batch selector if showing single batch/selected batch
         if (!data.has_multiple_batches || selectedBatch) {
             document.getElementById('batch_selector_container').classList.add('hidden');
         }
         
-        // ✅ Store delivery batch
+        // Store delivery batch
         document.getElementById('delivery_batch').value = data.delivery_batch || '';
         
         deliveryId = data.id;
 
-        // Populate headers
+        // Populate header fields
         const headerFields = [
             'sales_order_number', 'customer_code', 'customer_name', 'branch', 'tin_no',
             'sales_representative', 'sales_executive', 'po_number', 'request_delivery_date',
-            'approved_by', 'plate_no', 'sales_invoice_no', 'dr_no', 'status', 'delivery_type', 'additional_instructions'
+            'approved_by', 'plate_no', 'sales_invoice_no', 'dr_no', 'status', 'additional_instructions'
         ];
 
         headerFields.forEach(field => {
             const el = document.getElementById(field);
-            if (!el) return;
+            if (!el) {
+                console.warn(`⚠️ Element not found: ${field}`);
+                return;
+            }
+            
             if (field === 'request_delivery_date' && data[field]) {
                 el.value = new Date(data[field]).toISOString().split('T')[0];
+            } else if (field === 'status') {
+                el.value = data[field] || 'Delivered';
+            } else if (field === 'approved_by') {
+                if (data[field]) el.value = data[field];
             } else {
                 el.value = data[field] || '';
             }
         });
+
+        // Handle delivery_type display
+        if (data.delivery_type) {
+            const deliveryType = data.delivery_type;
+            const deliveryTypeText = deliveryType === 'Partial' ? 'Partial Order' : 'Full Delivery';
+            const badgeColor = deliveryType === 'Partial' 
+                ? 'bg-blue-600/20 text-blue-400 border-blue-600' 
+                : 'bg-green-600/20 text-green-400 border-green-600';
+            
+            document.getElementById('delivery_type_text').textContent = deliveryTypeText;
+            document.getElementById('delivery_type').value = deliveryType;
+            
+            const badge = document.getElementById('delivery_type_badge');
+            badge.textContent = deliveryType;
+            badge.className = `px-2 py-1 rounded text-xs border ${badgeColor}`;
+        }
 
         // Handle attachment
         if (data.attachment) {
@@ -317,34 +375,49 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         }
         document.getElementById("attachment").value = '';
 
-        // Populate items
+        // Populate items table
         const tbody = document.getElementById("items_tbody");
         tbody.innerHTML = "";
 
         if (data.items && data.items.length > 0) {
-            data.items.forEach(item => {
+            console.log(`📋 Loading ${data.items.length} items`);
+            
+            data.items.forEach((item, index) => {
                 const tr = document.createElement("tr");
                 tr.classList.add("hover:bg-gray-800/70");
+                tr.setAttribute('data-original-qty', item.original_quantity || item.quantity);
+                
                 tr.innerHTML = `
                     <td class="border border-gray-700 px-4 py-2">${item.item_code || '—'}</td>
                     <td class="border border-gray-700 px-4 py-2">${item.item_description || '—'}</td>
                     <td class="border border-gray-700 px-4 py-2">${item.brand || '—'}</td>
                     <td class="border border-gray-700 px-4 py-2">${item.item_category || '—'}</td>
                     <td class="border border-gray-700 px-4 py-2">
-                        <input type="number" class="qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1" 
-                               value="${item.quantity}" step="0.01" ${canManageDeliveries ? '' : 'readonly'}>
+                        <input type="number" 
+                            class="qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1" 
+                            value="${item.quantity}" 
+                            step="0.01" 
+                            max="${item.original_quantity || item.quantity}"
+                            data-max="${item.original_quantity || item.quantity}"
+                            ${canManageDeliveries ? '' : 'readonly'}>
+                        <div class="text-xs text-gray-400 mt-1">Max: ${item.original_quantity || item.quantity}</div>
                     </td>
                     <td class="border border-gray-700 px-4 py-2">${item.uom || '—'}</td>
                     <td class="border border-gray-700 px-4 py-2 price-cell">${item.unit_price || 0}</td>
                     <td class="border border-gray-700 px-4 py-2">
-                        <input type="number" class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1" 
-                               value="${((item.quantity || 0) * (item.unit_price || 0)).toFixed(2)}" readonly>
+                        <input type="number" 
+                            class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1" 
+                            value="${((item.quantity || 0) * (item.unit_price || 0)).toFixed(2)}" 
+                            readonly>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
 
             attachQuantityListeners();
+        } else {
+            console.warn('⚠️ No items found in response');
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-gray-400">No items found</td></tr>';
         }
 
         let successMsg = deliveryId ? 'Existing delivery loaded for editing.' : 'Sales Order loaded successfully.';
@@ -361,8 +434,15 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         });
 
     } catch (err) {
-        console.error('FETCH ERROR:', err);
-        Swal.fire("Error", "Network error while searching.", "error");
+        console.error('💥 FETCH ERROR:', err);
+        Swal.fire("Error", `Network error while searching: ${err.message}`, "error");
+    }
+});
+
+// ✅ Press Enter to search
+document.getElementById("so_search").addEventListener("keypress", function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById("search_btn").click();
     }
 });
 
@@ -375,25 +455,42 @@ if (canManageDeliveries) {
             return; 
         }
 
-      const drNo = document.getElementById("dr_no").value.trim();
-        const salesInvoiceNo = document.getElementById("sales_invoice_no").value.trim();
+        const drNo = document.getElementById("dr_no").value.trim();
+        
+        if (!deliveryId && !drNo) {
+            Swal.fire("Required Field", "Please enter a DR Number before saving.", "warning");
+            return;
+        }
 
-        // Only require DR No and SI if creating a new delivery
-        if (!deliveryId) {
-            if(!drNo) {
-                Swal.fire("Required Field", "Please enter a DR Number before saving.", "warning");
-                return;
+        // Validate quantities before saving
+        const tbody = document.getElementById("items_tbody");
+        let quantityError = false;
+        
+        tbody.querySelectorAll("tr").forEach(row => {
+            const qtyInput = row.querySelector('.qty-input');
+            if (!qtyInput) return;
+            
+            const maxQty = parseFloat(qtyInput.getAttribute('data-max')) || 0;
+            const currentQty = parseFloat(qtyInput.value) || 0;
+            
+            if (currentQty > maxQty) {
+                quantityError = true;
             }
-
-            if(!salesInvoiceNo) {
-                Swal.fire("Required Field", "Please enter a Sales Invoice Number before saving.", "warning");
-                return;
-            }
+        });
+        
+        if (quantityError) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Quantities',
+                text: 'One or more items exceed the original Sales Order quantity. Please adjust before saving.',
+                showConfirmButton: true
+            });
+            return;
         }
 
         const payload = {
             sales_order_number: document.getElementById("sales_order_number").value.trim(),
-            delivery_batch: document.getElementById("delivery_batch").value.trim() || null, // ✅ NEW
+            delivery_batch: document.getElementById("delivery_batch").value.trim() || null,
             dr_no: drNo,
             customer_name: document.getElementById("customer_name").value.trim() || null,
             tin_no: document.getElementById("tin_no").value.trim() || null,
@@ -404,16 +501,17 @@ if (canManageDeliveries) {
             request_delivery_date: document.getElementById("request_delivery_date").value || null,
             delivery_type: document.getElementById("delivery_type").value,
             plate_no: document.getElementById("plate_no").value.trim() || null,
-            sales_invoice_no: salesInvoiceNo,
+            sales_invoice_no: document.getElementById("sales_invoice_no").value.trim() || null,
             approved_by: document.getElementById("approved_by").value.trim() || null,
             status: document.getElementById("status").value,
             additional_instructions: document.getElementById("additional_instructions").value.trim() || null,
             items: []
         };
 
-        const tbody = document.getElementById("items_tbody");
         tbody.querySelectorAll("tr").forEach(row => {
             const tds = row.querySelectorAll("td");
+            if (tds.length < 8) return;
+            
             payload.items.push({
                 item_code: tds[0].innerText || '',
                 item_description: tds[1].innerText || '',

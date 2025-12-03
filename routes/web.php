@@ -208,6 +208,11 @@ use App\Http\Controllers\{
     })->name('deliveryBatches');
     });
 
+    //TYPE OF DELIVERY
+    Route::patch('/sales_orders/{id}/update-delivery-type', [SalesOrderController::class, 'updateDeliveryType'])
+    ->name('sales_orders.updateDeliveryType');
+
+
     // ===================== ITEMS =====================
     Route::prefix('items')->name('items.')->group(function () {
         // ✅ BULK ACTIONS - Place at the top before parameterized routes

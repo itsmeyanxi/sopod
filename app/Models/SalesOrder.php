@@ -26,8 +26,8 @@ class SalesOrder extends Model
         'item_description', 
         'item_code',        
         'brand',            
-        'item_category',     
-        'unit',              
+        'item_category',  
+        'delivery_type',            
     ];
 
     /**

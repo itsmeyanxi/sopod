@@ -14,11 +14,13 @@ class SalesOrderItem extends Model
         'item_code',
         'item_description',
         'brand',
+        'delivery_type',
         'item_category',
         'quantity',
         'unit',
         'unit_price',
         'total_amount',
+        'batch_status',
         'delivery_batch',           
         'request_delivery_date',    
     ];

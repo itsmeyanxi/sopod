@@ -76,7 +76,7 @@ class SalesOrderController extends Controller
         return 'SO-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 
-    public function store(Request $request)
+        public function store(Request $request)
     {
         \Log::info('Form Data Received:', $request->all());
         
@@ -84,7 +84,8 @@ class SalesOrderController extends Controller
             'customer_code' => 'required|exists:customers,customer_code',
             'request_delivery_date' => 'required|date',
             'po_reference_no' => 'required|unique:sales_orders,po_number',
-            'sales_rep' => 'required|string',  // ✅ CHANGED from sales_representative
+            'sales_rep' => 'required|string',
+            'delivery_type' => 'required|in:Partial,Full,Cancelled', // ✅ ADDED
             'items' => 'required|array|min:1',
             'items.*.item_id' => 'required',
             'items.*.quantity' => 'required|numeric|min:0.01',
@@ -92,6 +93,7 @@ class SalesOrderController extends Controller
             'additional_instructions' => 'nullable|string',
         ], [
             'po_reference_no.unique' => 'This PO Number has already been used in another sales order.',
+            'delivery_type.required' => 'Please select a delivery type.',
         ]);
 
         DB::beginTransaction();
@@ -116,9 +118,10 @@ class SalesOrderController extends Controller
                 'request_delivery_date' => $defaultDeliveryDate,
                 'po_number' => $request->po_reference_no,
                 'customer_name' => $request->customer_name ?? $customer->customer_name,
-                'sales_rep' => $request->sales_rep,  // ✅ CHANGED
+                'sales_rep' => $request->sales_rep,
                 'sales_executive' => $request->sales_executive ?? null,
                 'branch' => $request->branch ?? null,
+                'delivery_type' => $request->delivery_type, // ✅ ADDED
                 'total_amount' => $totalAmount,
                 'item_description' => $firstItem['item_description'] ?? null,
                 'item_code' => $firstItem['item_code'] ?? null,
@@ -143,6 +146,7 @@ class SalesOrderController extends Controller
                     'total_amount' => $itemData['amount'] ?? ($itemData['quantity'] * $itemData['price']),
                     'delivery_batch' => $deliveryBatch,
                     'request_delivery_date' => $defaultDeliveryDate,
+                    'note' => $itemData['note'] ?? null, // ✅ ADDED
                 ]);
             }
 
@@ -166,18 +170,185 @@ class SalesOrderController extends Controller
         }
     }
 
+    // Update sales order
+    public function update(Request $request, $id)
+    {
+        $salesOrder = SalesOrder::findOrFail($id);
+
+        // ✅ VALIDATE
+        $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'delivery_type' => 'required|in:Partial,Full',
+            'items' => 'required|array|min:1',
+        ]);
+
+        // ✅ UPDATE SALES ORDER BASIC FIELDS
+        $salesOrder->update([
+            'customer_id' => $request->customer_id,
+            'request_delivery_date' => $request->request_delivery_date ?? $salesOrder->request_delivery_date,
+            'sales_rep' => $request->sales_rep ?? $salesOrder->sales_rep,
+            'additional_instructions' => $request->additional_instructions,
+            'sales_executive' => optional(Customer::find($request->customer_id))->sales_executive ?? $salesOrder->sales_executive,
+        ]);
+
+        // ✅ UPDATE DELIVERY RECORD IF IT EXISTS
+        if ($request->filled('request_delivery_date')) {
+            $delivery = Deliveries::where('sales_order_number', $salesOrder->sales_order_number)->first();
+            if ($delivery) {
+                $delivery->update([
+                    'request_delivery_date' => $request->request_delivery_date
+                ]);
+            }
+        }
+
+        // Delete existing items
+        $salesOrder->items()->delete();
+
+        $newTotalAmount = 0;
+        $activeBatchCount = 0;
+        $processedBatches = [];
+
+        if (!empty($request->items)) {
+            foreach ($request->items as $itemData) {
+                $quantity = (float) ($itemData['quantity'] ?? 0);
+                $unitPrice = (float) ($itemData['unit_price'] ?? 0);
+                $itemTotal = $quantity * $unitPrice;
+                $batchStatus = $itemData['batch_status'] ?? 'Active';
+                $deliveryBatch = $itemData['delivery_batch'] ?? null;
+
+                $item = Item::find($itemData['item_id']);
+
+                // ✅ CREATE ITEM WITH BATCH STATUS
+                $salesOrder->items()->create([
+                    'item_id' => $itemData['item_id'] ?? null,
+                    'item_code' => $itemData['item_code'] ?? $item->item_code ?? null,
+                    'item_description' => $itemData['item_description'] ?? $item->item_description ?? null,
+                    'brand' => $itemData['brand'] ?? $item->brand ?? null,
+                    'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
+                    'quantity' => $quantity,
+                    'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
+                    'unit_price' => $unitPrice,
+                    'total_amount' => $itemTotal,
+                    'note' => $itemData['note'] ?? null,
+                    'delivery_batch' => $deliveryBatch,
+                    'request_delivery_date' => $itemData['request_delivery_date'] ?? null,
+                    'batch_status' => $batchStatus,
+                ]);
+
+                // ✅ Only count active items toward total
+                if ($batchStatus === 'Active') {
+                    $newTotalAmount += $itemTotal;
+                    
+                    // Count unique active batches
+                    if ($deliveryBatch && !in_array($deliveryBatch, $processedBatches)) {
+                        $processedBatches[] = $deliveryBatch;
+                        $activeBatchCount++;
+                    }
+                }
+            }
+
+            // Update first item fields on sales order
+            $firstItem = $request->items[0] ?? [];
+            $firstItemModel = Item::find($firstItem['item_id'] ?? null);
+            
+            $salesOrder->item_description = $firstItem['item_description'] ?? $firstItemModel->item_description ?? null;
+            $salesOrder->item_code = $firstItem['item_code'] ?? $firstItemModel->item_code ?? null;
+            $salesOrder->brand = $firstItem['brand'] ?? $firstItemModel->brand ?? null;
+            $salesOrder->item_category = $firstItem['item_category'] ?? $firstItemModel->item_category ?? null;
+        }
+
+        // ✅ FIXED: AUTO-DETERMINE DELIVERY TYPE BASED ON ACTIVE BATCHES
+        // Set delivery type BEFORE saving
+        if ($activeBatchCount <= 1) {
+            $salesOrder->delivery_type = 'Full';
+        } else {
+            // Multiple active batches means it should be Partial
+            $salesOrder->delivery_type = 'Partial';
+        }
+
+        $salesOrder->total_amount = $newTotalAmount;
+        $salesOrder->save(); // ✅ This now saves the correct delivery_type
+
+        // ✅ UPDATE DELIVERIES - Only include active batches
+        $this->updateDeliveriesForBatches($salesOrder);
+
+        \App\Models\Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Updated',
+            'item' => $salesOrder->sales_order_number,
+            'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
+            'type' => 'Sales Order',
+            'message' => 'Updated sales order: ' . $salesOrder->sales_order_number . ' (Active batches: ' . $activeBatchCount . ', Type: ' . $salesOrder->delivery_type . ')',
+        ]);
+
+        return redirect()->route('sales_orders.show', $salesOrder->id)
+            ->with('success', 'Sales Order updated successfully!');
+    }
+
+    // ✅ NEW HELPER METHOD: Update deliveries based on active batches only
+    private function updateDeliveriesForBatches($salesOrder)
+    {
+        // Get all active items grouped by batch
+        $activeBatches = $salesOrder->items()
+            ->where('batch_status', 'Active')
+            ->get()
+            ->groupBy('delivery_batch');
+        
+        // Delete deliveries for cancelled batches
+        $cancelledBatches = $salesOrder->items()
+            ->where('batch_status', 'Cancelled')
+            ->pluck('delivery_batch')
+            ->unique();
+        
+        foreach ($cancelledBatches as $cancelledBatch) {
+            $items = $salesOrder->items()->where('delivery_batch', $cancelledBatch)->first();
+            if ($items) {
+                Deliveries::where('sales_order_number', $salesOrder->sales_order_number)
+                    ->where('request_delivery_date', $items->request_delivery_date)
+                    ->delete();
+            }
+        }
+        
+        // Update or create deliveries for active batches
+        foreach ($activeBatches as $batchName => $batchItems) {
+            $firstItem = $batchItems->first();
+            $batchTotal = $batchItems->sum('total_amount');
+            $batchQuantity = $batchItems->sum('quantity');
+            
+            Deliveries::updateOrCreate(
+                [
+                    'sales_order_number' => $salesOrder->sales_order_number,
+                    'request_delivery_date' => $firstItem->request_delivery_date,
+                ],
+                [
+                    'customer_code' => $salesOrder->customer->customer_code ?? null,
+                    'client' => $salesOrder->customer->customer_name ?? null,
+                    'branch' => $salesOrder->customer->branch ?? null,
+                    'sales_representative' => $salesOrder->sales_rep ?? null,
+                    'sales_executive' => $salesOrder->sales_executive ?? null,
+                    'po_number' => $salesOrder->po_number ?? null,
+                    'status' => 'Pending',
+                    'quantity' => $batchQuantity,
+                    'total_amount' => $batchTotal,
+                    'item_code' => $firstItem->item_code,
+                    'item_description' => $firstItem->item_description,
+                    'approved_by' => auth()->user()->name ?? 'System',
+                ]
+            );
+        }
+    }
+
     public function show($id)
     {
         $salesOrder = SalesOrder::with(['customer', 'items.item'])->findOrFail($id);
         return view('sales_orders.show', compact('salesOrder'));
     }
 
-        // 🔥 FIXED: Load Item relationship and populate missing data
     public function edit($id)
     {
         $salesOrder = SalesOrder::with(['customer', 'items.item'])->findOrFail($id);
         $customers = Customer::all();
-        $items = Item::where('approval_status', 'approved')->get();
+        $items = Item::where('approval_status', 'approved')->get(); // ✅ ADD THIS LINE
         
         // 🔥 Populate missing item data from Item model
         foreach ($salesOrder->items as $orderItem) {
@@ -204,84 +375,7 @@ class SalesOrderController extends Controller
             }
         }
         
-        return view('sales_orders.edit', compact('salesOrder', 'customers'));
-    }
-
-    // 🔥 FIXED: Populate data from Item model when updating
-        public function update(Request $request, $id)
-    {
-        $salesOrder = SalesOrder::findOrFail($id);
-
-        $salesOrder->update([
-            'customer_id' => $request->customer_id,
-            'status' => $request->status ?? $salesOrder->status,
-            'order_date' => $request->order_date ?? $salesOrder->order_date,
-            'remarks' => $request->remarks ?? $salesOrder->remarks,
-            'sales_rep' => $request->sales_rep ?? $salesOrder->sales_rep,  // ✅ CHANGED
-            'request_delivery_date' => $request->request_delivery_date ?? $salesOrder->request_delivery_date,
-            'additional_instructions' => $request->additional_instructions,
-            'sales_executive' => optional(Customer::find($request->customer_id))->sales_executive ?? $salesOrder->sales_executive,
-        ]);
-
-        // ✅ UPDATE DELIVERY RECORD IF IT EXISTS
-        if ($request->filled('request_delivery_date')) {
-            $delivery = Deliveries::where('sales_order_number', $salesOrder->sales_order_number)->first();
-            if ($delivery) {
-                $delivery->update([
-                    'request_delivery_date' => $request->request_delivery_date
-                ]);
-            }
-        }
-
-        $salesOrder->items()->delete();
-
-        $newTotalAmount = 0;
-
-        if (!empty($request->items)) {
-            foreach ($request->items as $itemData) {
-                $quantity = (float) ($itemData['quantity'] ?? 0);
-                $unitPrice = (float) ($itemData['unit_price'] ?? 0);
-                $itemTotal = $quantity * $unitPrice;
-
-                $item = Item::find($itemData['item_id']);
-
-                $salesOrder->items()->create([
-                    'item_id' => $itemData['item_id'] ?? null,
-                    'item_code' => $itemData['item_code'] ?? $item->item_code ?? null,
-                    'item_description' => $itemData['item_description'] ?? $item->item_description ?? null,
-                    'brand' => $itemData['brand'] ?? $item->brand ?? null,
-                    'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
-                    'quantity' => $quantity,
-                    'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
-                    'unit_price' => $unitPrice,
-                    'total_amount' => $itemTotal,
-                ]);
-
-                $newTotalAmount += $itemTotal;
-            }
-
-            $firstItem = $request->items[0] ?? [];
-            $firstItemModel = Item::find($firstItem['item_id'] ?? null);
-            
-            $salesOrder->item_description = $firstItem['item_description'] ?? $firstItemModel->item_description ?? null;
-            $salesOrder->item_code = $firstItem['item_code'] ?? $firstItemModel->item_code ?? null;
-            $salesOrder->brand = $firstItem['brand'] ?? $firstItemModel->brand ?? null;
-            $salesOrder->item_category = $firstItem['item_category'] ?? $firstItemModel->item_category ?? null;
-        }
-
-        $salesOrder->total_amount = $newTotalAmount;
-        $salesOrder->save();
-
-        \App\Models\Activity::create([
-            'user_name' => auth()->user()->name ?? 'System',
-            'action' => 'Updated',
-            'item' => $salesOrder->sales_order_number,
-            'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
-            'type' => 'Sales Order',
-            'message' => 'Updated sales order: ' . $salesOrder->sales_order_number,
-        ]);
-
-        return redirect()->route('sales_orders.index')->with('success', 'Sales Order updated successfully!');
+        return view('sales_orders.edit', compact('salesOrder', 'customers', 'items')); // ✅ ADD 'items' HERE
     }
 
     public function destroy($id)
@@ -786,5 +880,33 @@ class SalesOrderController extends Controller
             ->get();
         
         return view('sales_orders.delivery_batches', compact('salesOrder', 'deliveryBatches', 'deliveries'));
+    }
+
+     public function updateDeliveryType(Request $request, $id)
+    {
+        $salesOrder = SalesOrder::with(['customer'])->findOrFail($id);
+
+        $request->validate([
+            'delivery_type' => 'required|in:Partial,Full,Cancelled'
+        ]);
+
+        $newType = $request->delivery_type;
+
+        $salesOrder->update([
+            'delivery_type' => $newType
+        ]);
+
+        // Log activity
+        \App\Models\Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Updated',
+            'item' => $salesOrder->sales_order_number,
+            'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
+            'type' => 'Delivery Type',
+            'message' => "Updated delivery type to {$newType} for sales order: {$salesOrder->sales_order_number}"
+        ]);
+
+        return redirect()->route('sales_orders.show', $salesOrder->id)
+            ->with('success', "Delivery type updated to {$newType}!");
     }
 }

@@ -14,6 +14,7 @@ class ExcelImportController extends Controller
     private $customerColumnMap = [
         'customer code' => 'customer_code',
         'customer_code' => 'customer_code',
+        'cust code' => 'customer_code',
         'customer name' => 'customer_name',
         'customer_name' => 'customer_name',
         'business style' => 'business_style',

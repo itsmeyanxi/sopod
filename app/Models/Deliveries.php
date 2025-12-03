@@ -17,7 +17,6 @@ class Deliveries extends Model
         protected $fillable = [
         'sales_order_number',
         'delivery_batch', 
-        'delivery_type',
         'customer_code',
         'customer_name',
         'sales_executive',
@@ -38,7 +37,6 @@ class Deliveries extends Model
         'approved_by',
         'additional_instructions', 
         'attachment',
-        'dr_weight',
     ];
 
     // ✅ NEW: Scope for filtering by batch

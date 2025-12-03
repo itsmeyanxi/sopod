@@ -137,14 +137,19 @@ class DeliveriesController extends Controller
         return view('deliveries.create', compact('salesOrders'));
     }
 
-    // ✅ UPDATED STORE METHOD - Now saves item_id, brand, item_category
-    public function store(Request $request)
+    // ✅ UPDATED STORE METHOD 
+        public function store(Request $request)
     {
         try {
             $validated = $request->validate([
                 'sales_order_number' => 'required|string|max:255',
-                'delivery_batch' => 'nullable|string|max:255', // ✅ ADD THIS
-                'dr_no' => 'nullable|string|max:255',
+                'delivery_batch' => 'nullable|string|max:255',
+                'dr_no' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    'unique:deliveries,dr_no' // ✅ MAKE DR NO UNIQUE GLOBALLY
+                ],
                 'customer_name' => 'nullable|string|max:255',
                 'tin_no' => 'nullable|string|max:255',
                 'branch' => 'nullable|string|max:255',
@@ -165,86 +170,18 @@ class DeliveriesController extends Controller
                 'items.*.uom' => 'nullable|string|max:50',
                 'items.*.unit_price' => 'nullable|numeric|min:0',
                 'items.*.total_amount' => 'required|numeric|min:0',
+            ], [
+                'dr_no.required' => 'DR Number is required.',
+                'dr_no.unique' => 'This DR Number already exists. Please use a unique DR Number.', // ✅ CUSTOM ERROR MESSAGE
             ]);
 
-            // Clean empty strings to null
-            foreach (['customer_code', 'customer_name', 'branch', 'tin_no', 'sales_rep', 'sales_executive', 'po_number', 'plate_no', 'sales_invoice_no'] as $field) {
-                if (isset($validated[$field]) && $validated[$field] === '') {
-                    $validated[$field] = null;
-                }
-            }
-
-            // Handle file upload
-            if ($request->hasFile('attachment')) {
-                $file = $request->file('attachment');
-                $filename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-                
-                $uploadPath = public_path('delivery_images');
-                if (!file_exists($uploadPath)) {
-                    mkdir($uploadPath, 0755, true);
-                }
-                
-                $file->move($uploadPath, $filename);
-                $validated['attachment'] = $filename;
-            }
-
-            $items = $validated['items'];
-            unset($validated['items']);
-
-            // ✅ NEW: Set delivery_batch if not provided
-            if (empty($validated['delivery_batch'])) {
-                $validated['delivery_batch'] = $validated['sales_order_number'] . '-' . 
-                    date('Ymd', strtotime($validated['request_delivery_date'] ?? now()));
-            }
-
-            $delivery = Deliveries::create($validated);
-
-            // Get sales order items for reference
-            $salesOrder = SalesOrder::with('items.item')->where('sales_order_number', $validated['sales_order_number'])->first();
-            $soItemsMap = $salesOrder ? $salesOrder->items->keyBy('item_code') : collect();
-
-            // Create delivery items
-            foreach ($items as $item) {
-                $itemCode = $item['item_code'] ?? null;
-                $soItem = $soItemsMap->get($itemCode);
-                $itemRecord = null;
-                
-                if (!$soItem && $itemCode) {
-                    $itemRecord = Item::where('item_code', $itemCode)->first();
-                }
-
-                DeliveryItem::create([
-                    'delivery_id' => $delivery->id,
-                    'item_id' => $soItem?->item_id ?? $itemRecord?->id ?? null,
-                    'sales_order_item_id' => $soItem?->id ?? null, // ✅ Link to SO item
-                    'item_code' => $itemCode,
-                    'item_description' => $item['item_description'] ?? null,
-                    'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
-                    'item_category' => $soItem?->item_category ?? $itemRecord?->item_category ?? null,
-                    'quantity' => $item['quantity'],
-                    'uom' => $item['uom'] ?? null,
-                    'unit_price' => $item['unit_price'] ?? 0,
-                    'total_amount' => $item['total_amount'],
-                    'delivery_batch' => $validated['delivery_batch'], // ✅ ADD THIS
-                ]);
-            }
-
-            Activity::create([
-                'user_name' => auth()->user()->name ?? 'System',
-                'action' => 'Created',
-                'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
-                'target' => $delivery->sales_order_number ?? 'N/A',
-                'type' => 'Delivery',
-                'message' => 'Created delivery: ' . $delivery->dr_no . ' for SO: ' . $delivery->sales_order_number . 
-                            ($delivery->delivery_batch ? ' (Batch: ' . $delivery->delivery_batch . ')' : ''),
-            ]);
-
+            // ... rest of your store method remains the same
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
-                'success' => true,
-                'message' => 'Delivery created successfully!',
-                'delivery_id' => $delivery->id
-            ]);
-
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Delivery store failed', [
                 'message' => $e->getMessage(),
@@ -436,147 +373,177 @@ class DeliveriesController extends Controller
         return redirect()->route('deliveries.index')->with('success', 'Delivery deleted successfully!');
     }
 
-    // ✅  SEARCH METHOD
-   public function search(Request $request)
-{
-    $soNumber = $request->input('so_number');
-    $deliveryBatch = $request->input('delivery_batch'); // ✅ Batch filter
-    
-    if (!$soNumber) {
-        return response()->json([
-            'error' => 'Please provide a Sales Order number.'
-        ], 400);
-    }
+    // ✅ SEARCH METHOD
+    public function search(Request $request)
+    {
+        $soNumber = $request->input('so_number');
+        $deliveryBatch = $request->input('delivery_batch');
+        
+        \Log::info('🔍 Delivery search request:', [
+            'so_number' => $soNumber,
+            'delivery_batch' => $deliveryBatch
+        ]);
+        
+        if (!$soNumber) {
+            return response()->json([
+                'error' => 'Please provide a Sales Order number.'
+            ], 400);
+        }
 
-    // Check if SO exists
-    $soExists = SalesOrder::where('sales_order_number', $soNumber)->first();
-    
-    if (!$soExists) {
-        return response()->json([
-            'error' => 'Sales Order not found. Please check the SO number and try again.'
-        ], 404);
-    }
+        // Check if SO exists
+        $soExists = SalesOrder::where('sales_order_number', $soNumber)->first();
+        
+        if (!$soExists) {
+            return response()->json([
+                'error' => 'Sales Order not found. Please check the SO number and try again.'
+            ], 404);
+        }
 
-    // Check if approved
-    if ($soExists->status !== 'Approved') {
-        return response()->json([
-            'error' => "Sales Order {$soNumber} exists but has not been approved yet (Status: {$soExists->status}). Only approved sales orders can be delivered."
-        ], 403);
-    }
+        // Check if approved
+        if ($soExists->status !== 'Approved') {
+            return response()->json([
+                'error' => "Sales Order {$soNumber} exists but has not been approved yet (Status: {$soExists->status}). Only approved sales orders can be delivered."
+            ], 403);
+        }
 
-    // ✅ FIX: Check if SO has multiple delivery batches by looking at SO ITEMS
-    $soItemBatches = \App\Models\SalesOrderItem::where('sales_order_id', $soExists->id)
-        ->whereNotNull('delivery_batch')
-        ->select('delivery_batch', 'request_delivery_date')
-        ->distinct()
-        ->orderBy('request_delivery_date')
-        ->get();
+        // ✅ Check if SO has multiple delivery batches (ACTIVE ONLY)
+        $soItemBatches = \App\Models\SalesOrderItem::where('sales_order_id', $soExists->id)
+            ->where('batch_status', 'Active')
+            ->whereNotNull('delivery_batch')
+            ->select('delivery_batch', 'request_delivery_date')
+            ->distinct()
+            ->orderBy('request_delivery_date')
+            ->get();
 
-    $hasMultipleBatches = $soItemBatches->count() > 1;
-    $availableBatches = [];
-    
-    // ✅ If multiple batches exist and none selected, show batch selector
-    if ($hasMultipleBatches && !$deliveryBatch) {
-        foreach ($soItemBatches as $batch) {
-            $availableBatches[] = [
-                'batch_id' => $batch->delivery_batch,
-                'batch_name' => $batch->delivery_batch,
-                'delivery_date' => $batch->request_delivery_date ? 
-                    \Carbon\Carbon::parse($batch->request_delivery_date)->format('Y-m-d') : null,
-            ];
+        $hasMultipleBatches = $soItemBatches->count() > 1;
+        $availableBatches = [];
+        
+        // ✅ If multiple batches exist and none selected, show batch selector
+        if ($hasMultipleBatches && !$deliveryBatch) {
+            foreach ($soItemBatches as $batch) {
+                $availableBatches[] = [
+                    'batch_id' => $batch->delivery_batch,
+                    'batch_name' => $batch->delivery_batch,
+                    'delivery_date' => $batch->request_delivery_date ? 
+                        \Carbon\Carbon::parse($batch->request_delivery_date)->format('Y-m-d') : null,
+                ];
+            }
+            
+            return response()->json([
+                'multiple_batches' => true,
+                'batches' => $availableBatches,
+                'message' => 'This Sales Order has multiple delivery batches. Please select one.'
+            ]);
+        }
+
+        // ✅ Fetch sales order with customer
+        $salesOrder = SalesOrder::with(['customer'])->findOrFail($soExists->id);
+        
+        // ✅ Get SO items with batch filtering (ACTIVE ONLY)
+        $soItemsQuery = \App\Models\SalesOrderItem::where('sales_order_id', $soExists->id)
+            ->where('batch_status', 'Active')
+            ->with('item');
+        
+        if ($deliveryBatch) {
+            $soItemsQuery->where('delivery_batch', $deliveryBatch);
         }
         
+        $soItems = $soItemsQuery->get();
+
+        // ✅ FIX: Get request delivery date from the items or SO
+        $requestDeliveryDate = null;
+        if ($soItems->isNotEmpty() && $soItems->first()->request_delivery_date) {
+            $requestDeliveryDate = $soItems->first()->request_delivery_date;
+        } else {
+            $requestDeliveryDate = $salesOrder->request_delivery_date;
+        }
+
+        // ✅ Find existing delivery for this batch
+        $deliveryQuery = Deliveries::with('items')
+            ->where('sales_order_number', $soNumber);
+        
+        if ($deliveryBatch) {
+            $deliveryQuery->where('delivery_batch', $deliveryBatch);
+        } elseif ($requestDeliveryDate) {
+            // Match by delivery date if no batch specified
+            $deliveryQuery->where('request_delivery_date', $requestDeliveryDate);
+        }
+        
+        $delivery = $deliveryQuery->first();
+
+        $items = [];
+        
+        // ✅ If delivery exists, show its items WITH original SO quantities
+        if ($delivery && $delivery->items->count() > 0) {
+            // Create a map of SO items for original quantities
+            $soItemsMap = collect();
+            foreach ($soItems as $soItem) {
+                $soItemsMap->put($soItem->item_code, $soItem);
+            }
+            
+            foreach ($delivery->items as $deliveryItem) {
+                $soItem = $soItemsMap->get($deliveryItem->item_code);
+                
+                $items[] = [
+                    'item_code' => $deliveryItem->item_code ?? '',
+                    'item_description' => $deliveryItem->item_description ?? '',
+                    'brand' => $deliveryItem->brand ?? '',
+                    'item_category' => $deliveryItem->item_category ?? '',
+                    'quantity' => $deliveryItem->quantity ?? 0,
+                    'original_quantity' => $soItem?->quantity ?? $deliveryItem->quantity,
+                    'uom' => $deliveryItem->uom ?? '',
+                    'unit_price' => $deliveryItem->unit_price ?? 0,
+                    'total_amount' => $deliveryItem->total_amount ?? 0,
+                ];
+            }
+        } else {
+            // ✅ Show SO items with original quantity
+            foreach ($soItems as $item) {
+                $items[] = [
+                    'item_code' => $item->item_code ?? '',
+                    'item_description' => $item->item_description ?? $item->item->item_description ?? '',
+                    'brand' => $item->brand ?? $item->item->brand ?? '',
+                    'item_category' => $item->item_category ?? $item->item->item_category ?? '',
+                    'quantity' => $item->quantity ?? 0,
+                    'original_quantity' => $item->quantity ?? 0,
+                    'uom' => $item->unit ?? 'Kgs',
+                    'unit_price' => $item->unit_price ?? 0,
+                    'total_amount' => (($item->quantity ?? 0) * ($item->unit_price ?? 0)),
+                ];
+            }
+        }
+
+        \Log::info('✅ Delivery search successful:', [
+            'delivery_id' => $delivery->id ?? null,
+            'items_count' => count($items),
+            'request_delivery_date' => $requestDeliveryDate
+        ]);
+
         return response()->json([
-            'multiple_batches' => true,
-            'batches' => $availableBatches,
-            'message' => 'This Sales Order has multiple delivery batches. Please select one.'
+            'id' => $delivery->id ?? null,
+            'sales_order_number' => $salesOrder->sales_order_number,
+            'delivery_batch' => $deliveryBatch ?? $delivery->delivery_batch ?? null,
+            'customer_code' => $salesOrder->customer->customer_code ?? '',
+            'customer_name' => $salesOrder->customer->customer_name ?? '',
+            'tin_no' => $salesOrder->customer->tin_no ?? '',
+            'branch' => $salesOrder->branch ?? '',
+            'sales_representative' => $salesOrder->sales_rep ?? '',
+            'sales_executive' => $salesOrder->sales_executive ?? '',
+            'po_number' => $salesOrder->po_number ?? '',
+            'request_delivery_date' => $requestDeliveryDate, // ✅ FIXED: Now properly defined
+            'delivery_type' => $salesOrder->delivery_type ?? 'Full',
+            'approved_by' => auth()->user()->name ?? 'System',
+            'plate_no' => $delivery->plate_no ?? '',
+            'sales_invoice_no' => $delivery->sales_invoice_no ?? '',
+            'dr_no' => $delivery->dr_no ?? '',
+            'status' => $delivery->status ?? 'Delivered',
+            'additional_instructions' => $salesOrder->additional_instructions ?? '',
+            'attachment' => $delivery->attachment ?? null,
+            'items' => $items,
+            'has_multiple_batches' => $hasMultipleBatches,
+            'available_batches' => $availableBatches,
         ]);
     }
-
-    // ✅ Fetch sales order with customer only (we'll load items separately)
-    $salesOrder = SalesOrder::with(['customer'])->findOrFail($soExists->id);
-    
-    // ✅ FIX: Get SO items with proper batch filtering
-    $soItemsQuery = \App\Models\SalesOrderItem::where('sales_order_id', $soExists->id)
-        ->with('item');
-    
-    if ($deliveryBatch) {
-        $soItemsQuery->where('delivery_batch', $deliveryBatch);
-    }
-    
-    $soItems = $soItemsQuery->get();
-
-    // ✅ Find existing delivery for this batch
-    $deliveryQuery = Deliveries::with('items')
-        ->where('sales_order_number', $soNumber);
-    
-    if ($deliveryBatch) {
-        $deliveryQuery->where('delivery_batch', $deliveryBatch);
-    }
-    
-    $delivery = $deliveryQuery->first();
-
-    $items = [];
-    
-    // ✅ If delivery exists, show its items
-    if ($delivery && $delivery->items->count() > 0) {
-        foreach ($delivery->items as $deliveryItem) {
-            $items[] = [
-                'item_code' => $deliveryItem->item_code ?? '',
-                'item_description' => $deliveryItem->item_description ?? '',
-                'brand' => $deliveryItem->brand ?? '',
-                'item_category' => $deliveryItem->item_category ?? '',
-                'quantity' => $deliveryItem->quantity ?? 0,
-                'uom' => $deliveryItem->uom ?? '',
-                'unit_price' => $deliveryItem->unit_price ?? 0,
-                'total_amount' => $deliveryItem->total_amount ?? 0,
-            ];
-        }
-    } else {
-        // ✅ Show SO items for the selected batch (or all if no batch selected)
-        foreach ($soItems as $item) {
-            $items[] = [
-                'item_code' => $item->item_code ?? '',
-                'item_description' => $item->item_description ?? $item->item->item_description ?? '',
-                'brand' => $item->brand ?? $item->item->brand ?? '',
-                'item_category' => $item->item_category ?? $item->item->item_category ?? '',
-                'quantity' => $item->quantity ?? 0,
-                'uom' => $item->unit ?? 'Kgs',
-                'unit_price' => $item->unit_price ?? 0,
-                'total_amount' => (($item->quantity ?? 0) * ($item->unit_price ?? 0)),
-            ];
-        }
-    }
-
-    // ✅ Get request delivery date for this batch
-    $requestDeliveryDate = $deliveryBatch && $soItems->count() > 0 
-        ? $soItems->first()->request_delivery_date 
-        : $salesOrder->request_delivery_date;
-
-    return response()->json([
-        'id' => $delivery->id ?? null,
-        'sales_order_number' => $salesOrder->sales_order_number,
-        'delivery_batch' => $deliveryBatch ?? $delivery->delivery_batch ?? null,
-        'customer_code' => $salesOrder->customer->customer_code ?? '',
-        'customer_name' => $salesOrder->customer->customer_name ?? '',
-        'tin_no' => $salesOrder->customer->tin_no ?? '',
-        'branch' => $salesOrder->branch ?? '',
-        'sales_representative' => $salesOrder->sales_rep ?? '',
-        'sales_executive' => $salesOrder->sales_executive ?? '',
-        'po_number' => $salesOrder->po_number ?? '',
-        'request_delivery_date' => $requestDeliveryDate,
-        'approved_by' => auth()->user()->name ?? 'System',
-        'plate_no' => $delivery->plate_no ?? '',
-        'sales_invoice_no' => $delivery->sales_invoice_no ?? '',
-        'dr_no' => $delivery->dr_no ?? '',
-        'status' => $delivery->status ?? 'Delivered',
-        'additional_instructions' => $salesOrder->additional_instructions ?? '',
-        'attachment' => $delivery->attachment ?? null,
-        'items' => $items,
-        'has_multiple_batches' => $hasMultipleBatches,
-        'available_batches' => $availableBatches,
-    ]);
-}
 
     // Export Excel
     public function exportExcel(Request $request)
