@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-5xl mx-auto px-6 py-10 bg-gray-900 min-h-screen text-gray-100">
+<div class="max-w-6xl mx-auto px-6 py-10 bg-gray-900 min-h-screen text-gray-100">
 
     <!-- Header -->
     <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-2">
@@ -23,6 +23,54 @@
             </a>
         </div>
     </div>
+
+    @php
+        // Get proper data with fallbacks
+        $so = $delivery->salesOrder;
+        $customer = $so?->customer;
+        
+        $customerCode = $delivery->customer_code ?? $so?->customer_code ?? $customer?->customer_code ?? '—';
+        $customerName = $delivery->customer_name ?? $customer?->customer_name ?? $so?->client_name ?? '—';
+        $tinNo = $delivery->tin_no ?? $customer?->tin_no ?? '—';
+        $branch = $delivery->branch ?? $so?->branch ?? '—';
+        $salesRep = $delivery->sales_rep ?? $delivery->sales_representative ?? $so?->sales_rep ?? '—';
+        $salesExec = $delivery->sales_executive ?? $so?->sales_executive ?? '—';
+        $poNumber = $delivery->po_number ?? $so?->po_number ?? '—';
+        $additionalInstructions = $delivery->additional_instructions ?? $so?->additional_instructions ?? '—';
+        $approvedBy = $delivery->approved_by ?? $so?->approved_by ?? '—';
+        $notes = $so?->notes ?? '—';
+        
+        // Request Delivery Date
+        $requestDeliveryDate = '—';
+        if ($delivery->request_delivery_date) {
+            $requestDeliveryDate = \Carbon\Carbon::parse($delivery->request_delivery_date)->format('m/d/Y');
+        } elseif ($so?->request_delivery_date) {
+            $requestDeliveryDate = \Carbon\Carbon::parse($so->request_delivery_date)->format('m/d/Y');
+        }
+        
+        // Status badge
+        $statusColors = [
+            'Delivered' => 'bg-green-600/20 text-green-400 border-green-600',
+            'Partial' => 'bg-orange-600/20 text-orange-400 border-orange-600',
+            'Cancelled' => 'bg-red-600/20 text-red-400 border-red-600',
+        ];
+        $statusColor = $statusColors[$delivery->status] ?? 'bg-gray-600/20 text-gray-400 border-gray-600';
+    @endphp
+
+    <!-- Status Badge (if Partial) -->
+    @if($delivery->status === 'Partial')
+    <div class="mb-6 bg-orange-900/20 border border-orange-700 p-4 rounded-lg">
+        <div class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-orange-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <div>
+                <h4 class="text-orange-300 font-semibold mb-1">⚠️ Partial Delivery</h4>
+                <p class="text-sm text-orange-200">This delivery was partially fulfilled. Remaining quantities need to be delivered separately.</p>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Delivery Info -->
     <div class="bg-gray-800 rounded-xl shadow-lg p-8">
@@ -65,45 +113,60 @@
                 @endif
             </div>
 
+            <!-- Status -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Status</label>
+                <div class="w-full px-4 py-2 rounded-lg border {{ $statusColor }} flex items-center gap-2">
+                    @if($delivery->status === 'Delivered')
+                        <span class="text-lg">✅</span>
+                    @elseif($delivery->status === 'Partial')
+                        <span class="text-lg">⚠️</span>
+                    @elseif($delivery->status === 'Cancelled')
+                        <span class="text-lg">❌</span>
+                    @endif
+                    <span class="font-semibold">{{ $delivery->status }}</span>
+                </div>
+            </div>
+
             <!-- Customer Code -->
             <div>
                 <label class="block text-sm font-semibold text-gray-300 mb-2">Customer Code</label>
-                <input type="text" value="{{ $delivery->customer_code ?? $delivery->salesOrder?->customer_code ?? '—' }}" 
+                <input type="text" value="{{ $customerCode }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Customer Name -->
             <div>
                 <label class="block text-sm font-semibold text-gray-300 mb-2">Customer Name</label>
-                <input type="text" value="{{ $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? $delivery->salesOrder?->client_name ?? '—' }}" 
+                <input type="text" value="{{ $customerName }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- TIN  -->
             <div>
                 <label class="block text-sm font-semibold text-gray-300 mb-2">TIN</label>
-                <input type="text" value="{{ $delivery->tin_no ?? $delivery->salesOrder?->customer?->tin_no ?? '—' }}"  readonly
+                <input type="text" value="{{ $tinNo }}"  readonly
                     class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" />
             </div>
 
             <!-- Branch -->
             <div>
                 <label class="block text-sm font-semibold text-gray-300 mb-2">Branch</label>
-                <input type="text" value="{{ $delivery->branch ?? $delivery->salesOrder?->branch ?? '—' }}" 
+                <input type="text" value="{{ $branch }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Sales Representative -->
             <div>
                 <label class="block text-sm font-semibold text-gray-300 mb-2">Sales Representative</label>
-                <input type="text" value="{{ $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—' }}" 
+                <input type="text" value="{{ $salesRep }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Sales Executive -->
             <div>
                 <label class="block text-sm font-semibold text-gray-300 mb-2">Sales Executive</label>
-                <input type="text" value="{{ $delivery->sales_executive ?? $delivery->salesOrder?->sales_executive ?? '—' }}" 
+                <input type="text" value="{{ $salesExec }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
@@ -124,37 +187,38 @@
             <!-- PO Number -->
             <div>
                 <label class="block text-sm font-semibold text-gray-300 mb-2">PO Number</label>
-                <input type="text" value="{{ $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—' }}" 
+                <input type="text" value="{{ $poNumber }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Request Delivery Date -->
             <div>
                 <label class="block text-sm font-semibold text-gray-300 mb-2">Request Delivery Date</label>
-                <input type="text" 
-                  value="{{ $delivery->request_delivery_date ? \Carbon\Carbon::parse($delivery->request_delivery_date)->format('m/d/Y') : ($delivery->salesOrder?->request_delivery_date ? \Carbon\Carbon::parse($delivery->salesOrder->request_delivery_date)->format('m/d/Y') : '—') }}"
+                <input type="text" value="{{ $requestDeliveryDate }}"
                   class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
-            </div>
-
-            <!-- Status -->
-            <div>
-                <label class="block text-sm font-semibold text-gray-300 mb-2">Status</label>
-                <input type="text" value="{{ $delivery->status ?? '—' }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Approved By -->
             <div>
                 <label class="block text-sm font-semibold text-gray-300 mb-2">Approved By</label>
-                <input type="text" value="{{ $delivery->approved_by ?? $delivery->salesOrder?->approved_by ?? '—' }}" 
+                <input type="text" value="{{ $approvedBy }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
+
+            <!-- Notes from Sales Order -->
+            @if($notes !== '—')
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-gray-300 mb-2">📝 Notes (from Sales Order)</label>
+                <textarea class="w-full px-4 py-2 rounded-lg bg-blue-900/20 border border-blue-700 text-blue-200"
+                        rows="2" readonly>{{ $notes }}</textarea>
+            </div>
+            @endif
 
             <!-- Additional Instructions -->
             <div class="md:col-span-2">
                 <label class="block text-sm font-semibold text-gray-300 mb-2">Additional Instructions</label>
                 <textarea class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100"
-                        rows="3" readonly>{{ $delivery->additional_instructions ?? $delivery->salesOrder?->additional_instructions ?? '—' }}</textarea>
+                        rows="3" readonly>{{ $additionalInstructions }}</textarea>
             </div>
 
             <!-- 📎 Attachment Display -->
@@ -178,12 +242,32 @@
         @php
             $items = $delivery->items;
             $grandTotal = 0;
+            $hasPartialItems = false;
+            
+            // ✅ CRITICAL: Create map of SO items for comparison
+            $soItemsMap = collect();
+            if ($so && $so->items) {
+                foreach ($so->items as $soItem) {
+                    $soItemsMap->put($soItem->item_code, $soItem);
+                }
+            }
+            
+            // ✅ NEW: Calculate total delivered quantities across ALL batches
+            $totalDeliveredMap = \App\Models\DeliveryItem::whereHas('delivery', function($q) use ($delivery) {
+                    $q->where('sales_order_number', $delivery->sales_order_number)
+                    ->where('status', 'Delivered');
+                })
+                ->select('item_code', \DB::raw('SUM(quantity) as total_delivered'))
+                ->groupBy('item_code')
+                ->get()
+                ->keyBy('item_code');
+            
             foreach ($items as $item) {
                 $grandTotal += $item->total_amount ?? 0;
             }
         @endphp
 
-        <div class="overflow-x-auto">
+            <div class="overflow-x-auto mt-6">
             <table class="w-full border border-gray-700 rounded-md overflow-hidden text-sm">
                 <thead class="bg-gray-700 text-gray-300 uppercase">
                     <tr>
@@ -191,42 +275,97 @@
                         <th class="px-4 py-2 text-left">Description</th>
                         <th class="px-4 py-2 text-left">Brand</th>
                         <th class="px-4 py-2 text-left">Category</th>
-                        <th class="px-4 py-2 text-right">Quantity</th>
+                        <th class="px-4 py-2 text-right">Original Qty<br><span class="text-xs text-gray-400">(SO Qty)</span></th>
+                        <th class="px-4 py-2 text-right">Delivered Qty<br><span class="text-xs text-gray-400">(DR Qty)</span></th>
+                        <th class="px-4 py-2 text-right">Remaining</th>
                         <th class="px-4 py-2 text-center">UOM</th>
                         <th class="px-4 py-2 text-right">Unit Price</th>
                         <th class="px-4 py-2 text-right">Amount</th>
+
+                        <!-- ⭐ NEW COLUMN -->
+                        <th class="px-4 py-2 text-left">Notes</th>
                     </tr>
                 </thead>
+
                 <tbody class="bg-gray-900">
                     @forelse($items as $item)
-                        <tr class="border-b border-gray-800 hover:bg-gray-800">
+                        @php
+                            $soItem = $soItemsMap->get($item->item_code);
+                            $originalQty = $item->original_quantity ?? $soItem?->quantity ?? $item->quantity;
+                            $deliveredQty = $item->quantity ?? 0;
+                            $remaining = $originalQty - $deliveredQty;
+                            $isPartial = $remaining > 0;
+                        @endphp
+
+                        <tr class="border-b border-gray-800 hover:bg-gray-800 {{ $isPartial ? 'bg-orange-900/10' : '' }}">
                             <td class="px-4 py-2">{{ $item->item_code ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $item->item_description ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $item->brand ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $item->item_category ?? '—' }}</td>
-                            <td class="px-4 py-2 text-right">{{ number_format($item->quantity ?? 0, 2) }}</td>
+
+                            <td class="px-4 py-2 text-right">
+                                <span class="font-semibold text-blue-400">
+                                    {{ number_format($originalQty, 2) }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-2 text-right">
+                                <span class="font-semibold {{ $isPartial ? 'text-green-400' : 'text-green-400' }}">
+                                    {{ number_format($deliveredQty, 2) }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-2 text-right">
+                                @if($remaining > 0)
+                                    <span class="font-semibold text-orange-400">{{ number_format($remaining, 2) }}</span>
+                                @else
+                                    <span class="text-green-400">—</span>
+                                @endif
+                            </td>
+
                             <td class="px-4 py-2 text-center">{{ $item->uom ?? '—' }}</td>
                             <td class="px-4 py-2 text-right">₱{{ number_format($item->unit_price ?? 0, 2) }}</td>
                             <td class="px-4 py-2 text-right">₱{{ number_format($item->total_amount ?? 0, 2) }}</td>
+
+                            <!-- ⭐ NEW NOTES COLUMN -->
+                            <td class="px-4 py-2 text-left">
+                                @if($item->notes)
+                                    <span class="text-gray-200">{{ $item->notes }}</span>
+                                @else
+                                    <span class="text-gray-500 italic">—</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="11" class="px-4 py-8 text-center text-gray-500">
                                 No items found for this delivery
                             </td>
                         </tr>
                     @endforelse
-                    
+
                     @if($items->count() > 0)
                         <!-- Grand Total Row -->
                         <tr class="bg-gray-800 font-semibold">
-                            <td colspan="7" class="px-4 py-3 text-right">Grand Total:</td>
+                            <td colspan="9" class="px-4 py-3 text-right">Grand Total:</td>
                             <td class="px-4 py-3 text-right text-green-400">₱{{ number_format($grandTotal, 2) }}</td>
+
+                            <!-- Blank for Notes column -->
+                            <td></td>
                         </tr>
                     @endif
                 </tbody>
             </table>
         </div>
+
+
+        @if($hasPartialItems)
+        <div class="mt-4 bg-orange-900/20 border border-orange-700 p-3 rounded-lg text-sm">
+            <p class="text-orange-300">
+                <strong>Note:</strong> Items highlighted in orange have remaining quantities that need to be delivered in a future delivery.
+            </p>
+        </div>
+        @endif
 
         <!-- Back Button -->
         <div class="flex justify-end mt-8">

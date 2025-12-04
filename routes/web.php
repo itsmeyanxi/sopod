@@ -13,6 +13,15 @@ use App\Http\Controllers\{
     ImportController
 
 };
+    // Sales Dashboard Route
+    Route::get('/sales/dashboard', [App\Http\Controllers\SalesDashboardController::class, 'index'])
+    ->name('sales.dashboard')
+    ->middleware('auth');
+
+    // Optional: API endpoint for real-time metrics
+    Route::get('/sales/metrics', [App\Http\Controllers\SalesDashboardController::class, 'getMetrics'])
+    ->name('sales.metrics')
+    ->middleware('auth');
 
     // ===================== AUTH (Public Routes) =====================
     Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');
@@ -29,18 +38,32 @@ use App\Http\Controllers\{
 
     // ===================== IMPORTS =======================
     Route::get('/excel-import', function () {
-        return view('excel.excel-import');  // Changed from 'excel-import' to 'excel.excel-import'
+        $user = auth()->user();
+        if (!$user || !$user->canImportCustomers()) { abort(403, 'Unauthorized');}
+        return view('excel.excel-import');
     })->name('excel.import');
 
-    Route::post('/excel-import/items', [App\Http\Controllers\ExcelImportController::class, 'importItems'])
-        ->name('excel.import.items');
+    // IMPORT ITEMS — only Admin, IT + Accounting roles
+    Route::post('/excel-import/items', function () {
+        $user = auth()->user();
+        if (!$user || !$user->canImportItems()) { abort(403, 'Unauthorized');}
+        return app(App\Http\Controllers\ExcelImportController::class)->importItems(request());
+    })->name('excel.import.items');
 
-    Route::post('/excel-import/customers', [App\Http\Controllers\ExcelImportController::class, 'importCustomers'])
-        ->name('excel.import.customers');
+
+    // IMPORT CUSTOMERS — all the listed roles
+    Route::post('/excel-import/customers', function () {
+        $user = auth()->user();
+        if (!$user || !$user->canImportCustomers()) { abort(403, 'Unauthorized'); }
+        return app(App\Http\Controllers\ExcelImportController::class)->importCustomers(request());
+    })->name('excel.import.customers');
 
     // ===================== DASHBOARD =====================
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/recent-activities', [DashboardController::class, 'viewAllActivities'])->name('recent_activities.index');
+
+    // In routes/web.php
+    Route::get('/sales-report', [DashboardController::class, 'salesReport'])->name('sales.report');
 
     // ===================== RECORDS =====================
     Route::get('/records', [App\Http\Controllers\RecordsController::class, 'index'])->name('records.index');
@@ -72,6 +95,10 @@ use App\Http\Controllers\{
             }
             return view('errors.noaccess');
         })->name('exportExcel');
+
+        Route::get('sales-orders/{id}/delivery-batches', [SalesOrderController::class, 'deliveryBatches'])
+        ->name('delivery_batches');
+
         
         // ✅ Index
         Route::get('/', function () {
@@ -189,29 +216,7 @@ use App\Http\Controllers\{
         }
         return view('errors.noaccess');
     })->name('addItemsForm');
-
-    Route::post('/{id}/add-items', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator'])) {
-            return app(SalesOrderController::class)->storeAdditionalItems(request(), $id);
-        }
-        return view('errors.noaccess');
-    })->name('storeAdditionalItems');
-
-    // ✅ View Delivery Batches
-    Route::get('/{id}/delivery-batches', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator', 'Delivery_Creator', 'Delivery_Approver'])) {
-            return app(SalesOrderController::class)->viewDeliveryBatches($id);
-        }
-        return view('errors.noaccess');
-    })->name('deliveryBatches');
-    });
-
-    //TYPE OF DELIVERY
-    Route::patch('/sales_orders/{id}/update-delivery-type', [SalesOrderController::class, 'updateDeliveryType'])
-    ->name('sales_orders.updateDeliveryType');
-
+     });
 
     // ===================== ITEMS =====================
     Route::prefix('items')->name('items.')->group(function () {
@@ -501,6 +506,9 @@ Route::prefix('customers')->name('customers.')->group(function () {
 Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
+
+// Session check route for inactivity timeout
+// Route::get('/check-session', [UserController::class, 'checkSession'])->name('check.session');
 
 Route::get('/debug-delivery', function() {
     $delivery = \App\Models\Deliveries::with(['salesOrder.customer'])->first();

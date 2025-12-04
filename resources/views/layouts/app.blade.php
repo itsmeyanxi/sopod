@@ -116,6 +116,12 @@
             </div>
         </div>
 
+        <!-- =================== SALES DASHBOARD (NEW) =================== -->
+<a href="{{ route('sales.dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+    <span>📈</span>
+    <span class="sidebar-text">Sales Analytics</span>
+</a>
+
     <a href="{{ route('records.index') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
         <span>📁</span>
         <span class="sidebar-text">Records</span>

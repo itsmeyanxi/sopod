@@ -12,6 +12,18 @@
         </a>
     </div>
 
+@if($salesOrder->is_closed)
+    <div class="bg-green-900/40 border-2 border-green-600 text-green-300 p-4 rounded-lg mb-6 flex items-center gap-3">
+        <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div>
+            <strong class="text-lg">✅ Sales Order Closed</strong>
+            <p class="text-sm mt-1">All items have been fully delivered. This Sales Order can no longer be edited.</p>
+        </div>
+    </div>
+@endif
+
     <!-- Action Buttons -->
     <div class="mb-6 flex flex-wrap gap-3">
         @if($salesOrder->status !== 'Pending')
@@ -26,18 +38,26 @@
             </div>
         @endif
 
-        {{-- Show View Delivery Batches ONLY if Approved AND Partial Delivery --}}
-        @if($salesOrder->status === 'Approved' && $salesOrder->delivery_type === 'Partial')
-            <a href="{{ route('sales_orders.deliveryBatches', $salesOrder->id) }}" 
-            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded inline-block transition">
-                📦 View Delivery Batches
+        {{-- Show View Delivery Batches button if there are multiple deliveries --}}
+        @php
+            $deliveryCount = \App\Models\Deliveries::where('sales_order_number', $salesOrder->sales_order_number)
+                ->whereHas('items') // Only count deliveries with items
+                ->count();
+        @endphp
+        @if($deliveryCount >= 2)
+            <a href="{{ route('sales_orders.delivery_batches', ['id' => $salesOrder->id]) }}"
+            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded inline-block transition flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+                📦 View Delivery Batches ({{ $deliveryCount }})
             </a>
         @endif
 
-        {{-- Message for Full Delivery Type --}}
-        @if($salesOrder->status === 'Approved' && $salesOrder->delivery_type === 'Full')
+        {{-- Message for Single Delivery --}}
+        @if($deliveryCount === 1)
             <div class="bg-blue-600/20 border border-blue-600 text-blue-300 px-4 py-2 rounded inline-block">
-                ℹ️ Full delivery - Single batch
+                ℹ️ Single delivery - No multiple batches
             </div>
         @endif
     </div>

@@ -72,23 +72,14 @@ class Deliveries extends Model
             ->count('delivery_batch') > 1;
     }
 
-    // ✅ NEW: Get all batches for an SO
-    public static function getBatchesForSO($soNumber)
+    // In App\Models\Deliveries.php
+    public function salesOrder()
     {
-        return self::where('sales_order_number', $soNumber)
-            ->select('delivery_batch', 'request_delivery_date')
-            ->distinct()
-            ->orderBy('request_delivery_date')
-            ->get();
+        return $this->belongsTo(SalesOrder::class, 'sales_order_number', 'sales_order_number');
     }
 
-        public function items()
+    public function items()
     {
-        return $this->hasMany(\App\Models\DeliveryItem::class, 'delivery_id');
-    }
-
-        public function salesOrder()
-    {
-        return $this->belongsTo(\App\Models\SalesOrder::class, 'sales_order_id');
+        return $this->hasMany(DeliveryItem::class, 'delivery_id');
     }
 }

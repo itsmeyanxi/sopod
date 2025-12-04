@@ -21,8 +21,8 @@
         // Check ALL sales orders, not just filtered ones
         $allOrders = \App\Models\SalesOrder::with(['customer', 'deliveries'])->get();
 
-        foreach($allOrders as $order) {
-            // Check for cancelled deliveries
+            foreach($allOrders as $order) {
+            // ✅ FIXED: Check if delivery exists first
             if($order->deliveries && $order->deliveries->status === 'Cancelled') {
                 $cancelledOrders[] = $order;
             }
@@ -187,11 +187,13 @@
                     <td class="px-4 py-3">₱{{ number_format($order->total_amount, 2) }}</td>
                     <td class="px-4 py-3">
                         @if($order->status === 'Pending')
-                            <span class="bg-gray-500 text-black px-2 py-1 rounded text-xs">Pending</span>
+                            <span class="bg-yellow-500 text-black px-2 py-1 rounded text-xs">Pending</span>
                         @elseif($order->status === 'Approved')
                             <span class="bg-green-600 text-white px-2 py-1 rounded text-xs">Approved</span>
                         @elseif($order->status === 'Declined')
                             <span class="bg-red-600 text-white px-2 py-1 rounded text-xs">Declined</span>
+                             @elseif($order->status === 'Cancelled')
+                            <span class="bg-gray-600 text-white px-2 py-1 rounded text-xs">Cancelled</span>
                         @endif
                     </td>
                     <td class="px-4 py-3">
@@ -201,58 +203,61 @@
                             <span class="text-gray-500">N/A</span>
                          @endif
                     </td>                   
-                     <td class="px-4 py-3">
+                    <td class="px-4 py-3">
                         @php
-                            $delivery = $order->deliveries;
-                            $drStatus = 'Not Delivered';
-                            $statusClass = 'bg-gray-600';
+                            $delivery = $order->deliveries; // This might be null
                             
-                            if ($delivery) {
-                                $drStatus = $delivery->status ?? 'Pending';
-                                
-                                switch($drStatus) {
-                                    case 'Pending':
-                                        $statusClass = 'bg-gray-500 text-black';
-                                        break;
-                                    case 'In Transit':
-                                    case 'In-Transit':
-                                        $statusClass = 'bg-blue-500';
-                                        break;
-                                    case 'Delivered':
-                                        $statusClass = 'bg-green-600';
-                                        break;
-                                    case 'Cancelled':
-                                    case 'Failed':
-                                        $statusClass = 'bg-red-600';
-                                        break;
-                                    default:
-                                        $statusClass = 'bg-gray-600';
+                            // ✅ Check if SO is closed
+                            if ($order->is_closed) {
+                                $drStatus = 'Fully Delivered';
+                                $statusClass = 'bg-green-600';
+                            } elseif (!$delivery) {
+                                // No delivery created yet
+                                $drStatus = ($order->status === 'Approved') ? 'Awaiting Delivery' : 'Not Delivered';
+                                $statusClass = 'bg-gray-600';
+                            } else {
+                                // ✅ NEW LOGIC: Use delivery_type instead of status for Partial/Full
+                                if ($delivery->status === 'Cancelled') {
+                                    $drStatus = 'Cancelled';
+                                    $statusClass = 'bg-red-600';
+                                } elseif ($delivery->delivery_type === 'Partial') {
+                                    $drStatus = 'Partial';
+                                    $statusClass = 'bg-orange-500';
+                                } elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Full') {
+                                    $drStatus = 'Delivered';
+                                    $statusClass = 'bg-green-600';
+                                } else {
+                                    // Fallback
+                                    $drStatus = $delivery->status ?? 'Pending';
+                                    $statusClass = 'bg-yellow-500 text-black';
                                 }
                             }
                         @endphp
                         <span class="{{ $statusClass }} text-white px-2 py-1 rounded text-xs">{{ $drStatus }}</span>
                     </td>
-                    <td class="px-4 py-3 text-center">
+
+                   <td class="px-4 py-3 text-center">
                         <a href="{{ route('sales_orders.show', $order->id) }}" 
-                           class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs inline-block">
+                        class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs inline-block">
                             View
                         </a>
                         
-                        @if(auth()->user()->canManageSalesOrders())
+                        @if(auth()->user()->canManageSalesOrders() && !$order->is_closed)
                             <a href="{{ route('sales_orders.edit', $order->id) }}" 
-                               class="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs inline-block ml-2">
+                            class="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs inline-block ml-2">
                                 Edit
                             </a>
-                            <form action="{{ route('sales_orders.destroy', $order->id) }}" method="POST" class="inline ml-2">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" 
-                                        class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs"
-                                        onclick="return confirm('Are you sure you want to delete this sales order?')">
-                                    Delete
-                                </button>
-                            </form>
                         @endif
+                        
+                        <form action="{{ route('sales_orders.destroy', $order->id) }}" method="POST" class="inline ml-2">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" 
+                                    class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs"
+                                    onclick="return confirm('Are you sure you want to delete this sales order?')">
+                                Delete
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 @endforeach

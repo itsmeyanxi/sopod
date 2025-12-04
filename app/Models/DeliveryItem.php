@@ -23,6 +23,7 @@ class DeliveryItem extends Model
         'unit_price',
         'total_amount',
         'delivery_batch',
+        'notes'
     ];
 
     protected $casts = [

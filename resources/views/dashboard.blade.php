@@ -4,12 +4,14 @@
 
 @section('content')
 <div class="bg-gray-800 p-6">
-    <h1 class="text-white text-2xl font-bold mb-4">Dashboard</h1>
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-white text-2xl font-bold">Dashboard</h1>
+    </div>
 
     {{-- ========================================================= --}}
-    {{--    NEW SALES ORDER STAT CARDS (Monthly + Status Counts)   --}}
+    {{--    SALES ORDER STATS + MONTH-TO-DATE SALES               --}}
     {{-- ========================================================= --}}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
 
         <div class="bg-gray-700 p-6 rounded shadow">
             <h3 class="text-white text-lg font-semibold">Sales Order</h3>
@@ -97,7 +99,7 @@
                     </thead>
                     <tbody>
                         @foreach($recentActivities as $activity)
-                            <tr class="border-b hover:bg-gray">
+                            <tr class="border-b hover:bg-gray-600">
                                 <td class="px-4 py-2">{{ $activity->created_at->format('Y-m-d H:i') }}</td>
                                 <td class="px-4 py-2">{{ $activity->message }}</td>
                                 <td class="px-4 py-2">

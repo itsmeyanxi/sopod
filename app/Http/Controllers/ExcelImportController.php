@@ -88,6 +88,39 @@ class ExcelImportController extends Controller
         'uom' => 'unit',
     ];
 
+    /**
+     * Load spreadsheet with proper encoding handling for special characters
+     */
+    private function loadSpreadsheet($filePath)
+    {
+        $spreadsheet = IOFactory::load($filePath);
+        
+        // Set encoding to UTF-8 to handle special characters properly
+        $worksheet = $spreadsheet->getActiveSheet();
+        
+        return $worksheet;
+    }
+
+    /**
+     * Clean and fix encoding issues in text
+     */
+    private function fixEncoding($text)
+    {
+        if (empty($text)) {
+            return $text;
+        }
+
+        // Convert to UTF-8 if not already
+        if (!mb_check_encoding($text, 'UTF-8')) {
+            $text = mb_convert_encoding($text, 'UTF-8', 'auto');
+        }
+
+        // Fix common encoding issues
+        $text = str_replace('�', '', $text); // Remove replacement character
+        
+        return trim($text);
+    }
+
     public function importItems(Request $request)
     {
         $request->validate([
@@ -96,8 +129,7 @@ class ExcelImportController extends Controller
 
         try {
             $file = $request->file('file');
-            $spreadsheet = IOFactory::load($file->getRealPath());
-            $worksheet = $spreadsheet->getActiveSheet();
+            $worksheet = $this->loadSpreadsheet($file->getRealPath());
             $rows = $worksheet->toArray();
 
             if (empty($rows)) {
@@ -113,7 +145,7 @@ class ExcelImportController extends Controller
             // Get headers from first row and normalize them
             $headers = array_shift($rows);
             $cleanHeaders = array_map(function($header) {
-                return strtolower(trim($header));
+                return strtolower(trim($this->fixEncoding($header)));
             }, $headers);
 
             // Map Excel headers to database columns
@@ -150,6 +182,11 @@ class ExcelImportController extends Controller
                 if (empty(array_filter($row))) {
                     continue;
                 }
+
+                // Fix encoding for each cell
+                $row = array_map(function($cell) {
+                    return $this->fixEncoding($cell);
+                }, $row);
 
                 // Combine headers with row data
                 $data = array_combine($mappedHeaders, $row);
@@ -228,8 +265,7 @@ class ExcelImportController extends Controller
 
         try {
             $file = $request->file('file');
-            $spreadsheet = IOFactory::load($file->getRealPath());
-            $worksheet = $spreadsheet->getActiveSheet();
+            $worksheet = $this->loadSpreadsheet($file->getRealPath());
             $rows = $worksheet->toArray();
 
             if (empty($rows)) {
@@ -245,7 +281,7 @@ class ExcelImportController extends Controller
             // Get headers from first row and normalize them
             $headers = array_shift($rows);
             $cleanHeaders = array_map(function($header) {
-                return strtolower(trim($header));
+                return strtolower(trim($this->fixEncoding($header)));
             }, $headers);
 
             // Map Excel headers to database columns
@@ -258,15 +294,15 @@ class ExcelImportController extends Controller
                 }
             }
 
-            // Check for required columns
-            $requiredColumns = ['customer_code', 'customer_name'];
+            // Check for required columns - UPDATED TO INCLUDE NEW REQUIRED FIELDS
+            $requiredColumns = ['customer_code', 'customer_name', 'billing_address', 'sales_rep', 'collection_terms'];
             $missingColumns = array_diff($requiredColumns, $mappedHeaders);
             
             if (!empty($missingColumns)) {
                 return redirect()->back()->with('error', 
                     'Missing required columns in file: ' . implode(', ', $missingColumns) . 
                     "\n\nFound columns: " . implode(', ', $cleanHeaders) . 
-                    "\n\nRequired columns: customer_code (or Customer Code), customer_name (or Customer Name)"
+                    "\n\nRequired columns: customer_code, customer_name, billing_address, sales_rep, collection_terms"
                 );
             }
 
@@ -284,12 +320,20 @@ class ExcelImportController extends Controller
                     continue;
                 }
 
+                // Fix encoding for each cell
+                $row = array_map(function($cell) {
+                    return $this->fixEncoding($cell);
+                }, $row);
+
                 // Combine headers with row data
                 $data = array_combine($mappedHeaders, $row);
 
-                // Validate required fields
+                // Validate required fields - UPDATED TO VALIDATE NEW REQUIRED FIELDS
                 $customerCode = trim($data['customer_code'] ?? '');
                 $customerName = trim($data['customer_name'] ?? '');
+                $billingAddress = trim($data['billing_address'] ?? '');
+                $salesRep = trim($data['sales_rep'] ?? '');
+                $collectionTerms = trim($data['collection_terms'] ?? '');
 
                 if (empty($customerCode)) {
                     $errors[] = "Row $rowNum: customer_code is required";
@@ -297,6 +341,18 @@ class ExcelImportController extends Controller
                 }
                 if (empty($customerName)) {
                     $errors[] = "Row $rowNum: customer_name is required";
+                    continue;
+                }
+                if (empty($billingAddress)) {
+                    $errors[] = "Row $rowNum: billing_address is required";
+                    continue;
+                }
+                if (empty($salesRep)) {
+                    $errors[] = "Row $rowNum: sales_rep is required";
+                    continue;
+                }
+                if ($collectionTerms === null || $collectionTerms === '') {
+                    $errors[] = "Row $rowNum: collection_terms is required";
                     continue;
                 }
 
@@ -313,20 +369,23 @@ class ExcelImportController extends Controller
                 }
 
                 try {
-                    // Prepare customer data
+                    // Prepare customer data - UPDATED TO INCLUDE NEW REQUIRED FIELDS
                     $customerData = [
                         'customer_code' => $customerCode,
                         'customer_name' => $customerName,
+                        'billing_address' => $billingAddress,
+                        'sales_rep' => $salesRep,
+                        'collection_terms' => $collectionTerms,
                         'status' => 'enabled',
                     ];
 
-                    // Add optional fields if they exist
+                    // Add optional fields if they exist - REMOVED billing_address, sales_rep, collection_terms
                     $optionalFields = [
                         'business_style', 'branch', 'customer_group', 'customer_type',
                         'currency', 'telephone_1', 'telephone_2', 'mobile', 'email',
-                        'website', 'name_of_contact', 'billing_address', 'shipping_address',
+                        'website', 'name_of_contact', 'shipping_address',
                         'whtrate', 'whtcode', 'require_si', 'ar_type', 'tin_no',
-                        'collection_terms', 'sales_rep', 'credit_limit', 'assigned_bank'
+                        'credit_limit', 'assigned_bank'
                     ];
 
                     foreach ($optionalFields as $field) {

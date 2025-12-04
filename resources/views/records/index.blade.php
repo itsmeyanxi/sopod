@@ -94,8 +94,6 @@
 </div>
 @endif
 
-
-
     <style>
         .report-card {
             display: block;
@@ -114,7 +112,7 @@
         }
     </style>
 
-        @if($type === 'sales_orders' && !$report)
+@if($type === 'sales_orders' && !$report)
 <div class="bg-gray-800 p-4 rounded-lg mb-5 border border-gray-700">
 
     <h2 class="text-xl font-semibold mb-3">Search Sales Order Range</h2>
@@ -140,16 +138,16 @@
             Filter
         </button>
     </form>
+</div>
 
-    <form method="POST" action="{{ route('records.batchPrintSO') }}" id="batchPrintForm" class="mt-4">
-    @csrf
-    <button type="submit"
+{{-- Batch Print Button and Form --}}
+<div class="mb-4">
+    <button type="button" id="batchPrintBtn"
         class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium">
-        Batch Print Selected
+        <i class="fa-solid fa-print"></i> Batch Print Selected (<span id="selectedCount">0</span>)
     </button>
-</form>
+</div>
 @endif
-
 
     <!-- ====================== -->
     <!-- 📄 TABLE SECTION -->
@@ -180,8 +178,9 @@
 
                     @else
                         <th class="px-4 py-2">
-                        <input type="checkbox" id="selectAll" class="w-4 h-4">
+                            <input type="checkbox" id="selectAll" class="w-4 h-4">
                         </th>
+                        <th class="px-4 py-2">{{ $type === 'deliveries' ? 'DR Number' : 'SO Number' }}</th>
                         <th class="px-4 py-2">Customer</th>
                         <th class="px-4 py-2">Branch</th>
                         <th class="px-4 py-2">Item Description</th>
@@ -228,13 +227,15 @@
                         {{-- ===================== DEFAULT TABLE ===================== --}}
                         @else
                             <td class="px-4 py-2">
-                            <input type="checkbox" name="sales_orders[]" value="{{ $record->id }}" form="batchPrintForm" class="w-4 h-4">
-                            {{ $type === 'deliveries' ? $record->dr_no : $record->sales_order_number }}
+                                <input type="checkbox" data-id="{{ $record->id }}" class="w-4 h-4 row-checkbox">
                             </td>
-                            <td class="px-4 py-2">{{ $so->customer_name }}</td>
-                            <td class="px-4 py-2">{{ $so->branch }}</td>
-                            <td class="px-4 py-2">{{ $so->item_description }}</td>
-                            <td class="px-4 py-2">{{ $so->total_amount }}</td>
+                            <td class="px-4 py-2">
+                                {{ $type === 'deliveries' ? $record->dr_no : $record->sales_order_number }}
+                            </td>
+                            <td class="px-4 py-2">{{ $so->customer_name ?? 'N/A' }}</td>
+                            <td class="px-4 py-2">{{ $so->branch ?? 'N/A' }}</td>
+                            <td class="px-4 py-2">{{ $so->item_description ?? 'N/A' }}</td>
+                            <td class="px-4 py-2">{{ $so->total_amount ?? '0.00' }}</td>
 
                             {{-- STATUS --}}
                             <td class="px-4 py-2">
@@ -272,7 +273,7 @@
 
         @if(!$report)
         <div class="mt-4">
-            {{ $records->links() }}
+            {{ $records->appends(request()->query())->links() }}
         </div>
         @endif
 
@@ -283,11 +284,71 @@
     @endif
 
     <script>
-document.getElementById('selectAll')?.addEventListener('change', function() {
-    document.querySelectorAll('input[name="sales_orders[]"]').forEach(cb => {
-        cb.checked = this.checked;
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    const batchPrintBtn = document.getElementById('batchPrintBtn');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    
+    // Update count
+    function updateCount() {
+        const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+        if (selectedCountSpan) {
+            selectedCountSpan.textContent = checkedBoxes.length;
+        }
+    }
+    
+    // Select all functionality
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+            });
+            updateCount();
+        });
+    }
+    
+    // Update count on individual checkbox change
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateCount);
     });
+    
+    // Batch print button click
+    if (batchPrintBtn) {
+        batchPrintBtn.addEventListener('click', function() {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            
+            if (checkedBoxes.length === 0) {
+                alert('Please select at least one sales order to print.');
+                return;
+            }
+            
+            // Create a hidden form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("records.batchPrintSO") }}';
+            
+            // Add CSRF token
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+            form.appendChild(csrfToken);
+            
+            // Add selected IDs
+            checkedBoxes.forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'sales_orders[]';
+                input.value = cb.getAttribute('data-id');
+                form.appendChild(input);
+            });
+            
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
 });
-</script>
+    </script>
 </div>
 @endsection

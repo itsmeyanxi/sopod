@@ -8,6 +8,7 @@ use App\Models\Item;
 use App\Models\SalesOrder;
 use App\Models\Activity;
 use App\Models\Deliveries;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -18,7 +19,7 @@ class DashboardController extends Controller
         $totalCustomers = Customer::count();
         $totalItems = Item::count();
 
-        // 📌 New Dashboard Stats
+        // 📌 Dashboard Stats
         $totalSoThisMonth = SalesOrder::whereMonth('created_at', now()->month)
                                       ->whereYear('created_at', now()->year)
                                       ->count();
@@ -27,7 +28,15 @@ class DashboardController extends Controller
         $totalPending = SalesOrder::where('status', 'Pending')->count();
         $totalDeclined = SalesOrder::where('status', 'Declined')->count();
 
-        // Recent activities (you already have this)
+        // 💰 Month-to-Date Total Sales (ONLY DELIVERED ORDERS)
+        $totalSalesThisMonth = SalesOrder::whereMonth('created_at', now()->month)
+                                         ->whereYear('created_at', now()->year)
+                                         ->whereHas('deliveries', function($query) {
+                                             $query->where('status', 'Delivered');
+                                         })
+                                         ->sum('total_amount');
+
+        // Recent activities
         $recentActivities = Activity::latest()->take(10)->get();
 
         return view('dashboard', compact(
@@ -38,7 +47,8 @@ class DashboardController extends Controller
             'totalSoThisMonth',
             'totalDelivered',
             'totalPending',
-            'totalDeclined'
+            'totalDeclined',
+            'totalSalesThisMonth'
         ));
     }
 

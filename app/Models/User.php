@@ -125,4 +125,27 @@ class User extends Authenticatable
     {
         return in_array($this->role, ['Admin', 'IT']);
     }
+
+        public function canImportItems()
+    {
+        return in_array($this->role, [
+            'Admin',
+            'IT',
+            'Accounting_Creator',
+            'Accounting_Approver'
+        ]);
+    }
+
+    public function canImportCustomers()
+    {
+        return in_array($this->role, [
+            'Admin',
+            'IT',
+            'CC_Approver',
+            'CC_Creator',
+            'Accounting_Creator',
+            'Accounting_Approver'
+        ]);
+    }
+
 }

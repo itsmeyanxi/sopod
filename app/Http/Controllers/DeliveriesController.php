@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Deliveries;
 use App\Models\DeliveryItem;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderItem;
 use App\Models\Customer;
 use App\Models\Item;
 use App\Models\Activity;
@@ -13,12 +14,12 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\DeliveriesExport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule; 
+use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 
 class DeliveriesController extends Controller
 {
-    // INDEX 
-    public function index(Request $request)
+        public function index(Request $request)
     {
         $query = Deliveries::with(['salesOrder.customer'])
             ->withSum('items as quantity', 'quantity')
@@ -36,20 +37,595 @@ class DeliveriesController extends Controller
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('dr_no', 'like', '%' . $request->search . '%')
+                ->orWhere('sales_order_number', 'like', '%' . $request->search . '%')  // ✅ ADDED
                 ->orWhere('customer_code', 'like', '%' . $request->search . '%')
                 ->orWhere('customer_name', 'like', '%' . $request->search . '%')
-                ->orWhereHas('salesOrder', function($sq) use ($request) {
-                    $sq->where('customer_name', 'like', '%' . $request->search . '%');
+                ->orWhere('plate_no', 'like', '%' . $request->search . '%')  // ✅ BONUS: search by plate
+                ->orWhereHas('salesOrder', function ($sq) use ($request) {
+                    $sq->where('customer_name', 'like', '%' . $request->search . '%')
+                        ->orWhere('sales_order_number', 'like', '%' . $request->search . '%');  // ✅ BONUS
                 })
-                ->orWhereHas('salesOrder.customer', function($cq) use ($request) {
-                    $cq->where('customer_name', 'like', '%' . $request->search . '%');
+                ->orWhereHas('salesOrder.customer', function ($cq) use ($request) {
+                    $cq->where('customer_name', 'like', '%' . $request->search . '%')
+                        ->orWhere('customer_code', 'like', '%' . $request->search . '%');  // ✅ BONUS
                 });
             });
         }
 
-        $deliveries = $query->get(); // ✅ no groupBy needed
+        $deliveries = $query->get();
 
         return view('deliveries.index', compact('deliveries'));
+    }
+
+    // Create form
+    public function create()
+    {
+        $salesOrders = SalesOrder::where('status', 'Approved')->get();
+        return view('deliveries.create', compact('salesOrders'));
+    }
+
+    /**
+     * UPDATE 
+     */
+   // Replace your update() method in DeliveriesController.php with this:
+
+public function update(Request $request, $id)
+{
+    try {
+        $delivery = Deliveries::findOrFail($id);
+
+        $validated = $request->validate([
+            'sales_order_number' => 'required|string|max:255',
+            'delivery_type' => 'required|string|in:Full,Partial',
+            'dr_no' => ['required', 'string', 'max:255', Rule::unique('deliveries', 'dr_no')->ignore($delivery->id)],
+            'sales_invoice_no' => ['nullable', 'string', 'max:255', Rule::unique('deliveries', 'sales_invoice_no')->ignore($delivery->id)],
+            'customer_code' => 'nullable|string|max:255',
+            'customer_name' => 'nullable|string|max:255',
+            'tin_no' => 'nullable|string|max:255',
+            'branch' => 'nullable|string|max:255',
+            'sales_rep' => 'nullable|string|max:255',
+            'sales_representative' => 'nullable|string|max:255',
+            'sales_executive' => 'nullable|string|max:255',
+            'po_number' => 'nullable|string|max:255',
+            'request_delivery_date' => 'nullable|date',
+            'status' => 'required|string|in:Delivered,Cancelled',
+            'plate_no' => 'nullable|string|max:255',
+            'approved_by' => 'required|string|max:255',
+            'additional_instructions' => 'nullable|string',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'items' => 'required|array|min:1',
+            'items.*.item_code' => 'nullable|string|max:255',
+            'items.*.item_description' => 'nullable|string',
+            'items.*.quantity' => 'required|numeric|min:0',
+            'items.*.original_quantity' => 'nullable|numeric|min:0',
+            'items.*.remaining_quantity' => 'nullable|numeric|min:0',
+            'items.*.uom' => 'nullable|string|max:50',
+            'items.*.unit_price' => 'nullable|numeric|min:0',
+            'items.*.total_amount' => 'required|numeric|min:0',
+            'items.*.notes' => 'nullable|string|max:2000',
+        ]);
+
+        // Normalize empty strings to nulls
+        foreach (['customer_code', 'customer_name', 'branch', 'tin_no', 'sales_rep', 'sales_representative', 'sales_executive', 'po_number', 'plate_no'] as $field) {
+            if (isset($validated[$field]) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
+        }
+
+        // Handle attachment
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
+            $uploadPath = public_path('delivery_images');
+            if (!file_exists($uploadPath)) mkdir($uploadPath, 0755, true);
+            if ($delivery->attachment && file_exists(public_path('delivery_images/' . $delivery->attachment))) {
+                @unlink(public_path('delivery_images/' . $delivery->attachment));
+            }
+            $file->move($uploadPath, $filename);
+            $validated['attachment'] = $filename;
+        }
+
+        $items = $validated['items'];
+        unset($validated['items']);
+        $delivery->update($validated);
+
+        // Fetch SO for reference
+        $salesOrder = SalesOrder::with('items')->where('sales_order_number', $validated['sales_order_number'])->first();
+        if (!$salesOrder) {
+            throw new \Exception('Sales Order not found');
+        }
+
+        $soItemsMap = collect();
+        foreach ($salesOrder->items as $soItem) {
+            $soItemsMap->put($soItem->item_code, $soItem);
+        }
+
+        // Compute previous delivered sums for the SO, EXCLUDING this delivery
+        $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($validated, $delivery) {
+                $q->where('sales_order_number', $validated['sales_order_number'])
+                  ->where('status', 'Delivered');
+            })
+            ->where('delivery_id', '!=', $delivery->id)
+            ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
+            ->groupBy('item_code')
+            ->get()
+            ->keyBy('item_code');
+
+        // Delete existing delivery items for a clean replace
+        DeliveryItem::where('delivery_id', $delivery->id)->delete();
+
+        // Create updated delivery items
+        foreach ($items as $item) {
+            $itemCode = $item['item_code'] ?? null;
+            $soItem = $soItemsMap->get($itemCode);
+
+            if ($soItem && $soItem->quantity > 0) {
+                $originalQty = $soItem->quantity;
+            } else {
+                $originalQty = $item['original_quantity'] ?? ($item['quantity'] ?? 0);
+            }
+
+            $previousDelivered = $deliveredSums->get($itemCode)?->total_delivered ?? 0;
+            $deliveredQty = $item['quantity'] ?? 0;
+            $newTotalDelivered = $previousDelivered + $deliveredQty;
+            $remainingQty = max(0, $originalQty - $newTotalDelivered);
+
+            $itemRecord = !$soItem && $itemCode ? Item::where('item_code', $itemCode)->first() : null;
+
+            DeliveryItem::create([
+                'delivery_id' => $delivery->id,
+                'item_id' => $soItem?->item_id ?? $itemRecord?->id ?? null,
+                'sales_order_item_id' => $soItem?->id ?? null,
+                'item_code' => $itemCode,
+                'item_description' => $item['item_description'] ?? null,
+                'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
+                'item_category' => $soItem?->item_category ?? $itemRecord?->item_category ?? null,
+                'quantity' => $deliveredQty,
+                'original_quantity' => $originalQty,
+                'remaining_quantity' => $remainingQty,
+                'uom' => $item['uom'] ?? null,
+                'unit_price' => $item['unit_price'] ?? 0,
+                'total_amount' => $item['total_amount'] ?? 0,
+                'delivery_batch' => $validated['delivery_batch'] ?? null,
+                'notes' => $item['notes'] ?? $soItem?->note ?? null,
+            ]);
+        }
+
+        // ✅ Check if SO should be closed (AFTER all items are updated)
+        $salesOrder->fresh()->checkAndClose();
+
+        // Create activity log
+        Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Updated',
+            'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
+            'target' => $delivery->sales_order_number ?? 'N/A',
+            'type' => 'Delivery',
+            'message' => 'Updated delivery: ' . $delivery->dr_no,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Delivery updated successfully!']);
+    } catch (\Exception $e) {
+        Log::error('💥 Delivery update failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to update delivery: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+public function search(Request $request)
+{
+    $soNumber = $request->input('so_number');
+    $deliveryBatch = $request->input('delivery_batch');
+
+    \Log::info('🔍 Delivery search request:', [
+        'so_number' => $soNumber,
+        'delivery_batch' => $deliveryBatch
+    ]);
+
+    if (!$soNumber) {
+        return response()->json(['error' => 'Please provide a Sales Order number.'], 400);
+    }
+
+    $soExists = SalesOrder::where('sales_order_number', $soNumber)->first();
+
+    if (!$soExists) {
+        return response()->json(['error' => 'Sales Order not found. Please check the SO number and try again.'], 404);
+    }
+
+    if ($soExists->status !== 'Approved') {
+        return response()->json(['error' => "Sales Order {$soNumber} exists but has not been approved yet (Status: {$soExists->status}). Only approved sales orders can be delivered."], 403);
+    }
+
+    // ✅ Fetch all SO items
+    $soItems = SalesOrderItem::where('sales_order_id', $soExists->id)
+        ->where('batch_status', 'Active')
+        ->with('item')
+        ->get();
+
+    if ($soItems->isEmpty()) {
+        return response()->json(['error' => 'No items found in this Sales Order.'], 404);
+    }
+
+    // ✅ Get request delivery date
+    $requestDeliveryDate = $soItems->first()->request_delivery_date ?? $soExists->request_delivery_date;
+
+   // ✅ Check existing deliveries for THIS SPECIFIC SO ONLY (exclude Pending AND auto-created ones)
+    $existingDeliveries = Deliveries::where('sales_order_number', $soNumber)
+        ->where('status', '!=', 'Pending') // ✅ Ignore auto-created pending deliveries
+        ->whereNotNull('dr_no') // ✅ ADDED: Ensure it has a real DR number (not auto-generated temp)
+        ->whereHas('items') // ✅ ADDED: Only count deliveries that have actual items
+        ->orderBy('created_at', 'asc')
+        ->get();
+
+    $deliveryCount = $existingDeliveries->count();
+    $hasPartialDelivery = $existingDeliveries->where('status', 'Partial')->count() > 0;
+
+    \Log::info('🔍 Delivery check', [
+        'so_number' => $soNumber,
+        'delivery_count' => $deliveryCount,
+        'has_partial' => $hasPartialDelivery,
+        'existing_deliveries' => $existingDeliveries->pluck('dr_no', 'status')->toArray()
+    ]);
+
+    // ✅ Check if we're editing an existing delivery
+    $delivery = null;
+    $isEditMode = false;
+    
+    if ($deliveryBatch && $deliveryBatch !== 'new') {
+        // User selected existing batch to edit
+        $delivery = Deliveries::where('sales_order_number', $soNumber)
+            ->where('delivery_batch', $deliveryBatch)
+            ->with('items')
+            ->first();
+        
+        $isEditMode = $delivery ? true : false;
+    }
+
+    // ✅ Calculate delivered quantities per item (exclude current editing delivery)
+    $deliveredQuery = DeliveryItem::whereHas('delivery', function($q) use ($soNumber) {
+            $q->where('sales_order_number', $soNumber);
+        });
+
+    if ($delivery && $isEditMode) {
+        $deliveredQuery->where('delivery_id', '!=', $delivery->id);
+    }
+
+    $deliveredSums = $deliveredQuery
+        ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
+        ->groupBy('item_code')
+        ->get()
+        ->keyBy('item_code');
+
+    // ✅ NEW: Determine batch name for new delivery (per SO)
+    $newBatchName = null;
+    if (!$isEditMode) {
+        if ($deliveryCount === 0) {
+            // First delivery - batch name pending until we know if it's full or partial
+            $newBatchName = 'Pending';
+        } else {
+            // Subsequent delivery - it's a continuation batch
+            $newBatchName = 'Batch ' . ($deliveryCount + 1);
+        }
+    }
+
+   $items = [];
+$allItemsFullyDelivered = true;
+
+foreach ($soItems as $soItem) {
+    $originalQty = $soItem->quantity ?? 0;
+    $alreadyDelivered = $deliveredSums->get($soItem->item_code)?->total_delivered ?? 0;
+    $remainingAvailable = $originalQty - $alreadyDelivered;
+
+    // ✅ For edit mode: show the item's current delivery quantities
+    if ($isEditMode && $delivery) {
+        $existingDeliveryItem = $delivery->items->firstWhere('item_code', $soItem->item_code);
+        if ($existingDeliveryItem) {
+            $deliveredQty = $existingDeliveryItem->quantity ?? 0;
+            $notes = $existingDeliveryItem->notes ?? $soItem->note ?? null; // ✅ FIXED: Fallback to SO note
+            
+            $items[] = [
+                'item_code' => $soItem->item_code,
+                'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
+                'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
+                'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
+                'quantity' => $deliveredQty,
+                'original_quantity' => $originalQty,
+                'remaining_quantity' => $remainingAvailable,
+                'uom' => $soItem->unit ?? 'Kgs',
+                'unit_price' => $soItem->unit_price ?? 0,
+                'total_amount' => ($deliveredQty * ($soItem->unit_price ?? 0)),
+                'notes' => $notes,
+            ];
+        }
+    } else {
+        // ✅ NEW DELIVERY: Only show items that still have remaining quantity
+        if ($remainingAvailable > 0) {
+            $allItemsFullyDelivered = false;
+            
+            $items[] = [
+                'item_code' => $soItem->item_code,
+                'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
+                'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
+                'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
+                'quantity' => $remainingAvailable,
+                'original_quantity' => $originalQty,
+                'remaining_quantity' => 0,
+                'uom' => $soItem->unit ?? 'Kgs',
+                'unit_price' => $soItem->unit_price ?? 0,
+                'total_amount' => ($remainingAvailable * ($soItem->unit_price ?? 0)),
+                'notes' => $soItem->note ?? null, // ✅ FIXED: Get note from SO item
+            ];
+        }
+    }
+}
+
+// ✅ Check if all items are fully delivered
+if (!$isEditMode && $allItemsFullyDelivered) {
+    return response()->json([
+        'error' => 'All items in this Sales Order have been fully delivered. No remaining items to deliver.'
+    ], 400);
+}
+    
+
+    // ✅ Check if all items are fully delivered
+    if (!$isEditMode && $allItemsFullyDelivered) {
+        return response()->json([
+            'error' => 'All items in this Sales Order have been fully delivered. No remaining items to deliver.'
+        ], 400);
+    }
+
+    // ✅ If no items remaining for new delivery
+    if (!$isEditMode && empty($items)) {
+        return response()->json([
+            'error' => 'No items with remaining quantities found for delivery.'
+        ], 400);
+    }
+
+    // Build response
+    $attachmentUrl = null;
+    $attachmentName = null;
+    if ($delivery && $delivery->attachment) {
+        $attachmentUrl = asset('delivery_images/' . $delivery->attachment);
+        $attachmentName = $delivery->attachment;
+    }
+
+    // ✅ FIXED: Info message ONLY shows for 2nd+ batch when previous delivery was partial
+    $infoMessage = null;
+    $showPartialAlert = false;
+    
+    // Only show the partial delivery history alert if ALL these conditions are met:
+    // 1. NOT in edit mode
+    // 2. There's at least 1 previous delivery (deliveryCount >= 1) 
+    // 3. At least one of those previous deliveries had status "Partial"
+    // 4. Currently creating a 2nd+ batch (which means deliveryCount >= 1)
+    if (!$isEditMode && $deliveryCount >= 1 && $hasPartialDelivery) {
+        // Show alert when creating 2nd+ batch ONLY if there was a previous partial delivery
+        $showPartialAlert = true;
+        $fullyDeliveredCount = $soItems->count() - count($items);
+        $infoMessage = "This SO has {$deliveryCount} previous partial delivery(ies). ";
+        if ($fullyDeliveredCount > 0) {
+            $infoMessage .= "{$fullyDeliveredCount} item(s) already fully delivered. ";
+        }
+        $infoMessage .= "Showing " . count($items) . " item(s) with remaining quantities.";
+    }
+
+    return response()->json([
+        'success' => true,
+        'id' => $isEditMode && $delivery ? $delivery->id : null,
+        'is_edit_mode' => $isEditMode,
+        'has_partial_delivery' => $hasPartialDelivery,
+        'show_partial_alert' => $showPartialAlert, // ✅ NEW FLAG
+        'info_message' => $infoMessage,
+        'sales_order_number' => $soExists->sales_order_number,
+        'delivery_batch' => $isEditMode ? $delivery->delivery_batch : $newBatchName,
+        'customer_code' => $soExists->customer->customer_code ?? '',
+        'customer_name' => $soExists->customer->customer_name ?? '',
+        'tin_no' => $soExists->customer->tin_no ?? '',
+        'branch' => $soExists->branch ?? '',
+        'sales_representative' => $soExists->sales_rep ?? '',
+        'sales_executive' => $soExists->sales_executive ?? '',
+        'po_number' => $soExists->po_number ?? '',
+        'request_delivery_date' => $requestDeliveryDate,
+        'delivery_type' => $soExists->delivery_type ?? 'Full',
+        'approved_by' => auth()->user()->name ?? 'System',
+        'plate_no' => $isEditMode ? ($delivery->plate_no ?? '') : '',
+        'sales_invoice_no' => $isEditMode ? ($delivery->sales_invoice_no ?? '') : '',
+        'dr_no' => $isEditMode ? ($delivery->dr_no ?? '') : '',
+        'status' => $isEditMode ? ($delivery->status ?? 'Delivered') : 'Delivered',
+        'additional_instructions' => $soExists->additional_instructions ?? '',
+        'attachment' => $delivery->attachment ?? null,
+        'attachment_url' => $attachmentUrl,
+        'attachment_name' => $attachmentName,
+        'items' => $items,
+        'delivery_count' => $deliveryCount,
+        'items_count' => count($items),
+    ]);
+}
+
+public function store(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'sales_order_number' => 'required|string|max:255',
+            'delivery_batch' => 'nullable|string|max:255',
+            'delivery_type' => 'required|string|in:Full,Partial',
+            'dr_no' => ['required', 'string', 'max:255', 'unique:deliveries,dr_no'],
+            'customer_name' => 'nullable|string|max:255',
+            'tin_no' => 'nullable|string|max:255',
+            'branch' => 'nullable|string|max:255',
+            'sales_rep' => 'nullable|string|max:255',
+            'sales_representative' => 'nullable|string|max:255',
+            'sales_executive' => 'nullable|string|max:255',
+            'po_number' => 'nullable|string|max:255',
+            'request_delivery_date' => 'nullable|date',
+            'status' => 'required|string|in:Delivered,Cancelled',
+            'plate_no' => 'nullable|string|max:255',
+            'sales_invoice_no' => 'nullable|string|max:255',
+            'approved_by' => 'required|string|max:255',
+            'additional_instructions' => 'nullable|string',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'items' => 'required|array|min:1',
+            'items.*.item_code' => 'nullable|string|max:255',
+            'items.*.item_description' => 'nullable|string',
+            'items.*.quantity' => 'required|numeric|min:0',
+            'items.*.original_quantity' => 'nullable|numeric|min:0',
+            'items.*.remaining_quantity' => 'nullable|numeric|min:0',
+            'items.*.uom' => 'nullable|string|max:50',
+            'items.*.unit_price' => 'nullable|numeric|min:0',
+            'items.*.total_amount' => 'required|numeric|min:0',
+            'items.*.notes' => 'nullable|string|max:2000',
+        ]);
+
+        // Normalize empty strings to nulls
+        foreach (['customer_name', 'branch', 'tin_no', 'sales_rep', 'sales_representative', 'sales_executive', 'po_number', 'plate_no', 'sales_invoice_no'] as $field) {
+            if (isset($validated[$field]) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
+        }
+
+        // Handle attachment
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
+            $uploadPath = public_path('delivery_images');
+            if (!file_exists($uploadPath)) mkdir($uploadPath, 0755, true);
+            $file->move($uploadPath, $filename);
+            $validated['attachment'] = $filename;
+        }
+
+        $items = $validated['items'];
+        unset($validated['items']);
+
+        // Count existing deliveries (exclude Pending)
+        $existingDeliveryCount = Deliveries::where('sales_order_number', $validated['sales_order_number'])
+            ->where('status', '!=', 'Pending')
+            ->whereHas('items')
+            ->count();
+        
+        // Determine batch name
+        if ($existingDeliveryCount === 0) {
+            $validated['delivery_batch'] = ($validated['delivery_type'] === 'Partial') ? 'Batch 1' : 'Full Delivery';
+        } else {
+            $validated['delivery_batch'] = 'Batch ' . ($existingDeliveryCount + 1);
+        }
+
+        Log::info('📦 Creating delivery', [
+            'so_number' => $validated['sales_order_number'],
+            'batch_name' => $validated['delivery_batch'],
+            'delivery_type' => $validated['delivery_type'],
+            'status' => $validated['status'],
+        ]);
+
+        // Fetch SO
+        $salesOrder = SalesOrder::with('items')->where('sales_order_number', $validated['sales_order_number'])->first();
+        if (!$salesOrder) {
+            throw new \Exception('Sales Order not found');
+        }
+
+        $soItemsMap = collect();
+        foreach ($salesOrder->items as $soItem) {
+            $soItemsMap->put($soItem->item_code, $soItem);
+        }
+
+        // Get delivered sums
+        $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($validated) {
+                $q->where('sales_order_number', $validated['sales_order_number'])
+                  ->where('status', 'Delivered');
+            })
+            ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
+            ->groupBy('item_code')
+            ->get()
+            ->keyBy('item_code');
+
+        // Create delivery
+        $delivery = Deliveries::create($validated);
+
+        // Create delivery items
+        foreach ($items as $item) {
+            $itemCode = $item['item_code'] ?? null;
+            $soItem = $soItemsMap->get($itemCode);
+
+            $originalQty = $soItem ? $soItem->quantity : ($item['original_quantity'] ?? ($item['quantity'] ?? 0));
+            $previousDelivered = $deliveredSums->get($itemCode)?->total_delivered ?? 0;
+            $deliveredQty = $item['quantity'] ?? 0;
+            $newTotalDelivered = $previousDelivered + $deliveredQty;
+            $remainingQty = max(0, $originalQty - $newTotalDelivered);
+
+            $itemRecord = !$soItem && $itemCode ? Item::where('item_code', $itemCode)->first() : null;
+
+            DeliveryItem::create([
+                'delivery_id' => $delivery->id,
+                'item_id' => $soItem?->item_id ?? $itemRecord?->id ?? null,
+                'sales_order_item_id' => $soItem?->id ?? null,
+                'item_code' => $itemCode,
+                'item_description' => $item['item_description'] ?? null,
+                'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
+                'item_category' => $soItem?->item_category ?? $itemRecord?->item_category ?? null,
+                'quantity' => $deliveredQty,
+                'original_quantity' => $originalQty,
+                'remaining_quantity' => $remainingQty,
+                'uom' => $item['uom'] ?? null,
+                'unit_price' => $item['unit_price'] ?? 0,
+                'total_amount' => $item['total_amount'] ?? 0,
+                'delivery_batch' => $validated['delivery_batch'],
+                'notes' => $item['notes'] ?? $soItem?->note ?? null,      
+            ]);
+        }
+
+        // ✅ Check if SO should be closed (AFTER all items are created)
+        $salesOrder->fresh()->checkAndClose();
+
+        // Create activity log
+        Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Created',
+            'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
+            'target' => $delivery->sales_order_number ?? 'N/A',
+            'type' => 'Delivery',
+            'message' => "Created delivery: {$delivery->dr_no} ({$delivery->delivery_batch}) - Type: {$delivery->delivery_type}",
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Delivery created successfully! Type: {$delivery->delivery_type}, Batch: {$delivery->delivery_batch}",
+        ]);
+    } catch (\Exception $e) {
+        Log::error('💥 Delivery store failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create delivery: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+    /**
+     * Helper function to generate ordinal names
+     */
+    private function getOrdinalName($number)
+    {
+        $ordinals = [
+            1 => '1st',
+            2 => '2nd',
+            3 => '3rd',
+        ];
+        
+        if (isset($ordinals[$number])) {
+            return $ordinals[$number];
+        }
+        
+        return $number . 'th';
     }
 
     // 📋 DELIVERIES LIST
@@ -116,8 +692,8 @@ class DeliveriesController extends Controller
     {
         // ✅ Load delivery with items AND sales order with items for comparison
         $delivery = Deliveries::with([
-            'salesOrder.items.item',  // ✅ Load SO items for qty comparison
-            'items.item'              // ✅ Load delivery items with item details
+            'salesOrder.items.item',  
+            'items.item'              
         ])->findOrFail($id);
         
         return view('deliveries.print', compact('delivery'));
@@ -128,421 +704,6 @@ class DeliveriesController extends Controller
     {
         $delivery = Deliveries::with(['items','salesOrder'])->findOrFail($id);
         return view('deliveries.show', compact('delivery'));
-    }
-
-    // ➕ Create form
-    public function create()
-    {
-        $salesOrders = SalesOrder::where('status', 'Approved')->get();
-        return view('deliveries.create', compact('salesOrders'));
-    }
-
-    // ✅ UPDATED STORE METHOD 
-        public function store(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'sales_order_number' => 'required|string|max:255',
-                'delivery_batch' => 'nullable|string|max:255',
-                'dr_no' => [
-                    'required',
-                    'string',
-                    'max:255',
-                    'unique:deliveries,dr_no' // ✅ MAKE DR NO UNIQUE GLOBALLY
-                ],
-                'customer_name' => 'nullable|string|max:255',
-                'tin_no' => 'nullable|string|max:255',
-                'branch' => 'nullable|string|max:255',
-                'sales_rep' => 'nullable|string|max:255',
-                'sales_executive' => 'nullable|string|max:255',
-                'po_number' => 'nullable|string|max:255',
-                'request_delivery_date' => 'nullable|date',
-                'status' => 'required|string|in:Delivered,Cancelled',
-                'plate_no' => 'nullable|string|max:255',
-                'sales_invoice_no' => 'nullable|string|max:255',
-                'approved_by' => 'required|string|max:255',
-                'additional_instructions' => 'nullable|string',
-                'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
-                'items' => 'required|array|min:1',
-                'items.*.item_code' => 'nullable|string|max:255',
-                'items.*.item_description' => 'nullable|string',
-                'items.*.quantity' => 'required|numeric|min:0',
-                'items.*.uom' => 'nullable|string|max:50',
-                'items.*.unit_price' => 'nullable|numeric|min:0',
-                'items.*.total_amount' => 'required|numeric|min:0',
-            ], [
-                'dr_no.required' => 'DR Number is required.',
-                'dr_no.unique' => 'This DR Number already exists. Please use a unique DR Number.', // ✅ CUSTOM ERROR MESSAGE
-            ]);
-
-            // ... rest of your store method remains the same
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            Log::error('Delivery store failed', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create delivery: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    //  UPDATE
-    public function update(Request $request, $id)
-    {
-        try {
-            $delivery = Deliveries::findOrFail($id);
-
-            Log::info('DELIVERY UPDATE START', [
-                'id' => $id,
-                'has_file' => $request->hasFile('attachment'),
-            ]);
-
-            $validated = $request->validate([
-                'sales_order_number' => 'required|string|max:255',
-                'dr_no' => [
-                    'required',
-                    'string',
-                    'max:255',
-                    Rule::unique('deliveries', 'dr_no')
-                        ->ignore($delivery->id)
-                        ->where(function ($query) use ($request) {
-                            return $query->where('sales_order_number', $request->sales_order_number);
-                        }),
-                ],
-                'sales_invoice_no' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                    Rule::unique('deliveries', 'sales_invoice_no')
-                        ->ignore($delivery->id)
-                        ->where(function ($query) use ($request) {
-                            return $query->where('sales_order_number', $request->sales_order_number);
-                        }),
-                ],
-                'customer_code' => 'nullable|string|max:255',
-                'customer_name' => 'nullable|string|max:255',
-                'tin_no' => 'nullable|string|max:255',
-                'branch' => 'nullable|string|max:255',
-                'sales_rep' => 'nullable|string|max:255',
-                'sales_executive' => 'nullable|string|max:255',
-                'po_number' => 'nullable|string|max:255',
-                'request_delivery_date' => 'nullable|date',
-                'status' => 'required|string|in:Delivered,Cancelled',
-                'plate_no' => 'nullable|string|max:255',
-                'approved_by' => 'required|string|max:255',
-                'additional_instructions' => 'nullable|string',
-                'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
-                'items' => 'required|array|min:1',
-                'items.*.item_code' => 'nullable|string|max:255',
-                'items.*.item_description' => 'nullable|string',
-                'items.*.quantity' => 'required|numeric|min:0',
-                'items.*.uom' => 'nullable|string|max:50',
-                'items.*.unit_price' => 'nullable|numeric|min:0',
-                'items.*.total_amount' => 'required|numeric|min:0',
-            ], [
-                'dr_no.required' => 'DR Number is required.',
-                'dr_no.unique' => 'This DR Number already exists for this Sales Order. Please use a unique DR Number.',
-                'sales_invoice_no.unique' => 'This Sales Invoice Number already exists for this Sales Order. Please use a unique Sales Invoice Number.',
-            ]);
-
-            // Clean empty strings to null
-            foreach (['customer_code', 'customer_name', 'branch', 'tin_no', 'sales_rep', 'sales_executive', 'po_number', 'plate_no'] as $field) {
-                if (isset($validated[$field]) && $validated[$field] === '') {
-                    $validated[$field] = null;
-                }
-            }
-
-            // Handle file upload
-            if ($request->hasFile('attachment')) {
-                $file = $request->file('attachment');
-                $filename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-                
-                $uploadPath = public_path('delivery_images');
-                if (!file_exists($uploadPath)) mkdir($uploadPath, 0755, true);
-
-                if ($delivery->attachment && file_exists(public_path('delivery_images/' . $delivery->attachment))) {
-                    @unlink(public_path('delivery_images/' . $delivery->attachment));
-                }
-
-                $file->move($uploadPath, $filename);
-                $validated['attachment'] = $filename;
-            }
-
-            $items = $validated['items'];
-            unset($validated['items']);
-
-            $delivery->update($validated);
-
-            // Update delivery items
-            $salesOrder = SalesOrder::with('items.item')->where('sales_order_number', $validated['sales_order_number'])->first();
-            $soItemsMap = $salesOrder ? $salesOrder->items->keyBy('item_code') : collect();
-
-            DeliveryItem::where('delivery_id', $delivery->id)->delete();
-
-            foreach ($items as $item) {
-                $itemCode = $item['item_code'] ?? null;
-                $soItem = $soItemsMap->get($itemCode);
-                $itemRecord = !$soItem && $itemCode ? Item::where('item_code', $itemCode)->first() : null;
-
-                DeliveryItem::create([
-                    'delivery_id' => $delivery->id,
-                    'item_id' => $soItem?->item_id ?? $itemRecord?->id ?? null,
-                    'item_code' => $itemCode,
-                    'item_description' => $item['item_description'] ?? null,
-                    'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
-                    'item_category' => $soItem?->item_category ?? $itemRecord?->item_category ?? null,
-                    'quantity' => $item['quantity'],
-                    'uom' => $item['uom'] ?? null,
-                    'unit_price' => $item['unit_price'] ?? 0,
-                    'total_amount' => $item['total_amount'],
-                ]);
-            }
-
-            Log::info('Delivery updated with items', [
-                'delivery_id' => $delivery->id,
-                'items_count' => count($items)
-            ]);
-
-            Activity::create([
-                'user_name' => auth()->user()->name ?? 'System',
-                'action' => 'Updated',
-                'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
-                'target' => $delivery->sales_order_number ?? 'N/A',
-                'type' => 'Delivery',
-                'message' => 'Updated delivery: ' . $delivery->dr_no . ' (Status: ' . $delivery->status . ')',
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Delivery updated successfully!'
-            ]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Validation failed', ['errors' => $e->errors()]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-
-        } catch (\Exception $e) {
-            Log::error('Delivery update failed', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update delivery: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-
-    // ✅ FIXED DESTROY METHOD - WITH ACTIVITY LOGGING
-    public function destroy($id)
-    {
-        $delivery = Deliveries::findOrFail($id);
-        
-        Activity::create([
-            'user_name' => auth()->user()->name ?? 'System',
-            'action' => 'Deleted',
-            'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
-            'target' => $delivery->sales_order_number ?? 'N/A',
-            'type' => 'Delivery',
-            'message' => 'Deleted delivery: ' . $delivery->dr_no,
-        ]);
-        
-        if ($delivery->attachment && file_exists(public_path('delivery_images/' . $delivery->attachment))) {
-            @unlink(public_path('delivery_images/' . $delivery->attachment));
-        }
-        
-        $delivery->delete();
-
-        return redirect()->route('deliveries.index')->with('success', 'Delivery deleted successfully!');
-    }
-
-    // ✅ SEARCH METHOD
-    public function search(Request $request)
-    {
-        $soNumber = $request->input('so_number');
-        $deliveryBatch = $request->input('delivery_batch');
-        
-        \Log::info('🔍 Delivery search request:', [
-            'so_number' => $soNumber,
-            'delivery_batch' => $deliveryBatch
-        ]);
-        
-        if (!$soNumber) {
-            return response()->json([
-                'error' => 'Please provide a Sales Order number.'
-            ], 400);
-        }
-
-        // Check if SO exists
-        $soExists = SalesOrder::where('sales_order_number', $soNumber)->first();
-        
-        if (!$soExists) {
-            return response()->json([
-                'error' => 'Sales Order not found. Please check the SO number and try again.'
-            ], 404);
-        }
-
-        // Check if approved
-        if ($soExists->status !== 'Approved') {
-            return response()->json([
-                'error' => "Sales Order {$soNumber} exists but has not been approved yet (Status: {$soExists->status}). Only approved sales orders can be delivered."
-            ], 403);
-        }
-
-        // ✅ Check if SO has multiple delivery batches (ACTIVE ONLY)
-        $soItemBatches = \App\Models\SalesOrderItem::where('sales_order_id', $soExists->id)
-            ->where('batch_status', 'Active')
-            ->whereNotNull('delivery_batch')
-            ->select('delivery_batch', 'request_delivery_date')
-            ->distinct()
-            ->orderBy('request_delivery_date')
-            ->get();
-
-        $hasMultipleBatches = $soItemBatches->count() > 1;
-        $availableBatches = [];
-        
-        // ✅ If multiple batches exist and none selected, show batch selector
-        if ($hasMultipleBatches && !$deliveryBatch) {
-            foreach ($soItemBatches as $batch) {
-                $availableBatches[] = [
-                    'batch_id' => $batch->delivery_batch,
-                    'batch_name' => $batch->delivery_batch,
-                    'delivery_date' => $batch->request_delivery_date ? 
-                        \Carbon\Carbon::parse($batch->request_delivery_date)->format('Y-m-d') : null,
-                ];
-            }
-            
-            return response()->json([
-                'multiple_batches' => true,
-                'batches' => $availableBatches,
-                'message' => 'This Sales Order has multiple delivery batches. Please select one.'
-            ]);
-        }
-
-        // ✅ Fetch sales order with customer
-        $salesOrder = SalesOrder::with(['customer'])->findOrFail($soExists->id);
-        
-        // ✅ Get SO items with batch filtering (ACTIVE ONLY)
-        $soItemsQuery = \App\Models\SalesOrderItem::where('sales_order_id', $soExists->id)
-            ->where('batch_status', 'Active')
-            ->with('item');
-        
-        if ($deliveryBatch) {
-            $soItemsQuery->where('delivery_batch', $deliveryBatch);
-        }
-        
-        $soItems = $soItemsQuery->get();
-
-        // ✅ FIX: Get request delivery date from the items or SO
-        $requestDeliveryDate = null;
-        if ($soItems->isNotEmpty() && $soItems->first()->request_delivery_date) {
-            $requestDeliveryDate = $soItems->first()->request_delivery_date;
-        } else {
-            $requestDeliveryDate = $salesOrder->request_delivery_date;
-        }
-
-        // ✅ Find existing delivery for this batch
-        $deliveryQuery = Deliveries::with('items')
-            ->where('sales_order_number', $soNumber);
-        
-        if ($deliveryBatch) {
-            $deliveryQuery->where('delivery_batch', $deliveryBatch);
-        } elseif ($requestDeliveryDate) {
-            // Match by delivery date if no batch specified
-            $deliveryQuery->where('request_delivery_date', $requestDeliveryDate);
-        }
-        
-        $delivery = $deliveryQuery->first();
-
-        $items = [];
-        
-        // ✅ If delivery exists, show its items WITH original SO quantities
-        if ($delivery && $delivery->items->count() > 0) {
-            // Create a map of SO items for original quantities
-            $soItemsMap = collect();
-            foreach ($soItems as $soItem) {
-                $soItemsMap->put($soItem->item_code, $soItem);
-            }
-            
-            foreach ($delivery->items as $deliveryItem) {
-                $soItem = $soItemsMap->get($deliveryItem->item_code);
-                
-                $items[] = [
-                    'item_code' => $deliveryItem->item_code ?? '',
-                    'item_description' => $deliveryItem->item_description ?? '',
-                    'brand' => $deliveryItem->brand ?? '',
-                    'item_category' => $deliveryItem->item_category ?? '',
-                    'quantity' => $deliveryItem->quantity ?? 0,
-                    'original_quantity' => $soItem?->quantity ?? $deliveryItem->quantity,
-                    'uom' => $deliveryItem->uom ?? '',
-                    'unit_price' => $deliveryItem->unit_price ?? 0,
-                    'total_amount' => $deliveryItem->total_amount ?? 0,
-                ];
-            }
-        } else {
-            // ✅ Show SO items with original quantity
-            foreach ($soItems as $item) {
-                $items[] = [
-                    'item_code' => $item->item_code ?? '',
-                    'item_description' => $item->item_description ?? $item->item->item_description ?? '',
-                    'brand' => $item->brand ?? $item->item->brand ?? '',
-                    'item_category' => $item->item_category ?? $item->item->item_category ?? '',
-                    'quantity' => $item->quantity ?? 0,
-                    'original_quantity' => $item->quantity ?? 0,
-                    'uom' => $item->unit ?? 'Kgs',
-                    'unit_price' => $item->unit_price ?? 0,
-                    'total_amount' => (($item->quantity ?? 0) * ($item->unit_price ?? 0)),
-                ];
-            }
-        }
-
-        \Log::info('✅ Delivery search successful:', [
-            'delivery_id' => $delivery->id ?? null,
-            'items_count' => count($items),
-            'request_delivery_date' => $requestDeliveryDate
-        ]);
-
-        return response()->json([
-            'id' => $delivery->id ?? null,
-            'sales_order_number' => $salesOrder->sales_order_number,
-            'delivery_batch' => $deliveryBatch ?? $delivery->delivery_batch ?? null,
-            'customer_code' => $salesOrder->customer->customer_code ?? '',
-            'customer_name' => $salesOrder->customer->customer_name ?? '',
-            'tin_no' => $salesOrder->customer->tin_no ?? '',
-            'branch' => $salesOrder->branch ?? '',
-            'sales_representative' => $salesOrder->sales_rep ?? '',
-            'sales_executive' => $salesOrder->sales_executive ?? '',
-            'po_number' => $salesOrder->po_number ?? '',
-            'request_delivery_date' => $requestDeliveryDate, // ✅ FIXED: Now properly defined
-            'delivery_type' => $salesOrder->delivery_type ?? 'Full',
-            'approved_by' => auth()->user()->name ?? 'System',
-            'plate_no' => $delivery->plate_no ?? '',
-            'sales_invoice_no' => $delivery->sales_invoice_no ?? '',
-            'dr_no' => $delivery->dr_no ?? '',
-            'status' => $delivery->status ?? 'Delivered',
-            'additional_instructions' => $salesOrder->additional_instructions ?? '',
-            'attachment' => $delivery->attachment ?? null,
-            'items' => $items,
-            'has_multiple_batches' => $hasMultipleBatches,
-            'available_batches' => $availableBatches,
-        ]);
     }
 
     // Export Excel

@@ -152,16 +152,6 @@
                     <input type="text" id="branch" name="branch" required
                         class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500">
                 </div>
-
-                <div>
-                    <label class="block text-sm">Delivery Type <span class="text-red-500">*</span></label>
-                    <select id="delivery_type" name="delivery_type" required
-                        class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">-- Select Delivery Type --</option>
-                        <option value="Partial">Partial</option>
-                        <option value="Full">Full</option>
-                    </select>
-                </div>
             </div>
         </div>
         <!-- ================= END ORDER DETAILS ================= -->
@@ -535,17 +525,6 @@
                     icon: 'warning',
                     title: 'Validation Error',
                     text: 'Please select a customer.',
-                    showConfirmButton: true
-                });
-                return false;
-            }
-
-            const deliveryType = document.getElementById('delivery_type').value;
-            if (!deliveryType) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Validation Error',
-                    text: 'Please select a delivery type.',
                     showConfirmButton: true
                 });
                 return false;

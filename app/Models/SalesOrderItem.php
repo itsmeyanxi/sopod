@@ -14,7 +14,6 @@ class SalesOrderItem extends Model
         'item_code',
         'item_description',
         'brand',
-        'delivery_type',
         'item_category',
         'quantity',
         'unit',
@@ -22,7 +21,8 @@ class SalesOrderItem extends Model
         'total_amount',
         'batch_status',
         'delivery_batch',           
-        'request_delivery_date',    
+        'request_delivery_date',
+        'note',  
     ];
 
     protected $casts = [
@@ -39,7 +39,6 @@ class SalesOrderItem extends Model
         return $this->belongsTo(SalesOrder::class);
     }
     
-    //  Get delivery batch items are assigned to
     public function deliveryItems()
     {
         return $this->hasMany(DeliveryItem::class, 'sales_order_item_id');

@@ -385,4 +385,5 @@ class RecordsController extends Controller
         $delivery = Deliveries::findOrFail($id);
         return view('records.dshow', compact('delivery'));
     }
+    
 }

@@ -6,10 +6,11 @@
     <title>Sales Orders Batch Print - {{ now()->format('F d, Y') }}</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
+            font-family: DejaVu Sans, sans-serif; 
             color: #000; 
-            margin: 40px; 
-            line-height: 1.6;
+            margin: 15px 25px;
+            line-height: 1.3;
+            font-size: 11px;
         }
 
         .page-break {
@@ -18,50 +19,52 @@
 
         .header { 
             text-align: center; 
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             border-bottom: 2px solid #c00000;
-            padding-bottom: 15px;
+            padding-bottom: 8px;
         }
 
         .logo { 
-            width: 100px; 
-            margin-bottom: 10px;
+            width: 70px; 
+            margin-bottom: 5px;
         }
 
         .company-name { 
-            font-size: 22px; 
+            font-size: 18px; 
             font-weight: bold; 
-            margin: 5px 0;
+            margin: 3px 0;
         }
 
         .company-info { 
-            font-size: 12px; 
+            font-size: 9px; 
             color: #555;
+            line-height: 1.2;
         }
 
         .document-title { 
             color: #c00000; 
-            font-size: 20px; 
+            font-size: 16px; 
             font-weight: bold; 
-            margin: 20px 0 10px 0;
+            margin: 10px 0 8px 0;
             text-align: center;
         }
 
         .info-section {
-            margin: 20px 0;
-            padding: 15px;
+            margin: 10px 0;
+            padding: 8px;
             background: #f9f9f9;
-            border-radius: 5px;
+            border-radius: 3px;
         }
 
         .info-row {
             display: flex;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
+            font-size: 10px;
         }
 
         .info-label {
             font-weight: bold;
-            width: 180px;
+            width: 150px;
             color: #333;
         }
 
@@ -73,13 +76,13 @@
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            margin: 20px 0;
+            margin: 10px 0;
         }
 
         th, td { 
             border: 1px solid #333; 
-            padding: 10px; 
-            font-size: 12px; 
+            padding: 5px 6px;
+            font-size: 10px; 
         }
 
         th { 
@@ -87,6 +90,7 @@
             color: white; 
             text-align: center;
             font-weight: bold;
+            font-size: 10px;
         }
 
         .text-right { text-align: right; }
@@ -94,10 +98,10 @@
 
         .status-badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 3px;
+            padding: 2px 8px;
+            border-radius: 2px;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 9px;
         }
 
         .status-pending { background: #ffc107; color: #000; }
@@ -107,23 +111,21 @@
         .status-delivered { background: #17a2b8; color: white; }
 
         .total-section {
-            margin-top: 20px;
+            margin-top: 8px;
             text-align: right;
-            padding: 15px;
+            padding: 8px;
             background: #f5f5f5;
-            border-radius: 5px;
+            border-radius: 3px;
         }
 
         .total-amount {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             color: #c00000;
         }
 
         .signatures {
-            margin-top: 60px;
-            display: flex;
-            justify-content: space-around;
+            margin-top: 25px;
         }
 
         .signature-box {
@@ -133,32 +135,44 @@
 
         .signature-line {
             border-top: 1px solid #333;
-            margin-top: 50px;
-            padding-top: 5px;
-            font-size: 12px;
+            margin-top: 30px;
+            padding-top: 3px;
+            font-size: 10px;
         }
 
         .footer {
             text-align: center;
-            font-size: 11px;
+            font-size: 8px;
             color: #555;
-            margin-top: 40px;
-            padding-top: 15px;
+            margin-top: 15px;
+            padding-top: 8px;
             border-top: 1px solid #ddd;
         }
 
         @media print {
-            body { margin: 20px; }
+            body { margin: 15px; }
             .no-print { display: none; }
         }
     </style>
 </head>
 <body>
 
+    @php
+        // Convert logo to base64
+        $logoPath = public_path('images/meatplus-logo.png');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $logoData = base64_encode(file_get_contents($logoPath));
+            $logoBase64 = 'data:image/png;base64,' . $logoData;
+        }
+    @endphp
+
     @foreach($orders as $order)
     <div class="{{ $loop->last ? '' : 'page-break' }}">
         <div class="header">
-            <img src="{{ asset('images/meatplus-logo.png') }}" class="logo" alt="Logo">
+            @if($logoBase64)
+                <img src="{{ $logoBase64 }}" class="logo" alt="Meatplus Logo">
+            @endif
             <div class="company-name">Meatplus Trading Corp</div>
             <div class="company-info">
                 12F Victoria Building, United Nations Avenue, Ermita, Manila, Philippines, 1004<br>
@@ -172,7 +186,7 @@
         <div class="info-section">
             <table style="width: 100%; border: none;">
                 <tr>
-                    <td style="width: 50%; vertical-align: top; border: none; padding: 0 15px 0 0;">
+                    <td style="width: 50%; vertical-align: top; border: none; padding: 0 10px 0 0;">
                         <div class="info-row">
                             <span class="info-label">SO Number:</span>
                             <span class="info-value">{{ $order->sales_order_number }}</span>
@@ -187,7 +201,7 @@
                         </div>
                         <div class="info-row">
                             <span class="info-label">TIN:</span>
-                            <span class="info-value">{{ $order->customer->tin ?? $order->tin ?? 'N/A' }}</span>
+                            <span class="info-value">{{ $order->customer->tin_no ?? $order->tin_no ?? 'N/A' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">PO Number:</span>
@@ -198,7 +212,7 @@
                             <span class="info-value">{{ $order->customer->branch ?? $order->branch ?? 'N/A' }}</span>
                         </div>
                     </td>
-                    <td style="width: 50%; vertical-align: top; border: none; padding: 0 0 0 15px;">
+                    <td style="width: 50%; vertical-align: top; border: none; padding: 0 0 0 10px;">
                         <div class="info-row">
                             <span class="info-label">Date:</span>
                             <span class="info-value">{{ $order->created_at->format('F d, Y') }}</span>
@@ -254,12 +268,12 @@
                         <td>{{ $item->brand ?? '—' }}</td>
                         <td>{{ $item->item_category ?: ($item->item->item_category ?? '') }}</td>
                         <td class="text-right">{{ number_format($item->quantity, 2) }} {{ $item->unit ?? 'Kgs' }}</td>
-                        <td class="text-right">₱{{ number_format($item->unit_price, 2) }}</td>
-                        <td class="text-right">₱{{ number_format($item->quantity * $item->unit_price, 2) }}</td>
+                        <td class="text-right">PHP {{ number_format($item->unit_price, 2) }}</td>
+                        <td class="text-right">PHP {{ number_format($item->quantity * $item->unit_price, 2) }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center" style="padding: 20px;">No items found</td>
+                        <td colspan="7" class="text-center" style="padding: 15px;">No items found</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -267,12 +281,12 @@
 
         <!-- Total -->
         <div class="total-section">
-            <div style="font-size: 14px; margin-bottom: 5px;">Total Amount:</div>
-            <div class="total-amount">₱{{ number_format($order->total_amount, 2) }}</div>
+            <div style="font-size: 11px; margin-bottom: 3px;">Total Amount:</div>
+            <div class="total-amount">PHP {{ number_format($order->total_amount, 2) }}</div>
         </div>
 
         <!-- Signatures -->
-        <table style="width: 100%; margin-top: 60px; border: none;">
+        <table style="width: 100%; margin-top: 25px; border: none;">
             <tr>
                 <td style="width: 50%; text-align: center; border: none;">
                     <div class="signature-box">
