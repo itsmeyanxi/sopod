@@ -9,12 +9,22 @@ use App\Helpers\RoleHelper;
 
 class UserManagementController extends Controller
 {
+    /**
+     * Display list of all users (IT only - for user list page).
+     */
     public function index()
     {
+        if (!RoleHelper::canManageUsers()) {
+            return RoleHelper::unauthorized();
+        }
+
         $users = User::all();
-        return view('admin.users.create', compact('users'));
+        return view('admin.users.index', compact('users'));
     }
 
+    /**
+     * Show the form to create a new user.
+     */
     public function create()
     {
         if (!RoleHelper::canManageUsers()) {
@@ -25,6 +35,9 @@ class UserManagementController extends Controller
         return view('admin.users.create', compact('roles'));
     }
 
+    /**
+     * Store a newly created user in the database.
+     */
     public function store(Request $request)
     {
         if (!RoleHelper::canManageUsers()) {
@@ -46,7 +59,6 @@ class UserManagementController extends Controller
                 'role' => $request->role,
             ]);
 
-            // ✅ FIXED: Redirect back to create page with success message
             return redirect()->route('admin.users.create')
                 ->with('success', 'Account created successfully!');
 
@@ -59,6 +71,9 @@ class UserManagementController extends Controller
         }
     }
 
+    /**
+     * Show the form for editing a user.
+     */
     public function edit($id)
     {
         if (!RoleHelper::canManageUsers()) {
@@ -70,6 +85,9 @@ class UserManagementController extends Controller
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
+    /**
+     * Update the user in the database.
+     */
     public function update(Request $request, $id)
     {
         if (!RoleHelper::canManageUsers()) {
@@ -79,10 +97,25 @@ class UserManagementController extends Controller
         try {
             $user = User::findOrFail($id);
 
+            // Check if this is a password reset from the user list
+            if ($request->has('password_reset')) {
+                // Only validate and update password
+                $request->validate([
+                    'password' => 'required|min:6',
+                ]);
+
+                $user->password = $request->password; // Will be hashed by User model
+                $user->save();
+
+                return redirect()->route('admin.users.index')
+                    ->with('success', 'Password reset successfully!');
+            }
+
+            // Normal update flow
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $id,
-                'role' => 'required|in:Admin,IT,CSR_Approver,CSR_Creator,Delivery_Creator, Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver',
+                'role' => 'required|in:Admin,IT,CSR_Approver,CSR_Creator,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver',
                 'password' => 'nullable|min:6',
             ]);
 
@@ -108,6 +141,9 @@ class UserManagementController extends Controller
         }
     }
 
+    /**
+     * Delete a user.
+     */
     public function destroy($id)
     {
         if (!RoleHelper::canManageUsers()) {

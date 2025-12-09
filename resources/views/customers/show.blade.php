@@ -183,7 +183,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 mb-1">TIN No</p>
-                    <p class="text-gray-100">{{ $customer->tin_no ?? 'N/A' }}</p>
+                    <p class="text-gray-100">{{ $customer->tin_no ?? '000-000-000-00000' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 mb-1">Collection Terms</p>

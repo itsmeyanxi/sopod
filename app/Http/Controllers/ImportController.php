@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\CustomersImport;
 use App\Imports\ItemsImport;
+use App\Imports\MonthlySalesImport;
 
 class ImportController extends Controller
 {
@@ -91,7 +92,7 @@ class ImportController extends Controller
         }
     }
     
-        public function downloadItemsTemplate()
+    public function downloadItemsTemplate()
     {
         $headers = [
             'item_code',
@@ -117,6 +118,56 @@ class ImportController extends Controller
             'pcs',
             '999.99'
         ]);
+        fclose($handle);
+        $csv = ob_get_clean();
+        
+        return response($csv)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    // =================== MONTHLY SALES ===================
+    
+    public function showMonthlySalesForm()
+    {
+        return view('import.monthly_sales');
+    }
+    
+
+
+// Add this method to your ImportController
+public function importMonthlySales(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls,csv|max:2048'
+    ]);
+    
+    try {
+        Excel::import(new MonthlySalesImport, $request->file('file'));
+        
+        return redirect()->back()->with('success', 'Monthly sales imported successfully!');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine());
+    }
+}
+    
+    public function downloadMonthlySalesTemplate()
+    {
+        $headers = [
+            'month',
+            'qty',
+            'php'
+        ];
+        
+        $filename = 'monthly_sales_template.csv';
+        $handle = fopen('php://output', 'w');
+        
+        ob_start();
+        fputcsv($handle, $headers);
+        // Add sample rows
+        fputcsv($handle, ['January', '902352.22', '214312824']);
+        fputcsv($handle, ['February', '1210814.63', '284576739']);
+        fputcsv($handle, ['March', '1747477.00', '415267198']);
         fclose($handle);
         $csv = ob_get_clean();
         

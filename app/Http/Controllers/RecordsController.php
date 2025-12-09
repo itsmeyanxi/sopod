@@ -6,99 +6,127 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use App\Models\SalesOrder;
 use App\Models\Deliveries;
+use App\Models\MonthlySale;
 
 class RecordsController extends Controller
 {
-    public function index(Request $request)
-    {
-        $report = $request->query('report');
-        $type = $request->query('type', 'sales_orders');
-        $sort = $request->query('sort');
-        $direction = $request->query('dir', 'asc');
-        $showCancelled = $request->query('cancelled');
+   public function index(Request $request)
+{
+    $report = $request->query('report');
+    $type = $request->query('type', 'sales_orders');
+    $sort = $request->query('sort');
+    $direction = $request->query('dir', 'asc');
+    $showCancelled = $request->query('cancelled');
+    
+    // NEW: Get from/to filter parameters
+    $from = $request->query('from');
+    $to = $request->query('to');
+
+    // ========================================
+    // HANDLE MONTHLY SALES
+    // ========================================
+    if ($type === 'monthly_sales') {
+        $records = MonthlySale::orderBy('id', 'asc')->get();
         
-        // NEW: Get from/to filter parameters
-        $from = $request->query('from');
-        $to = $request->query('to');
-
-        if ($type === 'sales_orders') {
-            $query = SalesOrder::latest();
-            $isSales = true;
-            
-            // NEW: Apply sales order range filter
-            if ($from && $to) {
-                $query->whereBetween('sales_order_number', [$from, $to]);
-            } elseif ($from) {
-                $query->where('sales_order_number', '>=', $from);
-            } elseif ($to) {
-                $query->where('sales_order_number', '<=', $to);
-            }
-        } 
-        elseif ($type === 'deliveries') {
-            $query = Deliveries::query();
-            $isSales = false;
-
-            // ----------------------------
-            // FILTER : Show only cancelled
-            // ----------------------------
-            if ($showCancelled == 1) {
-                $query->whereIn('status', ['Cancelled', 'Declined']);
-            }
-
-            if ($request->delivered_only) {
-                $query->where('status', 'Delivered');
-            }
-
-            // ----------------------------
-            // SORTING LOGIC FOR DELIVERIES
-            // ----------------------------
-            if ($sort) {
-                // Validate direction
-                $direction = in_array($direction, ['asc', 'desc']) ? $direction : 'asc';
-                
-                switch ($sort) {
-                    case 'amount':
-                        // Use UNSIGNED to properly sort numeric values
-                        $query->orderByRaw('CAST(total_amount AS UNSIGNED) ' . $direction);
-                        break;
-
-                    case 'customer':
-                        $query->orderBy('customer_name', $direction);
-                        break;
-
-                    case 'item':
-                        $query->orderBy('item_description', $direction);
-                        break;
-                }
-            } else {
-                $query->latest();
-            }
-
-        } 
-        else {
-            // category filter (Metromart, Lean Beef Topside etc.)
-            $query = SalesOrder::where(function($q) use ($type) {
-                $q->where('branch', 'LIKE', "%$type%")
-                  ->orWhere('item_description', 'LIKE', "%$type%");
-            })->latest();
-
-            $isSales = true; 
-        }
-
-        // Default paginate
-        $records = $query->paginate(10);
-
         return view('records.index', [
             'records' => $records,
-            'report' => $report,
+            'report' => null,
             'type' => $type,
-            'sort' => $sort,
-            'direction' => $direction,
-            'showCancelled' => $showCancelled,
-            'from' => $from,
-            'to' => $to,
+            'sort' => null,
+            'direction' => 'asc',
+            'showCancelled' => null,
+            'from' => null,
+            'to' => null,
         ]);
     }
+
+    // ========================================
+    // HANDLE SALES ORDERS
+    // ========================================
+    if ($type === 'sales_orders') {
+        $query = SalesOrder::latest();
+        $isSales = true;
+        
+        // NEW: Apply sales order range filter
+        if ($from && $to) {
+            $query->whereBetween('sales_order_number', [$from, $to]);
+        } elseif ($from) {
+            $query->where('sales_order_number', '>=', $from);
+        } elseif ($to) {
+            $query->where('sales_order_number', '<=', $to);
+        }
+    } 
+    // ========================================
+    // HANDLE DELIVERIES
+    // ========================================
+    elseif ($type === 'deliveries') {
+        $query = Deliveries::query();
+        $isSales = false;
+
+        // ----------------------------
+        // FILTER : Show only cancelled
+        // ----------------------------
+        if ($showCancelled == 1) {
+            $query->whereIn('status', ['Cancelled', 'Declined']);
+        }
+
+        if ($request->delivered_only) {
+            $query->where('status', 'Delivered');
+        }
+
+        // ----------------------------
+        // SORTING LOGIC FOR DELIVERIES
+        // ----------------------------
+        if ($sort) {
+            // Validate direction
+            $direction = in_array($direction, ['asc', 'desc']) ? $direction : 'asc';
+            
+            switch ($sort) {
+                case 'amount':
+                    // Use UNSIGNED to properly sort numeric values
+                    $query->orderByRaw('CAST(total_amount AS UNSIGNED) ' . $direction);
+                    break;
+
+                case 'customer':
+                    $query->orderBy('customer_name', $direction);
+                    break;
+
+                case 'item':
+                    $query->orderBy('item_description', $direction);
+                    break;
+            }
+        } else {
+            $query->latest();
+        }
+
+    } 
+    // ========================================
+    // HANDLE OTHER TYPES (category filters)
+    // ========================================
+    else {
+        // category filter (Metromart, Lean Beef Topside etc.)
+        $query = SalesOrder::where(function($q) use ($type) {
+            $q->where('branch', 'LIKE', "%$type%")
+              ->orWhere('item_description', 'LIKE', "%$type%");
+        })->latest();
+
+        $isSales = true; 
+    }
+
+    // Default paginate
+    $records = $query->paginate(10);
+
+    return view('records.index', [
+        'records' => $records,
+        'report' => $report,
+        'type' => $type,
+        'sort' => $sort,
+        'direction' => $direction,
+        'showCancelled' => $showCancelled,
+        'from' => $from,
+        'to' => $to,
+    ]);
+}
 
 
 

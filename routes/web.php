@@ -13,15 +13,6 @@ use App\Http\Controllers\{
     ImportController
 
 };
-    // Sales Dashboard Route
-    Route::get('/sales/dashboard', [App\Http\Controllers\SalesDashboardController::class, 'index'])
-    ->name('sales.dashboard')
-    ->middleware('auth');
-
-    // Optional: API endpoint for real-time metrics
-    Route::get('/sales/metrics', [App\Http\Controllers\SalesDashboardController::class, 'getMetrics'])
-    ->name('sales.metrics')
-    ->middleware('auth');
 
     // ===================== AUTH (Public Routes) =====================
     Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');
@@ -31,17 +22,43 @@ use App\Http\Controllers\{
     // ===================== AUTHENTICATED ROUTES =====================
     Route::middleware(['auth'])->group(function () {
 
+    //===================== SALES ANALYTICS =====================
+    Route::get('/sales/dashboard', function () {
+        $user = auth()->user();
+        
+        if (!$user || !$user->canaccesssalesanalytics()) {
+            return view('errors.noaccess');
+        }
+        
+        // If authorized, call the controller
+        return app(\App\Http\Controllers\SalesDashboardController::class)->index(request());
+    })->name('sales.dashboard')->middleware('auth');
+
+        Route::get('/sales/metrics', function () {
+        $user = auth()->user();
+        
+        if (!$user || !$user->canaccesssalesanalytics()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        
+        return app(\App\Http\Controllers\SalesDashboardController::class)->getMetrics(request());
+    })->name('sales.metrics')->middleware('auth');
+    
     // ===================== BATCH PRINT =====================
     Route::post('/records/sales-orders/batch-print',
     [RecordsController::class, 'batchPrintSalesOrders']
     )->name('records.batchPrintSO');
 
     // ===================== IMPORTS =======================
-    Route::get('/excel-import', function () {
-        $user = auth()->user();
-        if (!$user || !$user->canImportCustomers()) { abort(403, 'Unauthorized');}
-        return view('excel.excel-import');
-    })->name('excel.import');
+       Route::get('/excel-import', function () {
+            $user = auth()->user();
+            
+            if (!$user || !$user->canImportCustomers()) {
+                return view('errors.noaccess');
+            }
+            
+            return view('excel.excel-import'); 
+        })->name('excel.import');
 
     // IMPORT ITEMS — only Admin, IT + Accounting roles
     Route::post('/excel-import/items', function () {
@@ -50,6 +67,8 @@ use App\Http\Controllers\{
         return app(App\Http\Controllers\ExcelImportController::class)->importItems(request());
     })->name('excel.import.items');
 
+// Add this route with your other import routes
+Route::post('/excel/import/monthly-sales', [ImportController::class, 'importMonthlySales'])->name('excel.import.monthly_sales');
 
     // IMPORT CUSTOMERS — all the listed roles
     Route::post('/excel-import/customers', function () {
@@ -492,15 +511,20 @@ Route::prefix('customers')->name('customers.')->group(function () {
     });
 
     // ===================== USER MANAGEMENT =====================
-    Route::prefix('admin/users')->name('admin.users.')->group(function () {
-        Route::get('/', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->index() : view('errors.noaccess'))->name('index');
-        Route::get('/create', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->create() : view('errors.noaccess'))->name('create');
-        Route::post('/', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->store(request()) : view('errors.noaccess'))->name('store');
-        Route::get('/{id}/edit', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->edit($id) : view('errors.noaccess'))->name('edit');
-        Route::put('/{id}', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->update(request(), $id) : view('errors.noaccess'))->name('update');
-        Route::delete('/{id}', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->destroy($id) : view('errors.noaccess'))->name('destroy');
-    });
+Route::prefix('admin/users')->name('admin.users.')->group(function () {
+    Route::get('/', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->index() : view('errors.noaccess'))->name('index');
+    Route::get('/create', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->create() : view('errors.noaccess'))->name('create');
+    Route::post('/', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->store(request()) : view('errors.noaccess'))->name('store');
+    Route::get('/{id}/edit', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->edit($id) : view('errors.noaccess'))->name('edit');
+    Route::put('/{id}', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->update(request(), $id) : view('errors.noaccess'))->name('update');
+    Route::delete('/{id}', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->destroy($id) : view('errors.noaccess'))->name('destroy');
 });
+
+// ===================== USER PROFILE (All authenticated users) =====================
+Route::get('/profile', [UserController::class, 'profile'])->name('profile');
+Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
+
+    }); 
 
 // ===================== ROOT REDIRECT =====================
 Route::get('/', function () {

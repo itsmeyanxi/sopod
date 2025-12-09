@@ -23,10 +23,17 @@
             'Accounting_Creator',
             'Accounting_Approver'
         ]);
+
+        $canImportMonthlySales = in_array($user->role, [
+            'Admin',
+            'IT',
+            'Accounting_Creator',
+            'Accounting_Approver'
+        ]);
     @endphp
 
     <h1 class="text-3xl font-bold text-white mb-2">Import Data from Excel/CSV</h1>
-    <p class="text-gray-400 mb-6">Upload Excel or CSV files to import items or customers into your database</p>
+    <p class="text-gray-400 mb-6">Upload Excel or CSV files to import items, customers, or monthly sales into your database</p>
 
     <!-- Tabs -->
     <div class="bg-gray-800 rounded-lg shadow-sm mb-6">
@@ -46,6 +53,14 @@
                 <button onclick="switchTab('customers')" id="customers-tab"
                     class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-300">
                     Import Customers
+                </button>
+                @endif
+
+                {{-- MONTHLY SALES TAB (show only if allowed) --}}
+                @if($canImportMonthlySales)
+                <button onclick="switchTab('monthly_sales')" id="monthly_sales-tab"
+                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-300">
+                    Import Monthly Sales
                 </button>
                 @endif
 
@@ -162,6 +177,48 @@
             </div>
             @endif
 
+            {{-- MONTHLY SALES TAB CONTENT — only if allowed --}}
+            @if($canImportMonthlySales)
+            <div id="monthly_sales-content" class="tab-content hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">Monthly Sales Import Requirements</h3>
+                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4">
+                        <p class="text-sm text-gray-300 mb-2"><strong>Required columns:</strong></p>
+                        <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <li>• <strong>month</strong> or <strong>Month</strong> (e.g., January, February)</li>
+                            <li>• <strong>qty</strong> or <strong>Qty</strong> (quantity sold)</li>
+                            <li>• <strong>php</strong> or <strong>PHP</strong> (amount in Philippine Pesos)</li>
+                        </ul>
+                        <p class="text-sm text-gray-300 mt-3 mb-2"><strong>Note:</strong></p>
+                        <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <li>• Numbers can include commas (e.g., 902,352.22)</li>
+                            <li>• Existing data for the same month will be updated</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button onclick="downloadTemplate('monthly_sales')" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mb-4">
+                    <i class="fas fa-download"></i>
+                    Download Template
+                </button>
+
+                <form action="{{ route('excel.import.monthly_sales') }}" method="POST" enctype="multipart/form-data" id="monthly_sales-form">
+                    @csrf
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="monthly_sales-file" class="hidden" onchange="handleFileSelect(this, 'monthly_sales')" required>
+                        <label for="monthly_sales-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
+                            <p id="monthly_sales-filename" class="text-sm text-blue-400 mt-2"></p>
+                        </label>
+                    </div>
+                    <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        Upload & Import Monthly Sales
+                    </button>
+                </form>
+            </div>
+            @endif
+
         </div>
     </div>
 
@@ -209,7 +266,6 @@
 
 </div>
 
-{{-- JS only — no changes needed --}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 function switchTab(tab) {
@@ -250,7 +306,7 @@ function downloadTemplate(type) {
             }
         ];
         filename = 'items_template.xlsx';
-    } else {
+    } else if (type === 'customers') {
         data = [
             {
                 'Customer Code': 'CUST001',
@@ -258,6 +314,25 @@ function downloadTemplate(type) {
             }
         ];
         filename = 'customers_template.xlsx';
+    } else if (type === 'monthly_sales') {
+        data = [
+            {
+                'Month': 'January',
+                'Qty': '902352.22',
+                'PHP': '214312824'
+            },
+            {
+                'Month': 'February',
+                'Qty': '1210814.63',
+                'PHP': '284576739'
+            },
+            {
+                'Month': 'March',
+                'Qty': '1747477.00',
+                'PHP': '415267198'
+            }
+        ];
+        filename = 'monthly_sales_template.xlsx';
     }
 
     const ws = XLSX.utils.json_to_sheet(data);

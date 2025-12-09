@@ -37,17 +37,17 @@ class DeliveriesController extends Controller
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('dr_no', 'like', '%' . $request->search . '%')
-                ->orWhere('sales_order_number', 'like', '%' . $request->search . '%')  // ✅ ADDED
+                ->orWhere('sales_order_number', 'like', '%' . $request->search . '%')  
                 ->orWhere('customer_code', 'like', '%' . $request->search . '%')
                 ->orWhere('customer_name', 'like', '%' . $request->search . '%')
-                ->orWhere('plate_no', 'like', '%' . $request->search . '%')  // ✅ BONUS: search by plate
+                ->orWhere('plate_no', 'like', '%' . $request->search . '%') 
                 ->orWhereHas('salesOrder', function ($sq) use ($request) {
                     $sq->where('customer_name', 'like', '%' . $request->search . '%')
-                        ->orWhere('sales_order_number', 'like', '%' . $request->search . '%');  // ✅ BONUS
+                        ->orWhere('sales_order_number', 'like', '%' . $request->search . '%');  
                 })
                 ->orWhereHas('salesOrder.customer', function ($cq) use ($request) {
                     $cq->where('customer_name', 'like', '%' . $request->search . '%')
-                        ->orWhere('customer_code', 'like', '%' . $request->search . '%');  // ✅ BONUS
+                        ->orWhere('customer_code', 'like', '%' . $request->search . '%'); 
                 });
             });
         }
@@ -256,11 +256,11 @@ public function search(Request $request)
     // ✅ Get request delivery date
     $requestDeliveryDate = $soItems->first()->request_delivery_date ?? $soExists->request_delivery_date;
 
-   // ✅ Check existing deliveries for THIS SPECIFIC SO ONLY (exclude Pending AND auto-created ones)
+    // ✅ Check existing deliveries for THIS SPECIFIC SO ONLY (exclude Pending AND auto-created ones)
     $existingDeliveries = Deliveries::where('sales_order_number', $soNumber)
-        ->where('status', '!=', 'Pending') // ✅ Ignore auto-created pending deliveries
-        ->whereNotNull('dr_no') // ✅ ADDED: Ensure it has a real DR number (not auto-generated temp)
-        ->whereHas('items') // ✅ ADDED: Only count deliveries that have actual items
+        ->where('status', '!=', 'Pending')
+        ->whereNotNull('dr_no')
+        ->whereHas('items')
         ->orderBy('created_at', 'asc')
         ->get();
 
@@ -279,7 +279,6 @@ public function search(Request $request)
     $isEditMode = false;
     
     if ($deliveryBatch && $deliveryBatch !== 'new') {
-        // User selected existing batch to edit
         $delivery = Deliveries::where('sales_order_number', $soNumber)
             ->where('delivery_batch', $deliveryBatch)
             ->with('items')
@@ -290,7 +289,8 @@ public function search(Request $request)
 
     // ✅ Calculate delivered quantities per item (exclude current editing delivery)
     $deliveredQuery = DeliveryItem::whereHas('delivery', function($q) use ($soNumber) {
-            $q->where('sales_order_number', $soNumber);
+            $q->where('sales_order_number', $soNumber)
+              ->where('status', 'Delivered');
         });
 
     if ($delivery && $isEditMode) {
@@ -307,72 +307,64 @@ public function search(Request $request)
     $newBatchName = null;
     if (!$isEditMode) {
         if ($deliveryCount === 0) {
-            // First delivery - batch name pending until we know if it's full or partial
             $newBatchName = 'Pending';
         } else {
-            // Subsequent delivery - it's a continuation batch
             $newBatchName = 'Batch ' . ($deliveryCount + 1);
         }
     }
 
-   $items = [];
-$allItemsFullyDelivered = true;
+    $items = [];
+    $allItemsFullyDelivered = true;
 
-foreach ($soItems as $soItem) {
-    $originalQty = $soItem->quantity ?? 0;
-    $alreadyDelivered = $deliveredSums->get($soItem->item_code)?->total_delivered ?? 0;
-    $remainingAvailable = $originalQty - $alreadyDelivered;
+    foreach ($soItems as $soItem) {
+        $originalQty = $soItem->quantity ?? 0;
+        $alreadyDelivered = $deliveredSums->get($soItem->item_code)?->total_delivered ?? 0;
+        $remainingAvailable = $originalQty - $alreadyDelivered; // ✅ What's LEFT to deliver (excluding current batch if editing)
 
-    // ✅ For edit mode: show the item's current delivery quantities
-    if ($isEditMode && $delivery) {
-        $existingDeliveryItem = $delivery->items->firstWhere('item_code', $soItem->item_code);
-        if ($existingDeliveryItem) {
-            $deliveredQty = $existingDeliveryItem->quantity ?? 0;
-            $notes = $existingDeliveryItem->notes ?? $soItem->note ?? null; // ✅ FIXED: Fallback to SO note
-            
-            $items[] = [
-                'item_code' => $soItem->item_code,
-                'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
-                'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
-                'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
-                'quantity' => $deliveredQty,
-                'original_quantity' => $originalQty,
-                'remaining_quantity' => $remainingAvailable,
-                'uom' => $soItem->unit ?? 'Kgs',
-                'unit_price' => $soItem->unit_price ?? 0,
-                'total_amount' => ($deliveredQty * ($soItem->unit_price ?? 0)),
-                'notes' => $notes,
-            ];
-        }
-    } else {
-        // ✅ NEW DELIVERY: Only show items that still have remaining quantity
-        if ($remainingAvailable > 0) {
-            $allItemsFullyDelivered = false;
-            
-            $items[] = [
-                'item_code' => $soItem->item_code,
-                'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
-                'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
-                'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
-                'quantity' => $remainingAvailable,
-                'original_quantity' => $originalQty,
-                'remaining_quantity' => 0,
-                'uom' => $soItem->unit ?? 'Kgs',
-                'unit_price' => $soItem->unit_price ?? 0,
-                'total_amount' => ($remainingAvailable * ($soItem->unit_price ?? 0)),
-                'notes' => $soItem->note ?? null, // ✅ FIXED: Get note from SO item
-            ];
+        // ✅ For edit mode: show the item's current delivery quantities
+        if ($isEditMode && $delivery) {
+            $existingDeliveryItem = $delivery->items->firstWhere('item_code', $soItem->item_code);
+            if ($existingDeliveryItem) {
+                $deliveredQty = $existingDeliveryItem->quantity ?? 0;
+                $notes = $existingDeliveryItem->notes ?? $soItem->note ?? null;
+                
+                $items[] = [
+                    'item_code' => $soItem->item_code,
+                    'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
+                    'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
+                    'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
+                    'quantity' => $deliveredQty, // Current batch delivery qty
+                    'original_quantity' => $originalQty,
+                    'remaining_quantity' => $remainingAvailable, // ✅ What's LEFT (before counting this batch)
+                    'already_delivered' => $alreadyDelivered, // ✅ Sum of OTHER batches (excludes current)
+                    'uom' => $soItem->unit ?? 'Kgs',
+                    'unit_price' => $soItem->unit_price ?? 0,
+                    'total_amount' => ($deliveredQty * ($soItem->unit_price ?? 0)),
+                    'notes' => $notes,
+                ];
+            }
+        } else {
+            // ✅ NEW DELIVERY: Only show items that still have remaining quantity
+            if ($remainingAvailable > 0) {
+                $allItemsFullyDelivered = false;
+                
+                $items[] = [
+                    'item_code' => $soItem->item_code,
+                    'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
+                    'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
+                    'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
+                    'quantity' => $remainingAvailable, // ✅ Pre-fill with remaining amount
+                    'original_quantity' => $originalQty,
+                    'remaining_quantity' => 0, // ✅ Will be 0 if they deliver full remaining (updated on frontend when quantity changes)
+                    'already_delivered' => $alreadyDelivered, // ✅ Track cumulative delivered
+                    'uom' => $soItem->unit ?? 'Kgs',
+                    'unit_price' => $soItem->unit_price ?? 0,
+                    'total_amount' => ($remainingAvailable * ($soItem->unit_price ?? 0)),
+                    'notes' => $soItem->note ?? null,
+                ];
+            }
         }
     }
-}
-
-// ✅ Check if all items are fully delivered
-if (!$isEditMode && $allItemsFullyDelivered) {
-    return response()->json([
-        'error' => 'All items in this Sales Order have been fully delivered. No remaining items to deliver.'
-    ], 400);
-}
-    
 
     // ✅ Check if all items are fully delivered
     if (!$isEditMode && $allItemsFullyDelivered) {
@@ -396,17 +388,11 @@ if (!$isEditMode && $allItemsFullyDelivered) {
         $attachmentName = $delivery->attachment;
     }
 
-    // ✅ FIXED: Info message ONLY shows for 2nd+ batch when previous delivery was partial
+    // ✅ Info message for partial delivery history
     $infoMessage = null;
     $showPartialAlert = false;
     
-    // Only show the partial delivery history alert if ALL these conditions are met:
-    // 1. NOT in edit mode
-    // 2. There's at least 1 previous delivery (deliveryCount >= 1) 
-    // 3. At least one of those previous deliveries had status "Partial"
-    // 4. Currently creating a 2nd+ batch (which means deliveryCount >= 1)
     if (!$isEditMode && $deliveryCount >= 1 && $hasPartialDelivery) {
-        // Show alert when creating 2nd+ batch ONLY if there was a previous partial delivery
         $showPartialAlert = true;
         $fullyDeliveredCount = $soItems->count() - count($items);
         $infoMessage = "This SO has {$deliveryCount} previous partial delivery(ies). ";
@@ -421,7 +407,7 @@ if (!$isEditMode && $allItemsFullyDelivered) {
         'id' => $isEditMode && $delivery ? $delivery->id : null,
         'is_edit_mode' => $isEditMode,
         'has_partial_delivery' => $hasPartialDelivery,
-        'show_partial_alert' => $showPartialAlert, // ✅ NEW FLAG
+        'show_partial_alert' => $showPartialAlert,
         'info_message' => $infoMessage,
         'sales_order_number' => $soExists->sales_order_number,
         'delivery_batch' => $isEditMode ? $delivery->delivery_batch : $newBatchName,
@@ -707,6 +693,7 @@ public function store(Request $request)
     }
 
     // Export Excel
+    // Export Excel - NEW FORMAT
     public function exportExcel(Request $request)
     {
         ini_set('display_errors', 1);
@@ -724,7 +711,7 @@ public function store(Request $request)
                 'search' => $search
             ]);
 
-            // ✅ Build query with filters
+            // Build query with filters
             $query = Deliveries::with(['items', 'salesOrder.customer', 'salesOrder.items']);
 
             if ($dateFrom) {
@@ -772,43 +759,36 @@ public function store(Request $request)
                         return;
                     }
 
-                    // ✅ UTF-8 BOM
+                    // UTF-8 BOM
                     fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-                    // Column headers
+                    // NEW COLUMN ORDER
                     fputcsv($file, [
-                        'DR No',
-                        'Sales Order No',
-                        'Customer Code',
-                        'Customer Name',
-                        'TIN',
+                        'Sales Rep',
+                        'PO No.',
+                        'Sales Order',
+                        'Customer',
                         'Branch',
-                        'Sales Representative',
-                        'Sales Executive',
-                        'Plate No',
-                        'Sales Invoice No',
-                        'PO Number',
-                        'Request Delivery Date',
-                        'Status',
-                        'Approved By',
-                        'Additional Instructions',
-                        'Date Created',
                         'Item Code',
                         'Item Category',
                         'Brand',
-                        'Item Description',
+                        'Item',
+                        'SO Quantity',
+                        'Price',
                         'UOM',
-                        'SO Qty',
-                        'DR Qty',
-                        'Variance',
-                        'Unit Price',
+                        'Delivery Date',
+                        'Plate No.',
+                        'Status',
+                        'DR No.',
+                        'SI No.',
+                        'DR Weight',
                         'Total Amount'
                     ]);
 
                     $overallGrandTotal = 0;
 
                     foreach ($deliveries as $delivery) {
-                        // Prepare delivery-level info
+                        // Prepare delivery date
                         $deliveryDate = '—';
                         try {
                             if ($delivery->request_delivery_date) {
@@ -819,25 +799,6 @@ public function store(Request $request)
                         } catch (\Exception $e) {
                             Log::warning('Date parsing failed', ['error' => $e->getMessage()]);
                         }
-
-                        $deliveryInfo = [
-                            $delivery->dr_no ?? '—',
-                            $delivery->sales_order_number ?? '—',
-                            $delivery->customer_code ?? $delivery->salesOrder?->customer_code ?? '—',
-                            $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? $delivery->salesOrder?->client_name ?? '—',
-                            $delivery->salesOrder?->customer?->tin_no ?? $delivery->tin_no ?? '—',
-                            $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
-                            $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
-                            $delivery->sales_executive ?? $delivery->salesOrder?->sales_executive ?? '—',
-                            $delivery->plate_no ?? '—',
-                            $delivery->sales_invoice_no ?? '—',
-                            $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
-                            $deliveryDate,
-                            $delivery->status ?? '—',
-                            $delivery->approved_by ?? $delivery->salesOrder?->approved_by ?? '—',
-                            $delivery->additional_instructions ?? $delivery->salesOrder?->additional_instructions ?? '—',
-                            $delivery->created_at ? $delivery->created_at->format('m/d/Y h:i A') : '—'
-                        ];
 
                         // Map SO items by item_code for comparison
                         $soItemsMap = collect();
@@ -850,48 +811,70 @@ public function store(Request $request)
                         if ($delivery->items && $delivery->items->count() > 0) {
                             foreach ($delivery->items as $item) {
                                 $soItem = $soItemsMap->get($item->item_code);
-                                $soQty = $soItem?->quantity ?? 0;
+                                $soQty = $soItem?->quantity ?? $item->original_quantity ?? 0;
                                 $drQty = $item->quantity ?? 0;
-                                $variance = $drQty - $soQty;
 
-                                fputcsv($file, array_merge($deliveryInfo, [
+                                // NEW ROW ORDER
+                                fputcsv($file, [
+                                    $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
+                                    $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
+                                    $delivery->sales_order_number ?? '—',
+                                    $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? '—',
+                                    $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
                                     $item->item_code ?? '—',
                                     $item->item_category ?? '—',
                                     $item->brand ?? '—',
                                     $item->item_description ?? '—',
-                                    $item->uom ?? '—',
                                     number_format($soQty, 2),
-                                    number_format($drQty, 2),
-                                    ($variance > 0 ? '+' : '') . number_format($variance, 2),
                                     number_format($item->unit_price ?? 0, 2),
+                                    $item->uom ?? '—',
+                                    $deliveryDate,
+                                    $delivery->plate_no ?? '—',
+                                    $delivery->status ?? '—',
+                                    $delivery->dr_no ?? '—',
+                                    $delivery->sales_invoice_no ?? '—',
+                                    number_format($drQty, 2), // DR Weight
                                     number_format($item->total_amount ?? 0, 2),
-                                ]));
+                                ]);
 
                                 $deliveryTotal += $item->total_amount ?? 0;
                             }
 
                             $overallGrandTotal += $deliveryTotal;
 
-                            // Add subtotal row for this delivery
-                            $subtotalRow = array_fill(0, 24, '');
-                            $subtotalRow[24] = 'SUBTOTAL:';
-                            $subtotalRow[25] = number_format($deliveryTotal, 2);
+                            // Add subtotal row
+                            $subtotalRow = array_fill(0, 18, '');
+                            $subtotalRow[17] = 'SUBTOTAL:';
+                            $subtotalRow[18] = number_format($deliveryTotal, 2);
                             fputcsv($file, $subtotalRow);
 
-                            // Add blank row between deliveries
+                            // Blank row
                             fputcsv($file, []);
                         } else {
-                            // No items - just output delivery info with empty item columns
-                            fputcsv($file, array_merge($deliveryInfo, array_fill(0, 10, '—')));
+                            // No items
+                            fputcsv($file, [
+                                $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
+                                $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
+                                $delivery->sales_order_number ?? '—',
+                                $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? '—',
+                                $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
+                                '—', '—', '—', '—', '—', '—', '—',
+                                $deliveryDate,
+                                $delivery->plate_no ?? '—',
+                                $delivery->status ?? '—',
+                                $delivery->dr_no ?? '—',
+                                $delivery->sales_invoice_no ?? '—',
+                                '—', '—'
+                            ]);
                             fputcsv($file, []);
                         }
                     }
 
-                    // ✅ Add overall grand total at the end
+                    // Grand total
                     fputcsv($file, []);
-                    $grandTotalRow = array_fill(0, 24, '');
-                    $grandTotalRow[24] = '>>> GRAND TOTAL <<<';
-                    $grandTotalRow[25] = number_format($overallGrandTotal, 2);
+                    $grandTotalRow = array_fill(0, 18, '');
+                    $grandTotalRow[17] = '>>> GRAND TOTAL <<<';
+                    $grandTotalRow[18] = number_format($overallGrandTotal, 2);
                     fputcsv($file, $grandTotalRow);
 
                     fclose($file);
@@ -920,9 +903,9 @@ public function store(Request $request)
         }
     }
 
+    // Export Single Delivery Excel - NEW FORMAT
     public function exportDeliveryItemsExcel(Request $request)
     {
-        // Enable error display for debugging
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL);
@@ -930,7 +913,6 @@ public function store(Request $request)
         try {
             $deliveryId = $request->query('delivery_id');
 
-            // Log the request
             Log::info('Export delivery items started', ['delivery_id' => $deliveryId]);
 
             if (!$deliveryId) {
@@ -938,7 +920,6 @@ public function store(Request $request)
                 abort(400, 'Delivery ID is required');
             }
 
-            // ✅ Find delivery with related items and sales order
             $delivery = Deliveries::with(['items', 'salesOrder.customer', 'salesOrder.items'])
                 ->find($deliveryId);
 
@@ -972,40 +953,33 @@ public function store(Request $request)
                         return;
                     }
 
-                    // ✅ UTF-8 BOM
+                    // UTF-8 BOM
                     fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-                    // Column headers
+                    // NEW COLUMN ORDER
                     fputcsv($file, [
-                        'DR No',
-                        'Sales Order No',
-                        'Customer Code',
-                        'Customer Name',
-                        'TIN',
+                        'Sales Rep',
+                        'PO No.',
+                        'Sales Order',
+                        'Customer',
                         'Branch',
-                        'Sales Representative',
-                        'Sales Executive',
-                        'Plate No',
-                        'Sales Invoice No',
-                        'PO Number',
-                        'Request Delivery Date',
-                        'Status',
-                        'Approved By',
-                        'Additional Instructions',
-                        'Date Created',
                         'Item Code',
                         'Item Category',
                         'Brand',
-                        'Item Description',
+                        'Item',
+                        'SO Quantity',
+                        'Price',
                         'UOM',
-                        'SO Qty',
-                        'DR Qty',
-                        'Variance',
-                        'Unit Price',
+                        'Delivery Date',
+                        'Plate No.',
+                        'Status',
+                        'DR No.',
+                        'SI No.',
+                        'DR Weight',
                         'Total Amount'
                     ]);
 
-                    // Prepare delivery-level info
+                    // Prepare delivery date
                     $deliveryDate = '—';
                     try {
                         if ($delivery->request_delivery_date) {
@@ -1017,26 +991,7 @@ public function store(Request $request)
                         Log::warning('Date parsing failed', ['error' => $e->getMessage()]);
                     }
 
-                    $deliveryInfo = [
-                        $delivery->dr_no ?? '—',
-                        $delivery->sales_order_number ?? '—',
-                        $delivery->customer_code ?? $delivery->salesOrder?->customer_code ?? '—',
-                        $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? $delivery->salesOrder?->client_name ?? '—',
-                        $delivery->salesOrder?->customer?->tin_no ?? $delivery->tin_no ?? '—',
-                        $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
-                        $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
-                        $delivery->sales_executive ?? $delivery->salesOrder?->sales_executive ?? '—',
-                        $delivery->plate_no ?? '—',
-                        $delivery->sales_invoice_no ?? '—',
-                        $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
-                        $deliveryDate,
-                        $delivery->status ?? '—',
-                        $delivery->approved_by ?? $delivery->salesOrder?->approved_by ?? '—',
-                        $delivery->additional_instructions ?? $delivery->salesOrder?->additional_instructions ?? '—',
-                        $delivery->created_at ? $delivery->created_at->format('m/d/Y h:i A') : '—'
-                    ];
-
-                    // Map SO items by item_code for comparison
+                    // Map SO items
                     $soItemsMap = collect();
                     if ($delivery->salesOrder && $delivery->salesOrder->items) {
                         $soItemsMap = $delivery->salesOrder->items->keyBy('item_code');
@@ -1047,34 +1002,56 @@ public function store(Request $request)
                     if ($delivery->items && $delivery->items->count() > 0) {
                         foreach ($delivery->items as $item) {
                             $soItem = $soItemsMap->get($item->item_code);
-                            $soQty = $soItem?->quantity ?? 0;
+                            $soQty = $soItem?->quantity ?? $item->original_quantity ?? 0;
                             $drQty = $item->quantity ?? 0;
-                            $variance = $drQty - $soQty;
 
-                            fputcsv($file, array_merge($deliveryInfo, [
+                            // NEW ROW ORDER
+                            fputcsv($file, [
+                                $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
+                                $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
+                                $delivery->sales_order_number ?? '—',
+                                $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? '—',
+                                $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
                                 $item->item_code ?? '—',
                                 $item->item_category ?? '—',
                                 $item->brand ?? '—',
                                 $item->item_description ?? '—',
-                                $item->uom ?? '—',
                                 number_format($soQty, 2),
-                                number_format($drQty, 2),
-                                ($variance > 0 ? '+' : '') . number_format($variance, 2),
                                 number_format($item->unit_price ?? 0, 2),
+                                $item->uom ?? '—',
+                                $deliveryDate,
+                                $delivery->plate_no ?? '—',
+                                $delivery->status ?? '—',
+                                $delivery->dr_no ?? '—',
+                                $delivery->sales_invoice_no ?? '—',
+                                number_format($drQty, 2), // DR Weight
                                 number_format($item->total_amount ?? 0, 2),
-                            ]));
+                            ]);
 
                             $grandTotal += $item->total_amount ?? 0;
                         }
 
-                        // Add grand total row - Fixed column count
-                        $emptyColumns = array_fill(0, 25, ''); // 16 delivery info + 9 item columns before total
-                        $emptyColumns[24] = 'GRAND TOTAL:';
-                        $emptyColumns[25] = number_format($grandTotal, 2);
+                        // Grand total
+                        $emptyColumns = array_fill(0, 18, '');
+                        $emptyColumns[17] = 'GRAND TOTAL:';
+                        $emptyColumns[18] = number_format($grandTotal, 2);
                         fputcsv($file, $emptyColumns);
                     } else {
-                        // No items - just output delivery info with empty item columns
-                        fputcsv($file, array_merge($deliveryInfo, array_fill(0, 10, '—')));
+                        // No items
+                        fputcsv($file, [
+                            $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
+                            $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
+                            $delivery->sales_order_number ?? '—',
+                            $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? '—',
+                            $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
+                            '—', '—', '—', '—', '—', '—', '—',
+                            $deliveryDate,
+                            $delivery->plate_no ?? '—',
+                            $delivery->status ?? '—',
+                            $delivery->dr_no ?? '—',
+                            $delivery->sales_invoice_no ?? '—',
+                            '—', '—'
+                        ]);
                     }
 
                     fclose($file);
@@ -1100,8 +1077,9 @@ public function store(Request $request)
                 'delivery_id' => $deliveryId ?? null
             ]);
             
-            // Return a proper error response instead of JSON for easier debugging
             abort(500, 'Failed to export: ' . $e->getMessage());
         }
-    }                                                              
+    }
+
+                                                             
 }

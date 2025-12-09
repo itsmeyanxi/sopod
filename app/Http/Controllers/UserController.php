@@ -130,6 +130,52 @@ class UserController extends Controller
             'email' => 'Invalid email or password.',
         ])->onlyInput('email');
     }
+    /**
+     * Show the user's profile page.
+     */
+    public function profile()
+    {
+        return view('admin.users.profile');
+    }
+
+    /**
+     * Update the user's profile.
+     */
+    /**
+     * Update the user's profile.
+     */
+    public function updateProfile(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . $user->id,
+                'password' => 'nullable|min:6|confirmed',
+            ]);
+
+            $user->name = $request->name;
+            $user->email = $request->email;
+
+            // Only update password if provided
+            if ($request->filled('password')) {
+                $user->password = $request->password; // ✅ Let User model handle hashing
+            }
+
+            $user->save();
+
+            return redirect()->route('profile')
+                ->with('success', 'Profile updated successfully!');
+
+        } catch (\Exception $e) {
+            \Log::error('Error updating profile: ' . $e->getMessage());
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error updating profile: ' . $e->getMessage());
+        }
+    }
 
     /**
      * Handle user logout.

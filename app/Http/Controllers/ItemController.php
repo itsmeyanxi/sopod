@@ -52,8 +52,8 @@ class ItemController extends Controller
         return view('items.create');
     }
 
-    // Save to DB (status = pending)
-    public function store(Request $request)
+    // store
+        public function store(Request $request)
     {
         if (!RoleHelper::canManageItems()) {
             return RoleHelper::unauthorized();
@@ -61,29 +61,34 @@ class ItemController extends Controller
 
         $validatedData = $request->validate([
             'item_description' => 'nullable|string',
-            'item_code' => 'required|string|max:255',
-            'item_category' => 'nullable|string|max:255',
-            'brand' => 'nullable|string|max:255',
-            'is_enabled' => 1, 
-
+            'item_code'        => 'required|string|max:255',
+            'item_category'    => 'nullable|string|max:255',
+            'brand'            => 'nullable|string|max:255',
+            'is_enabled'       => 'sometimes|boolean', // ✅ FIXED
         ]);
 
-        // Set initial status as pending
+        // ✅ Force default values safely
+        $validatedData['is_enabled'] = $request->has('is_enabled') 
+            ? $request->boolean('is_enabled') 
+            : true;
+
+        // ✅ Set initial status as pending
         $validatedData['approval_status'] = 'pending';
 
         $item = Item::create($validatedData);
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
-            'action' => 'Created',
-            'item' => $item->item_code . ' - ' . $item->item_description,
-            'target' => $item->brand ?? 'N/A',
-            'type' => 'Item',
-            'message' => 'Added new item (Pending Approval): ' . $item->item_description,
+            'action'    => 'Created',
+            'item'      => $item->item_code . ' - ' . $item->item_description,
+            'target'    => $item->brand ?? 'N/A',
+            'type'      => 'Item',
+            'message'   => 'Added new item (Pending Approval): ' . $item->item_description,
         ]);
 
         return redirect()->route('items.index')->with('success', 'Item created and sent for approval!');
     }
+
 
     // Approve item
     public function approve($id)

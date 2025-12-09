@@ -107,7 +107,7 @@
 
             <div class="mt-4">
                 <label for="shipping_address" class="block text-sm font-medium text-gray-300 mb-1">Shipping Address</label>
-                <input type="text" id="shipping_address" name="shipping_address" readonly
+                <input type="text" id="shipping_address" name="shipping_address" 
                     class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500" />
             </div>
 
@@ -136,20 +136,20 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm">PO Reference No <span class="text-red-500">*</span></label>
-                    <input type="text" id="po_reference_no" name="po_reference_no" required
+                    <label class="block text-sm">PO Reference No</label>
+                    <input type="text" id="po_reference_no" name="po_reference_no"
                         class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
                 </div>
 
                 <div>
-                    <label class="block text-sm">Sales Executive <span class="text-red-500">*</span></label>
-                    <input type="text" id="sales_executive" name="sales_executive" required
+                    <label class="block text-sm">Sales Executive</label>
+                    <input type="text" id="sales_executive" name="sales_executive"
                         class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
                 </div>
 
                 <div>
-                    <label class="block text-sm">Branch <span class="text-red-500">*</span></label>
-                    <input type="text" id="branch" name="branch" required
+                    <label class="block text-sm">Branch</label>
+                    <input type="text" id="branch" name="branch"
                         class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>

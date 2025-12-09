@@ -148,4 +148,31 @@ class User extends Authenticatable
         ]);
     }
 
+    public static function canaccessexcelimport()
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+        
+        $role = auth()->user()->role ?? null;
+        return in_array($role, [
+            'Admin', 
+            'IT', 
+            'CC_Approver', 
+            'CC_Creator',
+            'Accounting_Creator', 
+            'Accounting_Approver'
+        ]);
+    }
+
+    public function canaccesssalesanalytics()
+    {
+        return in_array($this->role, [
+            'Admin', 
+            'IT',
+            'Accounting_Creator', 
+            'Accounting_Approver'
+        ]);
+    }
+
 }

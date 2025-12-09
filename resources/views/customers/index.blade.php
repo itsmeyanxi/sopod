@@ -46,7 +46,7 @@
                         <td class="px-4 py-3">{{ $customer->customer_name }}</td>
                         <td class="px-4 py-3">{{ $customer->business_style ?? 'N/A' }}</td>
                         <td class="px-4 py-3">{{ Str::limit($customer->billing_address ?? 'N/A', 30) }}</td>
-                        <td class="px-4 py-3">{{ $customer->tin_no ?? 'N/A' }}</td>
+                        <td class="px-4 py-3">{{ $customer->tin_no ?? '000-000-000-00000' }}</td>
                         <td class="px-4 py-3">{{ Str::limit($customer->shipping_address ?? 'N/A', 30) }}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded text-xs font-medium {{ $customer->status === 'enabled' ? 'bg-green-600 text-white' : 'bg-red-600 text-white' }}">

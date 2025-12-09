@@ -199,26 +199,38 @@ function calculateRemaining(row) {
     const remainingCell = row.querySelector('.remaining-qty');
     
     if (deliveredInput && remainingCell) {
-        const deliveredQty = parseFloat(deliveredInput.value) || 0;
-        const variance = deliveredQty - originalQty;
+        const currentDeliveryQty = parseFloat(deliveredInput.value) || 0;
         
-        remainingCell.textContent = variance === 0 ? '—' : (variance > 0 ? '+' : '') + variance.toFixed(2);
+        // ✅ Get already delivered quantity from other batches (stored in data attribute)
+        const alreadyDelivered = parseFloat(row.getAttribute('data-already-delivered')) || 0;
         
-        // Visual feedback based on variance
-        remainingCell.classList.remove('text-orange-400', 'text-red-400', 'text-green-400', 'font-semibold');
-        row.classList.remove('bg-orange-900/10', 'bg-red-900/10');
+        // ✅ Calculate total delivered (previous batches + current batch)
+        const totalDelivered = alreadyDelivered + currentDeliveryQty;
         
-        if (variance > 0) {
-            // Over-delivery (red)
+        // ✅ Calculate remaining (what's LEFT to deliver after this batch)
+        const remaining = originalQty - totalDelivered;
+        
+        // Display logic
+        if (remaining < 0) {
+            // Over-delivery
+            remainingCell.textContent = 'OVER: +' + Math.abs(remaining).toFixed(2);
+            remainingCell.classList.remove('text-orange-400', 'text-green-400');
             remainingCell.classList.add('text-red-400', 'font-semibold');
+            row.classList.remove('bg-orange-900/10');
             row.classList.add('bg-red-900/10');
-        } else if (variance < 0) {
-            // Under-delivery (orange)
+        } else if (remaining > 0) {
+            // Under-delivery (partial)
+            remainingCell.textContent = remaining.toFixed(2);
+            remainingCell.classList.remove('text-red-400', 'text-green-400');
             remainingCell.classList.add('text-orange-400', 'font-semibold');
+            row.classList.remove('bg-red-900/10');
             row.classList.add('bg-orange-900/10');
         } else {
-            // Perfect match (green)
+            // Perfect (fully delivered)
+            remainingCell.textContent = '—';
+            remainingCell.classList.remove('text-orange-400', 'text-red-400', 'font-semibold');
             remainingCell.classList.add('text-green-400');
+            row.classList.remove('bg-orange-900/10', 'bg-red-900/10');
         }
     }
 }
@@ -250,30 +262,35 @@ function checkPartialDelivery() {
     
     rows.forEach(row => {
         const originalQty = parseFloat(row.getAttribute('data-original-qty')) || 0;
+        const alreadyDelivered = parseFloat(row.getAttribute('data-already-delivered')) || 0;
         const deliveredInput = row.querySelector('.delivered-qty-input');
-        const deliveredQty = parseFloat(deliveredInput?.value) || 0;
-        const variance = deliveredQty - originalQty;
+        const currentDeliveryQty = parseFloat(deliveredInput?.value) || 0;
+        
+        const totalDelivered = alreadyDelivered + currentDeliveryQty;
+        const remaining = originalQty - totalDelivered;
         
         const itemCode = row.querySelector('td:first-child')?.textContent || '';
         const itemDesc = row.querySelector('td:nth-child(2)')?.textContent || '';
         
-        if (variance < 0) {
+        if (remaining > 0) {
+            // Under-delivery (partial)
             hasUnderDelivery = true;
             partialItems.push({
                 code: itemCode,
                 description: itemDesc,
                 original: originalQty,
-                delivered: deliveredQty,
-                variance: variance
+                delivered: totalDelivered,
+                remaining: remaining
             });
-        } else if (variance > 0) {
+        } else if (remaining < 0) {
+            // Over-delivery
             hasOverDelivery = true;
             overDeliveryItems.push({
                 code: itemCode,
                 description: itemDesc,
                 original: originalQty,
-                delivered: deliveredQty,
-                variance: variance
+                delivered: totalDelivered,
+                excess: Math.abs(remaining)
             });
         }
     });
@@ -290,15 +307,15 @@ function checkPartialDelivery() {
         if (hasOverDelivery) {
             summaryHTML += '<div class="bg-red-950/30 p-2 rounded mb-2"><strong class="text-red-300">⚠️ Over-Delivery:</strong><ul class="mt-1 space-y-1">';
             overDeliveryItems.forEach(item => {
-                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Delivered <span class="text-red-400">${item.delivered}</span> vs SO <span class="text-blue-400">${item.original}</span> (Excess: <span class="text-red-400">+${item.variance.toFixed(2)}</span>)</li>`;
+                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Total Delivered <span class="text-red-400">${item.delivered.toFixed(2)}</span> vs SO <span class="text-blue-400">${item.original}</span> (Excess: <span class="text-red-400">+${item.excess.toFixed(2)}</span>)</li>`;
             });
             summaryHTML += '</ul></div>';
         }
         
         if (hasUnderDelivery) {
-            summaryHTML += '<div class="bg-orange-950/30 p-2 rounded"><strong class="text-orange-300">📦 Under-Delivery:</strong><ul class="mt-1 space-y-1">';
+            summaryHTML += '<div class="bg-orange-950/30 p-2 rounded"><strong class="text-orange-300">📦 Partial Delivery:</strong><ul class="mt-1 space-y-1">';
             partialItems.forEach(item => {
-                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Delivered <span class="text-orange-400">${item.delivered}</span> of <span class="text-blue-400">${item.original}</span> (Short: <span class="text-orange-400">${item.variance.toFixed(2)}</span>)</li>`;
+                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Total Delivered <span class="text-orange-400">${item.delivered.toFixed(2)}</span> of <span class="text-blue-400">${item.original}</span> (Remaining: <span class="text-orange-400">${item.remaining.toFixed(2)}</span>)</li>`;
             });
             summaryHTML += '</ul></div>';
         }
@@ -313,18 +330,9 @@ function checkPartialDelivery() {
         warningDiv.classList.add('hidden');
         summaryDiv.innerHTML = '';
         
-        // ✅ Reset to Full if all quantities match
+        // ✅ Reset to Full if all quantities match perfectly
         if (deliveryTypeSelect && canManageDeliveries) {
-            const allPerfect = Array.from(rows).every(row => {
-                const originalQty = parseFloat(row.getAttribute('data-original-qty')) || 0;
-                const deliveredInput = row.querySelector('.delivered-qty-input');
-                const deliveredQty = parseFloat(deliveredInput?.value) || 0;
-                return deliveredQty === originalQty;
-            });
-            
-            if (allPerfect) {
-                deliveryTypeSelect.value = 'Full';
-            }
+            deliveryTypeSelect.value = 'Full';
         }
     }
 }
@@ -365,7 +373,11 @@ function populateItemsTable(items) {
             
             const originalQty = item.original_quantity || item.quantity;
             const deliveredQty = item.quantity || 0;
-            const variance = deliveredQty - originalQty;
+            const alreadyDelivered = item.already_delivered || 0; // ✅ NEW: From backend
+            const remaining = item.remaining_quantity || 0;
+            
+            // ✅ Store already delivered for calculations
+            tr.setAttribute('data-already-delivered', alreadyDelivered);
             
             tr.innerHTML = `
                 <td class="border border-gray-700 px-4 py-2">${item.item_code || '—'}</td>
@@ -385,8 +397,8 @@ function populateItemsTable(items) {
                         ${canManageDeliveries ? '' : 'readonly'}>
                 </td>
                 <td class="border border-gray-700 px-4 py-2 text-center">
-                    <div class="remaining-qty font-semibold ${variance > 0 ? 'text-red-400' : (variance < 0 ? 'text-orange-400' : 'text-green-400')}">
-                        ${variance === 0 ? '—' : (variance > 0 ? '+' : '') + variance.toFixed(2)}
+                    <div class="remaining-qty font-semibold ${remaining > 0 ? 'text-orange-400' : 'text-green-400'}">
+                        ${remaining <= 0 ? '—' : remaining.toFixed(2)}
                     </div>
                 </td>
                 <td class="border border-gray-700 px-4 py-2 text-center">${item.uom || 'Kgs'}</td>

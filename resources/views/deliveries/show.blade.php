@@ -31,7 +31,7 @@
         
         $customerCode = $delivery->customer_code ?? $so?->customer_code ?? $customer?->customer_code ?? '—';
         $customerName = $delivery->customer_name ?? $customer?->customer_name ?? $so?->client_name ?? '—';
-        $tinNo = $delivery->tin_no ?? $customer?->tin_no ?? '—';
+        $tinNo = $delivery->tin_no ?? $customer?->tin_no ?? '-';
         $branch = $delivery->branch ?? $so?->branch ?? '—';
         $salesRep = $delivery->sales_rep ?? $delivery->sales_representative ?? $so?->sales_rep ?? '—';
         $salesExec = $delivery->sales_executive ?? $so?->sales_executive ?? '—';
@@ -244,7 +244,7 @@
             $grandTotal = 0;
             $hasPartialItems = false;
             
-            // ✅ CRITICAL: Create map of SO items for comparison
+            // ✅ Create map of SO items for comparison
             $soItemsMap = collect();
             if ($so && $so->items) {
                 foreach ($so->items as $soItem) {
@@ -252,10 +252,10 @@
                 }
             }
             
-            // ✅ NEW: Calculate total delivered quantities across ALL batches
+            // ✅ FIXED: Calculate total delivered quantities across ALL batches INCLUDING this one
             $totalDeliveredMap = \App\Models\DeliveryItem::whereHas('delivery', function($q) use ($delivery) {
                     $q->where('sales_order_number', $delivery->sales_order_number)
-                    ->where('status', 'Delivered');
+                      ->where('status', 'Delivered'); // Only count delivered items
                 })
                 ->select('item_code', \DB::raw('SUM(quantity) as total_delivered'))
                 ->groupBy('item_code')
@@ -267,7 +267,7 @@
             }
         @endphp
 
-            <div class="overflow-x-auto mt-6">
+        <div class="overflow-x-auto mt-6">
             <table class="w-full border border-gray-700 rounded-md overflow-hidden text-sm">
                 <thead class="bg-gray-700 text-gray-300 uppercase">
                     <tr>
@@ -276,13 +276,12 @@
                         <th class="px-4 py-2 text-left">Brand</th>
                         <th class="px-4 py-2 text-left">Category</th>
                         <th class="px-4 py-2 text-right">Original Qty<br><span class="text-xs text-gray-400">(SO Qty)</span></th>
-                        <th class="px-4 py-2 text-right">Delivered Qty<br><span class="text-xs text-gray-400">(DR Qty)</span></th>
+                        <th class="px-4 py-2 text-right">This Batch Qty<br><span class="text-xs text-gray-400">(DR Qty)</span></th>
+                        <th class="px-4 py-2 text-right">Total Delivered<br><span class="text-xs text-gray-400">(All Batches)</span></th>
                         <th class="px-4 py-2 text-right">Remaining</th>
                         <th class="px-4 py-2 text-center">UOM</th>
                         <th class="px-4 py-2 text-right">Unit Price</th>
                         <th class="px-4 py-2 text-right">Amount</th>
-
-                        <!-- ⭐ NEW COLUMN -->
                         <th class="px-4 py-2 text-left">Notes</th>
                     </tr>
                 </thead>
@@ -292,9 +291,19 @@
                         @php
                             $soItem = $soItemsMap->get($item->item_code);
                             $originalQty = $item->original_quantity ?? $soItem?->quantity ?? $item->quantity;
-                            $deliveredQty = $item->quantity ?? 0;
-                            $remaining = $originalQty - $deliveredQty;
+                            $thisBatchQty = $item->quantity ?? 0;
+                            
+                            // ✅ FIXED: Get total delivered from ALL batches (including this one)
+                            $totalDelivered = $totalDeliveredMap->get($item->item_code)?->total_delivered ?? $thisBatchQty;
+                            
+                            // ✅ FIXED: Calculate remaining = Original - Total Delivered (all batches)
+                            $remaining = $originalQty - $totalDelivered;
+                            
                             $isPartial = $remaining > 0;
+                            
+                            if ($isPartial) {
+                                $hasPartialItems = true;
+                            }
                         @endphp
 
                         <tr class="border-b border-gray-800 hover:bg-gray-800 {{ $isPartial ? 'bg-orange-900/10' : '' }}">
@@ -303,23 +312,46 @@
                             <td class="px-4 py-2">{{ $item->brand ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $item->item_category ?? '—' }}</td>
 
+                            <!-- Original Qty (SO Qty) -->
                             <td class="px-4 py-2 text-right">
                                 <span class="font-semibold text-blue-400">
                                     {{ number_format($originalQty, 2) }}
                                 </span>
                             </td>
 
+                            <!-- This Batch Qty (DR Qty) -->
                             <td class="px-4 py-2 text-right">
-                                <span class="font-semibold {{ $isPartial ? 'text-green-400' : 'text-green-400' }}">
-                                    {{ number_format($deliveredQty, 2) }}
+                                <span class="font-semibold text-green-400">
+                                    {{ number_format($thisBatchQty, 2) }}
                                 </span>
                             </td>
 
+                            <!-- Total Delivered (All Batches) -->
+                            <td class="px-4 py-2 text-right">
+                                <div class="flex flex-col items-end">
+                                    <span class="font-semibold text-purple-400">
+                                        {{ number_format($totalDelivered, 2) }}
+                                    </span>
+                                    @if($totalDelivered > $thisBatchQty)
+                                        <span class="text-xs text-gray-500">
+                                            (Multi-batch)
+                                        </span>
+                                    @endif
+                                </div>
+                            </td>
+
+                            <!-- Remaining -->
                             <td class="px-4 py-2 text-right">
                                 @if($remaining > 0)
-                                    <span class="font-semibold text-orange-400">{{ number_format($remaining, 2) }}</span>
+                                    <span class="font-semibold text-orange-400">
+                                        {{ number_format($remaining, 2) }}
+                                    </span>
+                                @elseif($remaining < 0)
+                                    <span class="font-semibold text-red-400">
+                                        OVER: {{ number_format(abs($remaining), 2) }}
+                                    </span>
                                 @else
-                                    <span class="text-green-400">—</span>
+                                    <span class="text-green-400 font-semibold">✓ Complete</span>
                                 @endif
                             </td>
 
@@ -327,7 +359,7 @@
                             <td class="px-4 py-2 text-right">₱{{ number_format($item->unit_price ?? 0, 2) }}</td>
                             <td class="px-4 py-2 text-right">₱{{ number_format($item->total_amount ?? 0, 2) }}</td>
 
-                            <!-- ⭐ NEW NOTES COLUMN -->
+                            <!-- Notes Column -->
                             <td class="px-4 py-2 text-left">
                                 @if($item->notes)
                                     <span class="text-gray-200">{{ $item->notes }}</span>
@@ -338,7 +370,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="12" class="px-4 py-8 text-center text-gray-500">
                                 No items found for this delivery
                             </td>
                         </tr>
@@ -347,17 +379,14 @@
                     @if($items->count() > 0)
                         <!-- Grand Total Row -->
                         <tr class="bg-gray-800 font-semibold">
-                            <td colspan="9" class="px-4 py-3 text-right">Grand Total:</td>
+                            <td colspan="10" class="px-4 py-3 text-right">Grand Total:</td>
                             <td class="px-4 py-3 text-right text-green-400">₱{{ number_format($grandTotal, 2) }}</td>
-
-                            <!-- Blank for Notes column -->
                             <td></td>
                         </tr>
                     @endif
                 </tbody>
             </table>
         </div>
-
 
         @if($hasPartialItems)
         <div class="mt-4 bg-orange-900/20 border border-orange-700 p-3 rounded-lg text-sm">

@@ -92,6 +92,16 @@
         .text-right { text-align: right; }
         .text-center { text-align: center; }
 
+        .item-note {
+            font-size: 11px;
+            color: #666;
+            font-style: italic;
+            margin-top: 3px;
+            padding: 5px;
+            background: #f9f9f9;
+            border-left: 3px solid #c00000;
+        }
+
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -118,6 +128,27 @@
             font-size: 18px;
             font-weight: bold;
             color: #c00000;
+        }
+
+        .instructions-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+        }
+
+        .instructions-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .instructions-content {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
         .signatures {
@@ -248,6 +279,16 @@
         </div>
     </div>
 
+    <!-- ✅ ADDITIONAL DELIVERY INSTRUCTIONS -->
+    @if($delivery->additional_instructions || $delivery->salesOrder?->additional_instructions)
+    <div class="instructions-section">
+        <div class="instructions-title">📋 Additional Delivery Instructions:</div>
+        <div class="instructions-content">
+            {{ $delivery->additional_instructions ?? $delivery->salesOrder?->additional_instructions }}
+        </div>
+    </div>
+    @endif
+
 <table>
     <thead>
         <tr>
@@ -266,9 +307,9 @@
             $hasItems = $delivery->items && $delivery->items->count() > 0;
             $totalAmount = 0;
             
-            // ✅ Get SO items for comparison
+            // Get SO items for comparison
             $soItems = $delivery->salesOrder?->items ?? collect();
-            $soItemsMap = $soItems->keyBy('item_code'); // Map by item_code for easy lookup
+            $soItemsMap = $soItems->keyBy('item_code');
         @endphp
 
         @if($hasItems)
@@ -277,20 +318,27 @@
                     $itemTotal = $item->total_amount ?? ($item->quantity * $item->unit_price);
                     $totalAmount += $itemTotal;
                     
-                    // ✅ Get corresponding SO item for quantity comparison
+                    // Get corresponding SO item for quantity comparison
                     $soItem = $soItemsMap->get($item->item_code);
                     $soQty = $soItem ? $soItem->quantity : 0;
                     $drQty = $item->quantity ?? 0;
                     $variance = $drQty - $soQty;
                     
-                    // ✅ Variance styling
+                    // Variance styling
                     $varianceColor = $variance < 0 ? 'color: #dc3545; font-weight: bold;' : ($variance > 0 ? 'color: #28a745;' : 'color: #666;');
                 @endphp
                 <tr>
                     <td class="text-center">{{ $item->item_code ?? '—' }}</td>
                     <td>{{ $item->item_category ?? $item->item?->item_category ?? '—' }}</td>
                     <td>{{ $item->brand ?? $item->item?->brand ?? '—' }}</td>
-                    <td>{{ $item->item_description ?? $item->item?->item_description ?? '—'  }}</td>
+                    <td>
+                        {{ $item->item_description ?? $item->item?->item_description ?? '—'  }}
+                        @if($item->notes)
+                            <div class="item-note">
+                                📝 Note: {{ $item->notes }}
+                            </div>
+                        @endif
+                    </td>
                     <td class="text-center">{{ $item->uom ?? 'Kgs' }}</td>
                     <td class="text-right">{{ number_format($soQty, 2) }}</td>
                     <td class="text-right">{{ number_format($drQty, 2) }}</td>
@@ -300,13 +348,12 @@
                 </tr>
             @endforeach
         @else
-            {{-- ✅ Fallback: Show single item from deliveries table (legacy) --}}
+            {{-- Fallback: Show single item from deliveries table (legacy) --}}
             @php
                 $unitPrice = ($delivery->unit_price) 
                     ?? (($delivery->quantity > 0) ? ($delivery->total_amount / $delivery->quantity) : 0);
                 $totalAmount = $delivery->total_amount ?? 0;
                 
-                // Try to get SO item for comparison
                 $soItem = $delivery->salesOrder?->items->where('item_code', $delivery->item_code)->first();
                 $soQty = $soItem ? $soItem->quantity : 0;
                 $drQty = $delivery->quantity ?? 0;
@@ -327,10 +374,10 @@
             </tr>
         @endif
 
-        {{-- ✅ Empty state if no items at all --}}
+        {{-- Empty state if no items at all --}}
         @if(!$hasItems && !$delivery->item_code)
             <tr>
-                <td colspan="9" class="text-center" style="padding: 20px; color: #999;">
+                <td colspan="8" class="text-center" style="padding: 20px; color: #999;">
                     No items found for this delivery.
                 </td>
             </tr>
@@ -338,12 +385,7 @@
     </tbody>
 </table>
 
-    <div style="margin-top: 20px;">
-        <p><strong>Additional Instructions:</strong></p>
-        <p>{{ $delivery->additional_instructions ?? $delivery->salesOrder?->additional_instructions ?? '—' }}</p>
-    </div>
-
-    <!--  UPDATED: Total now calculates from all items -->
+    <!-- Total -->
     <div class="total-section">
         <div style="font-size: 14px; margin-bottom: 5px;">Total Amount:</div>
         <div class="total-amount">₱{{ number_format($totalAmount, 2) }}</div>

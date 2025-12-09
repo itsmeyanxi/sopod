@@ -31,7 +31,8 @@ class SalesOrder extends Model
         'item_code',        
         'brand',            
         'item_category',
-        'is_closed'  // ✅ ADD THIS - CRITICAL!
+        'is_closed',
+        'shipping_address'
     ];
 
     /**

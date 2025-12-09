@@ -38,6 +38,17 @@
                     <i class="fa-solid fa-truck"></i> Deliveries
                 </span>
             </a>
+
+            <!-- MONTHLY SALES TAB -->
+            <a href="{{ route('records.index', ['type' => 'monthly_sales']) }}" 
+                class="relative px-6 py-2.5 rounded-md font-medium transition-all duration-200 ease-in-out
+                {{ $type === 'monthly_sales'
+                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/50' 
+                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50' }}">
+                <span class="relative z-10 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line"></i> Monthly Sales
+                </span>
+            </a>
         </div>
     </div>
 
@@ -150,9 +161,89 @@
 @endif
 
     <!-- ====================== -->
+    <!-- MONTHLY SALES SECTION -->
+    <!-- ====================== -->
+    @if($type === 'monthly_sales')
+    <div class="bg-gray-800 p-6 rounded-lg mb-6 border border-gray-700">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-purple-400">
+                <i class="fa-solid fa-chart-bar"></i> Monthly Sales Summary
+            </h2>
+            <div class="text-gray-400 text-sm">
+                Total Records: {{ $records->count() }}
+            </div>
+        </div>
+
+        @if($records->count() > 0)
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-4 rounded-lg shadow-lg">
+                    <div class="text-blue-200 text-sm mb-1">Total Quantity</div>
+                    <div class="text-2xl font-bold text-white">
+                        {{ number_format($records->sum('quantity'), 2) }}
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-green-600 to-green-800 p-4 rounded-lg shadow-lg">
+                    <div class="text-green-200 text-sm mb-1">Total Sales (PHP)</div>
+                    <div class="text-2xl font-bold text-white">
+                        ₱{{ number_format($records->sum('php_amount'), 2) }}
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-purple-600 to-purple-800 p-4 rounded-lg shadow-lg">
+                    <div class="text-purple-200 text-sm mb-1">Average per Month</div>
+                    <div class="text-2xl font-bold text-white">
+                        ₱{{ number_format($records->avg('php_amount'), 2) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto rounded-lg">
+                <table class="min-w-full bg-gray-900 rounded-lg overflow-hidden">
+                    <thead class="bg-purple-900 text-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left">#</th>
+                            <th class="px-6 py-3 text-left">Month</th>
+                            <th class="px-6 py-3 text-right">Quantity</th>
+                            <th class="px-6 py-3 text-right">PHP Amount</th>
+                            <th class="px-6 py-3 text-center">Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($records as $index => $record)
+                        <tr class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+                            <td class="px-6 py-4 text-gray-400">{{ $index + 1 }}</td>
+                            <td class="px-6 py-4 font-semibold text-purple-300">
+                                <i class="fa-solid fa-calendar-alt mr-2"></i>{{ $record->month }}
+                            </td>
+                            <td class="px-6 py-4 text-right font-mono text-blue-300">
+                                {{ number_format($record->quantity, 2) }}
+                            </td>
+                            <td class="px-6 py-4 text-right font-mono text-green-300">
+                                ₱{{ number_format($record->php_amount, 2) }}
+                            </td>
+                            <td class="px-6 py-4 text-center text-gray-400 text-sm">
+                                {{ $record->updated_at->format('M d, Y') }}
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div class="text-center py-12">
+                <i class="fa-solid fa-chart-line text-6xl text-gray-600 mb-4"></i>
+                <p class="text-gray-400 text-lg">No monthly sales data available.</p>
+                <p class="text-gray-500 text-sm mt-2">Upload data through the Import module to see results here.</p>
+            </div>
+        @endif
+    </div>
+    @endif
+
+    <!-- ====================== -->
     <!-- 📄 TABLE SECTION -->
     <!-- ====================== -->
-    @if($records->count() > 0)
+    @if($type !== 'monthly_sales' && $records->count() > 0)
         <div class="overflow-x-auto">
         <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden text-left">
             <thead class="bg-gray-700 text-gray-200 ">
@@ -277,7 +368,7 @@
         </div>
         @endif
 
-    @else
+    @elseif($type !== 'monthly_sales')
         <p class="text-gray-400">
             No {{ $report ? 'data found for this report' : ($type === 'deliveries' ? 'deliveries' : 'sales orders') }}.
         </p>

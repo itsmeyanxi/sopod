@@ -1,4 +1,4 @@
-input<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -87,6 +87,16 @@ input<!DOCTYPE html>
         .text-right { text-align: right; }
         .text-center { text-align: center; }
 
+        .item-note {
+            font-size: 11px;
+            color: #666;
+            font-style: italic;
+            margin-top: 3px;
+            padding: 5px;
+            background: #f9f9f9;
+            border-left: 3px solid #c00000;
+        }
+
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -112,6 +122,27 @@ input<!DOCTYPE html>
             font-size: 18px;
             font-weight: bold;
             color: #c00000;
+        }
+
+        .instructions-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+        }
+
+        .instructions-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .instructions-content {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
         .signatures {
@@ -222,6 +253,16 @@ input<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- ✅ ADDITIONAL DELIVERY INSTRUCTIONS -->
+    @if($salesOrder->additional_instructions)
+    <div class="instructions-section">
+        <div class="instructions-title">📋 Additional Delivery Instructions:</div>
+        <div class="instructions-content">
+            {{ $salesOrder->additional_instructions }}
+        </div>
+    </div>
+    @endif
+
     <!-- Items Table -->
     <table>
         <thead>
@@ -239,7 +280,14 @@ input<!DOCTYPE html>
             @forelse($salesOrder->items as $item)
                 <tr>
                     <td class="text-center">{{ $item->item_code ?? '—' }}</td>
-                    <td>{{ $item->item_description ?: ($item->item->item_description ?? '') }}</td>
+                    <td>
+                        {{ $item->item_description ?: ($item->item->item_description ?? '') }}
+                        @if($item->note)
+                            <div class="item-note">
+                                📝 Note: {{ $item->note }}
+                            </div>
+                        @endif
+                    </td>
                     <td>{{ $item->brand ?? '—' }}</td>
                     <td>{{ $item->item_category ?: ($item->item->item_category ?? '') }}</td>
                     <td class="text-right">{{ number_format($item->quantity, 2) }} {{ $item->unit ?? 'Kgs' }}</td>

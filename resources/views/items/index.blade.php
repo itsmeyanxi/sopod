@@ -31,7 +31,7 @@
     <div class="flex items-center justify-between gap-4 mb-4">
         <input id="itemSearchInput" 
             type="text" 
-            placeholder="Search item code / name / brand / category"
+            placeholder="Search item code / description / brand / category"
             class="w-80 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring focus:ring-purple-500">
 
         @if(auth()->user()->canManageItems())

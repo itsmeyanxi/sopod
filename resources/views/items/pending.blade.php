@@ -30,7 +30,6 @@
             <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                 <tr>
                     <th class="px-4 py-3 text-left">Item Code</th>
-                    <th class="px-4 py-3 text-left">Item Name</th>
                     <th class="px-4 py-3 text-left">Description</th>
                     <th class="px-4 py-3 text-left">Brand</th>
                     <th class="px-4 py-3 text-left">Category</th>

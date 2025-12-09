@@ -162,7 +162,7 @@
                 </div>
             </div>
 
-            <!-- User Dropdown -->
+        <!-- User Dropdown -->
             <div class="relative">
                 <button id="userDropdownButton" class="flex items-center space-x-2 focus:outline-none hover:text-gray-300">
                     <span>{{ Auth::user()->name }}</span>
@@ -171,17 +171,30 @@
                     </svg>
                 </button>
                 <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white text-black border rounded shadow-lg z-50">
-                    <div class="px-4 py-2 border-b bg-gray-50">
+                    <!-- User Info - Now Clickable -->
+                    <a href="{{ route('profile') }}" class="block px-4 py-2 border-b bg-gray-50 hover:bg-gray-100">
                         <p class="text-sm font-semibold">{{ Auth::user()->name }}</p>
                         <p class="text-xs text-gray-600">{{ Auth::user()->role }}</p>
-                    </div>
-                    <div>
-                       <a href="http://mtcresolveit.meatplus.ph/public/ticket/index.php?entity=1" target="_blank"> 
-                        <button id="reports" class="w-full text-left px-4 py-2 hover:bg-gray-100">Reports</button></a>
-                    </div>
+                    </a>
+                    
+                    <!-- User List (IT Only) -->
+                    @if(Auth::user()->role === 'IT')
+                    <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 hover:bg-gray-100">
+                        <i class="fas fa-users mr-2"></i>User List
+                    </a>
+                    @endif
+                    
+                    <!-- Reports -->
+                    <a href="http://mtcresolveit.meatplus.ph/public/ticket/index.php?entity=1" target="_blank" class="block px-4 py-2 hover:bg-gray-100">
+                        <i class="fas fa-file-alt mr-2"></i>Reports
+                    </a>
+                    
+                    <!-- Logout -->
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-100">Logout</button>
+                        <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-100">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
                     </form>
                 </div>
             </div>

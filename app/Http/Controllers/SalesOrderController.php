@@ -71,92 +71,112 @@ class SalesOrderController extends Controller
         return 'SO-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 
-    public function store(Request $request)
-    {
-        \Log::info('Form Data Received:', $request->all());
+   public function store(Request $request)
+{
+    \Log::info('Form Data Received:', $request->all());
 
-        $request->validate([
-            'customer_code' => 'required|exists:customers,customer_code',
-            'request_delivery_date' => 'required|date',
-            'po_reference_no' => 'required|unique:sales_orders,po_number',
-            'sales_rep' => 'required|string',
-            'items' => 'required|array|min:1',
-            'items.*.item_id' => 'required',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.price' => 'required|numeric|min:0',
-            'additional_instructions' => 'nullable|string',
-        ], [
-            'po_reference_no.unique' => 'This PO Number has already been used in another sales order.',
+    $request->validate([
+        'customer_code' => 'required|exists:customers,customer_code',
+        'request_delivery_date' => 'required|date',
+        'po_reference_no' => 'nullable|unique:sales_orders,po_number',
+        'sales_rep' => 'required|string',
+        'items' => 'required|array|min:1',
+        'items.*.item_id' => 'required',
+        'items.*.quantity' => 'required|numeric|min:0.01',
+        'items.*.price' => 'required|numeric|min:0',
+        'additional_instructions' => 'nullable|string',
+    ], [
+        'po_reference_no.unique' => 'This PO Number has already been used in another sales order.',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        $customer = Customer::where('customer_code', $request->customer_code)->firstOrFail();
+        $salesOrderNumber = $this->generateSalesOrderNumber();
+
+        $items = $request->items;
+        $totalAmount = collect($items)->sum(fn($i) => $i['quantity'] * $i['price']);
+        $firstItem = $items[0] ?? [];
+
+        // ✅ CREATE SALES ORDER (saves to sales_orders table)
+        $salesOrder = SalesOrder::create([
+            'sales_order_number' => $salesOrderNumber,
+            'customer_id' => $customer->id,
+            'prepared_by' => auth()->id(),
+            'approved_by' => null,
+            'request_delivery_date' => $request->request_delivery_date,
+            'po_number' => $request->po_reference_no,
+            'customer_name' => $request->customer_name ?? $customer->customer_name,
+            'shipping_address' => $request->shipping_address,  // ✅ Saves to sales_orders
+            'sales_rep' => $request->sales_rep,
+            'sales_executive' => $request->sales_executive ?? null,
+            'branch' => $request->branch ?? null,
+            'total_amount' => $totalAmount,
+            'item_description' => $firstItem['item_description'] ?? null,
+            'item_code' => $firstItem['item_code'] ?? null,
+            'brand' => $firstItem['brand'] ?? null,
+            'item_category' => $firstItem['item_category'] ?? null,
+            'additional_instructions' => $request->additional_instructions,
+            'status' => $request->status ?? 'Pending',
         ]);
 
-        DB::beginTransaction();
+        // ✅ CREATE SALES ORDER ITEMS
+        foreach ($request->items as $index => $itemData) {
+            $item = Item::find($itemData['item_id']);
 
-        try {
-            $customer = Customer::where('customer_code', $request->customer_code)->firstOrFail();
-            $salesOrderNumber = $this->generateSalesOrderNumber();
-
-            $items = $request->items;
-            $totalAmount = collect($items)->sum(fn($i) => $i['quantity'] * $i['price']);
-            $firstItem = $items[0] ?? [];
-
-            $salesOrder = SalesOrder::create([
-                'sales_order_number' => $salesOrderNumber,
-                'customer_id' => $customer->id,
-                'prepared_by' => auth()->id(),
-                'approved_by' => null,
-                'request_delivery_date' => $request->request_delivery_date,
-                'po_number' => $request->po_reference_no,
-                'customer_name' => $request->customer_name ?? $customer->customer_name,
-                'sales_rep' => $request->sales_rep,
-                'sales_executive' => $request->sales_executive ?? null,
-                'branch' => $request->branch ?? null,
-                'total_amount' => $totalAmount,
-                'item_description' => $firstItem['item_description'] ?? null,
-                'item_code' => $firstItem['item_code'] ?? null,
-                'brand' => $firstItem['brand'] ?? null,
-                'item_category' => $firstItem['item_category'] ?? null,
-                'additional_instructions' => $request->additional_instructions,
-                'status' => $request->status ?? 'Pending',
+            SalesOrderItem::create([
+                'sales_order_id' => $salesOrder->id,
+                'item_id' => $itemData['item_id'],
+                'item_code' => $itemData['item_code'] ?? $item->item_code ?? null,
+                'item_description' => $itemData['item_description'] ?? $item->item_description ?? null,
+                'brand' => $itemData['brand'] ?? $item->brand ?? null,
+                'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
+                'quantity' => $itemData['quantity'],
+                'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
+                'unit_price' => $itemData['price'],
+                'total_amount' => $itemData['amount'] ?? ($itemData['quantity'] * $itemData['price']),
+                'note' => $itemData['note'] ?? null,
             ]);
+        }
 
-            foreach ($request->items as $index => $itemData) {
-                $item = Item::find($itemData['item_id']);
-
-                SalesOrderItem::create([
-                    'sales_order_id' => $salesOrder->id,
-                    'item_id' => $itemData['item_id'],
-                    'item_code' => $itemData['item_code'] ?? $item->item_code ?? null,
-                    'item_description' => $itemData['item_description'] ?? $item->item_description ?? null,
-                    'brand' => $itemData['brand'] ?? $item->brand ?? null,
-                    'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
-                    'quantity' => $itemData['quantity'],
-                    'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
-                    'unit_price' => $itemData['price'],
-                    'total_amount' => $itemData['amount'] ?? ($itemData['quantity'] * $itemData['price']),
-                    'note' => $itemData['note'] ?? null,
-                ]);
-            }
-
+        // ✅ OPTION 2: UPDATE CUSTOMER'S SHIPPING ADDRESS (saves to customers table)
+        if ($request->filled('shipping_address')) {
+            $customer->update([
+                'shipping_address' => $request->shipping_address
+            ]);
+            
+            // Optional: Log the customer update
             \App\Models\Activity::create([
                 'user_name' => auth()->user()->name ?? 'System',
-                'action' => 'Created',
-                'item' => $salesOrderNumber,
-                'target' => $customer->customer_name ?? 'N/A',
-                'type' => 'Sales Order',
-                'message' => 'Created sales order: ' . $salesOrderNumber,
+                'action' => 'Updated',
+                'item' => $customer->customer_code . ' - ' . $customer->customer_name,
+                'target' => 'Shipping Address',
+                'type' => 'Customer',
+                'message' => 'Updated shipping address via Sales Order: ' . $salesOrderNumber,
             ]);
-
-            DB::commit();
-            return redirect()->route('sales_orders.index')
-                ->with('success', 'Sales order created successfully!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Sales Order Error:', ['message' => $e->getMessage()]);
-            return back()->withInput()->with('error', 'Failed to save sales order: ' . $e->getMessage());
         }
-    }
 
+        // ✅ LOG SALES ORDER CREATION
+        \App\Models\Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Created',
+            'item' => $salesOrderNumber,
+            'target' => $customer->customer_name ?? 'N/A',
+            'type' => 'Sales Order',
+            'message' => 'Created sales order: ' . $salesOrderNumber,
+        ]);
+
+        DB::commit();
+        return redirect()->route('sales_orders.index')
+            ->with('success', 'Sales order created successfully!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Sales Order Error:', ['message' => $e->getMessage()]);
+        return back()->withInput()->with('error', 'Failed to save sales order: ' . $e->getMessage());
+    }
+}
 
 /**
  * ✅ Sync unit prices from SO items to related delivery items
@@ -282,6 +302,7 @@ public function update(Request $request, $id)
         'customer_id' => $request->customer_id,
         'request_delivery_date' => $request->request_delivery_date ?? $salesOrder->request_delivery_date,
         'sales_rep' => $request->sales_rep ?? $salesOrder->sales_rep,
+        'shipping_address' => $request->shipping_address ?? $salesOrder->shipping_address,  // ✅ ADD THIS
         'additional_instructions' => $request->additional_instructions,
         'sales_executive' => optional(Customer::find($request->customer_id))->sales_executive ?? $salesOrder->sales_executive,
     ]);
