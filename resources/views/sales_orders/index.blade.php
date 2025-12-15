@@ -284,64 +284,69 @@
                             View
                         </a>
                         
-                        @php
-                            $user = auth()->user();
-                            $canShowEdit = false;
-                            $canShowApproveEdit = false;
-                            
-                            // ✅ Check if SO is fully delivered or closed
-                            $isFullyDelivered = $order->is_closed;
-                            
-                            // Also check delivery status
-                            if ($order->deliveries) {
-                                $delivery = $order->deliveries;
-                                // Check if delivery is marked as Delivered (Full) or status is Delivered
-                                if ($delivery->status === 'Delivered' || 
-                                    ($delivery->delivery_type === 'Full' && $delivery->status === 'Delivered')) {
-                                    $isFullyDelivered = true;
+                    @php
+                        $user = auth()->user();
+                        $canShowEdit = false;
+                        $canShowApproveEdit = false;
+                        
+                        // ✅ Check if delivery exists and is delivered
+                        $hasDelivery = $order->deliveries !== null;
+                        $isDelivered = false;
+                        
+                        if ($hasDelivery) {
+                            $delivery = $order->deliveries;
+                            // Check if delivery is marked as Delivered (any type)
+                            if ($delivery->status === 'Delivered') {
+                                $isDelivered = true;
+                            }
+                        }
+                        
+                        // ✅ NEW LOGIC: Request edit permission only AFTER delivery
+                        if (!$isDelivered) {
+                            // NOT delivered yet - CSR and CC_Approver can edit freely
+                            if ($user->canInitiateEdit() || $user->canEditAfterCCApproval()) {
+                                $canShowEdit = true;
+                            }
+                        } else {
+                            // DELIVERED - Need permission system
+                            // CC_Approver can always edit
+                            if ($user->canInitiateEdit()) {
+                                $canShowEdit = true;
+                                // CC_Approver can approve for CSR editing
+                                if (!$order->isEditApprovedByCC()) {
+                                    $canShowApproveEdit = true;
                                 }
                             }
-                            
-                            // Only allow editing if NOT fully delivered
-                            if (!$isFullyDelivered) {
-                                // CC_Approver can always see edit button
-                                if ($user->canInitiateEdit()) {
-                                    $canShowEdit = true;
-                                    // CC_Approver can also approve for CSR editing
-                                    if (!$order->isEditApprovedByCC()) {
-                                        $canShowApproveEdit = true;
-                                    }
-                                }
-                                // CSR roles can see edit button only if CC approved editing
-                                elseif ($user->canEditAfterCCApproval() && $order->isEditApprovedByCC()) {
-                                    $canShowEdit = true;
-                                }
+                            // CSR roles need CC approval to edit delivered orders
+                            elseif ($user->canEditAfterCCApproval() && $order->isEditApprovedByCC()) {
+                                $canShowEdit = true;
                             }
-                        @endphp
-                        
-                        @if($canShowEdit)
-                            <a href="{{ route('sales_orders.edit', $order->id) }}" 
-                                class="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs inline-block ml-2">
-                                Edit
-                            </a>
-                        @endif
-                        
-                        @if($canShowApproveEdit)
-                            <form action="{{ route('sales_orders.approveForEdit', $order->id) }}" method="POST" class="inline ml-2">
-                                @csrf
-                                <button type="submit" 
-                                    class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs"
-                                    onclick="return confirm('Approve this SO for editing by CSR team?')">
-                                    ✓ Approve Edit
-                                </button>
-                            </form>
-                        @endif
-                        
-                        @if($isFullyDelivered)
-                            <span class="bg-gray-600 text-white px-3 py-1 rounded text-xs ml-2" title="Cannot edit - Fully delivered">
-                                🔒 Locked
-                            </span>
-                        @endif
+                        }
+                    @endphp
+
+                    @if($canShowEdit)
+                        <a href="{{ route('sales_orders.edit', $order->id) }}" 
+                            class="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs inline-block ml-2">
+                            Edit
+                        </a>
+                    @endif
+
+                    @if($canShowApproveEdit)
+                        <form action="{{ route('sales_orders.approveForEdit', $order->id) }}" method="POST" class="inline ml-2">
+                            @csrf
+                            <button type="submit" 
+                                class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs"
+                                onclick="return confirm('Approve this SO for editing by CSR team?')">
+                                ✓ Approve Edit
+                            </button>
+                        </form>
+                    @endif
+
+                    @if($isDelivered)
+                        <span class="bg-gray-600 text-white px-3 py-1 rounded text-xs ml-2" title="Order has been delivered">
+                            🔒 Locked
+                        </span>
+                    @endif
                         
                         <form action="{{ route('sales_orders.destroy', $order->id) }}" method="POST" class="inline ml-2">
                             @csrf

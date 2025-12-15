@@ -281,239 +281,252 @@ private function syncDeliveryPrices(SalesOrder $salesOrder)
     }
 
  public function edit($id)
-    {
-        $salesOrder = SalesOrder::with(['customer', 'items.item', 'deliveries'])->findOrFail($id);
-        
-        // ✅ Check if SO is closed OR fully delivered
-        $isFullyDelivered = $salesOrder->is_closed;
-        
-        if ($salesOrder->deliveries) {
-            $delivery = $salesOrder->deliveries;
-            // Check if delivery is marked as Delivered (Full)
-            if ($delivery->status === 'Delivered' || 
-                ($delivery->delivery_type === 'Full' && $delivery->status === 'Delivered')) {
-                $isFullyDelivered = true;
-            }
+{
+    $salesOrder = SalesOrder::with(['customer', 'items.item', 'deliveries'])->findOrFail($id);
+    
+    // ✅ NEW LOGIC: Check if delivery exists and is delivered
+    $hasDelivery = $salesOrder->deliveries !== null;
+    $isDelivered = false;
+    
+    if ($hasDelivery) {
+        $delivery = $salesOrder->deliveries;
+        // Check if delivery is marked as Delivered
+        if ($delivery->status === 'Delivered') {
+            $isDelivered = true;
         }
-        
-        if ($isFullyDelivered) {
-            return redirect()->route('sales_orders.show', $id)
-                ->with('error', 'This Sales Order has been fully delivered and can no longer be edited.');
+    }
+    
+    // ✅ NEW LOGIC: Permission check based on delivery status
+    $user = auth()->user();
+    $canEdit = false;
+    $needsCCApproval = false;
+    
+    if (!$isDelivered) {
+        // NOT delivered yet - Both CC_Approver and CSR can edit freely
+        if ($user->canInitiateEdit() || $user->canEditAfterCCApproval()) {
+            $canEdit = true;
         }
-        
-        // ✅ Check edit permissions based on role and approval status
-        $user = auth()->user();
-        $canEdit = false;
-        $needsCCApproval = false;
-        
+    } else {
+        // DELIVERED - Need permission system
         if ($user->canInitiateEdit()) {
-            // CC_Approver, Admin, IT can always edit
+            // CC_Approver can always edit
             $canEdit = true;
         } elseif ($user->canEditAfterCCApproval()) {
-            // CSR roles can only edit if CC has approved editing
+            // CSR roles need CC approval to edit delivered orders
             if ($salesOrder->isEditApprovedByCC()) {
                 $canEdit = true;
             } else {
                 $needsCCApproval = true;
             }
         }
+    }
+    
+    if (!$canEdit) {
+        $message = $needsCCApproval 
+            ? 'This Sales Order has been delivered and requires CC_Approver permission to edit.'
+            : 'You do not have permission to edit this Sales Order.';
         
-        if (!$canEdit) {
-            $message = $needsCCApproval 
-                ? 'This Sales Order must be approved for editing by CC_Approver first.'
-                : 'You do not have permission to edit this Sales Order.';
-            
-            return redirect()->route('sales_orders.show', $id)
-                ->with('error', $message);
-        }
-        
-        $customers = Customer::all();
-        $items = Item::where('approval_status', 'approved')->get();
+        return redirect()->route('sales_orders.show', $id)
+            ->with('error', $message);
+    }
+    
+    $customers = Customer::all();
+    $items = Item::where('approval_status', 'approved')->get();
 
-        // Fill in missing item data from master item
-        foreach ($salesOrder->items as $orderItem) {
-            if ($orderItem->item) {
-                if (empty($orderItem->item_description)) {
-                    $orderItem->item_description = $orderItem->item->item_description;
-                }
-                if (empty($orderItem->item_category)) {
-                    $orderItem->item_category = $orderItem->item->item_category;
-                }
-                if (empty($orderItem->brand)) {
-                    $orderItem->brand = $orderItem->item->brand;
-                }
-                if (empty($orderItem->item_code)) {
-                    $orderItem->item_code = $orderItem->item->item_code;
-                }
+    // Fill in missing item data from master item
+    foreach ($salesOrder->items as $orderItem) {
+        if ($orderItem->item) {
+            if (empty($orderItem->item_description)) {
+                $orderItem->item_description = $orderItem->item->item_description;
+            }
+            if (empty($orderItem->item_category)) {
+                $orderItem->item_category = $orderItem->item->item_category;
+            }
+            if (empty($orderItem->brand)) {
+                $orderItem->brand = $orderItem->item->brand;
+            }
+            if (empty($orderItem->item_code)) {
+                $orderItem->item_code = $orderItem->item->item_code;
             }
         }
-
-        return view('sales_orders.edit', compact('salesOrder', 'customers', 'items'));
     }
 
-    public function update(Request $request, $id)
-    {
-        $salesOrder = SalesOrder::with('deliveries')->findOrFail($id);
+    return view('sales_orders.edit', compact('salesOrder', 'customers', 'items'));
+}
+
+public function update(Request $request, $id)
+{
+    $salesOrder = SalesOrder::with('deliveries')->findOrFail($id);
+    
+    // ✅ NEW LOGIC: Check if delivery exists and is delivered
+    $hasDelivery = $salesOrder->deliveries !== null;
+    $isDelivered = false;
+    
+    if ($hasDelivery) {
+        $delivery = $salesOrder->deliveries;
+        // Check if delivery is marked as Delivered
+        if ($delivery->status === 'Delivered') {
+            $isDelivered = true;
+        }
+    }
+    
+    // ✅ Verify edit permissions based on delivery status
+    $user = auth()->user();
+    $canEdit = false;
+    
+    if (!$isDelivered) {
+        // NOT delivered yet - Both CC_Approver and CSR can edit
+        if ($user->canInitiateEdit() || $user->canEditAfterCCApproval()) {
+            $canEdit = true;
+        }
+    } else {
+        // DELIVERED - Need permission
+        if ($user->canInitiateEdit()) {
+            $canEdit = true;
+        } elseif ($user->canEditAfterCCApproval() && $salesOrder->isEditApprovedByCC()) {
+            $canEdit = true;
+        }
+    }
+    
+    if (!$canEdit) {
+        return redirect()->route('sales_orders.show', $id)
+            ->with('error', 'You do not have permission to edit this Sales Order.');
+    }
+
+    $request->validate([
+        'customer_id' => 'required|exists:customers,id',
+        'request_delivery_date' => 'required|date',
+        'po_number' => 'nullable|string|max:255',
+        'po_image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+        'items' => 'required|array|min:1',
+        'items.*.item_id' => 'required|exists:items,id',
+        'items.*.quantity' => 'required|numeric|min:0.01',
+        'items.*.unit_price' => 'required|numeric|min:0',
+    ], [
+        'po_image.mimes' => 'PO proof must be a JPG, PNG, or PDF file.',
+        'po_image.max' => 'PO proof file size must not exceed 4MB.',
+    ]);
+
+    DB::beginTransaction();
+    try {
+        // ✅ Handle PO Image Upload
+        $poImageFilename = $salesOrder->po_image; // Keep existing by default
         
-        // ✅ Check if SO is closed OR fully delivered
-        $isFullyDelivered = $salesOrder->is_closed;
-        
-        if ($salesOrder->deliveries) {
-            $delivery = $salesOrder->deliveries;
-            // Check if delivery is marked as Delivered (Full)
-            if ($delivery->status === 'Delivered' || 
-                ($delivery->delivery_type === 'Full' && $delivery->status === 'Delivered')) {
-                $isFullyDelivered = true;
+        // Check if user wants to remove current PO image
+        if ($request->has('remove_po_image') && $request->remove_po_image == '1') {
+            if ($salesOrder->po_image && file_exists(public_path('po_images/' . $salesOrder->po_image))) {
+                @unlink(public_path('po_images/' . $salesOrder->po_image));
             }
+            $poImageFilename = null;
         }
         
-        if ($isFullyDelivered) {
-            return redirect()->route('sales_orders.show', $id)
-                ->with('error', 'This Sales Order has been fully delivered and can no longer be edited.');
-        }
-        
-        // ✅ Verify edit permissions
-        $user = auth()->user();
-        if (!$user->canInitiateEdit() && !($user->canEditAfterCCApproval() && $salesOrder->isEditApprovedByCC())) {
-            return redirect()->route('sales_orders.show', $id)
-                ->with('error', 'You do not have permission to edit this Sales Order.');
+        // Upload new PO image if provided
+        if ($request->hasFile('po_image')) {
+            // Delete old file if exists
+            if ($salesOrder->po_image && file_exists(public_path('po_images/' . $salesOrder->po_image))) {
+                @unlink(public_path('po_images/' . $salesOrder->po_image));
+            }
+            
+            $file = $request->file('po_image');
+            $poImageFilename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
+            
+            // Create directory if it doesn't exist
+            $uploadPath = public_path('po_images');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            
+            // Move file to public/po_images
+            $file->move($uploadPath, $poImageFilename);
+            
+            \Log::info('✅ PO Image uploaded during update', [
+                'so_number' => $salesOrder->sales_order_number,
+                'filename' => $poImageFilename
+            ]);
         }
 
-        $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'request_delivery_date' => 'required|date',
-            'po_number' => 'nullable|string|max:255',
-            'po_image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
-            'items' => 'required|array|min:1',
-            'items.*.item_id' => 'required|exists:items,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
-        ], [
-            'po_image.mimes' => 'PO proof must be a JPG, PNG, or PDF file.',
-            'po_image.max' => 'PO proof file size must not exceed 4MB.',
+        // Update SO header
+        $salesOrder->update([
+            'customer_id' => $request->customer_id,
+            'request_delivery_date' => $request->request_delivery_date,
+            'po_number' => $request->po_number,
+            'po_image' => $poImageFilename,
+            'sales_rep' => $request->sales_rep ?? $salesOrder->sales_rep,
+            'shipping_address' => $request->shipping_address ?? $salesOrder->shipping_address,
+            'additional_instructions' => $request->additional_instructions,
+            'sales_executive' => optional(Customer::find($request->customer_id))->sales_executive ?? $salesOrder->sales_executive,
         ]);
 
-        DB::beginTransaction();
-        try {
-            // ✅ Handle PO Image Upload
-            $poImageFilename = $salesOrder->po_image; // Keep existing by default
-            
-            // Check if user wants to remove current PO image
-            if ($request->has('remove_po_image') && $request->remove_po_image == '1') {
-                if ($salesOrder->po_image && file_exists(public_path('po_images/' . $salesOrder->po_image))) {
-                    @unlink(public_path('po_images/' . $salesOrder->po_image));
-                }
-                $poImageFilename = null;
-            }
-            
-            // Upload new PO image if provided
-            if ($request->hasFile('po_image')) {
-                // Delete old file if exists
-                if ($salesOrder->po_image && file_exists(public_path('po_images/' . $salesOrder->po_image))) {
-                    @unlink(public_path('po_images/' . $salesOrder->po_image));
-                }
-                
-                $file = $request->file('po_image');
-                $poImageFilename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-                
-                // Create directory if it doesn't exist
-                $uploadPath = public_path('po_images');
-                if (!file_exists($uploadPath)) {
-                    mkdir($uploadPath, 0755, true);
-                }
-                
-                // Move file to public/po_images
-                $file->move($uploadPath, $poImageFilename);
-                
-                \Log::info('✅ PO Image uploaded during update', [
-                    'so_number' => $salesOrder->sales_order_number,
-                    'filename' => $poImageFilename
-                ]);
-            }
+        // Delete existing items and recreate
+        $salesOrder->items()->delete();
 
-            // Update SO header
-            $salesOrder->update([
-                'customer_id' => $request->customer_id,
-                'request_delivery_date' => $request->request_delivery_date,
-                'po_number' => $request->po_number, // ✅ Now editable
-                'po_image' => $poImageFilename, // ✅ Update PO image
-                'sales_rep' => $request->sales_rep ?? $salesOrder->sales_rep,
-                'shipping_address' => $request->shipping_address ?? $salesOrder->shipping_address,
-                'additional_instructions' => $request->additional_instructions,
-                'sales_executive' => optional(Customer::find($request->customer_id))->sales_executive ?? $salesOrder->sales_executive,
+        $newTotalAmount = 0;
+
+        foreach ($request->items as $itemData) {
+            $quantity = (float) ($itemData['quantity'] ?? 0);
+            $unitPrice = (float) ($itemData['unit_price'] ?? 0);
+            $itemTotal = $quantity * $unitPrice;
+
+            $item = Item::find($itemData['item_id']);
+
+            $salesOrder->items()->create([
+                'item_id' => $itemData['item_id'],
+                'item_code' => $itemData['item_code'] ?? $item->item_code ?? null,
+                'item_description' => $itemData['item_description'] ?? $item->item_description ?? null,
+                'brand' => $itemData['brand'] ?? $item->brand ?? null,
+                'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
+                'quantity' => $quantity,
+                'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
+                'unit_price' => $unitPrice,
+                'total_amount' => $itemTotal,
+                'note' => $itemData['note'] ?? null,
             ]);
 
-            // Delete existing items and recreate
-            $salesOrder->items()->delete();
-
-            $newTotalAmount = 0;
-
-            foreach ($request->items as $itemData) {
-                $quantity = (float) ($itemData['quantity'] ?? 0);
-                $unitPrice = (float) ($itemData['unit_price'] ?? 0);
-                $itemTotal = $quantity * $unitPrice;
-
-                $item = Item::find($itemData['item_id']);
-
-                $salesOrder->items()->create([
-                    'item_id' => $itemData['item_id'],
-                    'item_code' => $itemData['item_code'] ?? $item->item_code ?? null,
-                    'item_description' => $itemData['item_description'] ?? $item->item_description ?? null,
-                    'brand' => $itemData['brand'] ?? $item->brand ?? null,
-                    'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
-                    'quantity' => $quantity,
-                    'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
-                    'unit_price' => $unitPrice,
-                    'total_amount' => $itemTotal,
-                    'note' => $itemData['note'] ?? null,
-                ]);
-
-                $newTotalAmount += $itemTotal;
-            }
-
-            // Update first item reference fields
-            $firstItem = $request->items[0] ?? [];
-            $firstItemModel = Item::find($firstItem['item_id'] ?? null);
-
-            $salesOrder->item_description = $firstItem['item_description'] ?? $firstItemModel->item_description ?? null;
-            $salesOrder->item_code = $firstItem['item_code'] ?? $firstItemModel->item_code ?? null;
-            $salesOrder->brand = $firstItem['brand'] ?? $firstItemModel->brand ?? null;
-            $salesOrder->item_category = $firstItem['item_category'] ?? $firstItemModel->item_category ?? null;
-            $salesOrder->total_amount = $newTotalAmount;
-            $salesOrder->save();
-
-            // Sync prices to related deliveries
-            $this->syncDeliveryPrices($salesOrder);
-
-            // Log activity
-            \App\Models\Activity::create([
-                'user_name' => auth()->user()->name ?? 'System',
-                'action' => 'Updated',
-                'item' => $salesOrder->sales_order_number,
-                'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
-                'type' => 'Sales Order',
-                'message' => 'Updated sales order: ' . $salesOrder->sales_order_number . 
-                            ($request->hasFile('po_image') ? ' (PO proof updated)' : '') .
-                            ($request->has('remove_po_image') ? ' (PO proof removed)' : ''),
-            ]);
-
-            DB::commit();
-            return redirect()->route('sales_orders.show', $salesOrder->id)
-                ->with('success', 'Sales Order updated successfully!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            // ✅ Delete uploaded file if transaction failed
-            if (isset($poImageFilename) && $poImageFilename !== $salesOrder->po_image && file_exists(public_path('po_images/' . $poImageFilename))) {
-                @unlink(public_path('po_images/' . $poImageFilename));
-            }
-            
-            \Log::error('SO Update Error:', ['message' => $e->getMessage()]);
-            return back()->withInput()->with('error', 'Failed to update: ' . $e->getMessage());
+            $newTotalAmount += $itemTotal;
         }
-    }
 
+        // Update first item reference fields
+        $firstItem = $request->items[0] ?? [];
+        $firstItemModel = Item::find($firstItem['item_id'] ?? null);
+
+        $salesOrder->item_description = $firstItem['item_description'] ?? $firstItemModel->item_description ?? null;
+        $salesOrder->item_code = $firstItem['item_code'] ?? $firstItemModel->item_code ?? null;
+        $salesOrder->brand = $firstItem['brand'] ?? $firstItemModel->brand ?? null;
+        $salesOrder->item_category = $firstItem['item_category'] ?? $firstItemModel->item_category ?? null;
+        $salesOrder->total_amount = $newTotalAmount;
+        $salesOrder->save();
+
+        // Sync prices to related deliveries
+        $this->syncDeliveryPrices($salesOrder);
+
+        // Log activity
+        \App\Models\Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Updated',
+            'item' => $salesOrder->sales_order_number,
+            'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
+            'type' => 'Sales Order',
+            'message' => 'Updated sales order: ' . $salesOrder->sales_order_number . 
+                        ($request->hasFile('po_image') ? ' (PO proof updated)' : '') .
+                        ($request->has('remove_po_image') ? ' (PO proof removed)' : ''),
+        ]);
+
+        DB::commit();
+        return redirect()->route('sales_orders.show', $salesOrder->id)
+            ->with('success', 'Sales Order updated successfully!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        // ✅ Delete uploaded file if transaction failed
+        if (isset($poImageFilename) && $poImageFilename !== $salesOrder->po_image && file_exists(public_path('po_images/' . $poImageFilename))) {
+            @unlink(public_path('po_images/' . $poImageFilename));
+        }
+        
+        \Log::error('SO Update Error:', ['message' => $e->getMessage()]);
+        return back()->withInput()->with('error', 'Failed to update: ' . $e->getMessage());
+    }
+}
     /**
      * ✅ NEW: CC Approver approves SO for editing by CSR roles
      */

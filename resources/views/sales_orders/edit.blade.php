@@ -7,25 +7,48 @@
     </h1>
 
     @php
-        // Check if SO is fully delivered
-        $isFullyDelivered = $salesOrder->is_closed;
-        if ($salesOrder->deliveries) {
+        // ✅ NEW LOGIC: Check if delivery exists and is delivered
+        $hasDelivery = $salesOrder->deliveries !== null;
+        $isDelivered = false;
+        $needsApproval = false;
+        $user = auth()->user();
+        
+        if ($hasDelivery) {
             $delivery = $salesOrder->deliveries;
-            if ($delivery->status === 'Delivered' || 
-                ($delivery->delivery_type === 'Full' && $delivery->status === 'Delivered')) {
-                $isFullyDelivered = true;
+            // Check if delivery is marked as Delivered
+            if ($delivery->status === 'Delivered') {
+                $isDelivered = true;
+                
+                // If delivered AND user is CSR AND not CC-approved for editing
+                if ($user->canEditAfterCCApproval() && !$salesOrder->isEditApprovedByCC()) {
+                    $needsApproval = true;
+                }
             }
         }
     @endphp
 
-    @if($isFullyDelivered)
-        <div class="bg-green-900/40 border-2 border-green-600 text-green-300 p-4 rounded-lg mb-6 flex items-center gap-3">
-            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    {{-- ✅ Show warning if order is delivered and CSR needs approval --}}
+    @if($isDelivered && $needsApproval)
+        <div class="bg-yellow-900/40 border-2 border-yellow-600 text-yellow-300 p-4 rounded-lg mb-6 flex items-center gap-3">
+            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
             </svg>
             <div>
-                <strong class="text-lg">✅ Sales Order Fully Delivered</strong>
-                <p class="text-sm mt-1">All items have been fully delivered. This Sales Order can no longer be edited.</p>
+                <strong class="text-lg">⚠️ Editing Not Permitted</strong>
+                <p class="text-sm mt-1">This Sales Order has been delivered and requires CC Approver permission to edit. Please request approval from CC Approver first.</p>
+            </div>
+        </div>
+    @endif
+
+    {{-- ✅ Show info if order is delivered (for CC_Approver or approved CSR) --}}
+    @if($isDelivered && !$needsApproval)
+        <div class="bg-blue-900/40 border-2 border-blue-600 text-blue-300 p-4 rounded-lg mb-6 flex items-center gap-3">
+            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <strong class="text-lg">📦 Delivered Order</strong>
+                <p class="text-sm mt-1">This Sales Order has been delivered. You have permission to edit it.</p>
             </div>
         </div>
     @endif
@@ -355,15 +378,9 @@
 let itemIndex = {{ count($salesOrder->items) }};
 const availableItems = @json($items);
 
-// Check if jQuery and Select2 are loaded
-console.log('jQuery loaded:', typeof jQuery !== 'undefined');
-console.log('Select2 loaded:', typeof $.fn.select2 !== 'undefined');
-
 // Initialize Select2 when document is ready
 $(document).ready(function() {
-    console.log('Document ready, initializing Select2...');
     initializeSelect2();
-    console.log('Select2 initialized on', $('.select2-items').length, 'elements');
 });
 
 // Initialize Select2 on all item selects
@@ -376,19 +393,16 @@ function initializeSelect2() {
     });
 }
 
-// Custom matcher for better search (searches both item code and description)
+// Custom matcher for better search
 function customMatcher(params, data) {
-    // If no search term, return all
     if ($.trim(params.term) === '') {
         return data;
     }
     
-    // Skip if no text
     if (typeof data.text === 'undefined') {
         return null;
     }
     
-    // Search in both item code and description
     var text = data.text.toLowerCase();
     var term = params.term.toLowerCase();
     
@@ -399,14 +413,13 @@ function customMatcher(params, data) {
     return null;
 }
 
-// ✅ PO Image Preview
+// PO Image Preview
 document.getElementById('po_image').addEventListener('change', function(e) {
     const file = e.target.files[0];
     const previewContainer = document.getElementById('po_image_preview');
     const previewImg = document.getElementById('po_image_preview_img');
     
     if (file) {
-        // Check file size (max 4MB)
         if (file.size > 4 * 1024 * 1024) {
             alert('File size must not exceed 4MB.');
             e.target.value = '';
@@ -414,7 +427,6 @@ document.getElementById('po_image').addEventListener('change', function(e) {
             return;
         }
         
-        // Check file type
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
         if (!allowedTypes.includes(file.type)) {
             alert('Please upload a JPG, PNG, or PDF file.');
@@ -423,7 +435,6 @@ document.getElementById('po_image').addEventListener('change', function(e) {
             return;
         }
         
-        // Show preview for images only
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -432,7 +443,6 @@ document.getElementById('po_image').addEventListener('change', function(e) {
             };
             reader.readAsDataURL(file);
         } else {
-            // For PDF, just hide preview
             previewContainer.classList.add('hidden');
         }
     } else {
@@ -537,7 +547,6 @@ function addNewItem() {
     
     container.appendChild(newRow);
     
-    // Initialize Select2 on the newly added select element
     $(newRow).find('.select2-items').select2({
         placeholder: 'Search for an item...',
         allowClear: true,
@@ -556,7 +565,6 @@ function removeItem(button) {
         return;
     }
     
-    // Destroy Select2 before removing the element
     const selectElement = $(button).closest('.item-row').find('.select2-items');
     if (selectElement.data('select2')) {
         selectElement.select2('destroy');
