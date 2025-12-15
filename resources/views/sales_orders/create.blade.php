@@ -19,7 +19,7 @@
     @endif
 
     <!-- Form Wrapper -->
-    <form action="{{ route('sales_orders.store') }}" method="POST" onsubmit="return validateForm()">
+    <form action="{{ route('sales_orders.store') }}" method="POST" enctype="multipart/form-data" onsubmit="return validateForm()">
         @csrf
 
         <!-- Sales Order Number -->
@@ -139,6 +139,7 @@
                     <label class="block text-sm">PO Reference No</label>
                     <input type="text" id="po_reference_no" name="po_reference_no"
                         class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
+                    <p class="text-xs text-gray-400 mt-1">If no PO Number, please upload proof below</p>
                 </div>
 
                 <div>
@@ -151,6 +152,25 @@
                     <label class="block text-sm">Branch</label>
                     <input type="text" id="branch" name="branch"
                         class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                {{-- ✅ NEW: PO Image Upload (shows when no PO number) --}}
+                <div class="col-span-2" id="po_image_container" style="display: none;">
+                    <div class="bg-yellow-900/20 border-2 border-yellow-700 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-yellow-300 mb-2">
+                            📸 PO Proof / Order Evidence <span class="text-red-500">*</span>
+                        </label>
+                        <input type="file" id="po_image" name="po_image" accept="image/*,application/pdf"
+                            class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2 
+                                file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 
+                                file:bg-yellow-600 file:text-white hover:file:bg-yellow-500">
+                        <p class="text-xs text-gray-400 mt-2">
+                            Since no PO Number is provided, please upload proof of customer order (JPG, PNG, or PDF, max 4MB)
+                        </p>
+                        <div id="po_image_preview" class="mt-3 hidden">
+                            <img id="po_image_preview_img" src="" alt="PO Preview" class="max-w-xs rounded border border-gray-700">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -321,6 +341,138 @@
                 @endif
             @endforeach
         ];
+
+        // Add this JavaScript code to your create.blade.php
+// Place it inside the existing <script> section, after the DOMContentLoaded event listener
+
+// ================= PO NUMBER / PO IMAGE TOGGLE =================
+const poReferenceInput = document.getElementById('po_reference_no');
+const poImageContainer = document.getElementById('po_image_container');
+const poImageInput = document.getElementById('po_image');
+
+// Show/hide PO image upload based on PO number
+function togglePoImageRequirement() {
+    if (poReferenceInput.value.trim() === '') {
+        poImageContainer.style.display = 'block';
+        poImageInput.setAttribute('required', 'required');
+    } else {
+        poImageContainer.style.display = 'none';
+        poImageInput.removeAttribute('required');
+        poImageInput.value = ''; // Clear file input
+        document.getElementById('po_image_preview').classList.add('hidden');
+    }
+}
+
+// Listen for changes on PO number field
+poReferenceInput.addEventListener('input', togglePoImageRequirement);
+
+// Initial check on page load
+togglePoImageRequirement();
+
+// Preview uploaded PO image
+poImageInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const previewContainer = document.getElementById('po_image_preview');
+    const previewImg = document.getElementById('po_image_preview_img');
+    
+    if (file) {
+        // Check file size (max 4MB)
+        if (file.size > 4 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'error',
+                title: 'File Too Large',
+                text: 'Please upload a file smaller than 4MB.',
+                showConfirmButton: true
+            });
+            e.target.value = '';
+            previewContainer.classList.add('hidden');
+            return;
+        }
+        
+        // Check file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid File Type',
+                text: 'Please upload a JPG, PNG, or PDF file.',
+                showConfirmButton: true
+            });
+            e.target.value = '';
+            previewContainer.classList.add('hidden');
+            return;
+        }
+        
+        // Show preview for images only
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewContainer.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // For PDF, just show a message
+            previewContainer.classList.add('hidden');
+        }
+    } else {
+        previewContainer.classList.add('hidden');
+    }
+});
+
+// ================= UPDATED FORM VALIDATION =================
+// Replace your existing validateForm function with this updated version
+window.validateForm = function() {
+    const customerCode = document.getElementById('customer_code').value;
+    if (!customerCode) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation Error',
+            text: 'Please select a customer.',
+            showConfirmButton: true
+        });
+        return false;
+    }
+    
+    // Check PO number or PO image requirement
+    const poNumber = document.getElementById('po_reference_no').value.trim();
+    const poImage = document.getElementById('po_image').files.length;
+    
+    if (!poNumber && poImage === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation Error',
+            text: 'Please either provide a PO Number or upload proof of customer order.',
+            showConfirmButton: true
+        });
+        return false;
+    }
+
+    const rows = document.querySelectorAll('#itemsTable tbody tr');
+    let hasValidItem = false;
+    
+    rows.forEach(row => {
+        const itemId = row.querySelector('.item-id-hidden').value;
+        const qty = row.querySelector('.item-quantity').value;
+        const price = row.querySelector('.item-price').value;
+        
+        if (itemId && qty && price && parseFloat(qty) > 0 && parseFloat(price) >= 0) {
+            hasValidItem = true;
+        }
+    });
+    
+    if (!hasValidItem) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation Error',
+            text: 'Please add at least one item with description, quantity, and price.',
+            showConfirmButton: true
+        });
+        return false;
+    }
+    
+    return true;
+};
 
         // ================= SEARCHABLE CUSTOMER DROPDOWN =================
         const customerSearchInput = document.getElementById('customer_search_input');

@@ -34,6 +34,16 @@ class DeliveriesController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
+        // ✅ NEW: Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // ✅ NEW: Approval status filter
+        if ($request->filled('approval_status')) {
+            $query->where('approval_status', $request->approval_status);
+        }
+
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('dr_no', 'like', '%' . $request->search . '%')
@@ -239,9 +249,51 @@ public function search(Request $request)
         return response()->json(['error' => 'Sales Order not found. Please check the SO number and try again.'], 404);
     }
 
-    if ($soExists->status !== 'Approved') {
-        return response()->json(['error' => "Sales Order {$soNumber} exists but has not been approved yet (Status: {$soExists->status}). Only approved sales orders can be delivered."], 403);
+    // ✅ UPDATED: Block declined/cancelled/pending Sales Orders - ONLY allow Approved
+    if ($soExists->status === 'Declined') {
+        return response()->json([
+            'error' => 'This Sales Order has been declined and cannot be used for deliveries.',
+            'error_type' => 'declined',
+            'show_alert' => true
+        ], 403);
     }
+
+    if ($soExists->status === 'Cancelled') {
+        return response()->json([
+            'error' => 'This Sales Order has been cancelled and cannot be used for deliveries.',
+            'error_type' => 'cancelled',
+            'show_alert' => true
+        ], 403);
+    }
+
+    if ($soExists->status === 'Pending') {
+        return response()->json([
+            'error' => 'This Sales Order is still pending approval. Only approved Sales Orders can be used for deliveries.',
+            'error_type' => 'pending',
+            'show_alert' => true
+        ], 403);
+    }
+
+    // ✅ Only proceed if status is 'Approved'
+    if ($soExists->status !== 'Approved') {
+        return response()->json([
+            'error' => "This Sales Order has status '{$soExists->status}'. Only approved Sales Orders can be used for deliveries.",
+            'error_type' => 'not_approved',
+            'show_alert' => true
+        ], 403);
+    }
+
+    // ✅ Check if SO is closed
+    $isViewOnly = false;
+    $statusMessage = null;
+    
+    if ($soExists->is_closed) {
+        $statusMessage = "This Sales Order is marked as Fully Delivered/Closed. You can view the delivery history.";
+        $isViewOnly = true;
+    }
+
+    // Continue with rest of the existing logic...
+    $canCreateNewDelivery = !$soExists->is_closed;
 
     // ✅ Fetch all SO items
     $soItems = SalesOrderItem::where('sales_order_id', $soExists->id)
@@ -256,23 +308,21 @@ public function search(Request $request)
     // ✅ Get request delivery date
     $requestDeliveryDate = $soItems->first()->request_delivery_date ?? $soExists->request_delivery_date;
 
-    // ✅ Check existing deliveries for THIS SPECIFIC SO ONLY (exclude Pending AND auto-created ones)
+    // ✅ Check existing deliveries for THIS SPECIFIC SO ONLY
     $existingDeliveries = Deliveries::where('sales_order_number', $soNumber)
-        ->where('status', '!=', 'Pending')
-        ->whereNotNull('dr_no')
-        ->whereHas('items')
+        ->where(function($q) {
+            $q->where('status', '!=', 'Pending')
+              ->orWhereHas('items');
+        })
         ->orderBy('created_at', 'asc')
         ->get();
 
     $deliveryCount = $existingDeliveries->count();
-    $hasPartialDelivery = $existingDeliveries->where('status', 'Partial')->count() > 0;
-
-    \Log::info('🔍 Delivery check', [
-        'so_number' => $soNumber,
-        'delivery_count' => $deliveryCount,
-        'has_partial' => $hasPartialDelivery,
-        'existing_deliveries' => $existingDeliveries->pluck('dr_no', 'status')->toArray()
-    ]);
+    $hasPartialDelivery = $existingDeliveries->where('delivery_type', 'Partial')->count() > 0;
+    
+    $hasPulledOut = $existingDeliveries->where('is_pulled_out', true)->count() > 0;
+    $hasCancelled = $existingDeliveries->where('status', 'Cancelled')->count() > 0;
+    $hasRejected = $existingDeliveries->where('approval_status', 'Rejected')->count() > 0;
 
     // ✅ Check if we're editing an existing delivery
     $delivery = null;
@@ -287,9 +337,56 @@ public function search(Request $request)
         $isEditMode = $delivery ? true : false;
     }
 
-    // ✅ Calculate delivered quantities per item (exclude current editing delivery)
+    // ✅ Check delivery statuses
+    $hasRejectedDelivery = $existingDeliveries->where('approval_status', 'Rejected')->count() > 0;
+    $hasCancelledDelivery = $existingDeliveries->where('status', 'Cancelled')->count() > 0;
+    $hasDeliveredApprovedDelivery = $existingDeliveries->where('approval_status', 'Approved')
+        ->where('status', 'Delivered')
+        ->count() > 0;
+
+    // ✅ Block search if delivery was rejected/cancelled OR if approved+delivered
+    if ($hasRejectedDelivery && !$isEditMode) {
+        return response()->json([
+            'error' => 'This Sales Order has been rejected for delivery and cannot be searched. It is view-only.',
+            'error_type' => 'rejected',
+            'show_alert' => true
+        ], 403);
+    }
+
+    if ($hasCancelledDelivery && !$isEditMode) {
+        return response()->json([
+            'error' => 'This Sales Order has a cancelled delivery and cannot be searched. It is view-only.',
+            'error_type' => 'cancelled',
+            'show_alert' => true
+        ], 403);
+    }
+
+    if ($hasDeliveredApprovedDelivery && $soExists->status === 'Approved' && !$isEditMode) {
+        return response()->json([
+            'error' => 'This Sales Order has already been delivered and approved. Cannot search for new delivery creation.',
+            'error_type' => 'delivered',
+            'show_alert' => true
+        ], 403);
+    }
+
+    \Log::info('🔍 Delivery check', [
+        'so_number' => $soNumber,
+        'so_status' => $soExists->status,
+        'is_closed' => $soExists->is_closed,
+        'delivery_count' => $deliveryCount,
+        'has_partial' => $hasPartialDelivery,
+        'has_pulled_out' => $hasPulledOut,
+        'has_cancelled' => $hasCancelled,
+        'has_rejected' => $hasRejected,
+        'can_create_new' => $canCreateNewDelivery,
+        'is_edit_mode' => $isEditMode,
+        'existing_deliveries' => $existingDeliveries->pluck('dr_no', 'status')->toArray()
+    ]);
+
+    // ✅ Calculate delivered quantities per item
     $deliveredQuery = DeliveryItem::whereHas('delivery', function($q) use ($soNumber) {
             $q->where('sales_order_number', $soNumber)
+              ->where('approval_status', 'Approved')
               ->where('status', 'Delivered');
         });
 
@@ -303,14 +400,16 @@ public function search(Request $request)
         ->get()
         ->keyBy('item_code');
 
-    // ✅ NEW: Determine batch name for new delivery (per SO)
+    // ✅ Determine batch name for new delivery
     $newBatchName = null;
-    if (!$isEditMode) {
+    if (!$isEditMode && $canCreateNewDelivery) {
         if ($deliveryCount === 0) {
             $newBatchName = 'Pending';
         } else {
             $newBatchName = 'Batch ' . ($deliveryCount + 1);
         }
+    } elseif (!$isEditMode && !$canCreateNewDelivery) {
+        $newBatchName = 'View Only';
     }
 
     $items = [];
@@ -319,7 +418,7 @@ public function search(Request $request)
     foreach ($soItems as $soItem) {
         $originalQty = $soItem->quantity ?? 0;
         $alreadyDelivered = $deliveredSums->get($soItem->item_code)?->total_delivered ?? 0;
-        $remainingAvailable = $originalQty - $alreadyDelivered; // ✅ What's LEFT to deliver (excluding current batch if editing)
+        $remainingAvailable = $originalQty - $alreadyDelivered;
 
         // ✅ For edit mode: show the item's current delivery quantities
         if ($isEditMode && $delivery) {
@@ -333,10 +432,10 @@ public function search(Request $request)
                     'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
                     'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
                     'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
-                    'quantity' => $deliveredQty, // Current batch delivery qty
+                    'quantity' => $deliveredQty,
                     'original_quantity' => $originalQty,
-                    'remaining_quantity' => $remainingAvailable, // ✅ What's LEFT (before counting this batch)
-                    'already_delivered' => $alreadyDelivered, // ✅ Sum of OTHER batches (excludes current)
+                    'remaining_quantity' => $remainingAvailable,
+                    'already_delivered' => $alreadyDelivered,
                     'uom' => $soItem->unit ?? 'Kgs',
                     'unit_price' => $soItem->unit_price ?? 0,
                     'total_amount' => ($deliveredQty * ($soItem->unit_price ?? 0)),
@@ -344,40 +443,25 @@ public function search(Request $request)
                 ];
             }
         } else {
-            // ✅ NEW DELIVERY: Only show items that still have remaining quantity
             if ($remainingAvailable > 0) {
                 $allItemsFullyDelivered = false;
-                
-                $items[] = [
-                    'item_code' => $soItem->item_code,
-                    'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
-                    'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
-                    'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
-                    'quantity' => $remainingAvailable, // ✅ Pre-fill with remaining amount
-                    'original_quantity' => $originalQty,
-                    'remaining_quantity' => 0, // ✅ Will be 0 if they deliver full remaining (updated on frontend when quantity changes)
-                    'already_delivered' => $alreadyDelivered, // ✅ Track cumulative delivered
-                    'uom' => $soItem->unit ?? 'Kgs',
-                    'unit_price' => $soItem->unit_price ?? 0,
-                    'total_amount' => ($remainingAvailable * ($soItem->unit_price ?? 0)),
-                    'notes' => $soItem->note ?? null,
-                ];
             }
+            
+            $items[] = [
+                'item_code' => $soItem->item_code,
+                'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
+                'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
+                'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
+                'quantity' => $canCreateNewDelivery && $remainingAvailable > 0 ? $remainingAvailable : 0,
+                'original_quantity' => $originalQty,
+                'remaining_quantity' => max(0, $remainingAvailable),
+                'already_delivered' => $alreadyDelivered,
+                'uom' => $soItem->unit ?? 'Kgs',
+                'unit_price' => $soItem->unit_price ?? 0,
+                'total_amount' => $canCreateNewDelivery && $remainingAvailable > 0 ? ($remainingAvailable * ($soItem->unit_price ?? 0)) : ($alreadyDelivered * ($soItem->unit_price ?? 0)),
+                'notes' => $soItem->note ?? null,
+            ];
         }
-    }
-
-    // ✅ Check if all items are fully delivered
-    if (!$isEditMode && $allItemsFullyDelivered) {
-        return response()->json([
-            'error' => 'All items in this Sales Order have been fully delivered. No remaining items to deliver.'
-        ], 400);
-    }
-
-    // ✅ If no items remaining for new delivery
-    if (!$isEditMode && empty($items)) {
-        return response()->json([
-            'error' => 'No items with remaining quantities found for delivery.'
-        ], 400);
     }
 
     // Build response
@@ -388,24 +472,51 @@ public function search(Request $request)
         $attachmentName = $delivery->attachment;
     }
 
-    // ✅ Info message for partial delivery history
+    // ✅ Enhanced info message
     $infoMessage = null;
     $showPartialAlert = false;
     
-    if (!$isEditMode && $deliveryCount >= 1 && $hasPartialDelivery) {
+    if ($statusMessage) {
+        $infoMessage = $statusMessage;
         $showPartialAlert = true;
-        $fullyDeliveredCount = $soItems->count() - count($items);
+    } elseif (!$isEditMode && $allItemsFullyDelivered && $deliveryCount > 0) {
+        $showPartialAlert = true;
+        $infoMessage = "All items in this Sales Order have been fully delivered. ";
+        $infoMessage .= "Total deliveries: {$deliveryCount}. ";
+        $infoMessage .= "You can view the delivery history but cannot create new deliveries.";
+    } elseif (!$isEditMode && $deliveryCount >= 1 && $hasPartialDelivery) {
+        $showPartialAlert = true;
+        $fullyDeliveredCount = $soItems->count() - count(array_filter($items, fn($item) => $item['remaining_quantity'] > 0));
         $infoMessage = "This SO has {$deliveryCount} previous partial delivery(ies). ";
         if ($fullyDeliveredCount > 0) {
             $infoMessage .= "{$fullyDeliveredCount} item(s) already fully delivered. ";
         }
-        $infoMessage .= "Showing " . count($items) . " item(s) with remaining quantities.";
+        $infoMessage .= "Showing " . count($items) . " item(s).";
+    }
+    
+    // ✅ Add delivery history info
+    if ($hasPulledOut || $hasCancelled || $hasRejected) {
+        $historyInfo = [];
+        if ($hasPulledOut) $historyInfo[] = "Pulled Out";
+        if ($hasCancelled) $historyInfo[] = "Cancelled";
+        if ($hasRejected) $historyInfo[] = "Rejected";
+        
+        if ($infoMessage) {
+            $infoMessage .= " | Delivery History: " . implode(", ", $historyInfo);
+        } else {
+            $infoMessage = "Delivery History: " . implode(", ", $historyInfo);
+            $showPartialAlert = true;
+        }
     }
 
     return response()->json([
         'success' => true,
         'id' => $isEditMode && $delivery ? $delivery->id : null,
         'is_edit_mode' => $isEditMode,
+        'is_view_only' => $isViewOnly,
+        'can_create_new_delivery' => $canCreateNewDelivery,
+        'so_status' => $soExists->status,
+        'is_closed' => $soExists->is_closed,
         'has_partial_delivery' => $hasPartialDelivery,
         'show_partial_alert' => $showPartialAlert,
         'info_message' => $infoMessage,
@@ -415,7 +526,7 @@ public function search(Request $request)
         'customer_name' => $soExists->customer->customer_name ?? '',
         'tin_no' => $soExists->customer->tin_no ?? '',
         'branch' => $soExists->branch ?? '',
-        'sales_representative' => $soExists->sales_rep ?? '',
+        'sales_rep' => $soExists->sales_rep ?? '',
         'sales_executive' => $soExists->sales_executive ?? '',
         'po_number' => $soExists->po_number ?? '',
         'request_delivery_date' => $requestDeliveryDate,
@@ -432,6 +543,12 @@ public function search(Request $request)
         'items' => $items,
         'delivery_count' => $deliveryCount,
         'items_count' => count($items),
+        'delivery_history' => [
+            'pulled_out' => $hasPulledOut,
+            'cancelled' => $hasCancelled,
+            'rejected' => $hasRejected,
+            'total_deliveries' => $deliveryCount,
+        ],
     ]);
 }
 
@@ -447,11 +564,10 @@ public function store(Request $request)
             'tin_no' => 'nullable|string|max:255',
             'branch' => 'nullable|string|max:255',
             'sales_rep' => 'nullable|string|max:255',
-            'sales_representative' => 'nullable|string|max:255',
+            'sales_rep' => 'nullable|string|max:255',
             'sales_executive' => 'nullable|string|max:255',
             'po_number' => 'nullable|string|max:255',
             'request_delivery_date' => 'nullable|date',
-            'status' => 'required|string|in:Delivered,Cancelled',
             'plate_no' => 'nullable|string|max:255',
             'sales_invoice_no' => 'nullable|string|max:255',
             'approved_by' => 'required|string|max:255',
@@ -468,6 +584,9 @@ public function store(Request $request)
             'items.*.total_amount' => 'required|numeric|min:0',
             'items.*.notes' => 'nullable|string|max:2000',
         ]);
+
+        $validated['approval_status'] = 'Pending';
+        $validated['created_by'] = auth()->user()->name ?? 'System';
 
         // Normalize empty strings to nulls
         foreach (['customer_name', 'branch', 'tin_no', 'sales_rep', 'sales_representative', 'sales_executive', 'po_number', 'plate_no', 'sales_invoice_no'] as $field) {
@@ -489,9 +608,14 @@ public function store(Request $request)
         $items = $validated['items'];
         unset($validated['items']);
 
-        // Count existing deliveries (exclude Pending)
+        // ✅ Set initial status and approval tracking
+        $validated['status'] = 'Pending';
+        $validated['approval_status'] = 'Pending';
+        $validated['created_by'] = auth()->user()->name ?? 'System';
+
+        // Count existing APPROVED deliveries only
         $existingDeliveryCount = Deliveries::where('sales_order_number', $validated['sales_order_number'])
-            ->where('status', '!=', 'Pending')
+            ->where('approval_status', 'Approved')
             ->whereHas('items')
             ->count();
         
@@ -502,11 +626,11 @@ public function store(Request $request)
             $validated['delivery_batch'] = 'Batch ' . ($existingDeliveryCount + 1);
         }
 
-        Log::info('📦 Creating delivery', [
+        Log::info('📦 Creating delivery for approval', [
             'so_number' => $validated['sales_order_number'],
             'batch_name' => $validated['delivery_batch'],
-            'delivery_type' => $validated['delivery_type'],
-            'status' => $validated['status'],
+            'created_by' => $validated['created_by'],
+            'approval_status' => 'Pending',
         ]);
 
         // Fetch SO
@@ -520,9 +644,10 @@ public function store(Request $request)
             $soItemsMap->put($soItem->item_code, $soItem);
         }
 
-        // Get delivered sums
+        // Get delivered sums (only approved deliveries)
         $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($validated) {
                 $q->where('sales_order_number', $validated['sales_order_number'])
+                  ->where('approval_status', 'Approved')
                   ->where('status', 'Delivered');
             })
             ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
@@ -565,8 +690,8 @@ public function store(Request $request)
             ]);
         }
 
-        // ✅ Check if SO should be closed (AFTER all items are created)
-        $salesOrder->fresh()->checkAndClose();
+        // Don't close SO until delivery is approved
+        // $salesOrder->fresh()->checkAndClose();
 
         // Create activity log
         Activity::create([
@@ -575,12 +700,12 @@ public function store(Request $request)
             'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
             'target' => $delivery->sales_order_number ?? 'N/A',
             'type' => 'Delivery',
-            'message' => "Created delivery: {$delivery->dr_no} ({$delivery->delivery_batch}) - Type: {$delivery->delivery_type}",
+            'message' => "Created delivery for approval: {$delivery->dr_no} ({$delivery->delivery_batch}) - Status: Pending Approval",
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => "Delivery created successfully! Type: {$delivery->delivery_type}, Batch: {$delivery->delivery_batch}",
+            'message' => "Delivery created successfully! Status: Pending Approval. Batch: {$delivery->delivery_batch}",
         ]);
     } catch (\Exception $e) {
         Log::error('💥 Delivery store failed', [
@@ -595,6 +720,502 @@ public function store(Request $request)
         ], 500);
     }
 }
+
+public function approve($id)
+{
+    try {
+        if (!\App\Helpers\RoleHelper::canApproveDeliveries()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized to approve deliveries'], 403);
+        }
+
+        $delivery = Deliveries::with('items')->findOrFail($id);
+
+        if ($delivery->approval_status !== 'Pending') {
+            return response()->json(['success' => false, 'message' => 'Delivery is not pending approval'], 400);
+        }
+
+        $delivery->update([
+            'approval_status' => 'Approved',
+            'status' => 'Delivered',
+            'approved_by_user' => auth()->user()->name,
+            'approved_at' => now(),
+        ]);
+
+        // ✅ NOW check if SO should be closed after approval
+        $salesOrder = SalesOrder::where('sales_order_number', $delivery->sales_order_number)->first();
+        if ($salesOrder) {
+            $salesOrder->fresh()->checkAndClose();
+        }
+
+        Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Approved',
+            'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
+            'target' => $delivery->sales_order_number ?? 'N/A',
+            'type' => 'Delivery',
+            'message' => "Approved delivery: {$delivery->dr_no}",
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Delivery approved successfully!']);
+    } catch (\Exception $e) {
+        Log::error('Delivery approval failed', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => 'Failed to approve delivery'], 500);
+    }
+}
+
+public function reject(Request $request, $id)
+{
+    try {
+        if (!\App\Helpers\RoleHelper::canApproveDeliveries()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized to reject deliveries'], 403);
+        }
+
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string|max:1000',
+        ]);
+
+        $delivery = Deliveries::findOrFail($id);
+
+        if ($delivery->approval_status !== 'Pending') {
+            return response()->json(['success' => false, 'message' => 'Delivery is not pending approval'], 400);
+        }
+
+        $delivery->update([
+            'approval_status' => 'Rejected',
+            'status' => 'Cancelled',
+            'approved_by_user' => auth()->user()->name,
+            'rejection_reason' => $validated['rejection_reason'],
+        ]);
+
+        Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Rejected',
+            'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
+            'target' => $delivery->sales_order_number ?? 'N/A',
+            'type' => 'Delivery',
+            'message' => "Rejected delivery: {$delivery->dr_no}. Reason: {$validated['rejection_reason']}",
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Delivery rejected successfully!']);
+    } catch (\Exception $e) {
+        Log::error('Delivery rejection failed', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => 'Failed to reject delivery'], 500);
+    }
+}
+
+
+public function pullout(Request $request, $id)
+{
+    try {
+        if (!\App\Helpers\RoleHelper::canApproveDeliveries()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'pullout_reason' => 'required|string|max:1000',
+        ]);
+
+        $delivery = Deliveries::findOrFail($id);
+
+        if ($delivery->is_pulled_out) {
+            return response()->json(['success' => false, 'message' => 'Already pulled out'], 400);
+        }
+
+        $delivery->update([
+            'is_pulled_out' => true,
+            'pulled_out_by' => auth()->user()->name,
+            'pulled_out_at' => now(),
+            'pullout_reason' => $validated['pullout_reason'],
+            'status' => 'Cancelled',
+        ]);
+
+        Activity::create([
+            'user_name' => auth()->user()->name,
+            'action' => 'Pulled Out',
+            'item' => $delivery->dr_no,
+            'target' => $delivery->sales_order_number,
+            'type' => 'Delivery',
+            'message' => "Pulled out: {$delivery->dr_no}. Reason: {$validated['pullout_reason']}",
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Delivery pulled out successfully!']);
+    } catch (\Exception $e) {
+        Log::error('Pullout failed', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => 'Failed to pullout delivery'], 500);
+    }
+}
+
+// Update these methods in DeliveriesController.php
+
+/**
+ * ✅ UPDATED: Get edit data - Only PENDING deliveries can be edited
+ */
+public function getEditData($id)
+{
+    try {
+        $delivery = Deliveries::with(['items', 'salesOrder.items'])->findOrFail($id);
+
+        // ✅ Check if delivery is pulled out
+        if ($delivery->is_pulled_out) {
+            return response()->json(['success' => false, 'message' => 'Cannot edit pulled out delivery'], 400);
+        }
+
+        // ✅ CRITICAL: APPROVED DELIVERIES CANNOT BE EDITED BY ANYONE
+        if ($delivery->approval_status === 'Approved') {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Approved deliveries are locked and cannot be edited. Only pullout is available for approved deliveries.'
+            ], 403);
+        }
+
+        // ✅ For PENDING deliveries: Check permissions
+        $userRole = auth()->user()->role;
+        $canApprove = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
+        
+        if (!$canApprove) {
+            // Creators need edit approval even for pending deliveries
+            if (!$delivery->edit_approved) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Please request edit permission first for this pending delivery.'
+                ], 403);
+            }
+        }
+
+        // Map SO items for comparison
+        $soItemsMap = collect();
+        if ($delivery->salesOrder && $delivery->salesOrder->items) {
+            foreach ($delivery->salesOrder->items as $soItem) {
+                $soItemsMap->put($soItem->item_code, $soItem);
+            }
+        }
+
+        // Get already delivered quantities (excluding this delivery)
+        $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($delivery) {
+                $q->where('sales_order_number', $delivery->sales_order_number)
+                  ->where('approval_status', 'Approved')
+                  ->where('status', 'Delivered')
+                  ->where('id', '!=', $delivery->id);
+            })
+            ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
+            ->groupBy('item_code')
+            ->get()
+            ->keyBy('item_code');
+
+        // Prepare items data
+        $items = [];
+        foreach ($delivery->items as $item) {
+            $soItem = $soItemsMap->get($item->item_code);
+            $originalQty = $soItem ? $soItem->quantity : ($item->original_quantity ?? 0);
+            $alreadyDelivered = $deliveredSums->get($item->item_code)?->total_delivered ?? 0;
+
+            $items[] = [
+                'item_code' => $item->item_code,
+                'item_description' => $item->item_description,
+                'brand' => $item->brand,
+                'item_category' => $item->item_category,
+                'quantity' => $item->quantity ?? 0,
+                'original_quantity' => $originalQty,
+                'already_delivered' => $alreadyDelivered,
+                'uom' => $item->uom,
+                'unit_price' => $item->unit_price ?? 0,
+                'total_amount' => $item->total_amount ?? 0,
+                'notes' => $item->notes,
+            ];
+        }
+
+        // ✅ Get PO Image from Sales Order
+        $poImageUrl = null;
+        $poImageName = null;
+        if ($delivery->salesOrder && $delivery->salesOrder->po_image) {
+            $poImagePath = public_path('po_images/' . $delivery->salesOrder->po_image);
+            if (file_exists($poImagePath)) {
+                $poImageUrl = asset('po_images/' . $delivery->salesOrder->po_image);
+                $poImageName = $delivery->salesOrder->po_image;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'id' => $delivery->id,
+            'approval_status' => $delivery->approval_status,
+            'sales_order_number' => $delivery->sales_order_number,
+            'customer_name' => $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? 'N/A',
+            'delivery_batch' => $delivery->delivery_batch,
+            'dr_no' => $delivery->dr_no,
+            'sales_invoice_no' => $delivery->sales_invoice_no,
+            'po_number' => $delivery->po_number,
+            'plate_no' => $delivery->plate_no,
+            'po_image_url' => $poImageUrl,
+            'po_image_name' => $poImageName,
+            'items' => $items,
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Get edit data failed', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => 'Failed to load delivery data'], 500);
+    }
+}
+
+/**
+ * ✅ UPDATED: Quick update - Only PENDING deliveries can be updated
+ */
+public function quickUpdate(Request $request, $id)
+{
+    try {
+        $delivery = Deliveries::with('items')->findOrFail($id);
+
+        if ($delivery->is_pulled_out) {
+            return response()->json(['success' => false, 'message' => 'Cannot edit pulled out delivery'], 400);
+        }
+
+        // ✅ CRITICAL: APPROVED DELIVERIES CANNOT BE EDITED BY ANYONE
+        if ($delivery->approval_status === 'Approved') {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Approved deliveries are locked and cannot be edited. Only pullout is available for approved deliveries.'
+            ], 403);
+        }
+
+        // ✅ For PENDING deliveries: Check permissions
+        $userRole = auth()->user()->role;
+        $canApprove = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
+        
+        if (!$canApprove) {
+            // Creators need edit approval even for pending deliveries
+            if (!$delivery->edit_approved) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'You need edit approval to modify this pending delivery.'
+                ], 403);
+            }
+        }
+
+        // Validate only editable fields
+        $validated = $request->validate([
+            'dr_no' => ['required', 'string', 'max:255', Rule::unique('deliveries', 'dr_no')->ignore($delivery->id)],
+            'sales_invoice_no' => ['nullable', 'string', 'max:255', Rule::unique('deliveries', 'sales_invoice_no')->ignore($delivery->id)],
+            'po_number' => 'nullable|string|max:255',
+            'plate_no' => 'nullable|string|max:255',
+            'items' => 'required|array|min:1',
+            'items.*.item_code' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:0',
+            'items.*.original_quantity' => 'required|numeric|min:0',
+            'items.*.already_delivered' => 'nullable|numeric|min:0',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.total_amount' => 'required|numeric|min:0',
+        ]);
+
+        // Update delivery
+        $delivery->update([
+            'dr_no' => $validated['dr_no'],
+            'sales_invoice_no' => $validated['sales_invoice_no'],
+            'po_number' => $validated['po_number'],
+            'plate_no' => $validated['plate_no'],
+        ]);
+
+        // ✅ If this was an approved edit, reset the edit flags
+        if ($delivery->edit_approved) {
+            $delivery->update([
+                'edit_requested' => false,
+                'edit_approved' => false,
+                'edit_requested_by' => null,
+                'edit_requested_at' => null,
+                'edit_approved_by' => null,
+                'edit_approved_at' => null,
+            ]);
+        }
+
+        // Update delivery items
+        foreach ($validated['items'] as $itemData) {
+            $deliveryItem = $delivery->items->firstWhere('item_code', $itemData['item_code']);
+            
+            if ($deliveryItem) {
+                $remaining = max(0, $itemData['original_quantity'] - ($itemData['already_delivered'] ?? 0) - $itemData['quantity']);
+                
+                $deliveryItem->update([
+                    'quantity' => $itemData['quantity'],
+                    'remaining_quantity' => $remaining,
+                    'total_amount' => $itemData['total_amount'],
+                ]);
+            }
+        }
+
+        // Create activity log
+        Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Updated',
+            'item' => $delivery->dr_no,
+            'target' => $delivery->sales_order_number,
+            'type' => 'Delivery',
+            'message' => "Updated pending delivery: {$delivery->dr_no}",
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Delivery updated successfully!'
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Quick update failed', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to update delivery: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * ✅ Request edit - Only for PENDING deliveries
+ */
+public function requestEdit($id)
+{
+    try {
+        $userRole = auth()->user()->role;
+        
+        // ✅ Only Delivery_Creator needs to request edit
+        if (!in_array($userRole, ['Delivery_Creator'])) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Unauthorized - Only Delivery Creators need to request edit permission.'
+            ], 403);
+        }
+
+        $delivery = Deliveries::findOrFail($id);
+
+        if ($delivery->is_pulled_out) {
+            return response()->json(['success' => false, 'message' => 'Cannot request edit for pulled out delivery'], 400);
+        }
+
+        // ✅ CRITICAL: Only PENDING deliveries can be edited
+        if ($delivery->approval_status !== 'Pending') {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Edit requests are only available for pending deliveries. Approved deliveries are locked and cannot be edited.'
+            ], 400);
+        }
+
+        if ($delivery->edit_requested && !$delivery->edit_approved) {
+            return response()->json(['success' => false, 'message' => 'Edit request already pending approval'], 400);
+        }
+
+        $delivery->update([
+            'edit_requested' => true,
+            'edit_requested_by' => auth()->user()->name,
+            'edit_requested_at' => now(),
+            'edit_approved' => false,
+        ]);
+
+        Activity::create([
+            'user_name' => auth()->user()->name,
+            'action' => 'Edit Requested',
+            'item' => $delivery->dr_no,
+            'target' => $delivery->sales_order_number,
+            'type' => 'Delivery',
+            'message' => "Requested edit permission for pending delivery: {$delivery->dr_no}",
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Edit request submitted successfully! Waiting for approver decision.']);
+    } catch (\Exception $e) {
+        Log::error('Edit request failed', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => 'Failed to request edit'], 500);
+    }
+}
+
+/**
+ * ✅ Approve edit request - Only for PENDING deliveries
+ */
+public function approveEdit($id)
+{
+    try {
+        if (!\App\Helpers\RoleHelper::canApproveDeliveries()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $delivery = Deliveries::findOrFail($id);
+
+        if (!$delivery->edit_requested) {
+            return response()->json(['success' => false, 'message' => 'No edit request found'], 400);
+        }
+
+        if ($delivery->approval_status !== 'Pending') {
+            return response()->json(['success' => false, 'message' => 'Can only approve edit requests for pending deliveries'], 400);
+        }
+
+        $delivery->update([
+            'edit_approved' => true,
+            'edit_approved_by' => auth()->user()->name,
+            'edit_approved_at' => now(),
+        ]);
+
+        Activity::create([
+            'user_name' => auth()->user()->name,
+            'action' => 'Edit Approved',
+            'item' => $delivery->dr_no,
+            'target' => $delivery->sales_order_number,
+            'type' => 'Delivery',
+            'message' => "Approved edit request for: {$delivery->dr_no}",
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Edit request approved!']);
+    } catch (\Exception $e) {
+        Log::error('Edit approval failed', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => 'Failed to approve edit'], 500);
+    }
+}
+
+/**
+ * ✅ Reject edit request
+ */
+public function rejectEdit(Request $request, $id)
+{
+    try {
+        $userRole = auth()->user()->role;
+        
+        if (!in_array($userRole, ['Admin', 'IT', 'Delivery_Approver'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string|max:1000',
+        ]);
+
+        $delivery = Deliveries::findOrFail($id);
+
+        if (!$delivery->edit_requested) {
+            return response()->json(['success' => false, 'message' => 'No edit request found'], 400);
+        }
+
+        if ($delivery->edit_approved) {
+            return response()->json(['success' => false, 'message' => 'Edit request already approved'], 400);
+        }
+
+        $delivery->update([
+            'edit_requested' => false,
+            'edit_approved' => false,
+            'edit_rejection_reason' => $validated['rejection_reason'],
+            'edit_rejected_by' => auth()->user()->name,
+            'edit_rejected_at' => now(),
+        ]);
+
+        Activity::create([
+            'user_name' => auth()->user()->name,
+            'action' => 'Edit Rejected',
+            'item' => $delivery->dr_no,
+            'target' => $delivery->sales_order_number,
+            'type' => 'Delivery',
+            'message' => "Rejected edit request for: {$delivery->dr_no}. Reason: {$validated['rejection_reason']}",
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Edit request rejected successfully!']);
+    } catch (\Exception $e) {
+        Log::error('Edit rejection failed', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => 'Failed to reject edit request'], 500);
+    }
+}
+
 
     /**
      * Helper function to generate ordinal names
@@ -632,19 +1253,21 @@ public function store(Request $request)
         return view('deliveries.deliveries', compact('deliveries'));
     }
 
-    // Print filtered list
     public function printList(Request $request)
     {
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
         $search = $request->input('search');
+        $status = $request->input('status'); // ✅ NEW
+        $approvalStatus = $request->input('approval_status'); // ✅ NEW
 
-        // ✅ Eager load all necessary relationships
         $query = Deliveries::with([
             'salesOrder.customer',
-            'salesOrder.items.item',  // ✅ Load sales order items with item details
-            'items.item'  // ✅ Load delivery items with item details
-        ]);
+            'salesOrder.items.item',
+            'items.item'
+        ])
+        ->withSum('items as quantity', 'quantity')
+        ->withSum('items as total_amount', 'total_amount');
 
         if ($dateFrom) {
             $query->whereDate('created_at', '>=', $dateFrom);
@@ -654,23 +1277,32 @@ public function store(Request $request)
             $query->whereDate('created_at', '<=', $dateTo);
         }
 
+        // ✅ NEW: Status filters
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if ($approvalStatus) {
+            $query->where('approval_status', $approvalStatus);
+        }
+
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('dr_no', 'like', '%' . $search . '%')
-                  ->orWhere('customer_code', 'like', '%' . $search . '%')
-                  ->orWhere('customer_name', 'like', '%' . $search . '%')
-                  ->orWhereHas('salesOrder', function($sq) use ($search) {
-                      $sq->where('customer_name', 'like', '%' . $search . '%');
-                  })
-                  ->orWhereHas('salesOrder.customer', function($cq) use ($search) {
-                      $cq->where('customer_name', 'like', '%' . $search . '%');
-                  });
+                ->orWhere('customer_code', 'like', '%' . $search . '%')
+                ->orWhere('customer_name', 'like', '%' . $search . '%')
+                ->orWhereHas('salesOrder', function($sq) use ($search) {
+                    $sq->where('customer_name', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('salesOrder.customer', function($cq) use ($search) {
+                    $cq->where('customer_name', 'like', '%' . $search . '%');
+                });
             });
         }
 
         $deliveries = $query->orderByDesc('created_at')->get();
 
-        return view('deliveries.printlist', compact('deliveries', 'dateFrom', 'dateTo'));
+        return view('deliveries.printlist', compact('deliveries', 'dateFrom', 'dateTo', 'status', 'approvalStatus'));
     }
 
     // 🖨️ Print single delivery
@@ -692,8 +1324,6 @@ public function store(Request $request)
         return view('deliveries.show', compact('delivery'));
     }
 
-    // Export Excel
-    // Export Excel - NEW FORMAT
     public function exportExcel(Request $request)
     {
         ini_set('display_errors', 1);
@@ -704,14 +1334,17 @@ public function store(Request $request)
             $dateFrom = $request->input('date_from');
             $dateTo = $request->input('date_to');
             $search = $request->input('search');
+            $status = $request->input('status'); // ✅ NEW
+            $approvalStatus = $request->input('approval_status'); // ✅ NEW
 
             Log::info('Export deliveries started', [
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
-                'search' => $search
+                'search' => $search,
+                'status' => $status,
+                'approval_status' => $approvalStatus
             ]);
 
-            // Build query with filters
             $query = Deliveries::with(['items', 'salesOrder.customer', 'salesOrder.items']);
 
             if ($dateFrom) {
@@ -722,17 +1355,26 @@ public function store(Request $request)
                 $query->whereDate('created_at', '<=', $dateTo);
             }
 
+            // ✅ NEW: Status filters
+            if ($status) {
+                $query->where('status', $status);
+            }
+
+            if ($approvalStatus) {
+                $query->where('approval_status', $approvalStatus);
+            }
+
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('dr_no', 'like', '%' . $search . '%')
-                      ->orWhere('customer_code', 'like', '%' . $search . '%')
-                      ->orWhere('customer_name', 'like', '%' . $search . '%')
-                      ->orWhereHas('salesOrder', function ($sq) use ($search) {
-                          $sq->where('customer_name', 'like', '%' . $search . '%');
-                      })
-                      ->orWhereHas('salesOrder.customer', function ($cq) use ($search) {
-                          $cq->where('customer_name', 'like', '%' . $search . '%');
-                      });
+                    ->orWhere('customer_code', 'like', '%' . $search . '%')
+                    ->orWhere('customer_name', 'like', '%' . $search . '%')
+                    ->orWhereHas('salesOrder', function ($sq) use ($search) {
+                        $sq->where('customer_name', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('salesOrder.customer', function ($cq) use ($search) {
+                        $cq->where('customer_name', 'like', '%' . $search . '%');
+                    });
                 });
             }
 

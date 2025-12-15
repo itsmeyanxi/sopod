@@ -427,6 +427,9 @@ function populateItemsTable(items) {
 // =====================================================
 // SEARCH SALES ORDER
 // =====================================================
+// =====================================================
+// SEARCH SALES ORDER - UPDATED TO HANDLE ALL STATUSES
+// =====================================================
 document.getElementById("search_btn").addEventListener("click", async () => {
     const soNumber = document.getElementById("so_search").value.trim();
     
@@ -453,31 +456,106 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         const data = await response.json();
         Swal.close();
 
-        // ✅ Handle errors first
+        // ✅ Handle errors with specific messages for rejected/cancelled/delivered
         if (!response.ok) {
-            Swal.fire({
+            let alertConfig = {
                 icon: "error",
-                title: "Error",
+                title: "Cannot Search",
                 text: data.message || data.error || "Sales Order not found",
                 confirmButtonText: 'OK'
-            });
+            };
+
+            // ✅ Customize alert based on error type
+            if (data.error_type === 'rejected') {
+                alertConfig = {
+                    icon: "warning",
+                    title: "⚠️ Delivery Rejected",
+                    html: `
+                        <div class="text-left">
+                            <p class="mb-2">This Sales Order has been <strong class="text-red-600">rejected for delivery</strong>.</p>
+                            <p class="text-sm text-gray-600">Status: View-only</p>
+                            <p class="text-sm text-gray-600 mt-2">You cannot create new deliveries for rejected orders.</p>
+                        </div>
+                    `,
+                    confirmButtonText: 'Understood',
+                    confirmButtonColor: '#dc2626'
+                };
+            } else if (data.error_type === 'cancelled') {
+                alertConfig = {
+                    icon: "warning",
+                    title: "🚫 Delivery Pulled Out",
+                    html: `
+                        <div class="text-left">
+                            <p class="mb-2">This Sales Order has been <strong class="text-orange-600">pulled out for delivery</strong>.</p>
+                            <p class="text-sm text-gray-600">Status: View-only</p>
+                            <p class="text-sm text-gray-600 mt-2">You cannot create new deliveries for cancelled orders.</p>
+                        </div>
+                    `,
+                    confirmButtonText: 'Understood',
+                    confirmButtonColor: '#ea580c'
+                };
+            } else if (data.error_type === 'delivered') {
+                alertConfig = {
+                    icon: "info",
+                    title: "✅ Already Delivered",
+                    html: `
+                        <div class="text-left">
+                            <p class="mb-2">This Sales Order has already been <strong class="text-green-600">delivered and approved</strong>.</p>
+                            <p class="text-sm text-gray-600 mt-2">No new deliveries can be created.</p>
+                            <p class="text-sm text-blue-600 mt-2">💡 You can view delivery details in the <strong>Deliveries List</strong>.</p>
+                        </div>
+                    `,
+                    confirmButtonText: 'Go to Deliveries',
+                    confirmButtonColor: '#2563eb',
+                    showCancelButton: true,
+                    cancelButtonText: 'Close'
+                };
+            }
+
+            const result = await Swal.fire(alertConfig);
+            
+            // ✅ Redirect to deliveries list if user clicks "Go to Deliveries" for delivered orders
+            if (data.error_type === 'delivered' && result.isConfirmed) {
+                window.location.href = deliveriesIndexUrl;
+            }
+            
             return;
         }
 
-        // ✅ Show info message for partial delivery history
+        // ✅ Show status/info alert if present
         if (data.show_partial_alert === true && data.info_message) {
-            console.log('📋 Showing partial delivery history alert');
+            console.log('📋 Showing status alert:', data.info_message);
+            
+            let iconType = 'info';
+            let titleText = 'Sales Order Information';
+            
+            // Determine alert type based on SO status
+            if (data.so_status === 'Declined' || data.so_status === 'Cancelled') {
+                iconType = 'warning';
+                titleText = `Sales Order ${data.so_status}`;
+            } else if (data.is_closed) {
+                iconType = 'info';
+                titleText = 'Fully Delivered/Closed';
+            } else if (data.so_status === 'Pending') {
+                iconType = 'warning';
+                titleText = 'Pending Approval';
+            } else if (data.delivery_history?.pulled_out || data.delivery_history?.cancelled || data.delivery_history?.rejected) {
+                iconType = 'warning';
+                titleText = 'Delivery History Available';
+            }
+            
             await Swal.fire({
-                icon: 'info',
-                title: 'Partial Delivery History',
+                icon: iconType,
+                title: titleText,
                 html: `
                     <div class="text-left">
                         <p class="mb-2">${data.info_message}</p>
-                        ${data.delivery_count > 0 ? `<p class="text-sm text-gray-600">Previous deliveries: <strong>${data.delivery_count}</strong></p>` : ''}
-                        ${data.items_count > 0 ? `<p class="text-sm text-gray-600">Items to deliver: <strong>${data.items_count}</strong></p>` : ''}
+                        ${data.delivery_count > 0 ? `<p class="text-sm text-gray-600 mt-2">Previous deliveries: <strong>${data.delivery_count}</strong></p>` : ''}
+                        ${data.is_view_only ? `<p class="text-sm text-red-600 mt-2">⚠️ View-only mode - Cannot create new deliveries</p>` : ''}
+                        ${!data.is_view_only && data.items_count > 0 ? `<p class="text-sm text-gray-600">Items available: <strong>${data.items_count}</strong></p>` : ''}
                     </div>
                 `,
-                confirmButtonText: 'Continue'
+                confirmButtonText: data.is_view_only ? 'View Details' : 'Continue'
             });
         }
 
@@ -496,39 +574,59 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         document.getElementById("request_delivery_date").value = data.request_delivery_date || '';
         document.getElementById("additional_instructions").value = data.additional_instructions || '';
 
-        // ✅ Show batch name prominently
+        // ✅ Show batch name prominently with status indicators
         const batchValue = data.delivery_batch || 'Not Set';
         document.getElementById("delivery_batch").value = batchValue;
         
-        // ✅ Display batch info with improved styling
+        // ✅ Display batch info with improved styling and status indicators
         const batchDisplay = document.createElement('div');
         batchDisplay.id = 'batch_info_display';
-        batchDisplay.className = 'mb-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg';
+        batchDisplay.className = 'mb-4 p-3 rounded-lg';
         
-        // Determine badge style based on batch type
+        // Determine badge and styling based on status
         let badgeHtml = '';
-        if (data.is_edit_mode) {
+        let bgClass = 'bg-blue-900/20 border-blue-700';
+        let iconColor = 'text-blue-400';
+        let textColor = 'text-blue-300';
+        
+        if (data.is_view_only) {
+            bgClass = 'bg-gray-800/40 border-gray-600';
+            iconColor = 'text-gray-400';
+            textColor = 'text-gray-300';
+            badgeHtml = '<span class="px-2 py-1 bg-gray-600/30 text-gray-300 text-xs rounded border border-gray-500">View Only</span>';
+        } else if (data.is_edit_mode) {
+            bgClass = 'bg-yellow-900/20 border-yellow-700';
+            iconColor = 'text-yellow-400';
+            textColor = 'text-yellow-300';
             badgeHtml = '<span class="px-2 py-1 bg-yellow-600/20 text-yellow-400 text-xs rounded border border-yellow-600">Editing</span>';
         } else if (batchValue === 'Full Delivery') {
+            bgClass = 'bg-green-900/20 border-green-700';
+            iconColor = 'text-green-400';
+            textColor = 'text-green-300';
             badgeHtml = '<span class="px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded border border-green-600">Full Delivery</span>';
         } else if (batchValue.startsWith('Batch')) {
-            const batchNumber = batchValue.replace('Batch ', '');
+            bgClass = 'bg-orange-900/20 border-orange-700';
+            iconColor = 'text-orange-400';
+            textColor = 'text-orange-300';
             badgeHtml = `<span class="px-2 py-1 bg-orange-600/20 text-orange-400 text-xs rounded border border-orange-600">Partial - ${batchValue}</span>`;
         } else {
             badgeHtml = '<span class="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded border border-blue-600">New Delivery</span>';
         }
         
+        batchDisplay.className += ' border ' + bgClass;
+        
         batchDisplay.innerHTML = `
             <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                 </svg>
                 <div class="flex-1">
                     <p class="text-sm text-gray-400">Delivery Batch</p>
-                    <p class="text-lg font-semibold text-blue-300">${batchValue}</p>
+                    <p class="text-lg font-semibold ${textColor}">${batchValue}</p>
                 </div>
                 ${badgeHtml}
             </div>
+            ${data.so_status ? `<p class="text-xs text-gray-400 mt-2">SO Status: <span class="font-semibold">${data.so_status}</span></p>` : ''}
         `;
         
         // Remove old batch display if exists
@@ -544,9 +642,36 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         document.getElementById("sales_invoice_no").value = data.sales_invoice_no || '';
         document.getElementById("dr_no").value = data.is_edit_mode ? (data.dr_no || '') : '';
         document.getElementById("status").value = data.status || 'Delivered';
-        
-        // ✅ Set delivery type
         document.getElementById("delivery_type").value = data.delivery_type || 'Full';
+
+        // ✅ Disable inputs if view-only mode
+        if (data.is_view_only) {
+            document.getElementById("plate_no").readOnly = true;
+            document.getElementById("sales_invoice_no").readOnly = true;
+            document.getElementById("dr_no").readOnly = true;
+            document.getElementById("status").disabled = true;
+            document.getElementById("delivery_type").disabled = true;
+            document.getElementById("attachment").disabled = true;
+            
+            // Hide save button
+            const saveBtn = document.getElementById("save_btn");
+            if (saveBtn) {
+                saveBtn.style.display = 'none';
+            }
+        } else if (canManageDeliveries) {
+            // Re-enable if user has permissions
+            document.getElementById("plate_no").readOnly = false;
+            document.getElementById("sales_invoice_no").readOnly = false;
+            document.getElementById("dr_no").readOnly = false;
+            document.getElementById("status").disabled = false;
+            document.getElementById("delivery_type").disabled = false;
+            document.getElementById("attachment").disabled = false;
+            
+            const saveBtn = document.getElementById("save_btn");
+            if (saveBtn) {
+                saveBtn.style.display = 'inline-block';
+            }
+        }
 
         // Attachment
         if (data.attachment_url && data.is_edit_mode) {
@@ -561,11 +686,13 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         document.getElementById("batch_selector_container").classList.add('hidden');
 
         // Populate items table
-        populateItemsTable(data.items);
+        populateItemsTable(data.items, data.is_view_only);
 
         // ✅ Show appropriate success message
         let successMessage = '';
-        if (data.is_edit_mode) {
+        if (data.is_view_only) {
+            successMessage = `Viewing ${data.so_status} Sales Order (Read-Only)`;
+        } else if (data.is_edit_mode) {
             successMessage = `Editing delivery: ${batchValue}`;
         } else if (batchValue === 'Full Delivery') {
             successMessage = `Ready to create full delivery`;
@@ -576,10 +703,10 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         }
 
         Swal.fire({
-            icon: 'success',
-            title: 'Found!',
+            icon: data.is_view_only ? 'info' : 'success',
+            title: data.is_view_only ? 'View Mode' : 'Found!',
             text: successMessage,
-            timer: 2000,
+            timer: 2500,
             showConfirmButton: false
         });
 
@@ -589,6 +716,76 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         Swal.fire("Error", "Failed to search for Sales Order", "error");
     }
 });
+
+// ✅ Update populateItemsTable to handle view-only mode
+function populateItemsTable(items, isViewOnly = false) {
+    const tbody = document.getElementById('items_tbody');
+    tbody.innerHTML = ''; // Clear existing rows
+    
+    if (items && items.length > 0) {
+        console.log(`📋 Loading ${items.length} items (view-only: ${isViewOnly})`);
+        
+        items.forEach((item, index) => {
+            const tr = document.createElement("tr");
+            tr.classList.add("hover:bg-gray-800/70", "transition-colors");
+            tr.setAttribute('data-original-qty', item.original_quantity || item.quantity);
+            
+            const originalQty = item.original_quantity || item.quantity;
+            const deliveredQty = item.quantity || 0;
+            const alreadyDelivered = item.already_delivered || 0;
+            const remaining = item.remaining_quantity || 0;
+            
+            tr.setAttribute('data-already-delivered', alreadyDelivered);
+            
+            // ✅ Make inputs readonly in view-only mode
+            const inputReadonly = (isViewOnly || !canManageDeliveries) ? 'readonly' : '';
+            
+            tr.innerHTML = `
+                <td class="border border-gray-700 px-4 py-2">${item.item_code || '—'}</td>
+                <td class="border border-gray-700 px-4 py-2">${item.item_description || '—'}</td>
+                <td class="border border-gray-700 px-4 py-2">${item.brand || '—'}</td>
+                <td class="border border-gray-700 px-4 py-2">${item.item_category || '—'}</td>
+                <td class="border border-gray-700 px-4 py-2 text-center">
+                    <div class="font-semibold text-blue-400">${originalQty}</div>
+                    <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
+                </td>
+                <td class="border border-gray-700 px-4 py-2">
+                    <input type="number" 
+                        class="delivered-qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1 text-center" 
+                        value="${deliveredQty}" 
+                        step="0.01" 
+                        min="0"
+                        ${inputReadonly}>
+                </td>
+                <td class="border border-gray-700 px-4 py-2 text-center">
+                    <div class="remaining-qty font-semibold ${remaining > 0 ? 'text-orange-400' : 'text-green-400'}">
+                        ${remaining <= 0 ? '—' : remaining.toFixed(2)}
+                    </div>
+                </td>
+                <td class="border border-gray-700 px-4 py-2 text-center">${item.uom || 'Kgs'}</td>
+                <td class="border border-gray-700 px-4 py-2 price-cell text-right">${item.unit_price || 0}</td>
+                <td class="border border-gray-700 px-4 py-2">
+                    <input type="number" 
+                        class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1 text-right" 
+                        value="${((deliveredQty || 0) * (item.unit_price || 0)).toFixed(2)}" 
+                        readonly>
+                </td>
+                <td class="border border-gray-700 px-4 py-2">
+                    <input type="text"
+                        class="notes-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1"
+                        value="${item.notes || ''}"
+                        ${inputReadonly}>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        if (!isViewOnly) {
+            attachQuantityListeners();
+            checkPartialDelivery();
+        }
+    }
+}
 
 // ✅ SAVE DELIVERY
 if (canManageDeliveries) {

@@ -57,6 +57,75 @@
         $statusColor = $statusColors[$delivery->status] ?? 'bg-gray-600/20 text-gray-400 border-gray-600';
     @endphp
 
+    <!-- Pulled Out Alert -->
+    @if($delivery->is_pulled_out)
+    <div class="mb-6 bg-orange-900/30 border border-orange-600 p-4 rounded-lg">
+        <div class="flex items-start gap-3">
+            <span class="text-2xl">🔒</span>
+            <div class="flex-1">
+                <h4 class="text-orange-300 font-semibold mb-1">Delivery Pulled Out</h4>
+                <p class="text-sm text-orange-200 mb-2">
+                    This delivery has been pulled out.
+                </p>
+                <div class="bg-orange-950/50 p-3 rounded">
+                    <p class="text-xs text-orange-300 mb-1">
+                        <strong>Pulled out by:</strong> {{ $delivery->pulled_out_by }}
+                    </p>
+                    <p class="text-xs text-orange-300 mb-1">
+                        <strong>Date:</strong> {{ \Carbon\Carbon::parse($delivery->pulled_out_at)->format('M d, Y h:i A') }}
+                    </p>
+                    <p class="text-xs text-orange-300">
+                        <strong>Reason:</strong> {{ $delivery->pullout_reason }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+    
+    <!-- Rejected Alert -->
+    @if($delivery->approval_status === 'Rejected')
+    <div class="mb-6 bg-red-900/30 border border-red-600 p-4 rounded-lg">
+        <div class="flex items-start gap-3">
+            <span class="text-2xl">❌</span>
+            <div class="flex-1">
+                <h4 class="text-red-300 font-semibold mb-1">Delivery Rejected</h4>
+                <p class="text-sm text-red-200 mb-2">
+                    This delivery was rejected during the approval process.
+                </p>
+                <div class="bg-red-950/50 p-3 rounded">
+                    <p class="text-xs text-red-300 mb-1">
+                        <strong>Rejected by:</strong> {{ $delivery->approved_by_user }}
+                    </p>
+                    @if($delivery->approved_at)
+                    <p class="text-xs text-red-300 mb-1">
+                        <strong>Date:</strong> {{ \Carbon\Carbon::parse($delivery->approved_at)->format('M d, Y h:i A') }}
+                    </p>
+                    @endif
+                    <p class="text-xs text-red-300">
+                        <strong>Reason:</strong> {{ $delivery->rejection_reason }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+    
+    <!-- Pending Approval Alert -->
+    @if($delivery->approval_status === 'Pending')
+    <div class="mb-6 bg-yellow-900/30 border border-yellow-600 p-4 rounded-lg">
+        <div class="flex items-start gap-3">
+            <span class="text-2xl">⏳</span>
+            <div>
+                <h4 class="text-yellow-300 font-semibold mb-1">Pending Approval</h4>
+                <p class="text-sm text-yellow-200">
+                    This delivery is awaiting approval from an authorized user.
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Status Badge (if Partial) -->
     @if($delivery->status === 'Partial')
     <div class="mb-6 bg-orange-900/20 border border-orange-700 p-4 rounded-lg">
@@ -113,9 +182,9 @@
                 @endif
             </div>
 
-            <!-- Status -->
+            <!-- Delivery Status -->
             <div>
-                <label class="block text-sm font-semibold text-gray-300 mb-2">Status</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Delivery Status</label>
                 <div class="w-full px-4 py-2 rounded-lg border {{ $statusColor }} flex items-center gap-2">
                     @if($delivery->status === 'Delivered')
                         <span class="text-lg">✅</span>
@@ -125,6 +194,29 @@
                         <span class="text-lg">❌</span>
                     @endif
                     <span class="font-semibold">{{ $delivery->status }}</span>
+                </div>
+            </div>
+            
+            <!-- Approval Status -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Approval Status</label>
+                @php
+                    $approvalColors = [
+                        'Pending' => 'bg-yellow-900/30 border-yellow-700 text-yellow-300',
+                        'Approved' => 'bg-green-900/30 border-green-700 text-green-300',
+                        'Rejected' => 'bg-red-900/30 border-red-700 text-red-300',
+                    ];
+                    $approvalColor = $approvalColors[$delivery->approval_status] ?? 'bg-gray-600/20 text-gray-400 border-gray-600';
+                @endphp
+                <div class="w-full px-4 py-2 rounded-lg border {{ $approvalColor }} flex items-center gap-2">
+                    @if($delivery->approval_status === 'Approved')
+                        <span class="text-lg">✓</span>
+                    @elseif($delivery->approval_status === 'Pending')
+                        <span class="text-lg">⏳</span>
+                    @elseif($delivery->approval_status === 'Rejected')
+                        <span class="text-lg">✗</span>
+                    @endif
+                    <span class="font-semibold">{{ $delivery->approval_status }}</span>
                 </div>
             </div>
 
@@ -204,6 +296,69 @@
                 <input type="text" value="{{ $approvedBy }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
+            
+            <!-- Approval Details (if approved or rejected) -->
+            @if($delivery->approved_by_user && $delivery->approval_status !== 'Pending')
+            <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">
+                    {{ $delivery->approval_status === 'Approved' ? 'Approved By' : 'Rejected By' }}
+                </label>
+                <div class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600">
+                    <p class="text-gray-100">{{ $delivery->approved_by_user }}</p>
+                    @if($delivery->approved_at)
+                        <p class="text-xs text-gray-400 mt-1">
+                            {{ \Carbon\Carbon::parse($delivery->approved_at)->format('M d, Y h:i A') }}
+                        </p>
+                    @endif
+                </div>
+            </div>
+            @endif
+            
+            <!-- Created By -->
+            @if($delivery->created_by)
+            <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Created By</label>
+                <input type="text" value="{{ $delivery->created_by }}" 
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
+            </div>
+            @endif
+
+            <!-- ✅ NEW: PO Image from Sales Order -->
+            @if($so && $so->po_image)
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-gray-300 mb-2">📸 PO Proof / Order Evidence (from Sales Order)</label>
+                <div class="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                    @if(Str::endsWith($so->po_image, '.pdf'))
+                        {{-- PDF File --}}
+                        <a href="{{ asset('po_images/' . $so->po_image) }}" 
+                           target="_blank" 
+                           class="text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="underline">View PO Document (PDF)</span>
+                        </a>
+                    @else
+                        {{-- Image File --}}
+                        <a href="{{ asset('po_images/' . $so->po_image) }}" 
+                           target="_blank"
+                           onclick="openImageModal('{{ asset('po_images/' . $so->po_image) }}'); return false;"
+                           class="block">
+                            <img src="{{ asset('po_images/' . $so->po_image) }}" 
+                                 alt="PO Proof" 
+                                 class="max-w-md w-full rounded border border-gray-600 hover:border-blue-500 transition-all hover:shadow-lg cursor-pointer">
+                        </a>
+                        <p class="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            Click to view full size
+                        </p>
+                    @endif
+                </div>
+            </div>
+            @endif
 
             <!-- Notes from Sales Order -->
             @if($notes !== '—')

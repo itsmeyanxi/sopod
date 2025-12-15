@@ -169,7 +169,7 @@
             <tr>
                 <th style="width: 12%;">SO Number</th>
                 <th style="width: 20%;">Customer</th>
-                <th style="width: 10%;">Date</th>
+                <th style="width: 10%;">Date Created</th>
                 <th style="width: 15%;">Total Amount</th>
                 <th style="width: 10%;">Status</th>
                 <th style="width: 15%;">Prepared By</th>

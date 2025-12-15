@@ -32,7 +32,9 @@ class SalesOrder extends Model
         'brand',            
         'item_category',
         'is_closed',
-        'shipping_address'
+        'shipping_address',
+        'po_image',
+        'notes',
     ];
 
     /**
@@ -175,5 +177,18 @@ class SalesOrder extends Model
             ]);
             return false;
         }
+    }
+
+    public function isEditApprovedByCC()
+    {
+        // We'll use a simple flag in the additional_instructions or notes field
+        // Or check if status contains a marker
+        return strpos($this->additional_instructions ?? '', '[CC_EDIT_APPROVED]') !== false;
+    }
+
+    public function markEditApprovedByCC()
+    {
+        $this->additional_instructions = ($this->additional_instructions ?? '') . ' [CC_EDIT_APPROVED]';
+        $this->save();
     }
 }

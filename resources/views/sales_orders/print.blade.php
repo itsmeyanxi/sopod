@@ -172,6 +172,18 @@
             border-top: 1px solid #ddd;
         }
 
+        /* ✅ NEW: Style for hidden prices indicator */
+        .price-hidden-notice {
+            background: #f0f0f0;
+            border: 1px dashed #999;
+            padding: 8px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 15px;
+            border-radius: 3px;
+        }
+
         @media print {
             body { margin: 20px; }
             .no-print { display: none; }
@@ -191,6 +203,13 @@
 
     <div class="document-title">SALES ORDER</div>
 
+    {{-- ✅ NEW: Show notice if prices are hidden --}}
+    @if(request('hide_prices') == 1)
+    <div class="price-hidden-notice">
+        ℹ️ <strong>Note:</strong> Price information has been hidden as per print settings
+    </div>
+    @endif
+
     <!-- Sales Order Information -->
     <div class="info-section">
         <div style="display: flex; justify-content: space-between;">
@@ -209,15 +228,19 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">TIN:</span>
-                    <span class="info-value">{{ $salesOrder->customer->tin ?? 'N/A' }}</span>
-                 </div>
+                    <span class="info-value">{{ $salesOrder->customer->tin_no ?? 'N/A' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Shipping Address:</span>
+                    <span class="info-value">{{ $salesOrder->shipping_address ?? $salesOrder->customer->shipping_address ?? '—' }}</span>
+                </div>
                 <div class="info-row">
                     <span class="info-label">PO Number:</span>
                     <span class="info-value">{{ $salesOrder->po_number ?? '—' }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Branch:</span>
-                    <span class="info-value">{{ $salesOrder->customer->branch ?? 'N/A' }}</span>
+                    <span class="info-value">{{ $salesOrder->branch ?? $salesOrder->customer->branch ?? 'N/A' }}</span>
                 </div>
             </div>
             <div style="flex: 1;">
@@ -231,7 +254,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">Sales Representative:</span>
-                    <span class="info-value">{{ $salesOrder->sales_representative ?? '—' }}</span>
+                    <span class="info-value">{{ $salesOrder->sales_rep ?? '—' }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Sales Executive:</span>
@@ -253,7 +276,6 @@
         </div>
     </div>
 
-    <!-- ✅ ADDITIONAL DELIVERY INSTRUCTIONS -->
     @if($salesOrder->additional_instructions)
     <div class="instructions-section">
         <div class="instructions-title">📋 Additional Delivery Instructions:</div>
@@ -272,8 +294,13 @@
                 <th style="width: 15%;">Brand</th>
                 <th style="width: 12%;">Category</th>
                 <th style="width: 10%;">Quantity</th>
-                <th style="width: 10%;">Unit Price</th>
-                <th style="width: 15%;">Amount</th>
+                @if(request('hide_prices') != 1)
+                    <th style="width: 10%;">Unit Price</th>
+                    <th style="width: 15%;">Amount</th>
+                @else
+                    <th style="width: 10%;">Unit Price</th>
+                    <th style="width: 15%;">Amount</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -291,8 +318,22 @@
                     <td>{{ $item->brand ?? '—' }}</td>
                     <td>{{ $item->item_category ?: ($item->item->item_category ?? '') }}</td>
                     <td class="text-right">{{ number_format($item->quantity, 2) }} {{ $item->unit ?? 'Kgs' }}</td>
-                    <td class="text-right">₱{{ number_format($item->unit_price, 2) }}</td>
-                    <td class="text-right">₱{{ number_format($item->quantity * $item->unit_price, 2) }}</td>
+                    
+                    {{-- ✅ Show 0.00 if hide_prices is enabled, otherwise show actual price --}}
+                    <td class="text-right">
+                        @if(request('hide_prices') == 1)
+                            ₱0.00
+                        @else
+                            ₱{{ number_format($item->unit_price, 2) }}
+                        @endif
+                    </td>
+                    <td class="text-right">
+                        @if(request('hide_prices') == 1)
+                            ₱0.00
+                        @else
+                            ₱{{ number_format($item->quantity * $item->unit_price, 2) }}
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr>
@@ -305,7 +346,14 @@
     <!-- Total -->
     <div class="total-section">
         <div style="font-size: 14px; margin-bottom: 5px;">Total Amount:</div>
-        <div class="total-amount">₱{{ number_format($salesOrder->total_amount, 2) }}</div>
+        <div class="total-amount">
+            {{-- ✅ Show 0.00 if hide_prices is enabled, otherwise show actual total --}}
+            @if(request('hide_prices') == 1)
+                ₱0.00
+            @else
+                ₱{{ number_format($salesOrder->total_amount, 2) }}
+            @endif
+        </div>
     </div>
 
     <!-- Signatures -->

@@ -24,24 +24,87 @@
     </div>
 @endif
 
-    <!-- Action Buttons -->
+{{-- 🔥 ADD THIS: Show notes for Declined/Cancelled orders --}}
+@if(in_array($salesOrder->status, ['Declined', 'Cancelled']) && $salesOrder->notes)
+    <div class="bg-red-900/40 border-2 border-red-600 text-red-300 p-4 rounded-lg mb-6 flex items-start gap-3">
+        <svg class="w-6 h-6 text-red-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <div class="flex-1">
+            <strong class="text-lg flex items-center gap-2">
+                @if($salesOrder->status === 'Declined')
+                    ❌ Sales Order Declined
+                @else
+                    🚫 Sales Order Cancelled
+                @endif
+            </strong>
+            <p class="text-sm mt-2 font-semibold">Reason:</p>
+            <p class="text-sm mt-1 bg-red-950/50 border border-red-800 rounded px-3 py-2">
+                {{ $salesOrder->notes }}
+            </p>
+        </div>
+    </div>
+@endif
+
+   <!-- Action Buttons -->
     <div class="mb-6 flex flex-wrap gap-3">
-        @if($salesOrder->status !== 'Pending')
-            <a href="{{ route('sales_orders.print', $salesOrder->id) }}" 
-            target="_blank"
-            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded inline-block transition">
+    @if($salesOrder->status !== 'Pending')
+        {{-- Print Options Dropdown --}}
+        <div class="relative inline-block">
+            <button id="printDropdownBtn" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded inline-flex items-center gap-2 transition">
                 🖨️ Print Form
-            </a>
-        @else
-            <div class="bg-yellow-600/20 border border-yellow-600 text-yellow-300 px-4 py-2 rounded inline-block">
-                ⚠️ Cannot print: Sales order is pending for approval
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+            
+            {{-- Dropdown Menu --}}
+            <div id="printDropdown" class="hidden absolute left-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50">
+                <div class="p-3">
+                    <p class="text-sm font-semibold text-gray-300 mb-3 border-b border-gray-700 pb-2">Print Options</p>
+                    
+                    <a href="{{ route('sales_orders.print', ['id' => $salesOrder->id, 'hide_prices' => 0]) }}" 
+                       target="_blank"
+                       class="block px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 rounded transition mb-2">
+                        ✅ Show All Prices
+                    </a>
+                    
+                    <a href="{{ route('sales_orders.print', ['id' => $salesOrder->id, 'hide_prices' => 1]) }}" 
+                       target="_blank"
+                       class="block px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 rounded transition">
+                        🚫 Hide Prices (Show as 0.00)
+                    </a>
+                </div>
             </div>
+        </div>
+    @else
+        <div class="bg-yellow-600/20 border border-yellow-600 text-yellow-300 px-4 py-2 rounded inline-block">
+            ⚠️ Cannot print: Sales order is pending for approval
+        </div>
+    @endif
+
+        {{-- ✅ NEW: Manual Close Sales Order Button --}}
+        @if(!$salesOrder->is_closed && in_array(auth()->user()->role, ['Admin', 'IT', 'CC_Approver']))
+            <button onclick="confirmCloseSO()"
+                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded inline-block transition flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                🔒 Close Sales Order
+            </button>
+            
+            {{-- Hidden form for closing SO --}}
+            <form id="closeSoForm" action="{{ route('sales_orders.manualClose', $salesOrder->id) }}" method="POST" class="hidden">
+                @csrf
+                @method('PATCH')
+            </form>
         @endif
 
         {{-- Show View Delivery Batches button if there are multiple deliveries --}}
         @php
             $deliveryCount = \App\Models\Deliveries::where('sales_order_number', $salesOrder->sales_order_number)
-                ->whereHas('items') // Only count deliveries with items
+                ->whereHas('items')
                 ->count();
         @endphp
         @if($deliveryCount >= 2)
@@ -66,10 +129,53 @@
     <div class="bg-gray-800/80 p-6 rounded-xl shadow-lg mb-6 border border-gray-700">
         <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">Sales Order Information</h2>
         <div class="grid grid-cols-2 gap-6">
-            <div class="space-y-1">
+            <div class="space-y-3">
                 <p><span class="font-semibold text-gray-300">Sales Order #:</span> {{ $salesOrder->sales_order_number }}</p>
                 <p><span class="font-semibold text-gray-300">Customer:</span> {{ $salesOrder->customer->customer_name ?? 'N/A' }}</p>
-                <p><span class="font-semibold text-gray-300">PO Number:</span> {{ $salesOrder->po_number ?? '—' }}</p>
+                
+                {{-- PO Number --}}
+                <div>
+                    <label class="block text-sm mb-1 text-gray-300">PO Number</label>
+                    <input type="text" value="{{ $salesOrder->po_number ?? 'N/A' }}" 
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400" readonly>
+                </div>
+
+                {{-- ✅ UPDATED: Show PO Image if available --}}
+                @if($salesOrder->po_image)
+                    <div>
+                        <label class="block text-sm mb-2 text-gray-300 font-semibold">📸 PO Proof / Order Evidence</label>
+                        <div class="bg-gray-800 border border-gray-700 rounded-lg p-3">
+                            @if(Str::endsWith($salesOrder->po_image, '.pdf'))
+                                {{-- PDF File --}}
+                                <a href="{{ asset('po_images/' . $salesOrder->po_image) }}" 
+                                target="_blank" 
+                                class="text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span class="underline">View PO Document (PDF)</span>
+                                </a>
+                            @else
+                                {{-- Image File --}}
+                                <a href="{{ asset('po_images/' . $salesOrder->po_image) }}" 
+                                target="_blank"
+                                class="block">
+                                    <img src="{{ asset('po_images/' . $salesOrder->po_image) }}" 
+                                        alt="PO Proof" 
+                                        class="max-w-md w-full rounded border border-gray-600 hover:border-blue-500 transition-all hover:shadow-lg cursor-pointer">
+                                </a>
+                                <p class="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                    Click to view full size
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
                 <p><span class="font-semibold text-gray-300">TIN:</span> {{ $salesOrder->customer->tin_no ?? 'N/A' }}</p>
                 <p><span class="font-semibold text-gray-300">Request Delivery Date:</span> {{ $salesOrder->request_delivery_date ?? '—' }}</p>
                 
@@ -89,13 +195,13 @@
                     </span>
                 </p>
             </div>
-            <div class="space-y-1">
+            <div class="space-y-3">
                 <p><span class="font-semibold text-gray-300">Sales Representative:</span> {{ $salesOrder->sales_rep ?? '—' }}</p>
                 <p>
                     <span class="font-semibold text-gray-300">Sales Executive:</span> 
                     {{ $salesOrder->customer->sales_executive ?? $salesOrder->sales_executive ?? '—' }}
                 </p>
-                <p><span class="font-semibold text-gray-300">Branch:</span> {{ $salesOrder->customer->branch ?? 'N/A' }}</p>
+                <p><span class="font-semibold text-gray-300">Branch:</span> {{ $salesOrder->branch ?? $salesOrder->customer->branch ?? 'N/A' }}</p>
                 <p><span class="font-semibold text-gray-300">Status:</span>
                     @php
                         $statusColors = [
@@ -303,7 +409,7 @@
             </span>
         </div>
 
-        <form action="{{ route('sales_orders.updateStatus', $salesOrder->id) }}" method="POST" class="space-y-4">
+        <form id="statusUpdateForm" action="{{ route('sales_orders.updateStatus', $salesOrder->id) }}" method="POST" class="space-y-4">
             @csrf
             @method('PATCH')
 
@@ -322,7 +428,7 @@
                         <label class="relative flex items-center justify-center gap-1 text-sm font-medium 
                                     border rounded-md py-1.5 px-3 cursor-pointer transition-all duration-150 
                                     {{ $style['color'] }}">
-                            <input type="radio" name="status" value="{{ $value }}" class="peer absolute opacity-0" required>
+                            <input type="radio" name="status" value="{{ $value }}" class="peer absolute opacity-0 status-radio" required>
                             <span class="peer-checked:font-semibold peer-checked:scale-105 transition-transform duration-150 flex items-center gap-1">
                                 <span>{{ $style['icon'] }}</span> {{ $value }}
                             </span>
@@ -332,11 +438,13 @@
                 </div>
             </div>
 
+            <!-- Hidden textarea for notes (will be shown in modal) -->
+            <input type="hidden" name="notes" id="hiddenNotes">
+
             <div class="flex justify-end">
-                <button type="submit"
+                <button type="button" id="submitStatusBtn"
                     class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-5 py-1.5 rounded-md 
-                           transition-all duration-150 shadow-sm hover:shadow-blue-500/20 active:scale-[0.98]"
-                    onclick="return confirm('Are you sure you want to update this status?')">
+                           transition-all duration-150 shadow-sm hover:shadow-blue-500/20 active:scale-[0.98]">
                     Update Status
                 </button>
             </div>
@@ -344,4 +452,163 @@
     </div>
     @endif
 </div>
+
+<!-- Notes Modal -->
+<div id="notesModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 max-w-md w-full transform transition-all">
+        <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-100 flex items-center gap-2">
+                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                Add Notes
+            </h3>
+            <button type="button" id="closeModalBtn" class="text-gray-400 hover:text-gray-200 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="p-6">
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+                Please provide a reason for <span id="modalStatusText" class="font-bold text-red-400"></span>:
+            </label>
+            <textarea id="modalNotesTextarea" 
+                rows="5" 
+                class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-gray-100 
+                       focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
+                       placeholder-gray-500"
+                placeholder="Enter reason or notes here..."></textarea>
+            <p class="text-xs text-gray-400 mt-2">This field is required for Declined and Cancelled statuses.</p>
+        </div>
+
+        <div class="px-6 py-4 bg-gray-900/50 rounded-b-xl flex justify-end gap-3">
+            <button type="button" id="cancelModalBtn"
+                class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
+                Cancel
+            </button>
+            <button type="button" id="confirmModalBtn"
+                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors shadow-sm">
+                Confirm & Update
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+     function confirmCloseSO() {
+        if (confirm('⚠️ WARNING: Closing this Sales Order will:\n\n' +
+                    '✓ Mark this SO as CLOSED\n' +
+                    '✓ Mark ALL related deliveries as DELIVERED\n' +
+                    '✓ Lock this SO from further editing\n\n' +
+                    'This action cannot be undone. Are you sure?')) {
+            document.getElementById('closeSoForm').submit();
+        }
+    }
+
+    // Dropdown toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdownBtn = document.getElementById('printDropdownBtn');
+    const dropdown = document.getElementById('printDropdown');
+    
+    if (dropdownBtn && dropdown) {
+        dropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!dropdownBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('statusUpdateForm');
+    const submitBtn = document.getElementById('submitStatusBtn');
+    const modal = document.getElementById('notesModal');
+    const modalNotesTextarea = document.getElementById('modalNotesTextarea');
+    const modalStatusText = document.getElementById('modalStatusText');
+    const hiddenNotes = document.getElementById('hiddenNotes');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const confirmModalBtn = document.getElementById('confirmModalBtn');
+    const statusRadios = document.querySelectorAll('.status-radio');
+
+    let selectedStatus = '';
+
+    // Handle submit button click
+    submitBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Get selected status
+        selectedStatus = document.querySelector('.status-radio:checked')?.value;
+        
+        if (!selectedStatus) {
+            alert('Please select a status first.');
+            return;
+        }
+
+        // If Declined or Cancelled, show modal
+        if (selectedStatus === 'Declined' || selectedStatus === 'Cancelled') {
+            modalStatusText.textContent = selectedStatus.toLowerCase();
+            modalNotesTextarea.value = '';
+            modal.classList.remove('hidden');
+            modalNotesTextarea.focus();
+        } else {
+            // For Approved, submit directly with confirmation
+            if (confirm('Are you sure you want to update this status to Approved?')) {
+                hiddenNotes.value = '';
+                form.submit();
+            }
+        }
+    });
+
+    // Close modal handlers
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelModalBtn.addEventListener('click', closeModal);
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        modalNotesTextarea.value = '';
+    }
+
+    // Confirm button - validate and submit
+    confirmModalBtn.addEventListener('click', function() {
+        const notes = modalNotesTextarea.value.trim();
+        
+        if (!notes) {
+            alert('Please provide a reason before confirming.');
+            modalNotesTextarea.focus();
+            return;
+        }
+
+        // Set the hidden notes field and submit
+        hiddenNotes.value = notes;
+        modal.classList.add('hidden');
+        form.submit();
+    });
+
+    // Allow Enter key in textarea but not submit form
+    modalNotesTextarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            confirmModalBtn.click();
+        }
+    });
+});
+
+
+</script>
 @endsection

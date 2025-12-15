@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\SalesOrder;
 use App\Models\Deliveries;
+use App\Models\MonthlySale;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +16,7 @@ class SalesDashboardController extends Controller
         // Get filter parameters
         $year = $request->get('year', Carbon::now()->year);
         $month = $request->get('month', Carbon::now()->month);
+        $selectedAnnualYear = $request->get('annual_year', Carbon::now()->year);
         
         // Calculate date ranges
         $startOfMonth = Carbon::create($year, $month, 1)->startOfMonth();
@@ -38,7 +40,7 @@ class SalesDashboardController extends Controller
         $ytdSalesPHP = Deliveries::whereBetween('created_at', [$startOfYear, $endOfYear])
             ->sum('total_amount');
 
-        // Monthly Sales (KG) - sum all quantities (assuming they represent weight)
+        // Monthly Sales (KG)
         $monthlySalesKG = Deliveries::whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->sum('quantity');
 
@@ -101,21 +103,53 @@ class SalesDashboardController extends Controller
                 ->sum('quantity');
         }
 
-        // Top 5 Customers by Sales
-        $topCustomers = Deliveries::selectRaw('customer_name, SUM(total_amount) as total_sales')
-            ->whereBetween('created_at', [$startOfYear, $endOfYear])
+        // =================== TOP CUSTOMERS ===================
+        $topCustomers = SalesOrder::select('customer_name')
+            ->selectRaw('SUM(total_amount) as total_sales')
+            ->whereYear('created_at', $year)
+            ->whereNotNull('customer_name')
+            ->where('customer_name', '!=', '')
             ->groupBy('customer_name')
             ->orderByDesc('total_sales')
             ->limit(5)
             ->get();
 
-        // Top 5 Items by Quantity Sold
-        $topItems = Deliveries::selectRaw('item_description, SUM(quantity) as total_quantity, item_code')
-            ->whereBetween('created_at', [$startOfYear, $endOfYear])
-            ->groupBy('item_description', 'item_code')
-            ->orderByDesc('total_quantity')
-            ->limit(5)
-            ->get();
+        // Debug: If still empty, try without year filter
+        if ($topCustomers->isEmpty() || $topCustomers->sum('total_sales') == 0) {
+            $topCustomers = SalesOrder::select('customer_name')
+                ->selectRaw('SUM(total_amount) as total_sales')
+                ->whereNotNull('customer_name')
+                ->where('customer_name', '!=', '')
+                ->groupBy('customer_name')
+                ->orderByDesc('total_sales')
+                ->limit(5)
+                ->get();
+        }
+
+// =================== TOP 5 ITEMS ===================
+// Use delivery_items table with join to deliveries for date filtering
+$topItems = DB::table('delivery_items')
+    ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
+    ->selectRaw('delivery_items.item_description, SUM(delivery_items.quantity) as total_quantity, delivery_items.item_code')
+    ->whereYear('deliveries.created_at', $year)
+    ->whereNotNull('delivery_items.item_description')
+    ->where('delivery_items.item_description', '!=', '')
+    ->groupBy('delivery_items.item_description', 'delivery_items.item_code')
+    ->orderByDesc('total_quantity')
+    ->limit(5)
+    ->get();
+
+// If empty with year filter, try without year filter
+if ($topItems->isEmpty() || $topItems->sum('total_quantity') == 0) {
+    $topItems = DB::table('delivery_items')
+        ->selectRaw('item_description, SUM(quantity) as total_quantity, item_code')
+        ->whereNotNull('item_description')
+        ->where('item_description', '!=', '')
+        ->groupBy('item_description', 'item_code')
+        ->orderByDesc('total_quantity')
+        ->limit(5)
+        ->get();
+}
 
         // Sales by Status
         $salesByStatus = Deliveries::selectRaw('status, COUNT(*) as count')
@@ -126,6 +160,119 @@ class SalesDashboardController extends Controller
         $recentDeliveries = Deliveries::orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
+
+        // =================== ANNUAL REPORT DATA ===================
+        // Use MonthlySale model (exactly like Records controller)
+        $annualData = [];
+        $annualTotalPHP = 0;
+        $annualTotalKG = 0;
+        
+        // Get ALL monthly sales records (same as Records controller)
+        $allMonthlySales = MonthlySale::orderBy('id', 'asc')->get();
+        
+        // Initialize all 12 months with zero values
+        $monthlyDataMap = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $monthlyDataMap[$m] = [
+                'php' => 0,
+                'kg' => 0,
+                'orders' => 0
+            ];
+        }
+        
+        // Filter and parse monthly sales
+        foreach ($allMonthlySales as $record) {
+            $monthStr = trim($record->month);
+            
+            // Parse month string - support multiple formats
+            $yearMatch = null;
+            $monthNum = null;
+            
+            // Try: "2024-01" or "2024-1" or "2024-01-01"
+            if (preg_match('/(\d{4})-(\d{1,2})/', $monthStr, $matches)) {
+                $yearMatch = (int)$matches[1];
+                $monthNum = (int)$matches[2];
+            }
+            // Try: "January 2024" or "Jan 2024"
+            elseif (preg_match('/([A-Za-z]+)\s+(\d{4})/', $monthStr, $matches)) {
+                $monthName = $matches[1];
+                $yearMatch = (int)$matches[2];
+                $date = date_create($monthName . ' 1, ' . $yearMatch);
+                if ($date) {
+                    $monthNum = (int)date_format($date, 'n');
+                }
+            }
+            // Try: "2024/01" format
+            elseif (preg_match('/(\d{4})\/(\d{1,2})/', $monthStr, $matches)) {
+                $yearMatch = (int)$matches[1];
+                $monthNum = (int)$matches[2];
+            }
+            // Try: "01-2024" format (reverse)
+            elseif (preg_match('/(\d{1,2})-(\d{4})/', $monthStr, $matches)) {
+                $monthNum = (int)$matches[1];
+                $yearMatch = (int)$matches[2];
+            }
+            // NEW: Handle month name only (no year) - "January", "February", etc.
+            elseif (preg_match('/^([A-Za-z]+)$/i', $monthStr, $matches)) {
+                $monthName = $matches[1];
+                $date = date_create($monthName . ' 1');
+                if ($date) {
+                    $monthNum = (int)date_format($date, 'n');
+                    // Since there's no year in the data, show it for ALL years
+                    // or treat it as current/most recent data
+                    $yearMatch = $selectedAnnualYear; // Show for selected year
+                }
+            }
+            
+            // Validate and add data
+            if ($yearMatch == $selectedAnnualYear && $monthNum >= 1 && $monthNum <= 12) {
+                $phpAmount = (float)($record->php_amount ?? 0);
+                $kgAmount = (float)($record->quantity ?? 0);
+                
+                // Add to existing value (in case of duplicates)
+                $monthlyDataMap[$monthNum]['php'] += $phpAmount;
+                $monthlyDataMap[$monthNum]['kg'] += $kgAmount;
+                
+                $annualTotalPHP += $phpAmount;
+                $annualTotalKG += $kgAmount;
+            }
+        }
+        
+        // Convert map to indexed array (0-11) for the view
+        for ($m = 1; $m <= 12; $m++) {
+            $annualData[] = $monthlyDataMap[$m];
+        }
+        
+        // Fallback: If monthly_sales is empty, calculate from Deliveries
+        if ($annualTotalPHP == 0 && $annualTotalKG == 0) {
+            $annualData = [];
+            $annualTotalPHP = 0;
+            $annualTotalKG = 0;
+            
+            for ($m = 1; $m <= 12; $m++) {
+                $monthData = Deliveries::whereYear('created_at', $selectedAnnualYear)
+                    ->whereMonth('created_at', $m)
+                    ->selectRaw('
+                        COALESCE(SUM(total_amount), 0) as total_php,
+                        COALESCE(SUM(quantity), 0) as total_kg,
+                        COUNT(*) as order_count
+                    ')
+                    ->first();
+                
+                $phpAmount = (float)($monthData->total_php ?? 0);
+                $kgAmount = (float)($monthData->total_kg ?? 0);
+                $orderCount = (int)($monthData->order_count ?? 0);
+                
+                $annualData[] = [
+                    'php' => $phpAmount,
+                    'kg' => $kgAmount,
+                    'orders' => $orderCount
+                ];
+                
+                $annualTotalPHP += $phpAmount;
+                $annualTotalKG += $kgAmount;
+            }
+        }
 
         return view('sales.dashboard', compact(
             'monthlySalesPHP',
@@ -147,7 +294,11 @@ class SalesDashboardController extends Controller
             'salesByStatus',
             'recentDeliveries',
             'year',
-            'month'
+            'month',
+            'selectedAnnualYear',
+            'annualData',
+            'annualTotalPHP',
+            'annualTotalKG'
         ));
     }
 

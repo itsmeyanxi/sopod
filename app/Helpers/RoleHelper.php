@@ -102,7 +102,7 @@ class RoleHelper
         }
         
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CSR_Approver']);
+        return in_array($role, ['Admin', 'IT', 'CC_Approver','Accounting_Approver']);
     }
 
      public static function canaccessexcelimport()
@@ -114,6 +114,50 @@ class RoleHelper
         
         $role = auth()->user()->role ?? null;
         return in_array($role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator','Accounting_Creator', 'Accounting_Approver']);
+    }
+
+    // Add to App/Helpers/RoleHelper.php
+
+    public static function canInitiateEdit()
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+        
+        $role = auth()->user()->role ?? null;
+        // Only CC_Approver can initially see and use edit button
+        return in_array($role, ['Admin', 'IT', 'CC_Approver']);
+    }
+
+    public static function canEditAfterCCApproval()
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+        
+        $role = auth()->user()->role ?? null;
+        // CSR roles can edit after CC approval
+        return in_array($role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
+    }
+
+        public static function canCreateDeliveries()
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+        
+        $role = auth()->user()->role ?? null;
+        return in_array($role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver']);
+    }
+
+    public static function canApproveDeliveries()
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+        
+        $role = auth()->user()->role ?? null;
+        return in_array($role, ['Admin', 'IT', 'Delivery_Approver']);
     }
         
 }

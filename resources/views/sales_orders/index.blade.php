@@ -207,46 +207,140 @@
                         @php
                             $delivery = $order->deliveries; // This might be null
                             
-                            // ✅ Check if SO is closed
-                            if ($order->is_closed) {
-                                $drStatus = 'Fully Delivered';
-                                $statusClass = 'bg-green-600';
-                            } elseif (!$delivery) {
+                            // ✅ Priority 1: Check if delivery exists first
+                            if (!$delivery) {
                                 // No delivery created yet
                                 $drStatus = ($order->status === 'Approved') ? 'Awaiting Delivery' : 'Not Delivered';
                                 $statusClass = 'bg-gray-600';
-                            } else {
-                                // ✅ NEW LOGIC: Use delivery_type instead of status for Partial/Full
-                                if ($delivery->status === 'Cancelled') {
+                            } 
+                            // ✅ Priority 2: Check CRITICAL statuses BEFORE checking is_closed
+                            else {
+                                // Check if pulled out FIRST (highest priority)
+                                if ($delivery->is_pulled_out) {
+                                    $drStatus = 'Pulled Out';
+                                    $statusClass = 'bg-orange-600';
+                                }
+                                // Check if rejected by approver
+                                elseif ($delivery->approval_status === 'Rejected') {
+                                    $drStatus = 'Rejected';
+                                    $statusClass = 'bg-red-700';
+                                }
+                                // Check if cancelled
+                                elseif ($delivery->status === 'Cancelled') {
                                     $drStatus = 'Cancelled';
                                     $statusClass = 'bg-red-600';
-                                } elseif ($delivery->delivery_type === 'Partial') {
+                                }
+                                // ✅ NOW check if SO is closed (only if not pulled out/rejected/cancelled)
+                                elseif ($order->is_closed) {
+                                    $drStatus = 'Fully Delivered';
+                                    $statusClass = 'bg-green-600';
+                                }
+                                // Check if pending approval
+                                elseif ($delivery->approval_status === 'Pending') {
+                                    $drStatus = 'Pending Approval';
+                                    $statusClass = 'bg-yellow-500 text-black';
+                                }
+                                // Check if delivered (Full)
+                                elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Full') {
+                                    $drStatus = 'Delivered (Full)';
+                                    $statusClass = 'bg-green-600';
+                                }
+                                // Check if delivered (Partial)
+                                elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Partial') {
                                     $drStatus = 'Partial';
                                     $statusClass = 'bg-orange-500';
-                                } elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Full') {
+                                }
+                                // Check if just delivered (no type specified)
+                                elseif ($delivery->status === 'Delivered') {
                                     $drStatus = 'Delivered';
                                     $statusClass = 'bg-green-600';
-                                } else {
-                                    // Fallback
+                                }
+                                // Check if in transit
+                                elseif ($delivery->status === 'In Transit') {
+                                    $drStatus = 'In Transit';
+                                    $statusClass = 'bg-blue-600';
+                                }
+                                // Check if preparing
+                                elseif ($delivery->status === 'Preparing') {
+                                    $drStatus = 'Preparing';
+                                    $statusClass = 'bg-indigo-600';
+                                }
+                                // Default fallback
+                                else {
                                     $drStatus = $delivery->status ?? 'Pending';
-                                    $statusClass = 'bg-yellow-500 text-black';
+                                    $statusClass = 'bg-gray-600';
                                 }
                             }
                         @endphp
-                        <span class="{{ $statusClass }} text-white px-2 py-1 rounded text-xs">{{ $drStatus }}</span>
+                        
+                        <span class="{{ $statusClass }} text-white px-2 py-1 rounded text-xs font-medium">
+                            {{ $drStatus }}
+                        </span>
                     </td>
 
-                   <td class="px-4 py-3 text-center">
+                    <td class="px-4 py-3 text-center">
                         <a href="{{ route('sales_orders.show', $order->id) }}" 
-                        class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs inline-block">
+                            class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs inline-block">
                             View
                         </a>
                         
-                        @if(auth()->user()->canManageSalesOrders() && !$order->is_closed)
+                        @php
+                            $user = auth()->user();
+                            $canShowEdit = false;
+                            $canShowApproveEdit = false;
+                            
+                            // ✅ Check if SO is fully delivered or closed
+                            $isFullyDelivered = $order->is_closed;
+                            
+                            // Also check delivery status
+                            if ($order->deliveries) {
+                                $delivery = $order->deliveries;
+                                // Check if delivery is marked as Delivered (Full) or status is Delivered
+                                if ($delivery->status === 'Delivered' || 
+                                    ($delivery->delivery_type === 'Full' && $delivery->status === 'Delivered')) {
+                                    $isFullyDelivered = true;
+                                }
+                            }
+                            
+                            // Only allow editing if NOT fully delivered
+                            if (!$isFullyDelivered) {
+                                // CC_Approver can always see edit button
+                                if ($user->canInitiateEdit()) {
+                                    $canShowEdit = true;
+                                    // CC_Approver can also approve for CSR editing
+                                    if (!$order->isEditApprovedByCC()) {
+                                        $canShowApproveEdit = true;
+                                    }
+                                }
+                                // CSR roles can see edit button only if CC approved editing
+                                elseif ($user->canEditAfterCCApproval() && $order->isEditApprovedByCC()) {
+                                    $canShowEdit = true;
+                                }
+                            }
+                        @endphp
+                        
+                        @if($canShowEdit)
                             <a href="{{ route('sales_orders.edit', $order->id) }}" 
-                            class="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs inline-block ml-2">
+                                class="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs inline-block ml-2">
                                 Edit
                             </a>
+                        @endif
+                        
+                        @if($canShowApproveEdit)
+                            <form action="{{ route('sales_orders.approveForEdit', $order->id) }}" method="POST" class="inline ml-2">
+                                @csrf
+                                <button type="submit" 
+                                    class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs"
+                                    onclick="return confirm('Approve this SO for editing by CSR team?')">
+                                    ✓ Approve Edit
+                                </button>
+                            </form>
+                        @endif
+                        
+                        @if($isFullyDelivered)
+                            <span class="bg-gray-600 text-white px-3 py-1 rounded text-xs ml-2" title="Cannot edit - Fully delivered">
+                                🔒 Locked
+                            </span>
                         @endif
                         
                         <form action="{{ route('sales_orders.destroy', $order->id) }}" method="POST" class="inline ml-2">
@@ -271,118 +365,150 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get dismissed order IDs from localStorage
-        const dismissedCancelled = JSON.parse(localStorage.getItem('dismissedCancelledOrders') || '[]');
-        const dismissedOverdue = JSON.parse(localStorage.getItem('dismissedOverdueOrders') || '[]');
-        
-        // Handle Cancelled Alert
-        const cancelledAlert = document.getElementById('cancelledAlert');
-        if (cancelledAlert) {
-            const cancelledList = document.getElementById('cancelledList');
-            const allCancelledItems = cancelledList.querySelectorAll('li[data-order-id]');
+// ✅ PERSISTENT ALERT SYSTEM - Stays hidden after closing
+function closeAlert(alertId) {
+    const alert = document.getElementById(alertId);
+    if (alert) {
+        alert.style.display = 'none';
+        // Store closed state in localStorage
+        localStorage.setItem(alertId + '_closed', 'true');
+    }
+}
+
+// ✅ CHECK AND SHOW ALERTS ON PAGE LOAD
+window.addEventListener('DOMContentLoaded', function() {
+    const cancelledAlert = document.getElementById('cancelledAlert');
+    const overdueAlert = document.getElementById('overdueAlert');
+    
+    // Only show cancelled alert if not previously closed
+    if (cancelledAlert && localStorage.getItem('cancelledAlert_closed') !== 'true') {
+        cancelledAlert.style.display = 'block';
+    }
+    
+    // Only show overdue alert if not previously closed
+    if (overdueAlert && localStorage.getItem('overdueAlert_closed') !== 'true') {
+        overdueAlert.style.display = 'block';
+    }
+});
+
+// ✅ OPTIONAL: Function to reset alerts (clear localStorage)
+// Call this if you want to make alerts reappear
+function resetAlerts() {
+    localStorage.removeItem('cancelledAlert_closed');
+    localStorage.removeItem('overdueAlert_closed');
+    location.reload();
+}
+
+function printList() {
+    const dateFrom = document.querySelector('input[name="date_from"]').value;
+    const dateTo = document.querySelector('input[name="date_to"]').value;
+    const search = document.querySelector('input[name="search"]').value;
+    
+    let url = '{{ route("sales_orders.printList") }}?';
+    
+    if (dateFrom) url += 'date_from=' + dateFrom + '&';
+    if (dateTo) url += 'date_to=' + dateTo + '&';
+    if (search) url += 'search=' + encodeURIComponent(search);
+    
+    window.open(url, '_blank');
+}
+
+function exportExcel() {
+    const dateFrom = document.querySelector('input[name="date_from"]').value;
+    const dateTo = document.querySelector('input[name="date_to"]').value;
+    const search = document.querySelector('input[name="search"]').value;
+    
+    let url = '{{ route("sales_orders.exportExcel") }}?';
+    
+    if (dateFrom) url += 'date_from=' + dateFrom + '&';
+    if (dateTo) url += 'date_to=' + dateTo + '&';
+    if (search) url += 'search=' + encodeURIComponent(search);
+    
+    window.location.href = url;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('statusUpdateForm');
+    const submitBtn = document.getElementById('submitStatusBtn');
+    const modal = document.getElementById('notesModal');
+    const modalNotesTextarea = document.getElementById('modalNotesTextarea');
+    const modalStatusText = document.getElementById('modalStatusText');
+    const hiddenNotes = document.getElementById('hiddenNotes');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const confirmModalBtn = document.getElementById('confirmModalBtn');
+    const statusRadios = document.querySelectorAll('.status-radio');
+
+    let selectedStatus = '';
+
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             
-            // Filter out dismissed orders
-            let visibleCount = 0;
-            allCancelledItems.forEach(item => {
-                const orderId = parseInt(item.dataset.orderId);
-                if (dismissedCancelled.includes(orderId)) {
-                    item.remove(); // Remove already-dismissed orders from display
-                } else {
-                    visibleCount++;
-                }
-            });
+            selectedStatus = document.querySelector('.status-radio:checked')?.value;
             
-            // Only show alert if there are NEW orders
-            if (visibleCount > 0) {
-                cancelledAlert.style.display = 'block';
+            if (!selectedStatus) {
+                alert('Please select a status first.');
+                return;
             }
-        }
-        
-        // Handle Overdue Alert
-        const overdueAlert = document.getElementById('overdueAlert');
-        if (overdueAlert) {
-            const overdueList = document.getElementById('overdueList');
-            const allOverdueItems = overdueList.querySelectorAll('li[data-order-id]');
-            
-            // Filter out dismissed orders
-            let visibleCount = 0;
-            allOverdueItems.forEach(item => {
-                const orderId = parseInt(item.dataset.orderId);
-                if (dismissedOverdue.includes(orderId)) {
-                    item.remove(); // Remove already-dismissed orders from display
-                } else {
-                    visibleCount++;
+
+            if (selectedStatus === 'Declined' || selectedStatus === 'Cancelled') {
+                modalStatusText.textContent = selectedStatus.toLowerCase();
+                modalNotesTextarea.value = '';
+                modal.classList.remove('hidden');
+                modalNotesTextarea.focus();
+            } else {
+                if (confirm('Are you sure you want to update this status to Approved?')) {
+                    hiddenNotes.value = '';
+                    form.submit();
                 }
-            });
-            
-            // Only show alert if there are NEW orders
-            if (visibleCount > 0) {
-                overdueAlert.style.display = 'block';
             }
-        }
-    });
-
-    function printList() {
-        const dateFrom = document.querySelector('[name="date_from"]').value;
-        const dateTo = document.querySelector('[name="date_to"]').value;
-        const search = document.querySelector('[name="search"]').value;
-        let url = '{{ route("sales_orders.printList") }}?';
-
-        if (dateFrom) url += 'date_from=' + encodeURIComponent(dateFrom) + '&';
-        if (dateTo) url += 'date_to=' + encodeURIComponent(dateTo) + '&';
-        if (search) url += 'search=' + encodeURIComponent(search);
-
-        window.open(url, '_blank');
+        });
     }
 
-    function exportExcel() {
-        const dateFrom = document.querySelector('[name="date_from"]').value;
-        const dateTo = document.querySelector('[name="date_to"]').value;
-        const search = document.querySelector('[name="search"]').value;
-
-        let url = '{{ route("sales_orders.exportExcel") }}?';
-        if (dateFrom) url += 'date_from=' + encodeURIComponent(dateFrom) + '&';
-        if (dateTo) url += 'date_to=' + encodeURIComponent(dateTo) + '&';
-        if (search) url += 'search=' + encodeURIComponent(search);
-
-        window.location.href = url;
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+    if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+    
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
     }
 
-    // ✅ SMART DISMISSAL: Remembers specific order IDs
-    function closeAlert(alertId) {
-        const alert = document.getElementById(alertId);
-        if (!alert) return;
-        
-        // Get all order IDs currently in this alert
-        const listId = alertId === 'cancelledAlert' ? 'cancelledList' : 'overdueList';
-        const list = document.getElementById(listId);
-        const orderIds = Array.from(list.querySelectorAll('li[data-order-id]')).map(item => 
-            parseInt(item.dataset.orderId)
-        );
-        
-        // Get existing dismissed orders
-        const storageKey = alertId === 'cancelledAlert' ? 'dismissedCancelledOrders' : 'dismissedOverdueOrders';
-        const dismissed = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        
-        // Add current orders to dismissed list
-        const updated = [...new Set([...dismissed, ...orderIds])]; // Remove duplicates
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-        
-        // Fade out animation
-        alert.style.transition = 'opacity 0.3s ease';
-        alert.style.opacity = '0';
-        setTimeout(() => {
-            alert.style.display = 'none';
-        }, 300);
+    function closeModal() {
+        modal.classList.add('hidden');
+        modalNotesTextarea.value = '';
     }
 
-    // ✅ OPTIONAL: Clear dismissed history (for testing or manual reset)
-    function resetAlerts() {
-        localStorage.removeItem('dismissedCancelledOrders');
-        localStorage.removeItem('dismissedOverdueOrders');
-        location.reload();
+    if (confirmModalBtn) {
+        confirmModalBtn.addEventListener('click', function() {
+            const notes = modalNotesTextarea.value.trim();
+            
+            if (!notes) {
+                alert('Please provide a reason before confirming.');
+                modalNotesTextarea.focus();
+                return;
+            }
+
+            hiddenNotes.value = notes;
+            modal.classList.add('hidden');
+            
+            setTimeout(function() {
+                form.submit();
+            }, 100);
+        });
     }
+
+    if (modalNotesTextarea) {
+        modalNotesTextarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                confirmModalBtn.click();
+            }
+        });
+    }
+});
 </script>
 
 @endsection

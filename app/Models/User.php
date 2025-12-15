@@ -65,7 +65,7 @@ class User extends Authenticatable
 
     public function canApproveSalesOrders()
     {
-        return in_array($this->role, ['Admin', 'IT', 'CSR_Approver']);
+        return in_array($this->role, ['Admin', 'IT', 'CC_Approver','Accounting_Approver']);
     }
 
     // ✅ Already correct
@@ -173,6 +173,16 @@ class User extends Authenticatable
             'Accounting_Creator', 
             'Accounting_Approver'
         ]);
+    }
+
+    public function canInitiateEdit()
+    {
+        return in_array($this->role, ['Admin', 'IT', 'CC_Approver']);
+    }
+
+    public function canEditAfterCCApproval()
+    {
+        return in_array($this->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
     }
 
 }
