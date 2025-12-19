@@ -276,15 +276,15 @@
         </div>
     </div>
 
-    @if($salesOrder->additional_instructions)
-    <div class="instructions-section">
-        <div class="instructions-title">📋 Additional Delivery Instructions:</div>
-        <div class="instructions-content">
-            {{ $salesOrder->additional_instructions }}
-        </div>
+<!-- Additional Delivery Instructions -->
+@if($salesOrder->additional_instructions)
+<div class="instructions-section">
+    <div class="instructions-title">📋 Additional Delivery Instructions:</div>
+    <div class="instructions-content">
+        {{ $salesOrder->additional_instructions }}
     </div>
-    @endif
-
+</div>
+@endif
     <!-- Items Table -->
     <table>
         <thead>

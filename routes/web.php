@@ -1,26 +1,73 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\{
     CustomerController,
     UserController,
-    SalesOrderController,
+    SalesOrderController,   
     ItemController,
     DashboardController,
     DeliveriesController,
     UserManagementController,
     RecordsController,
-    ImportController
-
+    ImportController,
+    ChangeLogController,
+    SalesDashboardController,
 };
+
+Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
+    ->name('users.reset-attempts')
+    ->middleware('auth');
 
     // ===================== AUTH (Public Routes) =====================
     Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [UserController::class, 'login'])->name('login.submit');
-    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+    Route::match(['get', 'post'], '/logout', [UserController::class, 'logout'])->name('logout');
 
     // ===================== AUTHENTICATED ROUTES =====================
     Route::middleware(['auth'])->group(function () {
+
+    //====================== EMAIL NOTIFICATIONS SETTINGS ======================
+//     Route::get('/test-mailable', function() {
+//     try {
+//         $salesOrder = \App\Models\SalesOrder::with('customer', 'preparer')->first();
+        
+//         if (!$salesOrder) {
+//             return '❌ No sales orders found';
+//         }
+        
+//         $data = [
+//             'title' => 'TEST: New Sales Order',
+//             'message' => 'This is a test email',
+//             'sales_order_number' => $salesOrder->sales_order_number,
+//             'customer_name' => $salesOrder->customer->customer_name ?? 'N/A',
+//             'total_amount' => number_format($salesOrder->total_amount, 2),
+//             'status' => $salesOrder->status,
+//             'created_by' => $salesOrder->preparer->name ?? 'System',
+//             'created_at' => $salesOrder->created_at->format('M d, Y h:i A'),
+//             'view_url' => route('sales_orders.show', $salesOrder->id),
+//         ];
+        
+//         Mail::to('kimberly.lopez@meatplus.ph')->send(new \App\Mail\SalesOrderCreated($data));
+        
+//         return '✅ Email sent using Mailable! Check your inbox.';
+        
+//     } catch (\Exception $e) {
+//         return '❌ Error: ' . $e->getMessage() . '<br><br>Stack: ' . $e->getTraceAsString();
+//     }
+// })->middleware('auth');
+
+    // ===================== CHANGE LOG & NOTIFICATIONS =====================
+    Route::get('/changelog', [ChangeLogController::class, 'index'])->name('changelog.index');
+    Route::get('/changelog/sales-order/{id}', [ChangeLogController::class, 'salesOrderChanges'])->name('changelog.sales_order');
+    Route::get('/changelog/export', [ChangeLogController::class, 'export'])->name('changelog.export');
+    
+    Route::get('/notifications', [ChangeLogController::class, 'notifications'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [ChangeLogController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [ChangeLogController::class, 'markAllAsRead'])->name('notifications.read_all');
+    Route::get('/notifications/unread-count', [ChangeLogController::class, 'unreadCount'])->name('notifications.unread_count');
+
 
     //===================== SALES ANALYTICS =====================
     Route::get('/sales/dashboard', function () {
@@ -44,6 +91,11 @@ use App\Http\Controllers\{
         return app(\App\Http\Controllers\SalesDashboardController::class)->getMetrics(request());
     })->name('sales.metrics')->middleware('auth');
     
+    // Customer Export
+    Route::get('/customers/export', [CustomerController::class, 'export'])
+    ->name('customers.export')
+    ->middleware('auth');
+
     // ===================== BATCH PRINT =====================
     Route::post('/records/sales-orders/batch-print',
     [RecordsController::class, 'batchPrintSalesOrders']
@@ -96,11 +148,27 @@ Route::post('/excel/import/monthly-sales', [ImportController::class, 'importMont
     // Delivery Records
     Route::get('/records/delivery/{id}', [App\Http\Controllers\RecordsController::class, 'dshow'])->name('records.dshow');
 
-        // ===================== SALES ORDERS =====================
-   // ===================== SALES ORDERS =====================
+     // ===================== SALES ORDERS =====================
 Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // =================== SPECIFIC ACTION ROUTES (MUST BE BEFORE {id} ROUTES) ===================
+    
+    // ✅ BULK ACTIONS - MUST BE BEFORE OTHER ROUTES
+    Route::post('/bulk-approve', function () {
+        $user = auth()->user();
+        if (in_array($user->role, ['Admin', 'IT', 'CSR_Approver', 'CC_Approver', 'Accounting_Approver'])) {
+            return app(SalesOrderController::class)->bulkApprove(request());
+        }
+        return view('errors.noaccess');
+    })->name('bulkApprove');
+    
+    Route::post('/bulk-decline', function () {
+        $user = auth()->user();
+        if (in_array($user->role, ['Admin', 'IT', 'CSR_Approver', 'CC_Approver', 'Accounting_Approver'])) {
+            return app(SalesOrderController::class)->bulkDecline(request());
+        }
+        return view('errors.noaccess');
+    })->name('bulkDecline');
     
     // Manual Close Sales Order
     Route::patch('/{id}/close', function ($id) {
@@ -260,95 +328,98 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 });
 
     // ===================== ITEMS =====================
-    Route::prefix('items')->name('items.')->group(function () {
-        // ✅ BULK ACTIONS - Place at the top before parameterized routes
-        Route::post('/bulk-approve', [ItemController::class, 'bulkApprove'])->name('bulk-approve');
-        Route::post('/bulk-reject', [ItemController::class, 'bulkReject'])->name('bulk-reject');
-        
-        // TOGGLE ENABLE/DISABLE
-        Route::post('/{item}/toggle', [ItemController::class, 'toggleStatus'])->name('toggle');
-        
-        // ✅ Index
-        Route::get('/', function () {
-            $user = auth()->user(); 
-            if (in_array($user->role, [
-                'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Creator', 'CC_Approver',
-            ])) {
-                return app(ItemController::class)->index(); 
-            }
-            return view('errors.noaccess');
-        })->name('index');
-        
-        // ✅ Create
-        Route::get('/create', function () {
-            $user = auth()->user();
-            if (in_array($user->role, [
-                'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver','CC_Creator', 'CC_Approver',
-            ])) { 
-                return app(ItemController::class)->create();
-            } 
-            return view('errors.noaccess');
-        })->name('create');
-        
-        // ✅ Store
-        Route::post('/', function () {
-            $user = auth()->user();
-            if (in_array($user->role, [
-                'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
-            ])) {
-                return app(ItemController::class)->store(request()); 
-            } 
-            return view('errors.noaccess');
-        })->name('store');
-        
-        // Item Approval Routes
-        Route::post('/{id}/approve', [ItemController::class, 'approve'])->name('approve');
-        Route::post('/{id}/reject', [ItemController::class, 'reject'])->name('reject');
-        Route::get('/pending', [ItemController::class, 'pending'])->name('pending');
-        
-        // ✅ Edit
-        Route::get('/{id}/edit', function ($id) {
-            $user = auth()->user();
-            if (in_array($user->role, [
-                'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
-            ])) {  
-                return app(ItemController::class)->edit($id);
-            }
-            return view('errors.noaccess');
-        })->name('edit');
-        
-        // ✅ Update
-        Route::put('/{id}', function ($id) {
-            $user = auth()->user();
-            if (in_array($user->role, [
-                'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
-            ])) { 
-                return app(ItemController::class)->update(request(), $id); 
-            }
-            return view('errors.noaccess');
-        })->name('update');
-        
-        // ✅ Delete
-        Route::delete('/{id}', function ($id) {
-            $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT','Accounting_Approver'])) { 
-                return app(ItemController::class)->destroy($id); 
-            }
-            return view('errors.noaccess');
-        })->name('destroy');
-        
-        // ✅ Show - Must be LAST to avoid conflicts
-        Route::get('/{id}', function ($id) {
-            $user = auth()->user();
-            if (in_array($user->role, [
-                'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver',  'CC_Creator', 'CC_Approver'
-            ])) {
-                return app(ItemController::class)->show($id);
-            }
-            return view('errors.noaccess');
-        })->name('show');
-    });
+Route::prefix('items')->name('items.')->group(function () {
 
+    // ✅ FIXED: Remove the duplicate '/items' prefix - just use '/export'
+    Route::get('/export', [ItemController::class, 'export'])->name('export');
+
+    // ✅ BULK ACTIONS - Place at the top before parameterized routes
+    Route::post('/bulk-approve', [ItemController::class, 'bulkApprove'])->name('bulk-approve');
+    Route::post('/bulk-reject', [ItemController::class, 'bulkReject'])->name('bulk-reject');
+    
+    // Item Approval Routes (must be before {id} routes)
+    Route::get('/pending', [ItemController::class, 'pending'])->name('pending');
+    Route::post('/{id}/approve', [ItemController::class, 'approve'])->name('approve');
+    Route::post('/{id}/reject', [ItemController::class, 'reject'])->name('reject');
+    
+    // TOGGLE ENABLE/DISABLE
+    Route::post('/{item}/toggle', [ItemController::class, 'toggleStatus'])->name('toggle');
+    
+    // ✅ Index
+    Route::get('/', function () {
+        $user = auth()->user(); 
+        if (in_array($user->role, [
+            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Creator', 'CC_Approver',
+        ])) {
+            return app(ItemController::class)->index(); 
+        }
+        return view('errors.noaccess');
+    })->name('index');
+    
+    // ✅ Create
+    Route::get('/create', function () {
+        $user = auth()->user();
+        if (in_array($user->role, [
+            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver','CC_Creator', 'CC_Approver',
+        ])) { 
+            return app(ItemController::class)->create();
+        } 
+        return view('errors.noaccess');
+    })->name('create');
+    
+    // ✅ Store
+    Route::post('/', function () {
+        $user = auth()->user();
+        if (in_array($user->role, [
+            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
+        ])) {
+            return app(ItemController::class)->store(request()); 
+        } 
+        return view('errors.noaccess');
+    })->name('store');
+    
+    // ✅ Edit
+    Route::get('/{id}/edit', function ($id) {
+        $user = auth()->user();
+        if (in_array($user->role, [
+            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
+        ])) {  
+            return app(ItemController::class)->edit($id);
+        }
+        return view('errors.noaccess');
+    })->name('edit');
+    
+    // ✅ Update
+    Route::put('/{id}', function ($id) {
+        $user = auth()->user();
+        if (in_array($user->role, [
+            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
+        ])) { 
+            return app(ItemController::class)->update(request(), $id); 
+        }
+        return view('errors.noaccess');
+    })->name('update');
+    
+    // ✅ Delete
+    Route::delete('/{id}', function ($id) {
+        $user = auth()->user();
+        if (in_array($user->role, ['Admin', 'IT','Accounting_Approver'])) { 
+            return app(ItemController::class)->destroy($id); 
+        }
+        return view('errors.noaccess');
+    })->name('destroy');
+    
+    // ✅ Show - Must be LAST to avoid conflicts
+    Route::get('/{id}', function ($id) {
+        $user = auth()->user();
+        if (in_array($user->role, [
+            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver',  'CC_Creator', 'CC_Approver'
+        ])) {
+            return app(ItemController::class)->show($id);
+        }
+        return view('errors.noaccess');
+    })->name('show');
+});
 
    // ===================== CUSTOMERS =====================
 Route::prefix('customers')->name('customers.')->group(function () {
@@ -591,12 +662,79 @@ Route::prefix('customers')->name('customers.')->group(function () {
             return view('errors.noaccess');
         })->name('show');
     });
+    //====================== CHANGE LOG CONTROLLER =====================
+    Route::middleware('auth')->prefix('changelog')->name('changelog.')->group(function () {
+        
+        // Main changelog index
+        Route::get('/', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+                return app(App\Http\Controllers\ChangeLogController::class)->index(request());
+            }
+            return view('errors.noaccess');
+        })->name('index');
+        
+        // View changes for specific sales order
+        Route::get('/sales-order/{id}', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+                return app(App\Http\Controllers\ChangeLogController::class)->salesOrderChanges($id);
+            }
+            return view('errors.noaccess');
+        })->name('sales_order');
+        
+        // Export changelog to CSV
+        Route::get('/export', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+                return app(App\Http\Controllers\ChangeLogController::class)->export(request());
+            }
+            return view('errors.noaccess');
+        })->name('export');
+        
+        // Notifications
+        Route::get('/notifications', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+                return app(App\Http\Controllers\ChangeLogController::class)->notifications();
+            }
+            return view('errors.noaccess');
+        })->name('notifications');
+        
+        // Mark notification as read
+        Route::post('/notifications/{id}/read', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+                return app(App\Http\Controllers\ChangeLogController::class)->markAsRead($id);
+            }
+            return redirect()->back()->with('error', 'Access denied');
+        })->name('notifications.read');
+        
+        // Mark all notifications as read
+        Route::post('/notifications/read-all', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+                return app(App\Http\Controllers\ChangeLogController::class)->markAllAsRead();
+            }
+            return redirect()->back()->with('error', 'Access denied');
+        })->name('notifications.read_all');
+        
+        // Get unread notification count (for AJAX)
+        Route::get('/notifications/unread-count', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+                return app(App\Http\Controllers\ChangeLogController::class)->unreadCount();
+            }
+            return response()->json(['count' => 0]);
+        })->name('notifications.unread_count');
+    });
 
     // ===================== USER MANAGEMENT =====================
 Route::prefix('admin/users')->name('admin.users.')->group(function () {
     Route::get('/', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->index() : view('errors.noaccess'))->name('index');
     Route::get('/create', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->create() : view('errors.noaccess'))->name('create');
     Route::post('/', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->store(request()) : view('errors.noaccess'))->name('store');
+    Route::post('/{id}/toggle-lock', fn($id) => in_array(auth()->user()->role, ['IT']) ? app(UserManagementController::class)->toggleLock($id) : view('errors.noaccess'))->name('toggleLock');
     Route::get('/{id}/edit', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->edit($id) : view('errors.noaccess'))->name('edit');
     Route::put('/{id}', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->update(request(), $id) : view('errors.noaccess'))->name('update');
     Route::delete('/{id}', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->destroy($id) : view('errors.noaccess'))->name('destroy');
@@ -612,9 +750,6 @@ Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.
 Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
-
-// Session check route for inactivity timeout
-// Route::get('/check-session', [UserController::class, 'checkSession'])->name('check.session');
 
 Route::get('/debug-delivery', function() {
     $delivery = \App\Models\Deliveries::with(['salesOrder.customer'])->first();

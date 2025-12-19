@@ -7,6 +7,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Customer;
 use App\Models\Item;
 use Illuminate\Support\Facades\DB;
+use App\Mail\CustomerBatchImported;
 
 class ExcelImportController extends Controller
 {
@@ -53,6 +54,7 @@ class ExcelImportController extends Controller
         'tin_no' => 'tin_no',
         'tin' => 'tin_no',
         'collection terms' => 'collection_terms',
+        'collection term' => 'collection_terms',
         'collection_terms' => 'collection_terms',
         'sales rep' => 'sales_rep',
         'sales_rep' => 'sales_rep',
@@ -309,6 +311,7 @@ class ExcelImportController extends Controller
             $imported = 0;
             $errors = [];
             $processedCodes = []; // Track customer codes in this import
+            $newCustomers = [];
 
             DB::beginTransaction();
 
@@ -413,8 +416,9 @@ class ExcelImportController extends Controller
                         }
                     }
 
-                    Customer::create($customerData);
+                    $customer = Customer::create($customerData);
                     $processedCodes[] = $customerCode; // Mark as processed
+                    $newCustomers[] = $customer;
                     $imported++;
                 } catch (\Exception $e) {
                     $errors[] = "Row $rowNum: " . $e->getMessage();
@@ -422,6 +426,20 @@ class ExcelImportController extends Controller
             }
 
             DB::commit();
+
+            if ($imported > 0 && !empty($newCustomers)) {
+                try {
+                    $this->sendBatchImportNotification($newCustomers, $imported);
+                    \Log::info('📧 Batch import notification sent', [
+                        'count' => $imported,
+                        'imported_by' => auth()->user()->name ?? 'System'
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('❌ Failed to send batch import notification', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
 
             if (!empty($errors)) {
                 $errorMessage = implode("\n", $errors);
@@ -436,6 +454,26 @@ class ExcelImportController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Error importing file: ' . $e->getMessage());
+        }
+    }
+
+        private function sendBatchImportNotification($customers, $count)
+    {
+        $recipients = User::whereIn('role', ['CC_Approver', 'CC_Creator', 'CSR_Approver', 'Admin', 'IT'])
+                        ->whereNotNull('email')
+                        ->get();
+        
+        $data = [
+            'title' => 'Batch Customer Import Completed',
+            'message' => "$count new customers have been imported to the system.",
+            'count' => $count,
+            'customers' => $customers->take(10), // Show first 10
+            'imported_by' => auth()->user()->name ?? 'System',
+            'view_url' => route('customers.index'),
+        ];
+        
+        foreach ($recipients as $recipient) {
+            Mail::to($recipient->email)->send(new CustomerBatchImported($data));
         }
     }
 }

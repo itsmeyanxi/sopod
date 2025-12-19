@@ -27,21 +27,31 @@
         </div>
     @endif
 
-    <!-- Search + Add Button -->
-    <div class="flex items-center justify-between gap-4 mb-4">
-        <input id="itemSearchInput" 
-            type="text" 
-            placeholder="Search item code / description / brand / category"
-            class="w-80 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring focus:ring-purple-500">
+<!-- Search + Add Button -->
+<div class="flex items-center justify-between gap-4 mb-4">
+    <input id="itemSearchInput" 
+        type="text" 
+        placeholder="Search item code / description / brand / category"
+        class="w-80 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring focus:ring-purple-500">
+
+    <div class="flex gap-3">
+        {{-- ✅ Export Button --}}
+        <a href="{{ route('items.export') }}" 
+           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Export to Excel
+        </a>
 
         @if(auth()->user()->canManageItems())
             <a href="{{ route('items.create') }}" 
-            class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition">
+               class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition">
                 Add New Item
             </a>
         @endif
     </div>
-
+</div>
     <!-- Bulk Actions Bar (only shown when items are selected) -->
     @if(auth()->user()->canApproveItems())
     <div id="bulkActionsBar" class="hidden bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-4 mb-4 shadow-lg">

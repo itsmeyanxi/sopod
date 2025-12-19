@@ -11,49 +11,230 @@ use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Traits\LogsControllerActions;
+
 
 class SalesOrderController extends Controller
 {
-    public function index(Request $request)
-    {
-        $query = SalesOrder::with(['customer', 'preparer', 'approver', 'deliveries'])
-            ->orderByDesc('created_at');
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
+    use LogsControllerActions;
+   
+   protected function getLogChannel(): string
+   {
+       return 'sales_orders';
+   }
 
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
+   public function index(Request $request)
+{
+    $query = SalesOrder::with(['customer', 'preparer', 'approver', 'deliveries'])
+        ->orderByDesc('created_at');
 
-        if ($request->filled('search')) {
-            $keyword = $request->search;
-
-            $query->where(function ($q) use ($keyword) {
-                $q->where('sales_order_number', 'LIKE', "%$keyword%")
-                    ->orWhere('status', 'LIKE', "%$keyword%")
-                    ->orWhere('po_number', 'LIKE', "%$keyword%")
-                    ->orWhere('sales_rep', 'LIKE', "%$keyword%")
-                    ->orWhereHas('customer', function ($c) use ($keyword) {
-                        $c->where('customer_name', 'LIKE', "%$keyword%");
-                    })
-                    ->orWhereHas('preparer', function ($p) use ($keyword) {
-                        $p->where('name', 'LIKE', "%$keyword%");
-                    })
-                    ->orWhereHas('items', function ($i) use ($keyword) {
-                        $i->where('item_code', 'LIKE', "%$keyword%")
-                          ->orWhere('item_description', 'LIKE', "%$keyword%")
-                          ->orWhere('brand', 'LIKE', "%$keyword%")
-                          ->orWhere('item_category', 'LIKE', "%$keyword%");
-                    });
-            });
-        }
-
-        $salesOrders = $query->get();
-
-        return view('sales_orders.index', compact('salesOrders'));
+    // This allows filtering even for SOs without deliveries yet
+    if ($request->filled('date_from')) {
+        $query->whereDate('request_delivery_date', '>=', $request->date_from);
     }
+
+    if ($request->filled('date_to')) {
+        $query->whereDate('request_delivery_date', '<=', $request->date_to);
+    }
+
+    if ($request->filled('search')) {
+        $keyword = $request->search;
+
+        $query->where(function ($q) use ($keyword) {
+            $q->where('sales_order_number', 'LIKE', "%$keyword%")
+                ->orWhere('status', 'LIKE', "%$keyword%")
+                ->orWhere('po_number', 'LIKE', "%$keyword%")
+                ->orWhere('sales_rep', 'LIKE', "%$keyword%")
+                ->orWhereHas('customer', function ($c) use ($keyword) {
+                    $c->where('customer_name', 'LIKE', "%$keyword%");
+                })
+                ->orWhereHas('preparer', function ($p) use ($keyword) {
+                    $p->where('name', 'LIKE', "%$keyword%");
+                })
+                ->orWhereHas('items', function ($i) use ($keyword) {
+                    $i->where('item_code', 'LIKE', "%$keyword%")
+                      ->orWhere('item_description', 'LIKE', "%$keyword%")
+                      ->orWhere('brand', 'LIKE', "%$keyword%")
+                      ->orWhere('item_category', 'LIKE', "%$keyword%");
+                });
+        });
+    }
+
+    $salesOrders = $query->get();
+
+    return view('sales_orders.index', compact('salesOrders'));
+}
+
+/**
+ * ✅ Bulk approve multiple sales orders
+ */
+public function bulkApprove(Request $request)
+{
+    try {
+        $request->validate([
+            'order_ids' => 'required|array|min:1',
+            'order_ids.*' => 'exists:sales_orders,id',
+        ]);
+
+        $orderIds = $request->order_ids;
+        $approverId = auth()->check() ? auth()->id() : 40;
+        
+        DB::beginTransaction();
+
+        $approvedCount = 0;
+        $errors = [];
+
+        foreach ($orderIds as $orderId) {
+            try {
+                $salesOrder = SalesOrder::findOrFail($orderId);
+                
+                // Skip if already approved
+                if ($salesOrder->status === 'Approved') {
+                    continue;
+                }
+                
+                $oldStatus = $salesOrder->status;
+
+                $salesOrder->update([
+                    'status' => 'Approved',
+                    'approved_by' => $approverId,
+                ]);
+
+                // Try to send email notification
+                app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
+                    $salesOrder->fresh(),
+                    $oldStatus,
+                    'Approved'
+                );
+
+                // Log activity
+                \App\Models\Activity::create([
+                    'user_name' => auth()->user()->name ?? 'review',
+                    'action' => 'Bulk Approved',
+                    'item' => $salesOrder->sales_order_number,
+                    'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
+                    'type' => 'Sales Order',
+                    'message' => 'Bulk approved sales order: ' . $salesOrder->sales_order_number,
+                ]);
+
+                $approvedCount++;
+
+            } catch (\Exception $e) {
+                $errors[] = "Failed to approve SO #{$orderId}: " . $e->getMessage();
+                \Log::error('Bulk approval error for SO #' . $orderId, [
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        DB::commit();
+
+        $message = "Successfully approved {$approvedCount} sales order(s)!";
+        if (count($errors) > 0) {
+            $message .= " " . count($errors) . " failed. Check logs for details.";
+        }
+
+        return redirect()->route('sales_orders.index')
+            ->with('success', $message);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Bulk approval failed', [
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+        ]);
+        
+        return redirect()->back()
+            ->with('error', 'Bulk approval failed: ' . $e->getMessage());
+    }
+}
+
+/**
+ * ✅ Bulk decline multiple sales orders
+ */
+public function bulkDecline(Request $request)
+{
+    try {
+        $request->validate([
+            'order_ids' => 'required|array|min:1',
+            'order_ids.*' => 'exists:sales_orders,id',
+            'decline_reason' => 'required|string|min:5',
+        ]);
+
+        $orderIds = $request->order_ids;
+        $reason = $request->decline_reason;
+        
+        DB::beginTransaction();
+
+        $declinedCount = 0;
+        $errors = [];
+
+        foreach ($orderIds as $orderId) {
+            try {
+                $salesOrder = SalesOrder::findOrFail($orderId);
+                
+                // Skip if already declined
+                if ($salesOrder->status === 'Declined') {
+                    continue;
+                }
+                
+                $oldStatus = $salesOrder->status;
+
+                $salesOrder->update([
+                    'status' => 'Declined',
+                    'approved_by' => null,
+                    'notes' => $reason,
+                ]);
+
+                // Try to send email notification
+                app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
+                    $salesOrder->fresh(),
+                    $oldStatus,
+                    'Declined'
+                );
+
+                // Log activity
+                \App\Models\Activity::create([
+                    'user_name' => auth()->user()->name ?? 'System',
+                    'action' => 'Bulk Declined',
+                    'item' => $salesOrder->sales_order_number,
+                    'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
+                    'type' => 'Sales Order',
+                    'message' => 'Bulk declined sales order: ' . $salesOrder->sales_order_number . ' - Reason: ' . $reason,
+                ]);
+
+                $declinedCount++;
+
+            } catch (\Exception $e) {
+                $errors[] = "Failed to decline SO #{$orderId}: " . $e->getMessage();
+                \Log::error('Bulk decline error for SO #' . $orderId, [
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        DB::commit();
+
+        $message = "Successfully declined {$declinedCount} sales order(s)!";
+        if (count($errors) > 0) {
+            $message .= " " . count($errors) . " failed. Check logs for details.";
+        }
+
+        return redirect()->route('sales_orders.index')
+            ->with('success', $message);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Bulk decline failed', [
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+        ]);
+        
+        return redirect()->back()
+            ->with('error', 'Bulk decline failed: ' . $e->getMessage());
+    }
+}
 
     public function create()
     {
@@ -409,6 +590,28 @@ public function update(Request $request, $id)
 
     DB::beginTransaction();
     try {
+        // ✅ TRACK CHANGES BEFORE UPDATING - Capture original data
+        $originalItems = $salesOrder->items->keyBy('item_code')->map(function($item) {
+            return [
+                'item_code' => $item->item_code,
+                'item_description' => $item->item_description,
+                'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+                'unit' => $item->unit,
+                'brand' => $item->brand,
+            ];
+        })->toArray();
+
+        // Store original SO data
+        $originalData = [
+            'customer_id' => $salesOrder->customer_id,
+            'po_number' => $salesOrder->po_number,
+            'request_delivery_date' => $salesOrder->request_delivery_date,
+            'shipping_address' => $salesOrder->shipping_address,
+            'sales_rep' => $salesOrder->sales_rep,
+            'total_amount' => $salesOrder->total_amount,
+        ];
+
         // ✅ Handle PO Image Upload
         $poImageFilename = $salesOrder->po_image; // Keep existing by default
         
@@ -496,8 +699,118 @@ public function update(Request $request, $id)
         $salesOrder->total_amount = $newTotalAmount;
         $salesOrder->save();
 
+        // ✅ NOW TRACK THE CHANGES - Compare original vs new
+        $userId = auth()->id();
+
+        // Track main field changes
+        $trackableFields = ['customer_id', 'po_number', 'request_delivery_date', 'shipping_address', 'sales_rep', 'total_amount'];
+
+        foreach ($trackableFields as $field) {
+            $oldValue = $originalData[$field] ?? null;
+            $newValue = $salesOrder->$field ?? null;
+
+            if ($oldValue != $newValue) {
+                $oldDisplay = $this->formatChangeValue($field, $oldValue);
+                $newDisplay = $this->formatChangeValue($field, $newValue);
+
+                \App\Models\SalesOrderChange::create([
+                    'sales_order_id' => $salesOrder->id,
+                    'user_id' => $userId,
+                    'field_changed' => $field,
+                    'old_value' => $oldDisplay,
+                    'new_value' => $newDisplay,
+                    'change_type' => 'update',
+                ]);
+            }
+        }
+
+        // Track item changes
+        $newItems = $salesOrder->fresh()->items->keyBy('item_code');
+
+        foreach ($newItems as $itemCode => $newItem) {
+            if (isset($originalItems[$itemCode])) {
+                $originalItem = $originalItems[$itemCode];
+                
+                // Check quantity change
+                if ($originalItem['quantity'] != $newItem->quantity) {
+                    \App\Models\SalesOrderChange::create([
+                        'sales_order_id' => $salesOrder->id,
+                        'user_id' => $userId,
+                        'field_changed' => 'quantity',
+                        'old_value' => number_format($originalItem['quantity'], 2),
+                        'new_value' => number_format($newItem->quantity, 2),
+                        'change_type' => 'update',
+                    ]);
+                }
+                
+                // Check unit price change
+                if ($originalItem['unit_price'] != $newItem->unit_price) {
+                    \App\Models\SalesOrderChange::create([
+                        'sales_order_id' => $salesOrder->id,
+                        'user_id' => $userId,
+                        'field_changed' => 'unit_price',
+                        'old_value' => '₱' . number_format($originalItem['unit_price'], 2),
+                        'new_value' => '₱' . number_format($newItem->unit_price, 2),
+                        'change_type' => 'update',
+                    ]);
+                }
+                
+                // Check product name change
+                if ($originalItem['item_description'] != $newItem->item_description) {
+                    \App\Models\SalesOrderChange::create([
+                        'sales_order_id' => $salesOrder->id,
+                        'user_id' => $userId,
+                        'field_changed' => 'product_name',
+                        'old_value' => $originalItem['item_description'],
+                        'new_value' => $newItem->item_description,
+                        'change_type' => 'update',
+                    ]);
+                }
+            } else {
+                // New item added
+                \App\Models\SalesOrderChange::create([
+                    'sales_order_id' => $salesOrder->id,
+                    'user_id' => $userId,
+                    'field_changed' => 'line_item',
+                    'old_value' => null,
+                    'new_value' => json_encode([
+                        'item_code' => $newItem->item_code,
+                        'product_name' => $newItem->item_description,
+                        'quantity' => $newItem->quantity,
+                        'unit_price' => $newItem->unit_price,
+                        'unit' => $newItem->unit,
+                        'brand' => $newItem->brand,
+                    ]),
+                    'change_type' => 'create',
+                ]);
+            }
+        }
+
+        // Check for removed items
+        foreach ($originalItems as $itemCode => $originalItem) {
+            if (!isset($newItems[$itemCode])) {
+                \App\Models\SalesOrderChange::create([
+                    'sales_order_id' => $salesOrder->id,
+                    'user_id' => $userId,
+                    'field_changed' => 'line_item',
+                    'old_value' => json_encode([
+                        'item_code' => $originalItem['item_code'],
+                        'product_name' => $originalItem['item_description'],
+                        'quantity' => $originalItem['quantity'],
+                        'unit_price' => $originalItem['unit_price'],
+                        'unit' => $originalItem['unit'],
+                        'brand' => $originalItem['brand'],
+                    ]),
+                    'new_value' => null,
+                    'change_type' => 'delete',
+                ]);
+            }
+        }
+
         // Sync prices to related deliveries
         $this->syncDeliveryPrices($salesOrder);
+
+        app(\App\Services\NotificationService::class)->notifySalesOrderUpdated($salesOrder);
 
         // Log activity
         \App\Models\Activity::create([
@@ -525,6 +838,24 @@ public function update(Request $request, $id)
         
         \Log::error('SO Update Error:', ['message' => $e->getMessage()]);
         return back()->withInput()->with('error', 'Failed to update: ' . $e->getMessage());
+    }
+}
+
+// Add this helper method to your SalesOrderController class
+private function formatChangeValue($field, $value)
+{
+    if ($value === null) return 'None';
+    
+    switch ($field) {
+        case 'customer_id':
+            $customer = \App\Models\Customer::find($value);
+            return $customer ? $customer->customer_name : 'Unknown';
+        case 'total_amount':
+            return '₱' . number_format($value, 2);
+        case 'request_delivery_date':
+            return date('M d, Y', strtotime($value));
+        default:
+            return $value;
     }
 }
     /**
@@ -596,38 +927,69 @@ public function update(Request $request, $id)
 
     public function approve($id)
     {
-        $salesOrder = SalesOrder::findOrFail($id);
+        try {
+            $salesOrder = SalesOrder::findOrFail($id);
+            $oldStatus = $salesOrder->status;
 
-        $approverId = auth()->check() ? auth()->id() : 40;
+            $approverId = auth()->check() ? auth()->id() : 40;
 
-        $salesOrder->update([
-            'status' => 'Approved',
-            'approved_by' => $approverId,
-        ]);
+            $salesOrder->update([
+                'status' => 'Approved',
+                'approved_by' => $approverId,
+            ]);
 
-        \App\Models\Activity::create([
-            'user_name' => auth()->user()->name ?? 'review',
-            'action' => 'Approved',
-            'item' => $salesOrder->sales_order_number,
-            'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
-            'type' => 'Sales Order',
-            'message' => 'Approved sales order: ' . $salesOrder->sales_order_number,
-        ]);
+            \Log::info('📧 About to send approval email', [
+                'so_number' => $salesOrder->sales_order_number,
+                'old_status' => $oldStatus,
+                'new_status' => 'Approved'
+            ]);
 
-        // ❌ REMOVE THIS - Don't auto-create delivery anymore
-        // The delivery will be created when user actually creates it in Delivery Module
+            $emailSent = app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
+                $salesOrder->fresh(),
+                $oldStatus,
+                'Approved'
+            );
 
-        return redirect()->route('sales_orders.index')->with('success', 'Sales order approved!');
+            \Log::info('📧 Email send result', ['success' => $emailSent]);
+
+            \App\Models\Activity::create([
+                'user_name' => auth()->user()->name ?? 'review',
+                'action' => 'Approved',
+                'item' => $salesOrder->sales_order_number,
+                'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
+                'type' => 'Sales Order',
+                'message' => 'Approved sales order: ' . $salesOrder->sales_order_number,
+            ]);
+
+            $message = 'Sales order approved!';
+            if (!$emailSent) {
+                $message .= ' (Note: Email notification may have failed - check logs)';
+            }
+
+            return redirect()->route('sales_orders.index')->with('success', $message);
+            
+        } catch (\Exception $e) {
+            \Log::error('❌ SO Approval failed', [
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()->with('error', 'Failed to approve: ' . $e->getMessage());
+        }
     }
 
-    public function updateStatus(Request $request, $id)
+public function updateStatus(Request $request, $id)
 {
     $request->validate([
         'status' => 'required|in:Approved,Declined,Cancelled',
-        'notes' => 'nullable|string', // Add validation for notes
+        'notes' => 'nullable|string',
     ]);
 
     $salesOrder = SalesOrder::with(['customer', 'items'])->findOrFail($id);
+    
+    $oldStatus = $salesOrder->status;
     $newStatus = $request->status;
 
     $updateData = ['status' => $newStatus];
@@ -638,12 +1000,41 @@ public function update(Request $request, $id)
         $updateData['approved_by'] = null;
     }
 
-    // 🔥 ADD THIS - Save the notes if provided
     if ($request->filled('notes')) {
         $updateData['notes'] = $request->notes;
     }
 
     $salesOrder->update($updateData);
+
+    // ✅ ADD DEBUG LOGGING
+    \Log::info('🔥 SO STATUS CHANGE', [
+        'so_number' => $salesOrder->sales_order_number,
+        'old_status' => $oldStatus,
+        'new_status' => $newStatus,
+        'about_to_send_email' => true
+    ]);
+
+    try {
+        $emailSent = app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
+            $salesOrder->fresh(), 
+            $oldStatus, 
+            $newStatus
+        );
+        
+        \Log::info('🔥 SO EMAIL SENT', ['success' => $emailSent]);
+    } catch (\Exception $e) {
+        \Log::error('🔥 SO EMAIL FAILED', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+
+    // ✅ Send status change notification
+    app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
+        $salesOrder->fresh(), 
+        $oldStatus, 
+        $newStatus
+    );
 
     $actionMap = [
         'approved' => 'Approved',
@@ -653,7 +1044,6 @@ public function update(Request $request, $id)
 
     $actionText = $actionMap[strtolower($newStatus)] ?? ucfirst($newStatus);
 
-    // 🔥 OPTIONAL - Include notes in activity log
     $activityMessage = "{$actionText} sales order: " . $salesOrder->sales_order_number;
     if ($request->filled('notes')) {
         $activityMessage .= " - Reason: " . $request->notes;
@@ -915,7 +1305,7 @@ public function update(Request $request, $id)
             foreach ($deliveries as $delivery) {
                 $delivery->update([
                     'status' => 'Delivered',
-                    'approval_status' => 'Approved', // Also approve if pending
+                    'approval_status' => 'Approved', 
                 ]);
                 $deliveryCount++;
             }

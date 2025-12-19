@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL;
+use App\Models\SalesOrder;
+use App\Observers\SalesOrderObserver;
+use App\Models\Customer;
+use App\Observers\CustomerObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,9 +21,8 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-
- public function boot(): void
+    public function boot(): void
     {
-        // 
+        SalesOrder::observe(SalesOrderObserver::class);
     }
 }

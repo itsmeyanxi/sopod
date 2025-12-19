@@ -5,20 +5,32 @@
     <h1 class="text-2xl font-bold mb-6">Customers</h1>
 
     <!-- 🔍 Search & Create -->
-    <div class="flex flex-col sm:flex-row justify-end items-center mb-4 gap-2">
-        <input 
-            id="searchInput" 
-            type="text" 
-            placeholder="Search customer code / name" 
-            class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-purple-500"
-        />
-
-        @if(auth()->user()->canManageCustomers())
-            <a href="{{ route('customers.create') }}" 
-               class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition w-full sm:w-auto text-center">
-               Create Customer
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
+        <!-- Left side: Export button -->
+        <div class="flex gap-2 w-full sm:w-auto">
+            <a href="{{ route('customers.export') }}" 
+               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition w-full sm:w-auto text-center inline-flex items-center justify-center gap-2">
+               <i class="fas fa-file-excel"></i>
+               Export to Excel
             </a>
-        @endif
+        </div>
+
+        <!-- Right side: Search & Create -->
+        <div class="flex gap-2 w-full sm:w-auto">
+            <input 
+                id="searchInput" 
+                type="text" 
+                placeholder="Search customer code / name" 
+                class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+
+            @if(auth()->user()->canManageCustomers())
+                <a href="{{ route('customers.create') }}" 
+                   class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition whitespace-nowrap">
+                   Create Customer
+                </a>
+            @endif
+        </div>
     </div>
 
     <!-- 📋 Responsive Table -->

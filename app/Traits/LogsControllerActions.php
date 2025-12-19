@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Support\Facades\Log;
+use App\Services\NetworkLogService;
 
 trait LogsControllerActions
 {
@@ -24,7 +25,15 @@ trait LogsControllerActions
     }
 
     /**
-     * Log to both local and network
+     * Check if network logging should be attempted
+     */
+    protected function shouldLogToNetwork(): bool
+    {
+        return NetworkLogService::isNetworkLogEnabled();
+    }
+
+    /**
+     * Log to both local and network (if enabled)
      */
     protected function logToBoth(string $level, string $message, array $context = []): void
     {
@@ -33,20 +42,31 @@ trait LogsControllerActions
             'user_id' => auth()->id(),
             'ip' => request()->ip(),
             'timestamp' => now()->toDateTimeString(),
+            'url' => request()->fullUrl(),
+            'method' => request()->method(),
         ], $context);
 
-        // Log to local
-        Log::channel($this->getLogChannel())->$level($message, $fullContext);
-
-        // Log to network (with fallback handling)
+        // Always log to local
         try {
-            Log::channel($this->getNetworkChannel())->$level($message, $fullContext);
+            Log::channel($this->getLogChannel())->$level($message, $fullContext);
         } catch (\Exception $e) {
-            // If network logging fails, log the error locally
-            Log::channel($this->getLogChannel())->warning('Network logging failed', [
-                'error' => $e->getMessage(),
-                'original_message' => $message,
-            ]);
+            // Fallback to default channel if custom channel fails
+            Log::$level("[$this->getLogChannel()] " . $message, array_merge($fullContext, [
+                'log_error' => 'Failed to log to custom channel: ' . $e->getMessage()
+            ]));
+        }
+
+        // Log to network if enabled
+        if ($this->shouldLogToNetwork()) {
+            try {
+                Log::channel($this->getNetworkChannel())->$level($message, $fullContext);
+            } catch (\Exception $e) {
+                // Log network failure locally (but don't throw exception)
+                Log::channel($this->getLogChannel())->debug('Network logging failed', [
+                    'error' => $e->getMessage(),
+                    'original_message' => $message,
+                ]);
+            }
         }
     }
 
@@ -68,6 +88,8 @@ trait LogsControllerActions
             'user_id' => auth()->id(),
             'ip' => request()->ip(),
             'timestamp' => now()->toDateTimeString(),
+            'url' => request()->fullUrl(),
+            'method' => request()->method(),
         ], $context);
 
         if ($exception) {
@@ -75,22 +97,29 @@ trait LogsControllerActions
                 'message' => $exception->getMessage(),
                 'file' => $exception->getFile(),
                 'line' => $exception->getLine(),
+                'code' => $exception->getCode(),
                 'trace' => $exception->getTraceAsString(),
             ];
         }
 
-        // Log to local
-        Log::channel($this->getLogChannel())->error($message, $errorContext);
-        Log::channel($this->getLogChannel() . '_errors')->error($message, $errorContext);
-
-        // Log to network (with fallback)
+        // Log to local error channel
         try {
-            Log::channel($this->getNetworkChannel())->error($message, $errorContext);
-            Log::channel($this->getLogChannel() . '_errors_network')->error($message, $errorContext);
+            Log::channel($this->getLogChannel())->error($message, $errorContext);
+            Log::channel($this->getLogChannel() . '_errors')->error($message, $errorContext);
         } catch (\Exception $e) {
-            Log::channel($this->getLogChannel())->warning('Network error logging failed', [
-                'error' => $e->getMessage(),
-            ]);
+            Log::error("[$this->getLogChannel()] " . $message, $errorContext);
+        }
+
+        // Log to network if enabled
+        if ($this->shouldLogToNetwork()) {
+            try {
+                Log::channel($this->getNetworkChannel())->error($message, $errorContext);
+                Log::channel($this->getLogChannel() . '_errors_network')->error($message, $errorContext);
+            } catch (\Exception $e) {
+                Log::channel($this->getLogChannel())->debug('Network error logging failed', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 

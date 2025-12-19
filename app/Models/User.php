@@ -16,6 +16,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'is_locked',
+        'locked_at',
+        'locked_by',
     ];
 
     protected $hidden = [
@@ -25,6 +28,9 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'is_locked' => 'boolean',
+        'locked_at' => 'datetime',
     ];
 
     public function setPasswordAttribute($value)
@@ -51,13 +57,11 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
-    // ✅ FIXED: Now matches RoleHelper
     public function canManageSalesOrders()
     {
         return in_array($this->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
     }
 
-    // ✅ FIXED: Added CSR_Creator
     public function canCreateSalesOrders()
     {
         return in_array($this->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
@@ -94,7 +98,6 @@ class User extends Authenticatable
         return in_array($this->role, ['Admin', 'IT', 'Accounting_Approver']);
     }
 
-    // ✅ FIXED: Added Accounting roles to match RoleHelper
     public function canManageCustomers()
     {
         return in_array($this->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver']);
@@ -115,7 +118,6 @@ class User extends Authenticatable
         return in_array($this->role, ['Admin', 'IT', 'CC_Approver']); 
     }
 
-    // ✅ FIXED: Changed from 'Delivery' to proper delivery roles
     public function canManageDeliveries()
     {
         return in_array($this->role, ['Delivery_Creator', 'Delivery_Approver', 'Admin', 'IT', 'CC_Approver']);
@@ -134,6 +136,22 @@ class User extends Authenticatable
             'Accounting_Creator',
             'Accounting_Approver'
         ]);
+    }
+
+        /**
+     * Check if user can approve deliveries
+     */
+    public function canApproveDeliveries()
+    {
+        return in_array($this->role, ['Admin', 'IT', 'Delivery_Approver']);
+    }
+
+    /**
+     * Check if user can create deliveries
+     */
+    public function canCreateDeliveries()
+    {
+        return in_array($this->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver']);
     }
 
     public function canImportCustomers()
@@ -183,6 +201,17 @@ class User extends Authenticatable
     public function canEditAfterCCApproval()
     {
         return in_array($this->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
+    }
+
+        public function lockedBy()
+    {
+        return $this->belongsTo(User::class, 'locked_by');
+    }
+
+    // Check if account is locked
+    public function isLocked()
+    {
+        return $this->is_locked;
     }
 
 }

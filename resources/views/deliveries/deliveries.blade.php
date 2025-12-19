@@ -150,20 +150,24 @@
         </div>
     </div>
 
-    <!-- 📋 Delivery Items Table -->
-    <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-1">Delivery Items</h3>
-    <div class="overflow-x-auto">
-        <table class="w-full border border-gray-700 mb-4 rounded-md overflow-hidden">
-            <thead class="bg-gray-800 text-gray-300">
-                <tr>
-                    @foreach(['Item Code', 'Description', 'Brand', 'Category','Original Qty', 'Delivered Qty', 'Remaining', 'UOM', 'Unit Price', 'Amount', 'Note'] as $header)
-                        <th class="border border-gray-700 px-4 py-2 text-left">{{ $header }}</th>
-                    @endforeach
-                </tr>
-            </thead>
-            <tbody class="bg-gray-900" id="items_tbody"></tbody>
-        </table>
+    
+<!-- 📋 Delivery Items Section - REDESIGNED -->
+<div class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-white border-b border-gray-700 pb-1">Delivery Items</h3>
+        @if(\App\Helpers\RoleHelper::canManageDeliveries())
+        <button type="button" onclick="addDeliveryItem()" 
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add Item
+        </button>
+        @endif
     </div>
+
+    <div id="delivery-items-container" class="space-y-4"></div>
+</div>
 
     @if(\App\Helpers\RoleHelper::canManageDeliveries())
         <div class="text-right mt-6">
@@ -192,54 +196,44 @@ const attachmentName = document.getElementById("current_attachment_name");
 // UTILITY FUNCTIONS
 // =====================================================
 
-// ✅ Calculate remaining quantity and update display
-function calculateRemaining(row) {
-    const originalQty = parseFloat(row.getAttribute('data-original-qty')) || 0;
-    const deliveredInput = row.querySelector('.delivered-qty-input');
-    const remainingCell = row.querySelector('.remaining-qty');
+function calculateRemaining(card) {
+    const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
+    const deliveredInput = card.querySelector('.delivered-qty-input');
+    const remainingCell = card.querySelector('.remaining-qty');
     
     if (deliveredInput && remainingCell) {
         const currentDeliveryQty = parseFloat(deliveredInput.value) || 0;
-        
-        // ✅ Get already delivered quantity from other batches (stored in data attribute)
-        const alreadyDelivered = parseFloat(row.getAttribute('data-already-delivered')) || 0;
-        
-        // ✅ Calculate total delivered (previous batches + current batch)
+        const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
         const totalDelivered = alreadyDelivered + currentDeliveryQty;
-        
-        // ✅ Calculate remaining (what's LEFT to deliver after this batch)
         const remaining = originalQty - totalDelivered;
         
-        // Display logic
+        // Remove all status classes first
+        card.classList.remove('bg-orange-900/10', 'bg-red-900/10');
+        remainingCell.classList.remove('text-orange-400', 'text-green-400', 'text-red-400', 'font-semibold');
+        
         if (remaining < 0) {
             // Over-delivery
             remainingCell.textContent = 'OVER: +' + Math.abs(remaining).toFixed(2);
-            remainingCell.classList.remove('text-orange-400', 'text-green-400');
             remainingCell.classList.add('text-red-400', 'font-semibold');
-            row.classList.remove('bg-orange-900/10');
-            row.classList.add('bg-red-900/10');
+            card.classList.add('bg-red-900/10');
         } else if (remaining > 0) {
             // Under-delivery (partial)
             remainingCell.textContent = remaining.toFixed(2);
-            remainingCell.classList.remove('text-red-400', 'text-green-400');
             remainingCell.classList.add('text-orange-400', 'font-semibold');
-            row.classList.remove('bg-red-900/10');
-            row.classList.add('bg-orange-900/10');
+            card.classList.add('bg-orange-900/10');
         } else {
             // Perfect (fully delivered)
             remainingCell.textContent = '—';
-            remainingCell.classList.remove('text-orange-400', 'text-red-400', 'font-semibold');
             remainingCell.classList.add('text-green-400');
-            row.classList.remove('bg-orange-900/10', 'bg-red-900/10');
         }
     }
 }
 
 // Calculate row amount
-function calculateRowAmount(row) {
-    const qtyInput = row.querySelector('.delivered-qty-input');
-    const priceCell = row.querySelector('.price-cell');
-    const amountInput = row.querySelector('.amount-input');
+function calculateRowAmount(card) {
+    const qtyInput = card.querySelector('.delivered-qty-input');
+    const priceCell = card.querySelector('.price-cell');
+    const amountInput = card.querySelector('.amount-input');
 
     if (qtyInput && priceCell && amountInput) {
         const qty = parseFloat(qtyInput.value) || 0;
@@ -247,30 +241,34 @@ function calculateRowAmount(row) {
         amountInput.value = (qty * price).toFixed(2);
     }
     
-    calculateRemaining(row);
+    calculateRemaining(card);
     checkPartialDelivery();
 }
 
 // ✅ UPDATED: Auto-set delivery type based on quantities
 function checkPartialDelivery() {
-    const tbody = document.getElementById('items_tbody');
-    const rows = tbody.querySelectorAll('tr');
+    const container = document.getElementById('delivery-items-container');
+    const cards = container.querySelectorAll('.delivery-item-card');
     let hasUnderDelivery = false;
     let hasOverDelivery = false;
     let partialItems = [];
     let overDeliveryItems = [];
     
-    rows.forEach(row => {
-        const originalQty = parseFloat(row.getAttribute('data-original-qty')) || 0;
-        const alreadyDelivered = parseFloat(row.getAttribute('data-already-delivered')) || 0;
-        const deliveredInput = row.querySelector('.delivered-qty-input');
+    cards.forEach(card => {
+        const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
+        const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
+        const deliveredInput = card.querySelector('.delivered-qty-input');
         const currentDeliveryQty = parseFloat(deliveredInput?.value) || 0;
         
         const totalDelivered = alreadyDelivered + currentDeliveryQty;
         const remaining = originalQty - totalDelivered;
         
-        const itemCode = row.querySelector('td:first-child')?.textContent || '';
-        const itemDesc = row.querySelector('td:nth-child(2)')?.textContent || '';
+        // Get item details from the card
+        const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
+        const itemDescDiv = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
+        
+        const itemCode = itemCodeDiv?.textContent.trim() || '';
+        const itemDesc = itemDescDiv?.textContent.trim() || '';
         
         if (remaining > 0) {
             // Under-delivery (partial)
@@ -337,99 +335,342 @@ function checkPartialDelivery() {
     }
 }
 
+
 // ✅ Handle quantity change
 function handleQuantityChange(e) {
     const input = e.target;
-    const row = input.closest('tr');
+    const card = input.closest('.delivery-item-card');
     const currentQty = parseFloat(input.value) || 0;
     
-    // Only prevent negative quantities
     if (currentQty < 0) {
         input.value = 0;
     }
     
-    calculateRowAmount(row);
+    calculateRowAmount(card);
 }
 
 // Attach quantity listeners to all inputs
 function attachQuantityListeners() {
     document.querySelectorAll('.delivered-qty-input').forEach(input => {
+        input.removeEventListener('input', handleQuantityChange); // Remove old listeners
         input.addEventListener('input', handleQuantityChange);
     });
 }
 
-// Populate items table
-function populateItemsTable(items) {
-    const tbody = document.getElementById('items_tbody');
-    tbody.innerHTML = ''; // Clear existing rows
+function populateItemsTable(items, isViewOnly = false) {
+    const container = document.getElementById('delivery-items-container');
+    container.innerHTML = ''; // Clear existing items
     
     if (items && items.length > 0) {
-        console.log(`📋 Loading ${items.length} items`);
+        console.log(`📋 Loading ${items.length} items (view-only: ${isViewOnly})`);
         
         items.forEach((item, index) => {
-            const tr = document.createElement("tr");
-            tr.classList.add("hover:bg-gray-800/70", "transition-colors");
-            tr.setAttribute('data-original-qty', item.original_quantity || item.quantity);
-            
             const originalQty = item.original_quantity || item.quantity;
             const deliveredQty = item.quantity || 0;
-            const alreadyDelivered = item.already_delivered || 0; // ✅ NEW: From backend
+            const alreadyDelivered = item.already_delivered || 0;
             const remaining = item.remaining_quantity || 0;
+            const isHidden = item.is_hidden || false; // ✅ NEW: Check if item should be hidden
             
-            // ✅ Store already delivered for calculations
-            tr.setAttribute('data-already-delivered', alreadyDelivered);
+            const itemCard = document.createElement('div');
+            itemCard.className = 'delivery-item-card border border-gray-700 rounded-lg p-4 bg-gray-800/50 hover:bg-gray-800/70 transition-colors';
+            itemCard.setAttribute('data-original-qty', originalQty);
+            itemCard.setAttribute('data-already-delivered', alreadyDelivered);
+            itemCard.setAttribute('data-index', index);
             
-            tr.innerHTML = `
-                <td class="border border-gray-700 px-4 py-2">${item.item_code || '—'}</td>
-                <td class="border border-gray-700 px-4 py-2">${item.item_description || '—'}</td>
-                <td class="border border-gray-700 px-4 py-2">${item.brand || '—'}</td>
-                <td class="border border-gray-700 px-4 py-2">${item.item_category || '—'}</td>
-                <td class="border border-gray-700 px-4 py-2 text-center">
-                    <div class="font-semibold text-blue-400">${originalQty}</div>
-                    <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
-                </td>
-                <td class="border border-gray-700 px-4 py-2">
-                    <input type="number" 
-                        class="delivered-qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1 text-center" 
-                        value="${deliveredQty}" 
-                        step="0.01" 
-                        min="0"
-                        ${canManageDeliveries ? '' : 'readonly'}>
-                </td>
-                <td class="border border-gray-700 px-4 py-2 text-center">
-                    <div class="remaining-qty font-semibold ${remaining > 0 ? 'text-orange-400' : 'text-green-400'}">
-                        ${remaining <= 0 ? '—' : remaining.toFixed(2)}
+            // ✅ NEW: Mark card as hidden if quantity is 0 (was removed)
+            if (isHidden) {
+                itemCard.setAttribute('data-hidden', 'true');
+                itemCard.style.display = 'none';
+            }
+            
+            // Determine remaining color and status
+            let remainingClass = 'text-green-400';
+            let remainingDisplay = '—';
+            let rowBgClass = '';
+            
+            if (remaining > 0) {
+                remainingClass = 'text-orange-400 font-semibold';
+                remainingDisplay = remaining.toFixed(2);
+                rowBgClass = 'bg-orange-900/10';
+            } else if (remaining < 0) {
+                remainingClass = 'text-red-400 font-semibold';
+                remainingDisplay = 'OVER: +' + Math.abs(remaining).toFixed(2);
+                rowBgClass = 'bg-red-900/10';
+            }
+            
+            if (rowBgClass && !isHidden) {
+                itemCard.classList.add(rowBgClass);
+            }
+            
+            const inputReadonly = (isViewOnly || !canManageDeliveries) ? 'readonly' : '';
+            const inputDisabled = (isViewOnly || !canManageDeliveries) ? 'disabled' : '';
+            
+            itemCard.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <h4 class="text-sm font-semibold text-gray-300">Item #${index + 1}</h4>
+                    ${!isViewOnly && canManageDeliveries ? `
+                    <button type="button" onclick="removeDeliveryItem(this)" 
+                        class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-all flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Remove
+                    </button>
+                    ` : ''}
+                </div>
+
+                <!-- Item Details Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Item Code</label>
+                        <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm font-mono">
+                            ${item.item_code || '—'}
+                        </div>
                     </div>
-                </td>
-                <td class="border border-gray-700 px-4 py-2 text-center">${item.uom || 'Kgs'}</td>
-                <td class="border border-gray-700 px-4 py-2 price-cell text-right">${item.unit_price || 0}</td>
-                <td class="border border-gray-700 px-4 py-2">
-                    <input type="number" 
-                        class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1 text-right" 
-                        value="${((deliveredQty || 0) * (item.unit_price || 0)).toFixed(2)}" 
-                        readonly>
-                </td>
-                <td class="border border-gray-700 px-4 py-2">
+                    
+                    <div class="col-span-2">
+                        <label class="block text-xs text-gray-400 mb-1">Description</label>
+                        <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm">
+                            ${item.item_description || '—'}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Brand</label>
+                        <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm">
+                            ${item.brand || '—'}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Category</label>
+                        <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm">
+                            ${item.item_category || '—'}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Original Qty</label>
+                        <div class="bg-gray-900 border border-blue-600/50 text-blue-400 rounded-md px-3 py-2 text-center">
+                            <div class="font-semibold">${originalQty}</div>
+                            <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Delivered Qty *</label>
+                        <input type="number" 
+                            class="delivered-qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-center font-semibold" 
+                            value="${deliveredQty}" 
+                            step="0.01" 
+                            min="0"
+                            ${inputReadonly}>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Remaining</label>
+                        <div class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-center">
+                            <div class="remaining-qty ${remainingClass}">${remainingDisplay}</div>
+                            <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">UOM</label>
+                        <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm text-center">
+                            ${item.uom || 'Kgs'}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Unit Price</label>
+                        <div class="price-cell bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm text-right font-mono">
+                            ${item.unit_price || 0}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Amount</label>
+                        <input type="number" 
+                            class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-right font-mono text-green-400" 
+                            value="${((deliveredQty || 0) * (item.unit_price || 0)).toFixed(2)}" 
+                            readonly>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Note</label>
                     <input type="text"
-                        class="notes-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1"
+                        class="notes-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm"
                         value="${item.notes || ''}"
-                        ${canManageDeliveries ? '' : 'readonly'}>
-                </td>
+                        placeholder="Add notes for this item..."
+                        ${inputReadonly}>
+                </div>
             `;
-            tbody.appendChild(tr);
+            
+            container.appendChild(itemCard);
         });
 
-        attachQuantityListeners();
-        checkPartialDelivery();
+        if (!isViewOnly) {
+            attachQuantityListeners();
+            checkPartialDelivery();
+        }
+    } else {
+        container.innerHTML = `
+            <div class="border border-gray-700 rounded-lg p-8 bg-gray-800/30 text-center">
+                <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                </svg>
+                <p class="text-gray-400 text-lg">No items available for delivery</p>
+                <p class="text-gray-500 text-sm mt-2">All items have been fully delivered or no items remaining</p>
+            </div>
+        `;
     }
 }
 
-// =====================================================
-// SEARCH SALES ORDER
-// =====================================================
-// =====================================================
+// Add new delivery item 
+function addDeliveryItem() {
+    const container = document.getElementById('delivery-items-container');
+    const hiddenItems = container.querySelectorAll('.delivery-item-card[data-hidden="true"]');
+    
+    if (hiddenItems.length === 0) {
+        Swal.fire('No Items to Restore', 'All items are already visible. Search for a Sales Order to load items.', 'info');
+        return;
+    }
+    
+    // Build options for dropdown
+    let optionsHTML = '<option value="">-- Select Item to Restore --</option>';
+    hiddenItems.forEach((card, index) => {
+        const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
+        const itemDescDiv = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
+        const itemCode = itemCodeDiv?.textContent.trim() || 'Unknown';
+        const itemDesc = itemDescDiv?.textContent.trim() || 'No description';
+        
+        optionsHTML += `<option value="${index}">${itemCode} - ${itemDesc}</option>`;
+    });
+    
+    Swal.fire({
+        title: 'Restore Removed Item',
+        html: `
+            <div class="text-left">
+                <label class="block text-sm text-gray-600 mb-2">Select an item to restore:</label>
+                <select id="restore-item-select" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                    ${optionsHTML}
+                </select>
+                <p class="text-xs text-gray-500 mt-2">💡 These items were temporarily removed but are still part of the Sales Order.</p>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Restore Item',
+        cancelButtonText: 'Cancel',
+        preConfirm: () => {
+            const selectedIndex = document.getElementById('restore-item-select').value;
+            if (!selectedIndex) {
+                Swal.showValidationMessage('Please select an item to restore');
+                return false;
+            }
+            return selectedIndex;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const selectedIndex = parseInt(result.value);
+            const cardToRestore = hiddenItems[selectedIndex];
+            
+            if (cardToRestore) {
+                // Remove hidden status
+                cardToRestore.removeAttribute('data-hidden');
+                cardToRestore.style.display = '';
+                
+                renumberDeliveryItems();
+                checkPartialDelivery();
+                
+                // Get item details for confirmation
+                const itemCodeDiv = cardToRestore.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
+                const itemCode = itemCodeDiv?.textContent.trim() || 'Item';
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Item Restored',
+                    text: `${itemCode} has been restored to the delivery.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        }
+    });
+}
+
+// ✅ UPDATED: Temporarily hide item instead of removing
+function removeDeliveryItem(button) {
+    const card = button.closest('.delivery-item-card');
+    const container = document.getElementById('delivery-items-container');
+    const visibleItems = container.querySelectorAll('.delivery-item-card:not([data-hidden="true"])');
+    
+    if (visibleItems.length <= 1) {
+        Swal.fire('Cannot Remove', 'You must have at least one visible item in the delivery.', 'warning');
+        return;
+    }
+    
+    // Get item details for confirmation
+    const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
+    const itemDescDiv = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
+    const itemCode = itemCodeDiv?.textContent.trim() || 'this item';
+    const itemDesc = itemDescDiv?.textContent.trim() || '';
+    
+    Swal.fire({
+        title: 'Remove Item Temporarily?',
+        html: `
+            <div class="text-left">
+                <p class="mb-2">Item: <strong>${itemCode}</strong></p>
+                <p class="text-sm text-gray-600 mb-3">${itemDesc}</p>
+                <p class="text-sm text-orange-600">⚠️ This item will be temporarily removed from this delivery.</p>
+                <p class="text-sm text-gray-600 mt-2">You can restore it using the "Add Item" button.</p>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Remove',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mark as hidden instead of removing from DOM
+            card.setAttribute('data-hidden', 'true');
+            card.style.display = 'none';
+            
+            // Set quantity to 0 when hidden
+            const qtyInput = card.querySelector('.delivered-qty-input');
+            if (qtyInput) {
+                qtyInput.value = 0;
+            }
+            
+            renumberDeliveryItems();
+            checkPartialDelivery();
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Item Removed',
+                text: `${itemCode} has been temporarily removed. Use "Add Item" to restore it.`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    });
+}
+
+function renumberDeliveryItems() {
+    const items = document.querySelectorAll('.delivery-item-card');
+    items.forEach((item, index) => {
+        item.querySelector('h4').textContent = `Item #${index + 1}`;
+        item.setAttribute('data-index', index);
+    });
+}
+
 // SEARCH SALES ORDER - UPDATED TO HANDLE ALL STATUSES
-// =====================================================
 document.getElementById("search_btn").addEventListener("click", async () => {
     const soNumber = document.getElementById("so_search").value.trim();
     
@@ -717,76 +958,6 @@ document.getElementById("search_btn").addEventListener("click", async () => {
     }
 });
 
-// ✅ Update populateItemsTable to handle view-only mode
-function populateItemsTable(items, isViewOnly = false) {
-    const tbody = document.getElementById('items_tbody');
-    tbody.innerHTML = ''; // Clear existing rows
-    
-    if (items && items.length > 0) {
-        console.log(`📋 Loading ${items.length} items (view-only: ${isViewOnly})`);
-        
-        items.forEach((item, index) => {
-            const tr = document.createElement("tr");
-            tr.classList.add("hover:bg-gray-800/70", "transition-colors");
-            tr.setAttribute('data-original-qty', item.original_quantity || item.quantity);
-            
-            const originalQty = item.original_quantity || item.quantity;
-            const deliveredQty = item.quantity || 0;
-            const alreadyDelivered = item.already_delivered || 0;
-            const remaining = item.remaining_quantity || 0;
-            
-            tr.setAttribute('data-already-delivered', alreadyDelivered);
-            
-            // ✅ Make inputs readonly in view-only mode
-            const inputReadonly = (isViewOnly || !canManageDeliveries) ? 'readonly' : '';
-            
-            tr.innerHTML = `
-                <td class="border border-gray-700 px-4 py-2">${item.item_code || '—'}</td>
-                <td class="border border-gray-700 px-4 py-2">${item.item_description || '—'}</td>
-                <td class="border border-gray-700 px-4 py-2">${item.brand || '—'}</td>
-                <td class="border border-gray-700 px-4 py-2">${item.item_category || '—'}</td>
-                <td class="border border-gray-700 px-4 py-2 text-center">
-                    <div class="font-semibold text-blue-400">${originalQty}</div>
-                    <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
-                </td>
-                <td class="border border-gray-700 px-4 py-2">
-                    <input type="number" 
-                        class="delivered-qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1 text-center" 
-                        value="${deliveredQty}" 
-                        step="0.01" 
-                        min="0"
-                        ${inputReadonly}>
-                </td>
-                <td class="border border-gray-700 px-4 py-2 text-center">
-                    <div class="remaining-qty font-semibold ${remaining > 0 ? 'text-orange-400' : 'text-green-400'}">
-                        ${remaining <= 0 ? '—' : remaining.toFixed(2)}
-                    </div>
-                </td>
-                <td class="border border-gray-700 px-4 py-2 text-center">${item.uom || 'Kgs'}</td>
-                <td class="border border-gray-700 px-4 py-2 price-cell text-right">${item.unit_price || 0}</td>
-                <td class="border border-gray-700 px-4 py-2">
-                    <input type="number" 
-                        class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1 text-right" 
-                        value="${((deliveredQty || 0) * (item.unit_price || 0)).toFixed(2)}" 
-                        readonly>
-                </td>
-                <td class="border border-gray-700 px-4 py-2">
-                    <input type="text"
-                        class="notes-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-1"
-                        value="${item.notes || ''}"
-                        ${inputReadonly}>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        if (!isViewOnly) {
-            attachQuantityListeners();
-            checkPartialDelivery();
-        }
-    }
-}
-
 // ✅ SAVE DELIVERY
 if (canManageDeliveries) {
     document.getElementById("save_btn").addEventListener("click", async () => {
@@ -803,14 +974,20 @@ if (canManageDeliveries) {
             return;
         }
 
-        // Check for variances
-        const tbody = document.getElementById("items_tbody");
+        // ✅ FIXED: Check for variances using ALL CARDS (including hidden ones)
+        const container = document.getElementById("delivery-items-container");
+        const cards = container.querySelectorAll('.delivery-item-card'); // ✅ Get ALL cards, not just visible
         let hasUnderDelivery = false;
         let hasOverDelivery = false;
         
-        tbody.querySelectorAll("tr").forEach(row => {
-            const originalQty = parseFloat(row.getAttribute('data-original-qty')) || 0;
-            const qtyInput = row.querySelector('.delivered-qty-input');
+        cards.forEach(card => {
+            // ✅ Skip hidden items for variance check
+            if (card.getAttribute('data-hidden') === 'true') {
+                return;
+            }
+            
+            const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
+            const qtyInput = card.querySelector('.delivered-qty-input');
             if (!qtyInput) return;
             
             const currentQty = parseFloat(qtyInput.value) || 0;
@@ -862,7 +1039,7 @@ if (canManageDeliveries) {
         const payload = {
             sales_order_number: document.getElementById("sales_order_number").value.trim(),
             delivery_batch: document.getElementById("delivery_batch").value.trim() || null,
-            delivery_type: document.getElementById("delivery_type").value, // ✅ NEW
+            delivery_type: document.getElementById("delivery_type").value,
             dr_no: drNo,
             customer_name: document.getElementById("customer_name").value.trim() || null,
             tin_no: document.getElementById("tin_no").value.trim() || null,
@@ -879,28 +1056,45 @@ if (canManageDeliveries) {
             items: []
         };
 
-        tbody.querySelectorAll("tr").forEach(row => {
-            const tds = row.querySelectorAll("td");
-            if (tds.length < 11) return;
+        // ✅ CRITICAL CHANGE: Collect items from ALL CARDS (including hidden ones with qty 0)
+        cards.forEach(card => {
+            // Get item code (first div with font-mono class)
+            const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
             
-            const deliveredQty = parseFloat(tds[5].querySelector("input").value) || 0;
-            const originalQty = parseFloat(row.getAttribute('data-original-qty')) || 0;
+            // Get all text divs (for description, brand, category)
+            const textDivs = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm');
             
-            const calculatedRemaining = originalQty - deliveredQty;
+            // Get inputs
+            const deliveredQtyInput = card.querySelector('.delivered-qty-input');
+            const amountInput = card.querySelector('.amount-input');
+            const notesInput = card.querySelector('.notes-input');
+            const priceCell = card.querySelector('.price-cell');
+            
+            // Get UOM and other data
+            const uomDivs = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.text-center');
+            
+            const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
+            const deliveredQty = parseFloat(deliveredQtyInput?.value) || 0;
+            const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
+            
+            // Calculate remaining (total delivered from all batches)
+            const totalDelivered = alreadyDelivered + deliveredQty;
+            const calculatedRemaining = originalQty - totalDelivered;
             const remainingQty = calculatedRemaining < 0 ? 0 : calculatedRemaining;
             
+            // ✅ INCLUDE ALL ITEMS, even those with quantity 0
             payload.items.push({
-                item_code: tds[0].innerText || '',
-                item_description: tds[1].innerText || '',
-                brand: tds[2].innerText || '',
-                item_category: tds[3].innerText || '',
-                quantity: deliveredQty,
+                item_code: itemCodeDiv?.textContent.trim() || '',
+                item_description: textDivs[0]?.textContent.trim() || '',
+                brand: textDivs[1]?.textContent.trim() || '',
+                item_category: textDivs[2]?.textContent.trim() || '',
+                quantity: deliveredQty, // ✅ This will be 0 for hidden items
                 original_quantity: originalQty,
                 remaining_quantity: remainingQty,
-                uom: tds[7].innerText || '',
-                unit_price: parseFloat(tds[8].innerText) || 0,
-                total_amount: parseFloat(tds[9].querySelector("input").value) || 0,
-                notes: tds[10].querySelector("input")?.value || ''
+                uom: uomDivs[0]?.textContent.trim() || 'Kgs',
+                unit_price: parseFloat(priceCell?.textContent.trim()) || 0,
+                total_amount: parseFloat(amountInput?.value) || 0,
+                notes: notesInput?.value || ''
             });
         });
 

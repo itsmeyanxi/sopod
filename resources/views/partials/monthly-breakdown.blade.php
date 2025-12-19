@@ -23,23 +23,18 @@
                     $useAnnualData = ($year == $selectedAnnualYear);
                 @endphp
                 @foreach($months as $index => $monthName)
-                    @php
-                        if ($useAnnualData) {
-                            // Use data from MonthlySale model (same as Annual Sales section)
-                            $salesPHP = $annualData[$index]['php'] ?? 0;
-                            $salesKG = $annualData[$index]['kg'] ?? 0;
-                        } else {
-                            // Use data from Deliveries (current behavior)
-                            $salesPHP = $monthlyDataPHP[$index] ?? 0;
-                            $salesKG = $monthlyDataKG[$index] ?? 0;
-                        }
-                        
-                        $prevSales = $index > 0 ? ($useAnnualData ? ($annualData[$index - 1]['php'] ?? 0) : ($monthlyDataPHP[$index - 1] ?? 0)) : 0;
-                        $trend = $prevSales > 0 ? (($salesPHP - $prevSales) / $prevSales) * 100 : 0;
-                        $trendIcon = $trend > 0 ? '📈' : ($trend < 0 ? '📉' : '➖');
-                        $trendClass = $trend > 0 ? 'trend-up' : ($trend < 0 ? 'trend-down' : 'trend-neutral');
-                        $avgPerDay = $salesPHP > 0 ? $salesPHP / $daysInMonth[$index] : 0;
-                    @endphp
+    @php
+        // Always use delivered-only data from monthlyBreakdownPHP/KG
+        $salesPHP = $monthlyBreakdownPHP[$index] ?? 0;
+        $salesKG = $monthlyBreakdownKG[$index] ?? 0;
+        
+        $prevSales = $index > 0 ? ($monthlyBreakdownPHP[$index - 1] ?? 0) : 0;
+        $trend = $prevSales > 0 ? (($salesPHP - $prevSales) / $prevSales) * 100 : 0;
+        $trendIcon = $trend > 0 ? '📈' : ($trend < 0 ? '📉' : '➖');
+        $trendClass = $trend > 0 ? 'trend-up' : ($trend < 0 ? 'trend-down' : 'trend-neutral');
+        $avgPerDay = $salesPHP > 0 ? $salesPHP / $daysInMonth[$index] : 0;
+    @endphp
+    <!-- rest of the row remains the same -->
                     <tr>
                         <td class="month-name">{{ $monthName }}</td>
                         <td class="text-right">₱{{ number_format($salesPHP, 2) }}</td>
@@ -56,17 +51,17 @@
                         </td>
                     </tr>
                 @endforeach
-                <tr class="total-row">
-                    <td class="month-name">TOTAL</td>
-                    <td class="text-right">
-                        ₱{{ number_format($useAnnualData ? array_sum(array_column($annualData, 'php')) : array_sum($monthlyDataPHP), 2) }}
-                    </td>
-                    <td class="text-right">
-                        {{ number_format($useAnnualData ? array_sum(array_column($annualData, 'kg')) : array_sum($monthlyDataKG), 2) }} KG
-                    </td>
-                    <td class="text-right">-</td>
-                    <td class="text-center">-</td>
-                </tr>
+<tr class="total-row">
+    <td class="month-name">TOTAL</td>
+    <td class="text-right">
+        ₱{{ number_format(array_sum($monthlyBreakdownPHP), 2) }}
+    </td>
+    <td class="text-right">
+        {{ number_format(array_sum($monthlyBreakdownKG), 2) }} KG
+    </td>
+    <td class="text-right">-</td>
+    <td class="text-center">-</td>
+</tr>
             </tbody>
         </table>
     </div>

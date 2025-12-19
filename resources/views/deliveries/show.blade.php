@@ -57,6 +57,44 @@
         $statusColor = $statusColors[$delivery->status] ?? 'bg-gray-600/20 text-gray-400 border-gray-600';
     @endphp
 
+    <!-- Approval Actions (Show only if Pending and user can approve) -->
+    @if($delivery->approval_status === 'Pending' && auth()->user()->canApproveDeliveries())
+    <div class="mb-6 bg-blue-900/30 border border-blue-600 p-6 rounded-lg">
+        <div class="flex items-center justify-between">
+            <div class="flex items-start gap-3">
+                <span class="text-3xl">⏳</span>
+                <div>
+                    <h4 class="text-blue-300 font-semibold text-lg mb-1">Approval Required</h4>
+                    <p class="text-sm text-blue-200">
+                        This delivery is awaiting your approval. Please review the details below and approve or reject.
+                    </p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <!-- Approve Button -->
+                <button type="button"
+                        onclick="showApprovalModal('approve')"
+                        class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition font-semibold flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Approve
+                </button>
+                
+                <!-- Reject Button -->
+                <button type="button"
+                        onclick="showApprovalModal('reject')"
+                        class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition font-semibold flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Reject
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Pulled Out Alert -->
     @if($delivery->is_pulled_out)
     <div class="mb-6 bg-orange-900/30 border border-orange-600 p-4 rounded-lg">
@@ -111,8 +149,8 @@
     </div>
     @endif
     
-    <!-- Pending Approval Alert -->
-    @if($delivery->approval_status === 'Pending')
+    <!-- Pending Approval Alert (for non-approvers) -->
+    @if($delivery->approval_status === 'Pending' && !auth()->user()->canApproveDeliveries())
     <div class="mb-6 bg-yellow-900/30 border border-yellow-600 p-4 rounded-lg">
         <div class="flex items-start gap-3">
             <span class="text-2xl">⏳</span>
@@ -442,26 +480,32 @@
                 </thead>
 
                 <tbody class="bg-gray-900">
-                    @forelse($items as $item)
-                        @php
-                            $soItem = $soItemsMap->get($item->item_code);
-                            $originalQty = $item->original_quantity ?? $soItem?->quantity ?? $item->quantity;
-                            $thisBatchQty = $item->quantity ?? 0;
-                            
-                            // ✅ FIXED: Get total delivered from ALL batches (including this one)
-                            $totalDelivered = $totalDeliveredMap->get($item->item_code)?->total_delivered ?? $thisBatchQty;
-                            
-                            // ✅ FIXED: Calculate remaining = Original - Total Delivered (all batches)
-                            $remaining = $originalQty - $totalDelivered;
-                            
-                            $isPartial = $remaining > 0;
-                            
-                            if ($isPartial) {
-                                $hasPartialItems = true;
-                            }
-                        @endphp
+                  @forelse($items as $item)
+                    @php
+                        $soItem = $soItemsMap->get($item->item_code);
+                        $originalQty = $item->original_quantity ?? $soItem?->quantity ?? $item->quantity;
+                        $thisBatchQty = $item->quantity ?? 0;
+                        
+                        // ✅ SKIP items with zero quantity (removed items)
+                        if ($thisBatchQty == 0) {
+                            continue;
+                        }
+                        
+                        // Get total delivered from ALL batches (including this one)
+                        $totalDelivered = $totalDeliveredMap->get($item->item_code)?->total_delivered ?? $thisBatchQty;
+                        
+                        // Calculate remaining
+                        $remaining = $originalQty - $totalDelivered;
+                        
+                        $isPartial = $remaining > 0;
+                        
+                        if ($isPartial) {
+                            $hasPartialItems = true;
+                        }
+                    @endphp
 
-                        <tr class="border-b border-gray-800 hover:bg-gray-800 {{ $isPartial ? 'bg-orange-900/10' : '' }}">
+                    <tr class="border-b border-gray-800 hover:bg-gray-800 
+                        {{ $isPartial ? 'bg-orange-900/10' : '' }}">
                             <td class="px-4 py-2">{{ $item->item_code ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $item->item_description ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $item->brand ?? '—' }}</td>
@@ -482,7 +526,7 @@
                             </td>
 
                             <!-- Total Delivered (All Batches) -->
-                            <td class="px-4 py-2 text-right">
+                           <td class="px-4 py-2 text-right">
                                 <div class="flex flex-col items-end">
                                     <span class="font-semibold text-purple-400">
                                         {{ number_format($totalDelivered, 2) }}
@@ -511,9 +555,12 @@
                             </td>
 
                             <td class="px-4 py-2 text-center">{{ $item->uom ?? '—' }}</td>
-                            <td class="px-4 py-2 text-right">₱{{ number_format($item->unit_price ?? 0, 2) }}</td>
-                            <td class="px-4 py-2 text-right">₱{{ number_format($item->total_amount ?? 0, 2) }}</td>
-
+                            <td class="px-4 py-2 text-right">
+                                ₱{{ number_format($item->unit_price ?? 0, 2) }}
+                            </td>
+                            <td class="px-4 py-2 text-right">
+                                ₱{{ number_format($item->total_amount ?? 0, 2) }}
+                            </td>
                             <!-- Notes Column -->
                             <td class="px-4 py-2 text-left">
                                 @if($item->notes)
@@ -538,6 +585,7 @@
                             <td class="px-4 py-3 text-right text-green-400">₱{{ number_format($grandTotal, 2) }}</td>
                             <td></td>
                         </tr>
+                        
                     @endif
                 </tbody>
             </table>
@@ -561,6 +609,42 @@
     </div>
 </div>
 
+<!-- Approval/Rejection Modal -->
+<div id="approvalModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 id="modalTitle" class="text-xl font-bold text-white mb-4"></h3>
+        
+        <form id="approvalForm" method="POST" action="{{ route('deliveries.approve', $delivery->id) }}">
+            @csrf
+            @method('POST')
+            <input type="hidden" name="action" id="modalAction">
+            
+            <!-- Rejection Reason (shown only for reject) -->
+            <div id="rejectionReasonDiv" class="mb-4 hidden">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Rejection Reason <span class="text-red-400">*</span></label>
+                <textarea name="rejection_reason" 
+                          id="rejectionReason"
+                          rows="4" 
+                          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          placeholder="Please provide a reason for rejection..."></textarea>
+            </div>
+            
+            <div class="flex justify-end gap-3">
+                <button type="button" 
+                        onclick="closeApprovalModal()"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        id="modalSubmitBtn"
+                        class="px-4 py-2 rounded-lg transition text-white font-semibold">
+                    Confirm
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- 🖼️ Image Modal -->
 <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 hidden items-center justify-center z-50" onclick="closeImageModal()">
     <div class="relative max-w-7xl max-h-screen p-4">
@@ -573,6 +657,41 @@
 </div>
 
 <script>
+function showApprovalModal(action) {
+    const modal = document.getElementById('approvalModal');
+    const title = document.getElementById('modalTitle');
+    const actionInput = document.getElementById('modalAction');
+    const submitBtn = document.getElementById('modalSubmitBtn');
+    const rejectionDiv = document.getElementById('rejectionReasonDiv');
+    const rejectionTextarea = document.getElementById('rejectionReason');
+    
+    if (action === 'approve') {
+        title.textContent = '✓ Approve Delivery';
+        actionInput.value = 'approve';
+        submitBtn.textContent = 'Approve Delivery';
+        submitBtn.className = 'bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition text-white font-semibold';
+        rejectionDiv.classList.add('hidden');
+        rejectionTextarea.required = false;
+    } else {
+        title.textContent = '✗ Reject Delivery';
+        actionInput.value = 'reject';
+        submitBtn.textContent = 'Reject Delivery';
+        submitBtn.className = 'bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition text-white font-semibold';
+        rejectionDiv.classList.remove('hidden');
+        rejectionTextarea.required = true;
+    }
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeApprovalModal() {
+    const modal = document.getElementById('approvalModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.getElementById('rejectionReason').value = '';
+}
+
 function openImageModal(imageSrc) {
     document.getElementById('modalImage').src = imageSrc;
     document.getElementById('imageModal').classList.remove('hidden');
@@ -590,10 +709,11 @@ function exportExcel(deliveryId) {
     window.location.href = url;
 }
 
-// Close modal with Escape key
+// Close modals with Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeImageModal();
+        closeApprovalModal();
     }
 });
 </script>

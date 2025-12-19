@@ -97,6 +97,19 @@
                     class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400" readonly>
             </div>
 
+            <div>
+    <label class="block text-sm mb-1 text-gray-300">Shipping Address</label>
+    <textarea name="shipping_address" 
+              rows="3"
+              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white
+                     focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
+                     placeholder-gray-400"
+              placeholder="Enter shipping address...">{{ old('shipping_address', $salesOrder->shipping_address ?? $salesOrder->customer->shipping_address) }}</textarea>
+    <p class="text-xs text-gray-400 mt-1">
+        Leave empty to use customer's default address
+    </p>
+</div>
+
             {{-- ✅ PO Image Upload Section --}}
             <div class="col-span-2" id="po_image_container">
                 <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-4">
@@ -167,6 +180,24 @@
                 </div>
             </div>
         </div>
+
+        {{-- ✅ Additional Delivery Instructions Section --}}
+<div class="col-span-2">
+    <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-4">
+        <label class="block text-sm mb-2 text-gray-300 font-semibold">
+            📋 Additional Delivery Instructions
+        </label>
+        <textarea name="additional_instructions" 
+                  rows="4"
+                  class="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 
+                         focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
+                         placeholder-gray-500"
+                  placeholder="Enter any special delivery instructions, requirements, or notes for this order...">{{ old('additional_instructions', $salesOrder->additional_instructions) }}</textarea>
+        <p class="text-xs text-gray-400 mt-2">
+            These instructions will appear on the printed sales order form and delivery documents.
+        </p>
+    </div>
+</div>
 
         <!-- Items Table -->
         <div class="flex justify-between items-center mb-4">

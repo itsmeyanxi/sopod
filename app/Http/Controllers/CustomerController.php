@@ -7,6 +7,7 @@ use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\RoleHelper;
+use Illuminate\Support\Facades\Response;
 
 class CustomerController extends Controller
 {
@@ -26,6 +27,59 @@ class CustomerController extends Controller
 
         return view('customers.create');
     }
+
+    public function export()
+{
+    $customers = Customer::orderBy('customer_code')->get();
+    
+    $filename = 'customers_export_' . date('Y-m-d_His') . '.csv';
+    
+    $headers = [
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+    ];
+
+    $callback = function() use ($customers) {
+        $file = fopen('php://output', 'w');
+        
+        // Add UTF-8 BOM for proper Excel encoding
+        fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+        
+        // CSV Headers
+        fputcsv($file, [
+            'ID',
+            'Customer Code',
+            'Customer Name',
+            'Business Style',
+            'Billing Address',
+            'TIN',
+            'Shipping Address',
+            'Status',
+            'Created At',
+            'Updated At'
+        ]);
+
+        // CSV Data
+        foreach ($customers as $customer) {
+            fputcsv($file, [
+                $customer->id,
+                $customer->customer_code,
+                $customer->customer_name,
+                $customer->business_style ?? 'N/A',
+                $customer->billing_address ?? 'N/A',
+                $customer->tin_no ?? '000-000-000-00000',
+                $customer->shipping_address ?? 'N/A',
+                ucfirst($customer->status),
+                $customer->created_at ? $customer->created_at->format('Y-m-d H:i:s') : 'N/A',
+                $customer->updated_at ? $customer->updated_at->format('Y-m-d H:i:s') : 'N/A',
+            ]);
+        }
+
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 
     // Save new customer to database
     public function store(Request $request)
@@ -64,6 +118,9 @@ class CustomerController extends Controller
         $validated['status'] = 'enabled';
 
         $customer = Customer::create($validated);
+
+        // ✅ Send email notification
+        app(\App\Services\NotificationService::class)->notifyNewItem($customer);
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',

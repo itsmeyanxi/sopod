@@ -70,6 +70,7 @@
                                 data-search="{{ strtolower($customer->customer_code . ' ' . $customer->customer_name) }}">
                                 <div class="font-semibold text-base mb-1">{{ $customer->customer_code }}</div>
                                 <div class="text-sm text-gray-300">{{ $customer->customer_name }}</div>
+                                <div class="text-sm text-gray-300">{{ $customer->branch }}</div>
                             </div>
                         @endif
                     @endforeach

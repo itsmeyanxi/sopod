@@ -41,6 +41,16 @@ class Item extends Model
         return $query->where('approval_status', 'approved');
     }
 
+    public function addedBy()
+{
+    return $this->belongsTo(User::class, 'added_by');
+}
+
+public function approvedBy()
+{
+    return $this->belongsTo(User::class, 'approved_by');
+}
+
     public function scopePending($query)
     {
         return $query->where('approval_status', 'pending');

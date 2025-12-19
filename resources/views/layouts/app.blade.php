@@ -117,6 +117,22 @@
             </div>
         </div>
 
+            <!-- =================== CHANGE LOG (NEW) =================== -->
+        @if(in_array(auth()->user()->role ?? '', ['Admin', 'IT', 'CC_Approver', 'CC_Creator']))
+            <div>
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                    <span class="flex items-center space-x-2">
+                        <span>📝</span>
+                        <span class="sidebar-text">Change Log</span>
+                    </span>
+                    <span class="chevron">▼</span>
+                </button>
+                <div class="submenu ml-8 space-y-1 hidden">
+                    <a href="{{ route('changelog.index') }}" class="block hover:underline">View Changes</a>
+                </div>
+            </div>
+        @endif
+
         <!-- =================== SALES DASHBOARD (NEW) =================== -->
 <a href="{{ route('sales.dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
     <span>📈</span>

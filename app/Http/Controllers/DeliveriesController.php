@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
+use App\Traits\LogsControllerActions;
 
 class DeliveriesController extends Controller
 {
@@ -77,7 +78,6 @@ class DeliveriesController extends Controller
     /**
      * UPDATE 
      */
-   // Replace your update() method in DeliveriesController.php with this:
 
 public function update(Request $request, $id)
 {
@@ -150,12 +150,13 @@ public function update(Request $request, $id)
             $soItemsMap->put($soItem->item_code, $soItem);
         }
 
-        // Compute previous delivered sums for the SO, EXCLUDING this delivery
+        // ✅ Compute previous delivered sums, EXCLUDING this delivery and qty=0 items
         $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($validated, $delivery) {
                 $q->where('sales_order_number', $validated['sales_order_number'])
                   ->where('status', 'Delivered');
             })
             ->where('delivery_id', '!=', $delivery->id)
+            ->where('quantity', '>', 0) // ✅ Only count actual deliveries
             ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
             ->groupBy('item_code')
             ->get()
@@ -164,7 +165,7 @@ public function update(Request $request, $id)
         // Delete existing delivery items for a clean replace
         DeliveryItem::where('delivery_id', $delivery->id)->delete();
 
-        // Create updated delivery items
+        // ✅ Create updated delivery items (INCLUDING qty=0 for tracking)
         foreach ($items as $item) {
             $itemCode = $item['item_code'] ?? null;
             $soItem = $soItemsMap->get($itemCode);
@@ -190,7 +191,7 @@ public function update(Request $request, $id)
                 'item_description' => $item['item_description'] ?? null,
                 'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
                 'item_category' => $soItem?->item_category ?? $itemRecord?->item_category ?? null,
-                'quantity' => $deliveredQty,
+                'quantity' => $deliveredQty, // ✅ Can be 0 if temporarily removed
                 'original_quantity' => $originalQty,
                 'remaining_quantity' => $remainingQty,
                 'uom' => $item['uom'] ?? null,
@@ -203,6 +204,8 @@ public function update(Request $request, $id)
 
         // ✅ Check if SO should be closed (AFTER all items are updated)
         $salesOrder->fresh()->checkAndClose();
+
+        app(\App\Services\NotificationService::class)->notifySalesOrderUpdated($salesOrder);
 
         // Create activity log
         Activity::create([
@@ -249,7 +252,7 @@ public function search(Request $request)
         return response()->json(['error' => 'Sales Order not found. Please check the SO number and try again.'], 404);
     }
 
-    // ✅ UPDATED: Block declined/cancelled/pending Sales Orders - ONLY allow Approved
+    // ✅ Block declined/cancelled/pending Sales Orders - ONLY allow Approved
     if ($soExists->status === 'Declined') {
         return response()->json([
             'error' => 'This Sales Order has been declined and cannot be used for deliveries.',
@@ -274,7 +277,6 @@ public function search(Request $request)
         ], 403);
     }
 
-    // ✅ Only proceed if status is 'Approved'
     if ($soExists->status !== 'Approved') {
         return response()->json([
             'error' => "This Sales Order has status '{$soExists->status}'. Only approved Sales Orders can be used for deliveries.",
@@ -282,18 +284,6 @@ public function search(Request $request)
             'show_alert' => true
         ], 403);
     }
-
-    // ✅ Check if SO is closed
-    $isViewOnly = false;
-    $statusMessage = null;
-    
-    if ($soExists->is_closed) {
-        $statusMessage = "This Sales Order is marked as Fully Delivered/Closed. You can view the delivery history.";
-        $isViewOnly = true;
-    }
-
-    // Continue with rest of the existing logic...
-    $canCreateNewDelivery = !$soExists->is_closed;
 
     // ✅ Fetch all SO items
     $soItems = SalesOrderItem::where('sales_order_id', $soExists->id)
@@ -340,11 +330,8 @@ public function search(Request $request)
     // ✅ Check delivery statuses
     $hasRejectedDelivery = $existingDeliveries->where('approval_status', 'Rejected')->count() > 0;
     $hasCancelledDelivery = $existingDeliveries->where('status', 'Cancelled')->count() > 0;
-    $hasDeliveredApprovedDelivery = $existingDeliveries->where('approval_status', 'Approved')
-        ->where('status', 'Delivered')
-        ->count() > 0;
 
-    // ✅ Block search if delivery was rejected/cancelled OR if approved+delivered
+    // ✅ Block search if delivery was rejected/cancelled (but allow edit mode)
     if ($hasRejectedDelivery && !$isEditMode) {
         return response()->json([
             'error' => 'This Sales Order has been rejected for delivery and cannot be searched. It is view-only.',
@@ -361,34 +348,22 @@ public function search(Request $request)
         ], 403);
     }
 
-    if ($hasDeliveredApprovedDelivery && $soExists->status === 'Approved' && !$isEditMode) {
-        return response()->json([
-            'error' => 'This Sales Order has already been delivered and approved. Cannot search for new delivery creation.',
-            'error_type' => 'delivered',
-            'show_alert' => true
-        ], 403);
-    }
-
     \Log::info('🔍 Delivery check', [
         'so_number' => $soNumber,
         'so_status' => $soExists->status,
         'is_closed' => $soExists->is_closed,
         'delivery_count' => $deliveryCount,
         'has_partial' => $hasPartialDelivery,
-        'has_pulled_out' => $hasPulledOut,
-        'has_cancelled' => $hasCancelled,
-        'has_rejected' => $hasRejected,
-        'can_create_new' => $canCreateNewDelivery,
         'is_edit_mode' => $isEditMode,
-        'existing_deliveries' => $existingDeliveries->pluck('dr_no', 'status')->toArray()
     ]);
 
-    // ✅ Calculate delivered quantities per item
+    // ✅ FIXED: Calculate ACTUAL delivered quantities (excluding qty=0 items)
     $deliveredQuery = DeliveryItem::whereHas('delivery', function($q) use ($soNumber) {
             $q->where('sales_order_number', $soNumber)
               ->where('approval_status', 'Approved')
               ->where('status', 'Delivered');
-        });
+        })
+        ->where('quantity', '>', 0); // ✅ CRITICAL: Only count items that were actually delivered
 
     if ($delivery && $isEditMode) {
         $deliveredQuery->where('delivery_id', '!=', $delivery->id);
@@ -400,8 +375,79 @@ public function search(Request $request)
         ->get()
         ->keyBy('item_code');
 
+    // ✅ Build items list and check if anything remains to deliver
+    $items = [];
+    $hasRemainingItems = false;
+
+    foreach ($soItems as $soItem) {
+        $originalQty = $soItem->quantity ?? 0;
+        $alreadyDelivered = $deliveredSums->get($soItem->item_code)?->total_delivered ?? 0;
+        $remainingAvailable = $originalQty - $alreadyDelivered;
+
+        // ✅ For edit mode: show ALL items including those with 0 quantity
+        if ($isEditMode && $delivery) {
+            $existingDeliveryItem = $delivery->items->firstWhere('item_code', $soItem->item_code);
+            
+            $deliveredQty = $existingDeliveryItem ? ($existingDeliveryItem->quantity ?? 0) : 0;
+            $notes = $existingDeliveryItem ? ($existingDeliveryItem->notes ?? $soItem->note ?? null) : ($soItem->note ?? null);
+            
+            $items[] = [
+                'item_code' => $soItem->item_code,
+                'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
+                'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
+                'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
+                'quantity' => $deliveredQty,
+                'original_quantity' => $originalQty,
+                'remaining_quantity' => $remainingAvailable,
+                'already_delivered' => $alreadyDelivered,
+                'uom' => $soItem->unit ?? 'Kgs',
+                'unit_price' => $soItem->unit_price ?? 0,
+                'total_amount' => ($deliveredQty * ($soItem->unit_price ?? 0)),
+                'notes' => $notes,
+                'is_hidden' => $deliveredQty == 0,
+            ];
+            
+            // Edit mode always has items to show
+            $hasRemainingItems = true;
+        } else {
+            // ✅ NEW: For new deliveries, SKIP fully delivered items
+            if ($remainingAvailable <= 0) {
+                continue; // Don't add fully delivered items
+            }
+            
+            $hasRemainingItems = true; // ✅ Found an item that needs delivery
+            
+            $items[] = [
+                'item_code' => $soItem->item_code,
+                'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
+                'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
+                'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
+                'quantity' => $remainingAvailable, // ✅ Default to remaining quantity
+                'original_quantity' => $originalQty,
+                'remaining_quantity' => $remainingAvailable,
+                'already_delivered' => $alreadyDelivered,
+                'uom' => $soItem->unit ?? 'Kgs',
+                'unit_price' => $soItem->unit_price ?? 0,
+                'total_amount' => ($remainingAvailable * ($soItem->unit_price ?? 0)),
+                'notes' => $soItem->note ?? null,
+                'is_hidden' => false,
+            ];
+        }
+    }
+
+    // ✅ CRITICAL: Block search if NO remaining items (all fully delivered)
+    if (!$isEditMode && !$hasRemainingItems) {
+        return response()->json([
+            'error' => 'All items in this Sales Order have been fully delivered. No items available for new delivery.',
+            'error_type' => 'delivered',
+            'show_alert' => true
+        ], 403);
+    }
+
     // ✅ Determine batch name for new delivery
     $newBatchName = null;
+    $canCreateNewDelivery = $hasRemainingItems;
+    
     if (!$isEditMode && $canCreateNewDelivery) {
         if ($deliveryCount === 0) {
             $newBatchName = 'Pending';
@@ -410,58 +456,6 @@ public function search(Request $request)
         }
     } elseif (!$isEditMode && !$canCreateNewDelivery) {
         $newBatchName = 'View Only';
-    }
-
-    $items = [];
-    $allItemsFullyDelivered = true;
-
-    foreach ($soItems as $soItem) {
-        $originalQty = $soItem->quantity ?? 0;
-        $alreadyDelivered = $deliveredSums->get($soItem->item_code)?->total_delivered ?? 0;
-        $remainingAvailable = $originalQty - $alreadyDelivered;
-
-        // ✅ For edit mode: show the item's current delivery quantities
-        if ($isEditMode && $delivery) {
-            $existingDeliveryItem = $delivery->items->firstWhere('item_code', $soItem->item_code);
-            if ($existingDeliveryItem) {
-                $deliveredQty = $existingDeliveryItem->quantity ?? 0;
-                $notes = $existingDeliveryItem->notes ?? $soItem->note ?? null;
-                
-                $items[] = [
-                    'item_code' => $soItem->item_code,
-                    'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
-                    'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
-                    'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
-                    'quantity' => $deliveredQty,
-                    'original_quantity' => $originalQty,
-                    'remaining_quantity' => $remainingAvailable,
-                    'already_delivered' => $alreadyDelivered,
-                    'uom' => $soItem->unit ?? 'Kgs',
-                    'unit_price' => $soItem->unit_price ?? 0,
-                    'total_amount' => ($deliveredQty * ($soItem->unit_price ?? 0)),
-                    'notes' => $notes,
-                ];
-            }
-        } else {
-            if ($remainingAvailable > 0) {
-                $allItemsFullyDelivered = false;
-            }
-            
-            $items[] = [
-                'item_code' => $soItem->item_code,
-                'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
-                'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
-                'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
-                'quantity' => $canCreateNewDelivery && $remainingAvailable > 0 ? $remainingAvailable : 0,
-                'original_quantity' => $originalQty,
-                'remaining_quantity' => max(0, $remainingAvailable),
-                'already_delivered' => $alreadyDelivered,
-                'uom' => $soItem->unit ?? 'Kgs',
-                'unit_price' => $soItem->unit_price ?? 0,
-                'total_amount' => $canCreateNewDelivery && $remainingAvailable > 0 ? ($remainingAvailable * ($soItem->unit_price ?? 0)) : ($alreadyDelivered * ($soItem->unit_price ?? 0)),
-                'notes' => $soItem->note ?? null,
-            ];
-        }
     }
 
     // Build response
@@ -475,23 +469,16 @@ public function search(Request $request)
     // ✅ Enhanced info message
     $infoMessage = null;
     $showPartialAlert = false;
+    $isViewOnly = !$hasRemainingItems && !$isEditMode;
     
-    if ($statusMessage) {
-        $infoMessage = $statusMessage;
+    if (!$isEditMode && $deliveryCount > 0 && $hasRemainingItems) {
         $showPartialAlert = true;
-    } elseif (!$isEditMode && $allItemsFullyDelivered && $deliveryCount > 0) {
-        $showPartialAlert = true;
-        $infoMessage = "All items in this Sales Order have been fully delivered. ";
-        $infoMessage .= "Total deliveries: {$deliveryCount}. ";
-        $infoMessage .= "You can view the delivery history but cannot create new deliveries.";
-    } elseif (!$isEditMode && $deliveryCount >= 1 && $hasPartialDelivery) {
-        $showPartialAlert = true;
-        $fullyDeliveredCount = $soItems->count() - count(array_filter($items, fn($item) => $item['remaining_quantity'] > 0));
-        $infoMessage = "This SO has {$deliveryCount} previous partial delivery(ies). ";
+        $fullyDeliveredCount = $soItems->count() - count($items);
+        $infoMessage = "This SO has {$deliveryCount} previous delivery(ies). ";
         if ($fullyDeliveredCount > 0) {
             $infoMessage .= "{$fullyDeliveredCount} item(s) already fully delivered. ";
         }
-        $infoMessage .= "Showing " . count($items) . " item(s).";
+        $infoMessage .= "Showing " . count($items) . " item(s) with remaining quantities.";
     }
     
     // ✅ Add delivery history info
@@ -564,7 +551,7 @@ public function store(Request $request)
             'tin_no' => 'nullable|string|max:255',
             'branch' => 'nullable|string|max:255',
             'sales_rep' => 'nullable|string|max:255',
-            'sales_rep' => 'nullable|string|max:255',
+            'sales_representative' => 'nullable|string|max:255',
             'sales_executive' => 'nullable|string|max:255',
             'po_number' => 'nullable|string|max:255',
             'request_delivery_date' => 'nullable|date',
@@ -587,6 +574,10 @@ public function store(Request $request)
 
         $validated['approval_status'] = 'Pending';
         $validated['created_by'] = auth()->user()->name ?? 'System';
+
+        \Log::info('✅ Validated items:', [
+            'items' => $validated['items']
+        ]);
 
         // Normalize empty strings to nulls
         foreach (['customer_name', 'branch', 'tin_no', 'sales_rep', 'sales_representative', 'sales_executive', 'po_number', 'plate_no', 'sales_invoice_no'] as $field) {
@@ -613,10 +604,12 @@ public function store(Request $request)
         $validated['approval_status'] = 'Pending';
         $validated['created_by'] = auth()->user()->name ?? 'System';
 
-        // Count existing APPROVED deliveries only
+        // ✅ Count existing APPROVED deliveries only (with actual delivered items)
         $existingDeliveryCount = Deliveries::where('sales_order_number', $validated['sales_order_number'])
             ->where('approval_status', 'Approved')
-            ->whereHas('items')
+            ->whereHas('items', function($q) {
+                $q->where('quantity', '>', 0); // ✅ Only count deliveries with actual items
+            })
             ->count();
         
         // Determine batch name
@@ -644,12 +637,13 @@ public function store(Request $request)
             $soItemsMap->put($soItem->item_code, $soItem);
         }
 
-        // Get delivered sums (only approved deliveries)
+        // ✅ Get delivered sums (only approved deliveries with qty > 0)
         $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($validated) {
                 $q->where('sales_order_number', $validated['sales_order_number'])
                   ->where('approval_status', 'Approved')
                   ->where('status', 'Delivered');
             })
+            ->where('quantity', '>', 0) // ✅ Only count actual deliveries
             ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
             ->groupBy('item_code')
             ->get()
@@ -658,7 +652,7 @@ public function store(Request $request)
         // Create delivery
         $delivery = Deliveries::create($validated);
 
-        // Create delivery items
+        // ✅ Create delivery items (INCLUDING items with qty=0 for tracking)
         foreach ($items as $item) {
             $itemCode = $item['item_code'] ?? null;
             $soItem = $soItemsMap->get($itemCode);
@@ -679,7 +673,7 @@ public function store(Request $request)
                 'item_description' => $item['item_description'] ?? null,
                 'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
                 'item_category' => $soItem?->item_category ?? $itemRecord?->item_category ?? null,
-                'quantity' => $deliveredQty,
+                'quantity' => $deliveredQty, // ✅ Can be 0 if temporarily removed
                 'original_quantity' => $originalQty,
                 'remaining_quantity' => $remainingQty,
                 'uom' => $item['uom'] ?? null,
@@ -690,10 +684,24 @@ public function store(Request $request)
             ]);
         }
 
-        // Don't close SO until delivery is approved
-        // $salesOrder->fresh()->checkAndClose();
+        \Log::info('🔥 DELIVERY CREATED', [
+            'delivery_id' => $delivery->id,
+            'dr_no' => $delivery->dr_no,
+            'about_to_send_email' => true
+        ]);
 
-        // Create activity log
+        try {
+            $emailSent = app(\App\Services\NotificationService::class)->notifyNewDelivery($delivery);
+            \Log::info('🔥 DELIVERY EMAIL SENT', ['success' => $emailSent]);
+        } catch (\Exception $emailError) {
+            \Log::error('🔥 DELIVERY EMAIL FAILED', [
+                'error' => $emailError->getMessage(),
+                'trace' => $emailError->getTraceAsString()
+            ]);
+            // Don't throw - let delivery creation succeed even if email fails
+        }
+
+        // Create activity log AFTER email attempt
         Activity::create([
             'user_name' => auth()->user()->name ?? 'System',
             'action' => 'Created',
@@ -747,6 +755,8 @@ public function approve($id)
             $salesOrder->fresh()->checkAndClose();
         }
 
+        app(\App\Services\NotificationService::class)->notifyDeliveryStatusChange($delivery, 'approved');
+
         Activity::create([
             'user_name' => auth()->user()->name ?? 'System',
             'action' => 'Approved',
@@ -786,6 +796,8 @@ public function reject(Request $request, $id)
             'approved_by_user' => auth()->user()->name,
             'rejection_reason' => $validated['rejection_reason'],
         ]);
+
+        app(\App\Services\NotificationService::class)->notifyDeliveryStatusChange($delivery, 'rejected');
 
         Activity::create([
             'user_name' => auth()->user()->name ?? 'System',
@@ -844,8 +856,6 @@ public function pullout(Request $request, $id)
         return response()->json(['success' => false, 'message' => 'Failed to pullout delivery'], 500);
     }
 }
-
-// Update these methods in DeliveriesController.php
 
 /**
  * ✅ UPDATED: Get edit data - Only PENDING deliveries can be edited
@@ -1039,6 +1049,8 @@ public function quickUpdate(Request $request, $id)
                 ]);
             }
         }
+        
+        app(\App\Services\NotificationService::class)->notifyDeliveryUpdated($delivery->fresh());
 
         // Create activity log
         Activity::create([

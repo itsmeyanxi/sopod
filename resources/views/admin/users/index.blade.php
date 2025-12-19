@@ -29,6 +29,8 @@
                     <th class="px-4 py-3">Name</th>
                     <th class="px-4 py-3">Email</th>
                     <th class="px-4 py-3">Role</th>
+                    <th class="px-4 py-3">Account Status</th>
+                    <th class="px-4 py-3">Login Attempts</th>
                     <th class="px-4 py-3">Password Hash</th>
                     <th class="px-4 py-3">Actions</th>
                 </tr>
@@ -42,6 +44,57 @@
                     <td class="px-4 py-3">
                         <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">{{ $user->role }}</span>
                     </td>
+                    
+                    {{-- Account Lock Status --}}
+                    <td class="px-4 py-3">
+                        @if($user->is_locked)
+                            {{-- Manually locked by admin --}}
+                            <div class="flex flex-col gap-1">
+                                <span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold w-fit">
+                                    🔒 LOCKED
+                                </span>
+                                @if($user->lockedBy)
+                                    <span class="text-gray-400 text-xs">
+                                        By: {{ $user->lockedBy->name }}<br>
+                                        {{ $user->locked_at->diffForHumans() }}
+                                    </span>
+                                @endif
+                            </div>
+                        @elseif(isset($user->login_attempts) && $user->login_attempts >= 6)
+                            {{-- Auto-locked due to max attempts --}}
+                            <div class="flex flex-col gap-1">
+                                <span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold w-fit">
+                                    🔒 LOCKED (Max Attempts)
+                                </span>
+                                <span class="text-gray-400 text-xs">
+                                    Too many failed login attempts
+                                </span>
+                            </div>
+                        @else
+                            {{-- Active account --}}
+                            <span class="bg-green-600 text-white px-2 py-1 rounded text-xs w-fit">
+                                ✅ Active
+                            </span>
+                        @endif
+                    </td>
+
+                    {{-- Login Attempts Status --}}
+                    <td class="px-4 py-3">
+                        @if(isset($user->login_attempts) && $user->login_attempts >= 6)
+                            <span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">
+                                🔒 {{ $user->login_attempts }} attempts
+                            </span>
+                        @elseif(isset($user->login_attempts) && $user->login_attempts > 0)
+                            <span class="bg-yellow-600 text-white px-2 py-1 rounded text-xs">
+                                ⚠️ {{ $user->login_attempts }} attempts
+                            </span>
+                        @else
+                            <span class="bg-green-600 text-white px-2 py-1 rounded text-xs">
+                                0 attempts
+                            </span>
+                        @endif
+                    </td>
+
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-2">
                             <input type="password" 
@@ -58,13 +111,66 @@
                         </div>
                         <small class="text-gray-400 text-xs">Hashed - cannot be decrypted</small>
                     </td>
+
                     <td class="px-4 py-3">
-                        <div class="flex gap-2">
+                        <div class="flex flex-wrap gap-2">
+                            {{-- Lock/Unlock Button - Check BOTH manual lock AND max attempts --}}
+                            @if($user->id !== auth()->id())
+                                @php
+                                    // Account is locked if EITHER manually locked OR max attempts reached
+                                    $isLocked = $user->is_locked || (isset($user->login_attempts) && $user->login_attempts >= 6);
+                                @endphp
+                                
+                                <form action="{{ route('admin.users.toggleLock', $user->id) }}" 
+                                      method="POST" 
+                                      class="inline lock-form">
+                                    @csrf
+                                    @if($isLocked)
+                                        {{-- Show UNLOCK button when account is locked --}}
+                                        <button type="submit" 
+                                                class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                                                title="Unlock Account"
+                                                data-user-name="{{ $user->name }}"
+                                                data-action="unlock"
+                                                data-attempts="{{ $user->login_attempts ?? 0 }}">
+                                            🔓 Unlock
+                                        </button>
+                                    @else
+                                        {{-- Show LOCK button when account is active --}}
+                                        <button type="submit" 
+                                                class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded text-sm"
+                                                title="Lock Account"
+                                                data-user-name="{{ $user->name }}"
+                                                data-action="lock">
+                                            🔒 Lock
+                                        </button>
+                                    @endif
+                                </form>
+                            @endif
+
+                            {{-- Edit Button --}}
                             <a href="{{ route('admin.users.edit', $user->id) }}" 
                                class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
                                title="Edit User">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
+                            
+                            {{-- Reset Login Attempts Button - Show if attempts > 0 --}}
+                            @if(isset($user->login_attempts) && $user->login_attempts > 0)
+                            <form action="{{ route('users.reset-attempts', $user->id) }}" 
+                                  method="POST" 
+                                  class="inline reset-attempts-form">
+                                @csrf
+                                <button type="submit" 
+                                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                                        title="Reset Login Attempts"
+                                        data-attempts="{{ $user->login_attempts }}">
+                                    <i class="fas fa-sync"></i> Reset
+                                </button>
+                            </form>
+                            @endif
+                            
+                            {{-- Delete Button --}}
                             @if($user->id !== auth()->id())
                             <form action="{{ route('admin.users.destroy', $user->id) }}" 
                                   method="POST" 
@@ -112,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Password toggle functionality (shows/hides the hash)
+    // Password toggle functionality
     document.querySelectorAll('.toggle-password').forEach(button => {
         button.addEventListener('click', function() {
             const targetId = this.getAttribute('data-target');
@@ -131,7 +237,90 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Delete confirmation with SweetAlert2
+    // Lock/Unlock confirmation with SweetAlert2
+    document.querySelectorAll('.lock-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('button');
+            const userName = button.getAttribute('data-user-name');
+            const action = button.getAttribute('data-action');
+            const attempts = button.getAttribute('data-attempts');
+            
+            if (action === 'lock') {
+                Swal.fire({
+                    title: 'Lock Account?',
+                    html: `Lock account for <strong>${userName}</strong>?<br><br>They will not be able to log in until unlocked.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ea580c',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: '🔒 Yes, lock it!',
+                    cancelButtonText: 'Cancel',
+                    background: '#1f2937',
+                    color: '#fff'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            } else {
+                // Unlock action
+                let message = `Unlock account for <strong>${userName}</strong>?<br><br>They will be able to log in again.`;
+                
+                // Add extra info if account was locked due to failed attempts
+                if (attempts && attempts >= 6) {
+                    message += `<br><br>⚠️ This account was locked due to <strong>${attempts} failed login attempts</strong>. Login attempts will be reset to 0.`;
+                }
+                
+                Swal.fire({
+                    title: 'Unlock Account?',
+                    html: message,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#10b981',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: '🔓 Yes, unlock it!',
+                    cancelButtonText: 'Cancel',
+                    background: '#1f2937',
+                    color: '#fff'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            }
+        });
+    });
+
+    // Reset Login Attempts confirmation
+    document.querySelectorAll('.reset-attempts-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('button');
+            const attempts = button.getAttribute('data-attempts');
+            
+            Swal.fire({
+                title: 'Reset Login Attempts?',
+                html: `This will reset the <strong>${attempts} failed login attempts</strong> counter.<br><br>The user will be able to log in again.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, reset it!',
+                cancelButtonText: 'Cancel',
+                background: '#1f2937',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+
+    // Delete confirmation
     document.querySelectorAll('.delete-form').forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -162,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
             title: 'Success!',
             text: '{{ session('success') }}',
             showConfirmButton: false,
-            timer: 2000,
+            timer: 2500,
             background: '#1f2937',
             color: '#fff'
         });
