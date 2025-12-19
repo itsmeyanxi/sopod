@@ -419,6 +419,12 @@ function populateItemsTable(items, isViewOnly = false) {
                     ` : ''}
                 </div>
 
+                 <!-- ✅ Add hidden inputs to store data reliably -->
+                <input type="hidden" class="data-item-code" value="${item.item_code || ''}">
+                <input type="hidden" class="data-item-description" value="${item.item_description || ''}">
+                <input type="hidden" class="data-brand" value="${item.brand || ''}">
+                <input type="hidden" class="data-item-category" value="${item.item_category || ''}">
+
                 <!-- Item Details Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                     <div>

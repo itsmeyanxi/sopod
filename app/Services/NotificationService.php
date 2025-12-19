@@ -203,7 +203,7 @@ class NotificationService
             }
             
             if ($newStatus === 'Approved') {
-                $roleRecipients = $this->getRecipientsByRole(['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver']);
+                $roleRecipients = $this->getRecipientsByRole(['IT']);
                 $recipients = $recipients->merge($roleRecipients);
             }
             
@@ -328,7 +328,7 @@ class NotificationService
                 $recipients->push($salesOrder->preparer);
             }
             
-            $recipients = $recipients->merge($this->getRecipientsByRole(['Admin', 'IT']));
+            $recipients = $recipients->merge($this->getRecipientsByRole([ 'IT']));
             
             if ($recipients->isEmpty()) {
                 Log::warning('No recipients for SO closed');
@@ -392,7 +392,7 @@ class NotificationService
             }
             
             if ($action === 'approved') {
-                $recipients = $recipients->merge($this->getRecipientsByRole(['Admin', 'IT', 'Delivery_Approver']));
+                $recipients = $recipients->merge($this->getRecipientsByRole([ 'IT']));
             }
             
             if ($recipients->isEmpty()) {
@@ -450,7 +450,7 @@ class NotificationService
         }
 
         try {
-            $recipients = $this->getRecipientsByRole(['Admin', 'IT', 'Delivery_Approver']);
+            $recipients = $this->getRecipientsByRole([ 'IT']);
             
             if ($recipients->isEmpty()) {
                 Log::warning('No recipients for new delivery');
@@ -567,7 +567,7 @@ class NotificationService
         }
 
         try {
-            $recipients = $this->getRecipientsByRole(['Admin', 'IT', 'Accounting_Approver']);
+            $recipients = $this->getRecipientsByRole([ 'IT']);
             
             if ($recipients->isEmpty()) {
                 Log::warning('No recipients for new item');
