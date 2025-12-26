@@ -35,7 +35,8 @@ class Customer extends Model
         'collection_terms',
         'sales_rep', 
         'credit_limit', 
-        'assigned_bank'
+        'assigned_bank',
+        'is_flagged'
     ];
 }
 

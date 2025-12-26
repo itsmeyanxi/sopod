@@ -5,7 +5,6 @@
     <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-2">
         <h1 class="text-2xl font-bold">Deliveries List</h1>
         
-        {{-- 🆕 Create Delivery --}}
         @if(auth()->user()->canManageDeliveries())
             <a href="{{ route('deliveries.deliveries') }}" 
                class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition"
@@ -37,35 +36,30 @@
         </div>
 
         <form method="GET" action="{{ route('deliveries.index') }}">
-            {{-- Main Filter Grid --}}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                {{-- Date Range Section --}}
-                <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            Date From
-                        </label>
-                        <input type="date" name="date_from" value="{{ request('date_from') }}" 
-                            class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none">
-                    </div>
-
-                    {{-- Date To --}}
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            Date To
-                        </label>
-                        <input type="date" name="date_to" value="{{ request('date_to') }}" 
-                            class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none">
-                    </div>
+            {{-- Filter inputs (unchanged) --}}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        🚚 Delivery Date From
+                    </label>
+                    <input type="date" name="delivery_date_from" value="{{ request('delivery_date_from') }}" 
+                        class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-blue-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none">
                 </div>
 
-                {{-- Search Box --}}
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        🚚 Delivery Date To
+                    </label>
+                    <input type="date" name="delivery_date_to" value="{{ request('delivery_date_to') }}" 
+                        class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-blue-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none">
+                </div>
+
                 <div class="relative">
                     <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
                         <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,9 +77,7 @@
                 </div>
             </div>
 
-            {{-- Status Filters Row --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 p-4 bg-gray-900/30 rounded-xl border border-gray-700/30">
-                {{-- Delivery Status --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">📦 Delivery Status</label>
                     <select name="status" class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none cursor-pointer">
@@ -96,7 +88,6 @@
                     </select>
                 </div>
 
-                {{-- Approval Status --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">✅ Approval Status</label>
                     <select name="approval_status" class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-gray-600 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all outline-none cursor-pointer">
@@ -108,7 +99,6 @@
                 </div>
             </div>
 
-            {{-- Action Buttons --}}
             <div class="flex flex-wrap gap-3 items-center">
                 <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-blue-500/30 flex items-center gap-2 font-medium">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +114,7 @@
                     Clear All
                 </a>
 
-                @if(request('date_from') || request('date_to') || request('search') || request('status') || request('approval_status'))
+                @if(request('delivery_date_from') || request('delivery_date_to') || request('search') || request('status') || request('approval_status'))
                     <div class="h-8 w-px bg-gray-600"></div>
                     
                     <button type="button" onclick="printList()" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 font-medium">
@@ -143,8 +133,7 @@
                 @endif
             </div>
 
-            {{-- Active Filters Display --}}
-            @if(request('status') || request('approval_status') || request('date_from') || request('date_to'))
+            @if(request('delivery_date_from') || request('delivery_date_to') || request('status') || request('approval_status'))
                 <div class="mt-4 pt-4 border-t border-gray-700/50">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-sm font-medium text-gray-400 flex items-center gap-2">
@@ -154,22 +143,22 @@
                             Active Filters:
                         </span>
                         
-                        @if(request('date_from'))
-                            <span class="bg-purple-600/20 border border-purple-600/30 text-purple-300 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-purple-600/30 transition-all">
-                                📅 From: {{ request('date_from') }}
-                                <a href="{{ route('deliveries.index', request()->except('date_from')) }}" class="hover:text-white">×</a>
+                        @if(request('delivery_date_from'))
+                            <span class="bg-blue-600/20 border border-blue-600/30 text-blue-300 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-blue-600/30 transition-all">
+                                🚚 From: {{ request('delivery_date_from') }}
+                                <a href="{{ route('deliveries.index', request()->except('delivery_date_from')) }}" class="hover:text-white">×</a>
                             </span>
                         @endif
 
-                        @if(request('date_to'))
-                            <span class="bg-purple-600/20 border border-purple-600/30 text-purple-300 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-purple-600/30 transition-all">
-                                📅 To: {{ request('date_to') }}
-                                <a href="{{ route('deliveries.index', request()->except('date_to')) }}" class="hover:text-white">×</a>
+                        @if(request('delivery_date_to'))
+                            <span class="bg-blue-600/20 border border-blue-600/30 text-blue-300 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-blue-600/30 transition-all">
+                                🚚 To: {{ request('delivery_date_to') }}
+                                <a href="{{ route('deliveries.index', request()->except('delivery_date_to')) }}" class="hover:text-white">×</a>
                             </span>
                         @endif
 
                         @if(request('status'))
-                            <span class="bg-blue-600/20 border border-blue-600/30 text-blue-300 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-blue-600/30 transition-all">
+                            <span class="bg-gray-600/20 border border-gray-600/30 text-gray-300 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-gray-600/30 transition-all">
                                 📦 Status: {{ request('status') }}
                                 <a href="{{ route('deliveries.index', request()->except('status')) }}" class="hover:text-white">×</a>
                             </span>
@@ -187,16 +176,64 @@
         </form>
     </div>
 
+    {{-- ✅ BATCH ACTION BAR (Only for approvers) --}}
+    @if(\App\Helpers\RoleHelper::canApproveDeliveries())
+        <div id="batchActionBar" class="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-xl shadow-lg p-4 mb-4 border border-purple-700/50 hidden">
+            <div class="flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="text-purple-300 font-semibold flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        <span id="selectedCount">0</span> delivery(ies) selected
+                    </span>
+                    <button onclick="selectAllPending()" class="text-sm text-blue-400 hover:text-blue-300 underline">
+                        Select All Pending
+                    </button>
+                    <button onclick="clearSelection()" class="text-sm text-gray-400 hover:text-gray-300 underline">
+                        Clear Selection
+                    </button>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="showBatchApproveConfirm()" 
+                            class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Batch Approve
+                    </button>
+                    
+                    <button onclick="showBatchRejectModal()" 
+                            class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-red-500/30 flex items-center gap-2 font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Batch Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- 📋 Deliveries Table --}}
     <div class="bg-gray-800 rounded-xl shadow-md overflow-hidden">
         <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
             <table id="deliveriesTable" class="min-w-full text-sm border-collapse">
                 <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                     <tr>
+                        {{-- ✅ Checkbox column for batch selection --}}
+                        @if(\App\Helpers\RoleHelper::canApproveDeliveries())
+                            <th class="px-4 py-3 text-center">
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" 
+                                       class="w-4 h-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-800">
+                            </th>
+                        @endif
                         <th class="px-4 py-3 text-left">DR No</th>
                         <th class="px-4 py-3 text-left">Sales Order</th>
                         <th class="px-4 py-3 text-left">Batch</th>
                         <th class="px-4 py-3 text-left">Customer</th>
+                        <th class="px-4 py-3 text-left">🚚 Delivery Date</th>
                         <th class="px-4 py-3 text-left">Quantity</th>
                         <th class="px-4 py-3 text-left">Amount</th>
                         <th class="px-4 py-3 text-left">Approval</th>
@@ -207,6 +244,21 @@
                 <tbody>
                     @forelse($deliveries as $delivery)
                     <tr class="border-b border-gray-700 hover:bg-gray-700 transition-colors {{ $delivery->is_pulled_out ? 'opacity-60' : '' }}">
+                        {{-- ✅ Checkbox column --}}
+                        @if(\App\Helpers\RoleHelper::canApproveDeliveries())
+                            <td class="px-4 py-3 text-center">
+                                @if($delivery->approval_status === 'Pending' && !$delivery->is_pulled_out)
+                                    <input type="checkbox" 
+                                           class="delivery-checkbox w-4 h-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-800" 
+                                           data-delivery-id="{{ $delivery->id }}"
+                                           data-dr-no="{{ $delivery->dr_no }}"
+                                           onchange="updateBatchSelection()">
+                                @else
+                                    <span class="text-gray-600">—</span>
+                                @endif
+                            </td>
+                        @endif
+
                         <td class="px-4 py-3">
                             {{ $delivery->dr_no }}
                             @if($delivery->is_pulled_out)
@@ -238,10 +290,18 @@
                                ?? $delivery->salesOrder?->client_name 
                                ?? 'N/A' }}
                         </td>
+                        <td class="px-4 py-3">
+                            @if($delivery->request_delivery_date)
+                                <span class="text-blue-300">
+                                    {{ \Carbon\Carbon::parse($delivery->request_delivery_date)->format('M d, Y') }}
+                                </span>
+                            @else
+                                <span class="text-gray-500 text-xs">—</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3">{{ number_format($delivery->quantity ?? 0, 2) }}</td>
                         <td class="px-4 py-3">₱{{ number_format($delivery->total_amount ?? 0, 2) }}</td>  
                         
-                        {{-- Approval Status --}}
                         <td class="px-4 py-3">
                             @if($delivery->approval_status === 'Pending')
                                 <span class="bg-yellow-600/30 text-yellow-300 px-2 py-1 rounded text-xs">⏳ Pending</span>
@@ -252,7 +312,6 @@
                             @endif
                         </td>
                         
-                        {{-- Delivery Status --}}
                         <td class="px-4 py-3">
                             @if($delivery->is_pulled_out)
                                 <span class="bg-orange-600 text-white px-2 py-1 rounded text-xs">🔒 Pulled Out</span>
@@ -265,64 +324,59 @@
                             @endif
                         </td>
                         
-                            <td class="px-4 py-3 text-center">
-                                <div class="flex gap-2 justify-center items-center flex-wrap">
-                                    {{-- View Button --}}
-                                    <a href="{{ route('deliveries.show', $delivery->id) }}" 
-                                    class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs">
-                                        View
-                                    </a>
-                                    
-                                    {{-- ✅ DELIVERY APPROVER: Can only edit PENDING deliveries --}}
-                                    @if(\App\Helpers\RoleHelper::canApproveDeliveries() && 
-                                        $delivery->approval_status === 'Pending' &&
-                                        !$delivery->is_pulled_out)
-                                        <button onclick="openEditModal({{ $delivery->id }})"
-                                                class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs">
-                                            ✎ Edit
-                                        </button>
-                                    @endif
-                                    
-                                    {{-- ✅ DELIVERY CREATOR: Request Edit for PENDING deliveries only --}}
-                                    @if(\App\Helpers\RoleHelper::canManageDeliveries() && 
-                                        !\App\Helpers\RoleHelper::canApproveDeliveries() &&
-                                        !$delivery->is_pulled_out && 
-                                        $delivery->approval_status === 'Pending' && 
-                                        !$delivery->edit_requested && 
-                                        !$delivery->edit_approved)
-                                        <button onclick="requestEditPermission({{ $delivery->id }})"
-                                                class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-md text-xs">
-                                            📝 Request Edit
-                                        </button>
-                                    @endif
-                                    
-                                    {{-- ✅ EDIT PENDING INDICATOR (When edit requested but not yet approved) --}}
-                                    @if($delivery->edit_requested && 
-                                        !$delivery->edit_approved && 
-                                        \App\Helpers\RoleHelper::canManageDeliveries() && 
-                                        !\App\Helpers\RoleHelper::canApproveDeliveries())
-                                        <span class="bg-yellow-600/30 text-yellow-300 px-3 py-1 rounded-md text-xs">
-                                            ⏳ Edit Pending
-                                        </span>
-                                    @endif
-                                    
-                                    {{-- ✅ EDIT BUTTON FOR CREATOR (when edit approved by approver) --}}
-                                    @if(\App\Helpers\RoleHelper::canManageDeliveries() && 
-                                        !\App\Helpers\RoleHelper::canApproveDeliveries() &&
-                                        $delivery->edit_approved && 
-                                        $delivery->approval_status === 'Pending' &&
-                                        !$delivery->is_pulled_out)
-                                        <button onclick="openEditModal({{ $delivery->id }})"
-                                                class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs animate-pulse">
-                                            ✎ Edit Now
-                                        </button>
-                                    @endif
-                                    
-                                    {{-- ✅ APPROVE/REJECT EDIT BUTTONS (Delivery Approver only, for pending deliveries) --}}
-                                    @if(\App\Helpers\RoleHelper::canApproveDeliveries() && 
-                                        $delivery->edit_requested && 
-                                        !$delivery->edit_approved && 
-                                        $delivery->approval_status === 'Pending' &&
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex gap-2 justify-center items-center flex-wrap">
+                                <a href="{{ route('deliveries.show', $delivery->id) }}" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs">
+                                    View
+                                </a>
+                                
+                                @if(\App\Helpers\RoleHelper::canApproveDeliveries() && 
+                                    $delivery->approval_status === 'Pending' &&
+                                    !$delivery->is_pulled_out)
+                                    <button onclick="openEditModal({{ $delivery->id }})"
+                                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs">
+                                        ✎ Edit
+                                    </button>
+                                @endif
+                                
+                                @if(\App\Helpers\RoleHelper::canManageDeliveries() && 
+                                    !\App\Helpers\RoleHelper::canApproveDeliveries() &&
+                                    !$delivery->is_pulled_out && 
+                                    $delivery->approval_status === 'Pending' && 
+                                    !$delivery->edit_requested && 
+                                    !$delivery->edit_approved)
+                                    <button onclick="requestEditPermission({{ $delivery->id }})"
+                                            class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-md text-xs">
+                                        📝 Request Edit
+                                    </button>
+                                @endif
+                                
+                                @if($delivery->edit_requested && 
+                                    !$delivery->edit_approved && 
+                                    \App\Helpers\RoleHelper::canManageDeliveries() && 
+                                    !\App\Helpers\RoleHelper::canApproveDeliveries())
+                                    <span class="bg-yellow-600/30 text-yellow-300 px-3 py-1 rounded-md text-xs">
+                                        ⏳ Edit Pending
+                                    </span>
+                                @endif
+                                
+                                @if(\App\Helpers\RoleHelper::canManageDeliveries() && 
+                                    !\App\Helpers\RoleHelper::canApproveDeliveries() &&
+                                    $delivery->edit_approved && 
+                                    $delivery->approval_status === 'Pending' &&
+                                    !$delivery->is_pulled_out)
+                                    <button onclick="openEditModal({{ $delivery->id }})"
+                                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs animate-pulse">
+                                        ✎ Edit Now
+                                    </button>
+                                @endif
+                                
+                                {{-- ✅ APPROVE/REJECT EDIT BUTTONS (Delivery Approver only, for pending deliveries) --}}
+                                @if(\App\Helpers\RoleHelper::canApproveDeliveries() && 
+                                    $delivery->edit_requested && 
+                                    !$delivery->edit_approved && 
+                                    $delivery->approval_status === 'Pending' &&
                                         !$delivery->is_pulled_out)
                                         <button onclick="approveEditRequest({{ $delivery->id }})"
                                                 class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs">
@@ -1206,39 +1260,259 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
 });
 
 // ========================================
+// BATCH APPROVAL FUNCTIONS
+// ========================================
+
+let selectedDeliveries = new Set();
+
+function updateBatchSelection() {
+    selectedDeliveries.clear();
+    
+    document.querySelectorAll('.delivery-checkbox:checked').forEach(checkbox => {
+        selectedDeliveries.add({
+            id: parseInt(checkbox.dataset.deliveryId),
+            drNo: checkbox.dataset.drNo
+        });
+    });
+    
+    const count = selectedDeliveries.size;
+    document.getElementById('selectedCount').textContent = count;
+    
+    const batchActionBar = document.getElementById('batchActionBar');
+    if (count > 0) {
+        batchActionBar.classList.remove('hidden');
+    } else {
+        batchActionBar.classList.add('hidden');
+    }
+    
+    // Update select all checkbox state
+    const allCheckboxes = document.querySelectorAll('.delivery-checkbox');
+    const checkedCheckboxes = document.querySelectorAll('.delivery-checkbox:checked');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    
+    if (allCheckboxes.length > 0 && checkedCheckboxes.length === allCheckboxes.length) {
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+    } else if (checkedCheckboxes.length > 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = true;
+    } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.delivery-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateBatchSelection();
+}
+
+function selectAllPending() {
+    document.querySelectorAll('.delivery-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateBatchSelection();
+}
+
+function clearSelection() {
+    document.querySelectorAll('.delivery-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    document.getElementById('selectAll').checked = false;
+    updateBatchSelection();
+}
+
+function showBatchApproveConfirm() {
+    if (selectedDeliveries.size === 0) {
+        alert('Please select at least one delivery to approve');
+        return;
+    }
+    
+    const drNos = Array.from(selectedDeliveries).map(d => d.drNo).join(', ');
+    
+    if (!confirm(`Are you sure you want to approve ${selectedDeliveries.size} delivery(ies)?\n\nDR Numbers: ${drNos}`)) {
+        return;
+    }
+    
+    batchApproveDeliveries();
+}
+
+function batchApproveDeliveries() {
+    const deliveryIds = Array.from(selectedDeliveries).map(d => d.id);
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    
+    if (!csrfToken) {
+        alert('Security token not found. Please refresh the page.');
+        return;
+    }
+    
+    // Show loading state
+    const batchActionBar = document.getElementById('batchActionBar');
+    const originalHtml = batchActionBar.innerHTML;
+    batchActionBar.innerHTML = '<div class="text-center py-2"><span class="text-purple-300">⏳ Processing batch approval...</span></div>';
+    
+    fetch('/deliveries/batch-approve', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ delivery_ids: deliveryIds })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            let message = data.message;
+            if (data.errors && data.errors.length > 0) {
+                message += '\n\nErrors:\n' + data.errors.join('\n');
+            }
+            alert(message);
+            location.reload();
+        } else {
+            alert(data.message || 'Failed to batch approve deliveries');
+            batchActionBar.innerHTML = originalHtml;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during batch approval: ' + error.message);
+        batchActionBar.innerHTML = originalHtml;
+    });
+}
+
+function showBatchRejectModal() {
+    if (selectedDeliveries.size === 0) {
+        alert('Please select at least one delivery to reject');
+        return;
+    }
+    
+    document.getElementById('batchRejectCount').textContent = selectedDeliveries.size;
+    
+    const listHtml = Array.from(selectedDeliveries)
+        .map(d => `<li class="flex items-center gap-2"><span class="text-red-400">•</span> DR: ${d.drNo}</li>`)
+        .join('');
+    
+    document.getElementById('batchRejectList').innerHTML = listHtml;
+    document.getElementById('batchRejectModal').classList.remove('hidden');
+}
+
+function closeBatchRejectModal() {
+    document.getElementById('batchRejectModal').classList.add('hidden');
+    document.getElementById('batchRejectionReason').value = '';
+}
+
+document.getElementById('batchRejectForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const reason = document.getElementById('batchRejectionReason').value;
+    
+    if (!reason.trim()) {
+        alert('Please provide a rejection reason');
+        return;
+    }
+    
+    const deliveryIds = Array.from(selectedDeliveries).map(d => d.id);
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    
+    if (!csrfToken) {
+        alert('Security token not found. Please refresh the page.');
+        return;
+    }
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '⏳ Processing...';
+    
+    fetch('/deliveries/batch-reject', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+            delivery_ids: deliveryIds,
+            rejection_reason: reason
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            let message = data.message;
+            if (data.errors && data.errors.length > 0) {
+                message += '\n\nErrors:\n' + data.errors.join('\n');
+            }
+            alert(message);
+            closeBatchRejectModal();
+            location.reload();
+        } else {
+            alert(data.message || 'Failed to batch reject deliveries');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during batch rejection: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+});
+
+// ========================================
 // UTILITY FUNCTIONS FOR PRINT/EXPORT
 // ========================================
 
 function printList() {
-    const dateFrom = document.querySelector('input[name="date_from"]')?.value || '';
-    const dateTo = document.querySelector('input[name="date_to"]')?.value || '';
+    const deliveryDateFrom = document.querySelector('input[name="delivery_date_from"]')?.value || '';
+    const deliveryDateTo = document.querySelector('input[name="delivery_date_to"]')?.value || '';
     const search = document.querySelector('input[name="search"]')?.value || '';
-    const status = document.querySelector('select[name="status"]')?.value || ''; // ✅ NEW
-    const approvalStatus = document.querySelector('select[name="approval_status"]')?.value || ''; // ✅ NEW
+    const status = document.querySelector('select[name="status"]')?.value || '';
+    const approvalStatus = document.querySelector('select[name="approval_status"]')?.value || '';
     
     const params = new URLSearchParams();
-    if (dateFrom) params.append('date_from', dateFrom);
-    if (dateTo) params.append('date_to', dateTo);
+    if (deliveryDateFrom) params.append('delivery_date_from', deliveryDateFrom);
+    if (deliveryDateTo) params.append('delivery_date_to', deliveryDateTo);
     if (search) params.append('search', search);
-    if (status) params.append('status', status); // ✅ NEW
-    if (approvalStatus) params.append('approval_status', approvalStatus); // ✅ NEW
+    if (status) params.append('status', status);
+    if (approvalStatus) params.append('approval_status', approvalStatus);
     
     window.open(`/deliveries/print-list?${params.toString()}`, '_blank');
 }
 
 function exportExcel() {
-    const dateFrom = document.querySelector('input[name="date_from"]')?.value || '';
-    const dateTo = document.querySelector('input[name="date_to"]')?.value || '';
+    const deliveryDateFrom = document.querySelector('input[name="delivery_date_from"]')?.value || '';
+    const deliveryDateTo = document.querySelector('input[name="delivery_date_to"]')?.value || '';
     const search = document.querySelector('input[name="search"]')?.value || '';
-    const status = document.querySelector('select[name="status"]')?.value || ''; // ✅ NEW
-    const approvalStatus = document.querySelector('select[name="approval_status"]')?.value || ''; // ✅ NEW
+    const status = document.querySelector('select[name="status"]')?.value || '';
+    const approvalStatus = document.querySelector('select[name="approval_status"]')?.value || '';
     
     const params = new URLSearchParams();
-    if (dateFrom) params.append('date_from', dateFrom);
-    if (dateTo) params.append('date_to', dateTo);
+    if (deliveryDateFrom) params.append('delivery_date_from', deliveryDateFrom);
+    if (deliveryDateTo) params.append('delivery_date_to', deliveryDateTo);
     if (search) params.append('search', search);
-    if (status) params.append('status', status); // ✅ NEW
-    if (approvalStatus) params.append('approval_status', approvalStatus); // ✅ NEW
+    if (status) params.append('status', status);
+    if (approvalStatus) params.append('approval_status', approvalStatus);
     
     window.location.href = `/deliveries/export-excel?${params.toString()}`;
 }

@@ -12,6 +12,8 @@
     <!-- ✅ Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-sV1Q1vHbItg4pTo8x4i1Lr3b6eC5ayvJe7f9kM3qFms0tYgM1zMyxSm+kWjqT7wn3C1HrN6S3iX3UnyFwX9bOg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         .sidebar {
             transition: width 0.3s ease;

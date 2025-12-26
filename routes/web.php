@@ -28,36 +28,6 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     // ===================== AUTHENTICATED ROUTES =====================
     Route::middleware(['auth'])->group(function () {
 
-    //====================== EMAIL NOTIFICATIONS SETTINGS ======================
-//     Route::get('/test-mailable', function() {
-//     try {
-//         $salesOrder = \App\Models\SalesOrder::with('customer', 'preparer')->first();
-        
-//         if (!$salesOrder) {
-//             return '❌ No sales orders found';
-//         }
-        
-//         $data = [
-//             'title' => 'TEST: New Sales Order',
-//             'message' => 'This is a test email',
-//             'sales_order_number' => $salesOrder->sales_order_number,
-//             'customer_name' => $salesOrder->customer->customer_name ?? 'N/A',
-//             'total_amount' => number_format($salesOrder->total_amount, 2),
-//             'status' => $salesOrder->status,
-//             'created_by' => $salesOrder->preparer->name ?? 'System',
-//             'created_at' => $salesOrder->created_at->format('M d, Y h:i A'),
-//             'view_url' => route('sales_orders.show', $salesOrder->id),
-//         ];
-        
-//         Mail::to('kimberly.lopez@meatplus.ph')->send(new \App\Mail\SalesOrderCreated($data));
-        
-//         return '✅ Email sent using Mailable! Check your inbox.';
-        
-//     } catch (\Exception $e) {
-//         return '❌ Error: ' . $e->getMessage() . '<br><br>Stack: ' . $e->getTraceAsString();
-//     }
-// })->middleware('auth');
-
     // ===================== CHANGE LOG & NOTIFICATIONS =====================
     Route::get('/changelog', [ChangeLogController::class, 'index'])->name('changelog.index');
     Route::get('/changelog/sales-order/{id}', [ChangeLogController::class, 'salesOrderChanges'])->name('changelog.sales_order');
@@ -421,92 +391,108 @@ Route::prefix('items')->name('items.')->group(function () {
     })->name('show');
 });
 
-   // ===================== CUSTOMERS =====================
-Route::prefix('customers')->name('customers.')->group(function () {
+    // ===================== CUSTOMERS =====================
+    Route::prefix('customers')->name('customers.')->group(function () {
 
-    // ✅ Index
-    Route::get('/', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
-            return app(CustomerController::class)->index();
-        }
-        return view('errors.noaccess');
-    })->name('index');
+        // ✅ Index
+        Route::get('/', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(CustomerController::class)->index();
+            }
+            return view('errors.noaccess');
+        })->name('index');
 
-    // ✅ Create
-    Route::get('/create', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
-            return app(CustomerController::class)->create();
-        }
-        return view('errors.noaccess');
-    })->name('create');
+        // ✅ Export
+        Route::get('/export', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(CustomerController::class)->export();
+            }
+            return view('errors.noaccess');
+        })->name('export');
 
-    // ✅ Store
-    Route::post('/', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
-            return app(CustomerController::class)->store(request());
-        }
-        return view('errors.noaccess');
-    })->name('store');
+        // ✅ Create
+        Route::get('/create', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
+                return app(CustomerController::class)->create();
+            }
+            return view('errors.noaccess');
+        })->name('create');
 
-    // ✅ **ADD THIS NEW ROUTE** - Get customer by code (for AJAX autofill)
-    Route::get('/get/{code}', function ($code) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator', 'CC_Creator', 'CC_Approver'])) {
-            return app(CustomerController::class)->getByCode($code);
-        }
-        return response()->json(['error' => 'Access denied'], 403);
-    })->name('getByCode');
+        // ✅ Store
+        Route::post('/', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
+                return app(CustomerController::class)->store(request());
+            }
+            return view('errors.noaccess');
+        })->name('store');
 
-    // ✅ Edit
-    Route::get('/{id}/edit', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
-            return app(CustomerController::class)->edit($id);
-        }
-        return view('errors.noaccess');
-    })->name('edit');
+        // ✅  Get customer by code (for AJAX autofill)
+        Route::get('/get/{code}', function ($code) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator', 'CC_Creator', 'CC_Approver'])) {
+                return app(CustomerController::class)->getByCode($code);
+            }
+            return response()->json(['error' => 'Access denied'], 403);
+        })->name('getByCode');
 
-    // ✅ Update
-    Route::put('/{id}', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
-            return app(CustomerController::class)->update(request(), $id);
-        }
-        return view('errors.noaccess');
-    })->name('update');
+        // ✅ Edit
+        Route::get('/{id}/edit', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
+                return app(CustomerController::class)->edit($id);
+            }
+            return view('errors.noaccess');
+        })->name('edit');
 
-    // ✅ Delete
-    Route::delete('/{id}', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT'])) { // Only admin/IT can delete
-            return app(CustomerController::class)->destroy($id);
-        }
-        return view('errors.noaccess');
-    })->name('destroy');
+        // ✅ Update
+        Route::put('/{id}', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
+                return app(CustomerController::class)->update(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update');
 
-    // Inside Route::prefix('customers')->name('customers.')->group(function () {
+        // ✅ Delete
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT'])) {
+                return app(CustomerController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
 
-    // ✅ Toggle Status 
-    Route::patch('/{id}/toggle-status', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
-            return app(CustomerController::class)->toggleStatus($id);
-        }
-        return view('errors.noaccess');
-    })->name('toggleStatus');
+        // ✅ Toggle Status 
+        Route::patch('/{id}/toggle-status', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
+                return app(CustomerController::class)->toggleStatus($id);
+            }
+            return view('errors.noaccess');
+        })->name('toggleStatus');
 
-    // ✅ Show (MUST BE LAST because it catches any /{id})
-    Route::get('/{id}', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
-            return app(CustomerController::class)->show($id);
-        }
-        return view('errors.noaccess');
-    })->name('show');
-});
+        // ✅ Toggle Flag (CC_Approver, Admin, IT only)
+        Route::patch('/{id}/toggle-flag', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver'])) {
+                return app(CustomerController::class)->toggleFlag($id);
+            }
+            return view('errors.noaccess');
+        })->name('toggleFlag');
+
+        // ✅ Show (MUST BE LAST because it catches any /{id})
+        Route::get('/{id}', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(CustomerController::class)->show($id);
+            }
+            return view('errors.noaccess');
+        })->name('show');
+    });
 
     // ===================== DELIVERIES =====================
     Route::prefix('deliveries')->name('deliveries.')->group(function () {
@@ -631,7 +617,10 @@ Route::prefix('customers')->name('customers.')->group(function () {
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         })->name('reject');
-        
+
+        Route::post('/batch-approve', [DeliveriesController::class, 'batchApprove'])->name('batch-approve');
+Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name('batch-reject');
+                
        // ✅ FIXED: Request Edit 
         Route::post('/{id}/request-edit', function($id) {
             if (in_array(auth()->user()->role, ['Delivery_Creator'])) {

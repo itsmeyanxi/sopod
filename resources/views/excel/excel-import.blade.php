@@ -113,69 +113,82 @@
 
 
             {{-- CUSTOMERS TAB CONTENT — only if allowed --}}
-            @if($canImportCustomers)
-            <div id="customers-content" class="tab-content {{ $canImportItems ? 'hidden' : '' }}">
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2 text-white">Customers Import Requirements</h3>
-                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                @if($canImportCustomers)
+                <div id="customers-content" class="tab-content {{ $canImportItems ? 'hidden' : '' }}">
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-2 text-white">Customers Import Requirements</h3>
+                        <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
 
-                        <p class="text-sm text-gray-300 mb-2"><strong>Required columns:</strong></p>
-                        <ul class="text-sm text-gray-400 space-y-1 ml-4">
-                            <li>• customer_code / Customer Code</li>
-                            <li>• customer_name / Customer Name</li>
-                            <li>• billing_address / Billing Address</li>
-                            <li>• sales_rep / Sales Rep</li>
-                            <li>• collection_terms / Collection Terms</li>
-                        </ul>
+                            <p class="text-sm text-gray-300 mb-2"><strong>✅ Required columns:</strong></p>
+                            <ul class="text-sm text-gray-400 space-y-1 ml-4 mb-4">
+                                <li>• <strong class="text-red-400">customer_code</strong> / Customer Code</li>
+                                <li>• <strong class="text-red-400">customer_name</strong> / Customer Name</li>
+                                <li>• <strong class="text-red-400">billing_address</strong> / Billing Address</li>
+                                <li>• <strong class="text-red-400">sales_rep</strong> / Sales Rep</li>
+                                <li>• <strong class="text-red-400">collection_terms</strong> / Collection Terms</li>
+                                <li>• <strong class="text-yellow-400">flag_status</strong> / Flag Status 
+                                    <span class="text-xs text-gray-500">(must be either "Flagged" or "Unflagged")</span>
+                                </li>
+                            </ul>
 
-                        <p class="text-sm text-gray-300 mt-3 mb-2"><strong>Optional columns:</strong></p>
-                        <div class="grid grid-cols-2 gap-x-4">
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
-                                <li>• business_style</li>
-                                <li>• branch</li>
-                                <li>• customer_group</li>
-                                <li>• customer_type</li>
-                                <li>• currency</li>
-                                <li>• telephone_1</li>
-                                <li>• mobile</li>
-                                <li>• email</li>
-                                <li>• website</li>
-                            </ul>
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
-                                <li>• shipping_address</li>
-                                <li>• whtcode</li>
-                                <li>• whtrate</li>
-                                <li>• require_si</li>
-                                <li>• ar_type</li>
-                                <li>• tin_no</li>
-                                <li>• credit_limit</li>
-                            </ul>
+                            {{-- ✅ NEW: Flag Status Examples --}}
+                            <div class="bg-yellow-900/20 border border-yellow-600 rounded p-3 mb-4">
+                                <p class="text-xs text-yellow-300 font-semibold mb-2">📋 Flag Status Examples:</p>
+                                <div class="text-xs text-gray-400 space-y-1">
+                                    <p>• Use <strong class="text-yellow-400">"Flagged"</strong> for customers requiring approval</p>
+                                    <p>• Use <strong class="text-green-400">"Unflagged"</strong> for customers with auto-approval</p>
+                                    <p class="text-red-400 mt-2">⚠️ Case-insensitive: "flagged", "FLAGGED", or "Flagged" all work</p>
+                                </div>
+                            </div>
+
+                            <p class="text-sm text-gray-300 mt-3 mb-2"><strong>Optional columns:</strong></p>
+                            <div class="grid grid-cols-2 gap-x-4">
+                                <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                                    <li>• business_style</li>
+                                    <li>• branch</li>
+                                    <li>• customer_group</li>
+                                    <li>• customer_type</li>
+                                    <li>• currency</li>
+                                    <li>• telephone_1</li>
+                                    <li>• mobile</li>
+                                    <li>• email</li>
+                                    <li>• website</li>
+                                </ul>
+                                <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                                    <li>• shipping_address</li>
+                                    <li>• whtcode</li>
+                                    <li>• whtrate</li>
+                                    <li>• require_si</li>
+                                    <li>• ar_type</li>
+                                    <li>• tin_no</li>
+                                    <li>• credit_limit</li>
+                                </ul>
+                            </div>
+
                         </div>
-
                     </div>
-                </div>
 
-                <button onclick="downloadTemplate('customers')" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mb-4">
-                    <i class="fas fa-download"></i>
-                    Download Template
-                </button>
-
-                <form action="{{ route('excel.import.customers') }}" method="POST" enctype="multipart/form-data" id="customers-form">
-                    @csrf
-                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
-                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="customers-file" class="hidden" onchange="handleFileSelect(this, 'customers')" required>
-                        <label for="customers-file" class="cursor-pointer">
-                            <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
-                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
-                            <p id="customers-filename" class="text-sm text-blue-400 mt-2"></p>
-                        </label>
-                    </div>
-                    <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                        Upload & Import Customers
+                    <button onclick="downloadTemplate('customers')" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mb-4">
+                        <i class="fas fa-download"></i>
+                        Download Template
                     </button>
-                </form>
-            </div>
-            @endif
+
+                    <form action="{{ route('excel.import.customers') }}" method="POST" enctype="multipart/form-data" id="customers-form">
+                        @csrf
+                        <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                            <input type="file" name="file" accept=".xlsx,.xls,.csv" id="customers-file" class="hidden" onchange="handleFileSelect(this, 'customers')" required>
+                            <label for="customers-file" class="cursor-pointer">
+                                <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
+                                <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
+                                <p id="customers-filename" class="text-sm text-blue-400 mt-2"></p>
+                            </label>
+                        </div>
+                        <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                            Upload & Import Customers
+                        </button>
+                    </form>
+                </div>
+                @endif
 
             {{-- MONTHLY SALES TAB CONTENT — only if allowed --}}
             @if($canImportMonthlySales)
@@ -307,10 +320,23 @@ function downloadTemplate(type) {
         ];
         filename = 'items_template.xlsx';
     } else if (type === 'customers') {
+        // ✅ UPDATED: Added Flag Status as required column
         data = [
             {
                 'Customer Code': 'CUST001',
-                'Customer Name': 'ABC Corp'
+                'Customer Name': 'ABC Corporation',
+                'Billing Address': '123 Main Street, Manila',
+                'Sales Rep': 'John Doe',
+                'Collection Terms': '30 Days',
+                'Flag Status': 'Unflagged'
+            },
+            {
+                'Customer Code': 'CUST002',
+                'Customer Name': 'XYZ Industries',
+                'Billing Address': '456 Business Ave, Quezon City',
+                'Sales Rep': 'Jane Smith',
+                'Collection Terms': '60 Days',
+                'Flag Status': 'Flagged'
             }
         ];
         filename = 'customers_template.xlsx';
@@ -336,7 +362,17 @@ function downloadTemplate(type) {
     }
 
     const ws = XLSX.utils.json_to_sheet(data);
-    ws['!cols'] = Object.keys(data[0]).map(key => ({ wch: key.length + 10 }));
+    
+    // ✅ IMPROVED: Better column width calculation
+    const colWidths = Object.keys(data[0]).map(key => {
+        const maxLength = Math.max(
+            key.length,
+            ...data.map(row => String(row[key] || '').length)
+        );
+        return { wch: Math.min(maxLength + 5, 50) }; // Cap at 50 characters
+    });
+    
+    ws['!cols'] = colWidths;
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Template');

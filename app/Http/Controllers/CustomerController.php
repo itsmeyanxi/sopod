@@ -14,7 +14,34 @@ class CustomerController extends Controller
     // Show all customers (list)
     public function index()
     {
-        $customers = Customer::all();
+        $request = request(); // Get the current request
+        
+        $query = Customer::query();
+
+        // ✅ Filter by flag status
+        if ($request->filled('flag_filter')) {
+            if ($request->flag_filter === 'flagged') {
+                $query->where('is_flagged', true);
+            } elseif ($request->flag_filter === 'unflagged') {
+                $query->where('is_flagged', false);
+            }
+        }
+
+        // ✅ Filter by status (enabled/disabled)
+        if ($request->filled('status_filter')) {
+            $query->where('status', $request->status_filter);
+        }
+
+        // ✅ Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('customer_code', 'LIKE', "%{$search}%")
+                  ->orWhere('customer_name', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $customers = $query->orderBy('customer_code')->get();
         return view('customers.index', compact('customers'));
     }
 
@@ -29,57 +56,59 @@ class CustomerController extends Controller
     }
 
     public function export()
-{
-    $customers = Customer::orderBy('customer_code')->get();
-    
-    $filename = 'customers_export_' . date('Y-m-d_His') . '.csv';
-    
-    $headers = [
-        'Content-Type' => 'text/csv',
-        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-    ];
-
-    $callback = function() use ($customers) {
-        $file = fopen('php://output', 'w');
+    {
+        $customers = Customer::orderBy('customer_code')->get();
         
-        // Add UTF-8 BOM for proper Excel encoding
-        fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+        $filename = 'customers_export_' . date('Y-m-d_His') . '.csv';
         
-        // CSV Headers
-        fputcsv($file, [
-            'ID',
-            'Customer Code',
-            'Customer Name',
-            'Business Style',
-            'Billing Address',
-            'TIN',
-            'Shipping Address',
-            'Status',
-            'Created At',
-            'Updated At'
-        ]);
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
 
-        // CSV Data
-        foreach ($customers as $customer) {
+        $callback = function() use ($customers) {
+            $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM for proper Excel encoding
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // CSV Headers
             fputcsv($file, [
-                $customer->id,
-                $customer->customer_code,
-                $customer->customer_name,
-                $customer->business_style ?? 'N/A',
-                $customer->billing_address ?? 'N/A',
-                $customer->tin_no ?? '000-000-000-00000',
-                $customer->shipping_address ?? 'N/A',
-                ucfirst($customer->status),
-                $customer->created_at ? $customer->created_at->format('Y-m-d H:i:s') : 'N/A',
-                $customer->updated_at ? $customer->updated_at->format('Y-m-d H:i:s') : 'N/A',
+                'ID',
+                'Customer Code',
+                'Customer Name',
+                'Business Style',
+                'Billing Address',
+                'TIN',
+                'Shipping Address',
+                'Status',
+                'Flag Status',
+                'Created At',
+                'Updated At'
             ]);
-        }
 
-        fclose($file);
-    };
+            // CSV Data
+            foreach ($customers as $customer) {
+                fputcsv($file, [
+                    $customer->id,
+                    $customer->customer_code,
+                    $customer->customer_name,
+                    $customer->business_style ?? 'N/A',
+                    $customer->billing_address ?? 'N/A',
+                    $customer->tin_no ?? '000-000-000-00000',
+                    $customer->shipping_address ?? 'N/A',
+                    ucfirst($customer->status),
+                    $customer->is_flagged ? 'Flagged' : 'Unflagged',
+                    $customer->created_at ? $customer->created_at->format('Y-m-d H:i:s') : 'N/A',
+                    $customer->updated_at ? $customer->updated_at->format('Y-m-d H:i:s') : 'N/A',
+                ]);
+            }
 
-    return response()->stream($callback, 200, $headers);
-}
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 
     // Save new customer to database
     public function store(Request $request)
@@ -116,6 +145,7 @@ class CustomerController extends Controller
         ]);
 
         $validated['status'] = 'enabled';
+        $validated['is_flagged'] = false; // Default to unflagged
 
         $customer = Customer::create($validated);
 
@@ -259,5 +289,33 @@ class CustomerController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Customer status updated successfully!');
+    }
+
+    // ✅ NEW: Toggle customer flag status (CC_Approver only)
+    public function toggleFlag($id)
+    {
+        // Check if user is CC_Approver
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['CC_Approver', 'Admin', 'IT'])) {
+            return redirect()->back()->with('error', 'Unauthorized: Only CC_Approver can flag/unflag customers.');
+        }
+
+        $customer = Customer::findOrFail($id);
+
+        $customer->is_flagged = !$customer->is_flagged;
+        $customer->save();
+
+        $flagStatus = $customer->is_flagged ? 'Flagged' : 'Unflagged';
+
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Flag Status Changed',
+            'item' => $customer->customer_code . ' - ' . $customer->customer_name,
+            'target' => $flagStatus,
+            'type' => 'Customer',
+            'message' => "Changed customer flag status to: {$flagStatus}",
+        ]);
+
+        return redirect()->back()->with('success', "Customer {$flagStatus} successfully!");
     }
 }

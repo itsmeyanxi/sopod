@@ -405,22 +405,28 @@ function populateItemsTable(items, isViewOnly = false) {
             const inputReadonly = (isViewOnly || !canManageDeliveries) ? 'readonly' : '';
             const inputDisabled = (isViewOnly || !canManageDeliveries) ? 'disabled' : '';
             
-            itemCard.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
-                    <h4 class="text-sm font-semibold text-gray-300">Item #${index + 1}</h4>
-                    ${!isViewOnly && canManageDeliveries ? `
-                    <button type="button" onclick="removeDeliveryItem(this)" 
-                        class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-all flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                        Remove
-                    </button>
-                    ` : ''}
-                </div>
+           itemCard.innerHTML = `
+            <div class="flex justify-between items-start mb-4">
+                <h4 class="text-sm font-semibold text-gray-300">Item #${index + 1}</h4>
+                ${!isViewOnly && canManageDeliveries ? `
+                <button type="button" onclick="removeDeliveryItem(this)" 
+                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-all flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Remove
+                </button>
+                ` : ''}
+            </div>
 
-                <!-- Item Details Grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+            <!-- ✅ ADD THESE HIDDEN INPUTS -->
+            <input type="hidden" class="data-item-code" value="${item.item_code || ''}">
+            <input type="hidden" class="data-item-description" value="${item.item_description || ''}">
+            <input type="hidden" class="data-brand" value="${item.brand || ''}">
+            <input type="hidden" class="data-item-category" value="${item.item_category || ''}">
+
+            <!-- Item Details Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Item Code</label>
                         <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm font-mono">
@@ -1057,46 +1063,47 @@ if (canManageDeliveries) {
         };
 
         // ✅ CRITICAL CHANGE: Collect items from ALL CARDS (including hidden ones with qty 0)
-        cards.forEach(card => {
-            // Get item code (first div with font-mono class)
-            const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
-            
-            // Get all text divs (for description, brand, category)
-            const textDivs = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm');
-            
-            // Get inputs
-            const deliveredQtyInput = card.querySelector('.delivered-qty-input');
-            const amountInput = card.querySelector('.amount-input');
-            const notesInput = card.querySelector('.notes-input');
-            const priceCell = card.querySelector('.price-cell');
-            
-            // Get UOM and other data
-            const uomDivs = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.text-center');
-            
-            const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
-            const deliveredQty = parseFloat(deliveredQtyInput?.value) || 0;
-            const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
-            
-            // Calculate remaining (total delivered from all batches)
-            const totalDelivered = alreadyDelivered + deliveredQty;
-            const calculatedRemaining = originalQty - totalDelivered;
-            const remainingQty = calculatedRemaining < 0 ? 0 : calculatedRemaining;
-            
-            // ✅ INCLUDE ALL ITEMS, even those with quantity 0
-            payload.items.push({
-                item_code: itemCodeDiv?.textContent.trim() || '',
-                item_description: textDivs[0]?.textContent.trim() || '',
-                brand: textDivs[1]?.textContent.trim() || '',
-                item_category: textDivs[2]?.textContent.trim() || '',
-                quantity: deliveredQty, // ✅ This will be 0 for hidden items
-                original_quantity: originalQty,
-                remaining_quantity: remainingQty,
-                uom: uomDivs[0]?.textContent.trim() || 'Kgs',
-                unit_price: parseFloat(priceCell?.textContent.trim()) || 0,
-                total_amount: parseFloat(amountInput?.value) || 0,
-                notes: notesInput?.value || ''
-            });
-        });
+       // ✅ CRITICAL CHANGE: Collect items from ALL CARDS (including hidden ones with qty 0)
+cards.forEach(card => {
+    // ✅ Get values from hidden inputs (RELIABLE METHOD)
+    const itemCode = card.querySelector('.data-item-code')?.value || '';
+    const itemDesc = card.querySelector('.data-item-description')?.value || '';
+    const brand = card.querySelector('.data-brand')?.value || '';
+    const itemCategory = card.querySelector('.data-item-category')?.value || '';
+    
+    // Get inputs
+    const deliveredQtyInput = card.querySelector('.delivered-qty-input');
+    const amountInput = card.querySelector('.amount-input');
+    const notesInput = card.querySelector('.notes-input');
+    const priceCell = card.querySelector('.price-cell');
+    
+    // Get UOM
+    const uomDivs = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.text-center');
+    
+    const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
+    const deliveredQty = parseFloat(deliveredQtyInput?.value) || 0;
+    const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
+    
+    // Calculate remaining (total delivered from all batches)
+    const totalDelivered = alreadyDelivered + deliveredQty;
+    const calculatedRemaining = originalQty - totalDelivered;
+    const remainingQty = calculatedRemaining < 0 ? 0 : calculatedRemaining;
+    
+    // ✅ INCLUDE ALL ITEMS, even those with quantity 0
+    payload.items.push({
+        item_code: itemCode,  // ✅ From hidden input
+        item_description: itemDesc,  // ✅ From hidden input
+        brand: brand,  // ✅ From hidden input
+        item_category: itemCategory,  // ✅ From hidden input
+        quantity: deliveredQty,
+        original_quantity: originalQty,
+        remaining_quantity: remainingQty,
+        uom: uomDivs[0]?.textContent.trim() || 'Kgs',
+        unit_price: parseFloat(priceCell?.textContent.trim()) || 0,
+        total_amount: parseFloat(amountInput?.value) || 0,
+        notes: notesInput?.value || ''
+    });
+});
 
         try {
             Swal.fire({

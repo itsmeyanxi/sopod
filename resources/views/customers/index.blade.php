@@ -4,34 +4,65 @@
 <div class="p-6 bg-gray-900 min-h-screen text-white">
     <h1 class="text-2xl font-bold mb-6">Customers</h1>
 
-    <!-- 🔍 Search & Create -->
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
-        <!-- Left side: Export button -->
-        <div class="flex gap-2 w-full sm:w-auto">
-            <a href="{{ route('customers.export') }}" 
-               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition w-full sm:w-auto text-center inline-flex items-center justify-center gap-2">
-               <i class="fas fa-file-excel"></i>
-               Export to Excel
-            </a>
-        </div>
-
-        <!-- Right side: Search & Create -->
-        <div class="flex gap-2 w-full sm:w-auto">
-            <input 
-                id="searchInput" 
-                type="text" 
-                placeholder="Search customer code / name" 
-                class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-
-            @if(auth()->user()->canManageCustomers())
-                <a href="{{ route('customers.create') }}" 
-                   class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition whitespace-nowrap">
-                   Create Customer
+    <!-- 🔍 Search, Filters & Create -->
+    <form method="GET" action="{{ route('customers.index') }}" id="filterForm">
+        <div class="flex flex-col gap-4 mb-4">
+            <!-- First Row: Export Button -->
+            <div class="flex gap-2 w-full sm:w-auto">
+                <a href="{{ route('customers.export') }}" 
+                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition w-full sm:w-auto text-center inline-flex items-center justify-center gap-2">
+                   <i class="fas fa-file-excel"></i>
+                   Export to Excel
                 </a>
-            @endif
+            </div>
+
+            <!-- Second Row: Filters and Search -->
+            <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                <!-- Flag Filter -->
+                <select name="flag_filter" 
+                        class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        onchange="document.getElementById('filterForm').submit()">
+                    <option value="">All Flag Status</option>
+                    <option value="flagged" {{ request('flag_filter') === 'flagged' ? 'selected' : '' }}>🚩 Flagged</option>
+                    <option value="unflagged" {{ request('flag_filter') === 'unflagged' ? 'selected' : '' }}>✅ Unflagged</option>
+                </select>
+
+                <!-- Status Filter -->
+                <select name="status_filter" 
+                        class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        onchange="document.getElementById('filterForm').submit()">
+                    <option value="">All Status</option>
+                    <option value="enabled" {{ request('status_filter') === 'enabled' ? 'selected' : '' }}>🟢 Enabled</option>
+                    <option value="disabled" {{ request('status_filter') === 'disabled' ? 'selected' : '' }}>🔴 Disabled</option>
+                </select>
+
+                <!-- Search Input -->
+                <input 
+                    name="search"
+                    type="text" 
+                    placeholder="Search customer code / name" 
+                    value="{{ request('search') }}"
+                    class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+
+                <!-- Clear Filters Button -->
+                @if(request()->hasAny(['flag_filter', 'status_filter', 'search']))
+                    <a href="{{ route('customers.index') }}" 
+                       class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition whitespace-nowrap">
+                       Clear Filters
+                    </a>
+                @endif
+
+                <!-- Create Customer Button -->
+                @if(auth()->user()->canManageCustomers())
+                    <a href="{{ route('customers.create') }}" 
+                       class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition whitespace-nowrap">
+                       Create Customer
+                    </a>
+                @endif
+            </div>
         </div>
-    </div>
+    </form>
 
     <!-- 📋 Responsive Table -->
     <div class="overflow-x-auto bg-gray-800 rounded-lg shadow border border-gray-700">
@@ -46,6 +77,7 @@
                     <th class="px-4 py-3 text-left">TIN</th>
                     <th class="px-4 py-3 text-left">Shipping Address</th>
                     <th class="px-4 py-3 text-left">Status</th>
+                    <th class="px-4 py-3 text-left">Flag Status</th>
                     <th class="px-4 py-3 text-center">Actions</th>
                 </tr>
             </thead>
@@ -63,6 +95,11 @@
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded text-xs font-medium {{ $customer->status === 'enabled' ? 'bg-green-600 text-white' : 'bg-red-600 text-white' }}">
                                 {{ ucfirst($customer->status) }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded text-xs font-medium {{ $customer->is_flagged ? 'bg-orange-600 text-white' : 'bg-blue-600 text-white' }}">
+                                {{ $customer->is_flagged ? '🚩 Flagged' : '✅ Unflagged' }}
                             </span>
                         </td>
 
@@ -98,6 +135,22 @@
                                         </form>
                                     @endif
 
+                                    <!-- 🚩 Flag / Unflag Toggle (CC_Approver only) -->
+                                    @if(in_array(auth()->user()->role, ['CC_Approver', 'Admin', 'IT']))
+                                        <form action="{{ route('customers.toggleFlag', $customer->id) }}" method="POST" class="inline-block">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" 
+                                                    class="text-white text-xs font-medium px-3 py-1.5 rounded transition
+                                                           {{ $customer->is_flagged 
+                                                              ? 'bg-orange-600 hover:bg-orange-700' 
+                                                              : 'bg-blue-600 hover:bg-blue-700' }}"
+                                                    title="{{ $customer->is_flagged ? 'Click to unflag customer' : 'Click to flag customer' }}">
+                                                {{ $customer->is_flagged ? '🚩 Unflag' : '✅ Flag' }}
+                                            </button>
+                                        </form>
+                                    @endif
+
                                     <!-- 🗑️ Delete -->
                                     @if(auth()->user()->canDeleteCustomers())
                                         <form action="{{ route('customers.destroy', $customer->id) }}" 
@@ -118,7 +171,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" 
+                        <td colspan="10" 
                             class="px-6 py-4 text-center text-gray-400">
                             No customers found.
                         </td>
@@ -129,31 +182,8 @@
     </div>
 
     <!-- 📊 Count -->
-    <div class="mt-4 text-gray-400 text-sm" id="itemsCount"></div>
+    <div class="mt-4 text-gray-400 text-sm">
+        Showing {{ $customers->count() }} customer{{ $customers->count() !== 1 ? 's' : '' }}
+    </div>
 </div>
-
-<script>
-    const searchInput = document.getElementById('searchInput');
-    const table = document.getElementById('customersTable');
-    const rows = table.querySelectorAll('tbody tr');
-    const countDisplay = document.getElementById('itemsCount');
-
-    function updateVisibleCount() {
-        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
-        countDisplay.textContent = `Showing ${visibleRows.length} customer${visibleRows.length !== 1 ? 's' : ''}`;
-    }
-
-    searchInput.addEventListener('input', function () {
-        const q = this.value.toLowerCase().trim();
-        rows.forEach(row => {
-            const code = row.cells[1]?.textContent.toLowerCase() || '';
-            const name = row.cells[2]?.textContent.toLowerCase() || '';
-            const match = code.includes(q) || name.includes(q);
-            row.style.display = match ? '' : 'none';
-        });
-        updateVisibleCount();
-    });
-
-    updateVisibleCount();
-</script>
 @endsection

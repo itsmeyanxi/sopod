@@ -7,7 +7,9 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Customer;
 use App\Models\Item;
 use Illuminate\Support\Facades\DB;
-use App\Mail\CustomerBatchImported;
+// use App\Mail\CustomerBatchImported; // ✅ COMMENTED OUT - Not yet created
+use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 class ExcelImportController extends Controller
 {
@@ -66,6 +68,13 @@ class ExcelImportController extends Controller
         'assigned bank' => 'assigned_bank',
         'assigned_bank' => 'assigned_bank',
         'bank' => 'assigned_bank',
+        // ✅ NEW: Flag status mapping
+        'flag status' => 'flag_status',
+        'flag_status' => 'flag_status',
+        'flagstatus' => 'flag_status',
+        'flagged' => 'flag_status',
+        'is flagged' => 'flag_status',
+        'is_flagged' => 'flag_status',
     ];
 
     // Column mapping for items
@@ -296,15 +305,15 @@ class ExcelImportController extends Controller
                 }
             }
 
-            // Check for required columns - UPDATED TO INCLUDE NEW REQUIRED FIELDS
-            $requiredColumns = ['customer_code', 'customer_name', 'billing_address', 'sales_rep', 'collection_terms'];
+            // ✅ UPDATED: Check for required columns - NOW INCLUDING FLAG STATUS
+            $requiredColumns = ['customer_code', 'customer_name', 'billing_address', 'sales_rep', 'collection_terms', 'flag_status'];
             $missingColumns = array_diff($requiredColumns, $mappedHeaders);
             
             if (!empty($missingColumns)) {
                 return redirect()->back()->with('error', 
                     'Missing required columns in file: ' . implode(', ', $missingColumns) . 
                     "\n\nFound columns: " . implode(', ', $cleanHeaders) . 
-                    "\n\nRequired columns: customer_code, customer_name, billing_address, sales_rep, collection_terms"
+                    "\n\nRequired columns: customer_code, customer_name, billing_address, sales_rep, collection_terms, flag_status (Flagged/Unflagged)"
                 );
             }
 
@@ -331,12 +340,13 @@ class ExcelImportController extends Controller
                 // Combine headers with row data
                 $data = array_combine($mappedHeaders, $row);
 
-                // Validate required fields - UPDATED TO VALIDATE NEW REQUIRED FIELDS
+                // ✅ UPDATED: Validate required fields - NOW INCLUDING FLAG STATUS
                 $customerCode = trim($data['customer_code'] ?? '');
                 $customerName = trim($data['customer_name'] ?? '');
                 $billingAddress = trim($data['billing_address'] ?? '');
                 $salesRep = trim($data['sales_rep'] ?? '');
                 $collectionTerms = trim($data['collection_terms'] ?? '');
+                $flagStatus = trim($data['flag_status'] ?? '');
 
                 if (empty($customerCode)) {
                     $errors[] = "Row $rowNum: customer_code is required";
@@ -359,6 +369,31 @@ class ExcelImportController extends Controller
                     continue;
                 }
 
+                // ✅ NEW: Validate flag_status field
+                if (empty($flagStatus)) {
+                    $errors[] = "Row $rowNum: flag_status is required (must be 'Flagged' or 'Unflagged')";
+                    continue;
+                }
+
+                // ✅ NEW: Validate flag_status value (must be Flagged or Unflagged)
+                $flagStatusLower = strtolower(trim($flagStatus));
+                if (!in_array($flagStatusLower, ['flagged', 'unflagged'])) {
+                    $errors[] = "Row $rowNum: flag_status must be either 'Flagged' or 'Unflagged' (found: '$flagStatus')";
+                    continue;
+                }
+
+                // ✅ NEW: Convert flag_status to boolean
+                $isFlagged = ($flagStatusLower === 'flagged');
+                
+                // ✅ DEBUG: Log the flag status conversion
+                \Log::info("Processing customer flag status", [
+                    'row' => $rowNum,
+                    'customer_code' => $customerCode,
+                    'flag_status_raw' => $flagStatus,
+                    'flag_status_lower' => $flagStatusLower,
+                    'is_flagged_boolean' => $isFlagged,
+                ]);
+
                 // Check if already processed in THIS import (duplicate in Excel)
                 if (in_array($customerCode, $processedCodes)) {
                     $errors[] = "Row $rowNum: customer_code '$customerCode' appears multiple times in your Excel file (skipped duplicate)";
@@ -372,17 +407,25 @@ class ExcelImportController extends Controller
                 }
 
                 try {
-                    // Prepare customer data - UPDATED TO INCLUDE NEW REQUIRED FIELDS
+                    // ✅ UPDATED: Prepare customer data - NOW INCLUDES is_flagged
                     $customerData = [
                         'customer_code' => $customerCode,
                         'customer_name' => $customerName,
                         'billing_address' => $billingAddress,
                         'sales_rep' => $salesRep,
                         'collection_terms' => $collectionTerms,
+                        'is_flagged' => $isFlagged, // ✅ NEW
                         'status' => 'enabled',
                     ];
+                    
+                    // ✅ DEBUG: Log what we're about to save
+                    \Log::info("Creating customer with data", [
+                        'customer_code' => $customerCode,
+                        'is_flagged' => $isFlagged,
+                        'is_flagged_type' => gettype($isFlagged),
+                    ]);
 
-                    // Add optional fields if they exist - REMOVED billing_address, sales_rep, collection_terms
+                    // Add optional fields if they exist
                     $optionalFields = [
                         'business_style', 'branch', 'customer_group', 'customer_type',
                         'currency', 'telephone_1', 'telephone_2', 'mobile', 'email',
@@ -417,6 +460,15 @@ class ExcelImportController extends Controller
                     }
 
                     $customer = Customer::create($customerData);
+                    
+                    // ✅ DEBUG: Verify what was actually saved
+                    \Log::info("Customer created successfully", [
+                        'customer_id' => $customer->id,
+                        'customer_code' => $customer->customer_code,
+                        'is_flagged_saved' => $customer->is_flagged,
+                        'is_flagged_type_saved' => gettype($customer->is_flagged),
+                    ]);
+                    
                     $processedCodes[] = $customerCode; // Mark as processed
                     $newCustomers[] = $customer;
                     $imported++;
@@ -429,8 +481,9 @@ class ExcelImportController extends Controller
 
             if ($imported > 0 && !empty($newCustomers)) {
                 try {
-                    $this->sendBatchImportNotification($newCustomers, $imported);
-                    \Log::info('📧 Batch import notification sent', [
+                    // ✅ TEMPORARILY DISABLED - Create CustomerBatchImported mail class if needed
+                    // $this->sendBatchImportNotification(collect($newCustomers), $imported);
+                    \Log::info('📧 Batch import completed (email notification disabled)', [
                         'count' => $imported,
                         'imported_by' => auth()->user()->name ?? 'System'
                     ]);
@@ -457,7 +510,9 @@ class ExcelImportController extends Controller
         }
     }
 
-        private function sendBatchImportNotification($customers, $count)
+    // ✅ COMMENTED OUT - Enable when CustomerBatchImported mail class is created
+    /*
+    private function sendBatchImportNotification($customers, $count)
     {
         $recipients = User::whereIn('role', ['CC_Approver', 'CC_Creator', 'CSR_Approver', 'Admin', 'IT'])
                         ->whereNotNull('email')
@@ -476,4 +531,5 @@ class ExcelImportController extends Controller
             Mail::to($recipient->email)->send(new CustomerBatchImported($data));
         }
     }
+    */
 }

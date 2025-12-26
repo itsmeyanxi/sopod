@@ -124,7 +124,16 @@
             </div>
         @endif
     </div>
-
+    
+         {{-- ✅ FLAGGED CUSTOMER WARNING BADGE --}}
+        @if($salesOrder->customer && $salesOrder->customer->is_flagged)
+            <div class="flex items-center gap-2 bg-red-900/30 border border-red-600 rounded-lg px-4 py-2">
+                <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span class="text-red-300 font-semibold text-sm">⚠️ FLAGGED CUSTOMER</span>
+            </div>
+        @endif
     <!-- Sales Order Info -->
     <div class="bg-gray-800/80 p-6 rounded-xl shadow-lg mb-6 border border-gray-700">
         <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">Sales Order Information</h2>
@@ -540,6 +549,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmModalBtn = document.getElementById('confirmModalBtn');
     const statusRadios = document.querySelectorAll('.status-radio');
 
+    // ✅ Get customer flag status from backend
+    const isCustomerFlagged = {{ $salesOrder->customer->is_flagged ? 'true' : 'false' }};
+    const customerName = "{{ $salesOrder->customer->customer_name ?? 'this customer' }}";
+
     let selectedStatus = '';
 
     // Handle submit button click
@@ -550,22 +563,81 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedStatus = document.querySelector('.status-radio:checked')?.value;
         
         if (!selectedStatus) {
-            alert('Please select a status first.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Status Selected',
+                text: 'Please select a status first.',
+                confirmButtonColor: '#3B82F6'
+            });
             return;
         }
 
-        // If Declined or Cancelled, show modal
+        // ✅ NEW: If customer is flagged and status is Approved, show warning
+        if (isCustomerFlagged && selectedStatus === 'Approved') {
+            Swal.fire({
+                icon: 'warning',
+                title: '⚠️ Flagged Customer',
+                html: `
+                    <p class="text-gray-700 mb-3">
+                        <strong>${customerName}</strong> is currently <strong class="text-red-600">FLAGGED</strong>.
+                    </p>
+                    <p class="text-gray-600">
+                        Are you sure you want to approve this sales order?
+                    </p>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Approve',
+                cancelButtonText: 'No, Keep Pending',
+                confirmButtonColor: '#10B981',
+                cancelButtonColor: '#6B7280',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'rounded-lg',
+                    title: 'text-xl font-bold',
+                    htmlContainer: 'text-left'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // User confirmed - proceed with approval
+                    hiddenNotes.value = '';
+                    form.submit();
+                } else {
+                    // User cancelled - do nothing (stay pending)
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Approval Cancelled',
+                        text: 'Sales order remains pending.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            });
+            return;
+        }
+
+        // If Declined or Cancelled, show notes modal
         if (selectedStatus === 'Declined' || selectedStatus === 'Cancelled') {
             modalStatusText.textContent = selectedStatus.toLowerCase();
             modalNotesTextarea.value = '';
             modal.classList.remove('hidden');
             modalNotesTextarea.focus();
-        } else {
-            // For Approved, submit directly with confirmation
-            if (confirm('Are you sure you want to update this status to Approved?')) {
-                hiddenNotes.value = '';
-                form.submit();
-            }
+        } else if (selectedStatus === 'Approved') {
+            // For unflagged customers - direct approval with confirmation
+            Swal.fire({
+                icon: 'question',
+                title: 'Confirm Approval',
+                text: 'Are you sure you want to approve this sales order?',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Approve',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#10B981',
+                cancelButtonColor: '#6B7280'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    hiddenNotes.value = '';
+                    form.submit();
+                }
+            });
         }
     });
 
@@ -590,7 +662,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const notes = modalNotesTextarea.value.trim();
         
         if (!notes) {
-            alert('Please provide a reason before confirming.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Notes Required',
+                text: 'Please provide a reason before confirming.',
+                confirmButtonColor: '#3B82F6'
+            });
             modalNotesTextarea.focus();
             return;
         }
@@ -601,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
         form.submit();
     });
 
-    // Allow Enter key in textarea but not submit form
+    // Allow Ctrl+Enter in textarea to confirm
     modalNotesTextarea.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && e.ctrlKey) {
             confirmModalBtn.click();
@@ -609,6 +686,54 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Manual Close SO function with SweetAlert
+function confirmCloseSO() {
+    Swal.fire({
+        icon: 'warning',
+        title: '⚠️ Close Sales Order',
+        html: `
+            <div class="text-left text-gray-700">
+                <p class="mb-3">Closing this Sales Order will:</p>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>Mark this SO as <strong>CLOSED</strong></li>
+                    <li>Mark ALL related deliveries as <strong>DELIVERED</strong></li>
+                    <li>Lock this SO from further editing</li>
+                </ul>
+                <p class="text-red-600 font-semibold">⚠️ This action cannot be undone!</p>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Close SO',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#DC2626',
+        cancelButtonColor: '#6B7280',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('closeSoForm').submit();
+        }
+    });
+}
+
+// Dropdown toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdownBtn = document.getElementById('printDropdownBtn');
+    const dropdown = document.getElementById('printDropdown');
+    
+    if (dropdownBtn && dropdown) {
+        dropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!dropdownBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+});
 
 </script>
 @endsection

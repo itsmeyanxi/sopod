@@ -101,12 +101,12 @@ public function bulkApprove(Request $request)
                     'approved_by' => $approverId,
                 ]);
 
-                // Try to send email notification
-                app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
-                    $salesOrder->fresh(),
-                    $oldStatus,
-                    'Approved'
-                );
+                // // Try to send email notification
+                // app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
+                //     $salesOrder->fresh(),
+                //     $oldStatus,
+                //     'Approved'
+                // );
 
                 // Log activity
                 \App\Models\Activity::create([
@@ -188,11 +188,11 @@ public function bulkDecline(Request $request)
                 ]);
 
                 // Try to send email notification
-                app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
-                    $salesOrder->fresh(),
-                    $oldStatus,
-                    'Declined'
-                );
+                // app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
+                //     $salesOrder->fresh(),
+                //     $oldStatus,
+                //     'Declined'
+                // );
 
                 // Log activity
                 \App\Models\Activity::create([
@@ -252,146 +252,159 @@ public function bulkDecline(Request $request)
         return 'SO-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 
-    public function store(Request $request)
-    {
-        \Log::info('Form Data Received:', $request->all());
+   public function store(Request $request)
+{
+    \Log::info('Form Data Received:', $request->all());
 
-        $request->validate([
-            'customer_code' => 'required|exists:customers,customer_code',
-            'request_delivery_date' => 'required|date',
-            'po_reference_no' => 'nullable|string|max:255',
-            'po_image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
-            'sales_rep' => 'required|string',
-            'items' => 'required|array|min:1',
-            'items.*.item_id' => 'required',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.price' => 'required|numeric|min:0',
-            'additional_instructions' => 'nullable|string',
-        ], [
-            'po_image.mimes' => 'PO proof must be a JPG, PNG, or PDF file.',
-            'po_image.max' => 'PO proof file size must not exceed 4MB.',
+    $request->validate([
+        'customer_code' => 'required|exists:customers,customer_code',
+        'request_delivery_date' => 'required|date',
+        'po_reference_no' => 'nullable|string|max:255',
+        'po_image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+        'sales_rep' => 'required|string',
+        'items' => 'required|array|min:1',
+        'items.*.item_id' => 'required',
+        'items.*.quantity' => 'required|numeric|min:0.01',
+        'items.*.price' => 'required|numeric|min:0',
+        'additional_instructions' => 'nullable|string',
+    ], [
+        'po_image.mimes' => 'PO proof must be a JPG, PNG, or PDF file.',
+        'po_image.max' => 'PO proof file size must not exceed 4MB.',
+    ]);
+
+    // ✅ Additional validation: Either PO number or PO image is required
+    if (!$request->po_reference_no && !$request->hasFile('po_image')) {
+        return back()->withInput()->with('error', 'Please provide either a PO Number or upload proof of customer order.');
+    }
+
+    DB::beginTransaction();
+
+    try {
+        $customer = Customer::where('customer_code', $request->customer_code)->firstOrFail();
+        $salesOrderNumber = $this->generateSalesOrderNumber();
+
+        $items = $request->items;
+        $totalAmount = collect($items)->sum(fn($i) => $i['quantity'] * $i['price']);
+        $firstItem = $items[0] ?? [];
+
+        // ✅ Handle PO Image Upload
+        $poImageFilename = null;
+        if ($request->hasFile('po_image')) {
+            $file = $request->file('po_image');
+            $poImageFilename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
+            
+            // Create directory if it doesn't exist
+            $uploadPath = public_path('po_images');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            
+            // Move file to public/po_images
+            $file->move($uploadPath, $poImageFilename);
+            
+            \Log::info('✅ PO Image uploaded', [
+                'filename' => $poImageFilename,
+                'path' => $uploadPath . '/' . $poImageFilename
+            ]);
+        }
+
+        // ✅ CHECK CUSTOMER FLAG STATUS - Auto-approve if unflagged
+        $initialStatus = $customer->is_flagged ? 'Pending' : 'Approved';
+        $approvedBy = $customer->is_flagged ? null : auth()->id();
+
+        // ✅ CREATE SALES ORDER (with auto-approval logic)
+        $salesOrder = SalesOrder::create([
+            'sales_order_number' => $salesOrderNumber,
+            'customer_id' => $customer->id,
+            'prepared_by' => auth()->id(),
+            'approved_by' => $approvedBy,
+            'request_delivery_date' => $request->request_delivery_date,
+            'po_number' => $request->po_reference_no,
+            'po_image' => $poImageFilename,
+            'customer_name' => $request->customer_name ?? $customer->customer_name,
+            'shipping_address' => $request->shipping_address,
+            'sales_rep' => $request->sales_rep,
+            'sales_executive' => $request->sales_executive ?? null,
+            'branch' => $request->branch ?? null,
+            'total_amount' => $totalAmount,
+            'item_description' => $firstItem['item_description'] ?? null,
+            'item_code' => $firstItem['item_code'] ?? null,
+            'brand' => $firstItem['brand'] ?? null,
+            'item_category' => $firstItem['item_category'] ?? null,
+            'additional_instructions' => $request->additional_instructions,
+            'status' => $initialStatus,
         ]);
 
-        // ✅ Additional validation: Either PO number or PO image is required
-        if (!$request->po_reference_no && !$request->hasFile('po_image')) {
-            return back()->withInput()->with('error', 'Please provide either a PO Number or upload proof of customer order.');
+        // ✅ CREATE SALES ORDER ITEMS
+        foreach ($request->items as $index => $itemData) {
+            $item = Item::find($itemData['item_id']);
+
+            SalesOrderItem::create([
+                'sales_order_id' => $salesOrder->id,
+                'item_id' => $itemData['item_id'],
+                'item_code' => $itemData['item_code'] ?? $item->item_code ?? null,
+                'item_description' => $itemData['item_description'] ?? $item->item_description ?? null,
+                'brand' => $itemData['brand'] ?? $item->brand ?? null,
+                'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
+                'quantity' => $itemData['quantity'],
+                'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
+                'unit_price' => $itemData['price'],
+                'total_amount' => $itemData['amount'] ?? ($itemData['quantity'] * $itemData['price']),
+                'note' => $itemData['note'] ?? null,
+            ]);
         }
 
-        DB::beginTransaction();
-
-        try {
-            $customer = Customer::where('customer_code', $request->customer_code)->firstOrFail();
-            $salesOrderNumber = $this->generateSalesOrderNumber();
-
-            $items = $request->items;
-            $totalAmount = collect($items)->sum(fn($i) => $i['quantity'] * $i['price']);
-            $firstItem = $items[0] ?? [];
-
-            // ✅ Handle PO Image Upload
-            $poImageFilename = null;
-            if ($request->hasFile('po_image')) {
-                $file = $request->file('po_image');
-                $poImageFilename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-                
-                // Create directory if it doesn't exist
-                $uploadPath = public_path('po_images');
-                if (!file_exists($uploadPath)) {
-                    mkdir($uploadPath, 0755, true);
-                }
-                
-                // Move file to public/po_images
-                $file->move($uploadPath, $poImageFilename);
-                
-                \Log::info('✅ PO Image uploaded', [
-                    'filename' => $poImageFilename,
-                    'path' => $uploadPath . '/' . $poImageFilename
-                ]);
-            }
-
-            // ✅ CREATE SALES ORDER (with po_image)
-            $salesOrder = SalesOrder::create([
-                'sales_order_number' => $salesOrderNumber,
-                'customer_id' => $customer->id,
-                'prepared_by' => auth()->id(),
-                'approved_by' => null,
-                'request_delivery_date' => $request->request_delivery_date,
-                'po_number' => $request->po_reference_no,
-                'po_image' => $poImageFilename, // ✅ Save PO image filename
-                'customer_name' => $request->customer_name ?? $customer->customer_name,
-                'shipping_address' => $request->shipping_address,
-                'sales_rep' => $request->sales_rep,
-                'sales_executive' => $request->sales_executive ?? null,
-                'branch' => $request->branch ?? null,
-                'total_amount' => $totalAmount,
-                'item_description' => $firstItem['item_description'] ?? null,
-                'item_code' => $firstItem['item_code'] ?? null,
-                'brand' => $firstItem['brand'] ?? null,
-                'item_category' => $firstItem['item_category'] ?? null,
-                'additional_instructions' => $request->additional_instructions,
-                'status' => $request->status ?? 'Pending',
+        // ✅ UPDATE CUSTOMER'S SHIPPING ADDRESS (if provided)
+        if ($request->filled('shipping_address')) {
+            $customer->update([
+                'shipping_address' => $request->shipping_address
             ]);
-
-            // ✅ CREATE SALES ORDER ITEMS
-            foreach ($request->items as $index => $itemData) {
-                $item = Item::find($itemData['item_id']);
-
-                SalesOrderItem::create([
-                    'sales_order_id' => $salesOrder->id,
-                    'item_id' => $itemData['item_id'],
-                    'item_code' => $itemData['item_code'] ?? $item->item_code ?? null,
-                    'item_description' => $itemData['item_description'] ?? $item->item_description ?? null,
-                    'brand' => $itemData['brand'] ?? $item->brand ?? null,
-                    'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
-                    'quantity' => $itemData['quantity'],
-                    'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
-                    'unit_price' => $itemData['price'],
-                    'total_amount' => $itemData['amount'] ?? ($itemData['quantity'] * $itemData['price']),
-                    'note' => $itemData['note'] ?? null,
-                ]);
-            }
-
-            // ✅ UPDATE CUSTOMER'S SHIPPING ADDRESS (if provided)
-            if ($request->filled('shipping_address')) {
-                $customer->update([
-                    'shipping_address' => $request->shipping_address
-                ]);
-                
-                \App\Models\Activity::create([
-                    'user_name' => auth()->user()->name ?? 'System',
-                    'action' => 'Updated',
-                    'item' => $customer->customer_code . ' - ' . $customer->customer_name,
-                    'target' => 'Shipping Address',
-                    'type' => 'Customer',
-                    'message' => 'Updated shipping address via Sales Order: ' . $salesOrderNumber,
-                ]);
-            }
-
-            // ✅ LOG SALES ORDER CREATION
+            
             \App\Models\Activity::create([
                 'user_name' => auth()->user()->name ?? 'System',
-                'action' => 'Created',
-                'item' => $salesOrderNumber,
-                'target' => $customer->customer_name ?? 'N/A',
-                'type' => 'Sales Order',
-                'message' => 'Created sales order: ' . $salesOrderNumber . ($poImageFilename ? ' (with PO proof uploaded)' : ''),
+                'action' => 'Updated',
+                'item' => $customer->customer_code . ' - ' . $customer->customer_name,
+                'target' => 'Shipping Address',
+                'type' => 'Customer',
+                'message' => 'Updated shipping address via Sales Order: ' . $salesOrderNumber,
             ]);
-
-            DB::commit();
-            return redirect()->route('sales_orders.index')
-                ->with('success', 'Sales order created successfully!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            // ✅ Delete uploaded file if transaction failed
-            if (isset($poImageFilename) && file_exists(public_path('po_images/' . $poImageFilename))) {
-                @unlink(public_path('po_images/' . $poImageFilename));
-            }
-            
-            \Log::error('Sales Order Error:', ['message' => $e->getMessage()]);
-            return back()->withInput()->with('error', 'Failed to save sales order: ' . $e->getMessage());
         }
+
+        // ✅ LOG SALES ORDER CREATION
+        $statusMessage = $customer->is_flagged 
+            ? 'Created sales order (Pending - Customer Flagged)' 
+            : 'Created sales order (Auto-Approved - Customer Unflagged)';
+
+        \App\Models\Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Created',
+            'item' => $salesOrderNumber,
+            'target' => $customer->customer_name ?? 'N/A',
+            'type' => 'Sales Order',
+            'message' => $statusMessage . ': ' . $salesOrderNumber . ($poImageFilename ? ' (with PO proof uploaded)' : ''),
+        ]);
+
+        DB::commit();
+
+        $successMessage = $customer->is_flagged 
+            ? 'Sales order created successfully! (Pending approval - Customer is flagged)' 
+            : 'Sales order created and auto-approved! (Customer is unflagged)';
+
+        return redirect()->route('sales_orders.index')
+            ->with('success', $successMessage);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        // ✅ Delete uploaded file if transaction failed
+        if (isset($poImageFilename) && file_exists(public_path('po_images/' . $poImageFilename))) {
+            @unlink(public_path('po_images/' . $poImageFilename));
+        }
+        
+        \Log::error('Sales Order Error:', ['message' => $e->getMessage()]);
+        return back()->withInput()->with('error', 'Failed to save sales order: ' . $e->getMessage());
     }
+}
 
 /**
  * ✅ Sync unit prices from SO items to related delivery items
@@ -810,7 +823,7 @@ public function update(Request $request, $id)
         // Sync prices to related deliveries
         $this->syncDeliveryPrices($salesOrder);
 
-        app(\App\Services\NotificationService::class)->notifySalesOrderUpdated($salesOrder);
+        // app(\App\Services\NotificationService::class)->notifySalesOrderUpdated($salesOrder);
 
         // Log activity
         \App\Models\Activity::create([
@@ -944,11 +957,11 @@ private function formatChangeValue($field, $value)
                 'new_status' => 'Approved'
             ]);
 
-            $emailSent = app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
-                $salesOrder->fresh(),
-                $oldStatus,
-                'Approved'
-            );
+            // $emailSent = app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
+            //     $salesOrder->fresh(),
+            //     $oldStatus,
+            //     'Approved'
+            // );
 
             \Log::info('📧 Email send result', ['success' => $emailSent]);
 
@@ -961,10 +974,10 @@ private function formatChangeValue($field, $value)
                 'message' => 'Approved sales order: ' . $salesOrder->sales_order_number,
             ]);
 
-            $message = 'Sales order approved!';
-            if (!$emailSent) {
-                $message .= ' (Note: Email notification may have failed - check logs)';
-            }
+            // $message = 'Sales order approved!';
+            // if (!$emailSent) {
+            //     $message .= ' (Note: Email notification may have failed - check logs)';
+            // }
 
             return redirect()->route('sales_orders.index')->with('success', $message);
             
@@ -996,6 +1009,18 @@ public function updateStatus(Request $request, $id)
 
     if (strtolower($newStatus) === 'approved') {
         $updateData['approved_by'] = auth()->id();
+        
+        // ✅ Log if approving a flagged customer's order
+        if ($salesOrder->customer && $salesOrder->customer->is_flagged) {
+            \Log::warning('⚠️ FLAGGED CUSTOMER APPROVED', [
+                'so_number' => $salesOrder->sales_order_number,
+                'customer_code' => $salesOrder->customer->customer_code,
+                'customer_name' => $salesOrder->customer->customer_name,
+                'approved_by' => auth()->user()->name ?? 'Unknown',
+                'approved_by_id' => auth()->id(),
+                'timestamp' => now()
+            ]);
+        }
     } else {
         $updateData['approved_by'] = null;
     }
@@ -1006,36 +1031,6 @@ public function updateStatus(Request $request, $id)
 
     $salesOrder->update($updateData);
 
-    // ✅ ADD DEBUG LOGGING
-    \Log::info('🔥 SO STATUS CHANGE', [
-        'so_number' => $salesOrder->sales_order_number,
-        'old_status' => $oldStatus,
-        'new_status' => $newStatus,
-        'about_to_send_email' => true
-    ]);
-
-    try {
-        $emailSent = app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
-            $salesOrder->fresh(), 
-            $oldStatus, 
-            $newStatus
-        );
-        
-        \Log::info('🔥 SO EMAIL SENT', ['success' => $emailSent]);
-    } catch (\Exception $e) {
-        \Log::error('🔥 SO EMAIL FAILED', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-    }
-
-    // ✅ Send status change notification
-    app(\App\Services\NotificationService::class)->notifySalesOrderStatusChange(
-        $salesOrder->fresh(), 
-        $oldStatus, 
-        $newStatus
-    );
-
     $actionMap = [
         'approved' => 'Approved',
         'declined' => 'Declined',
@@ -1045,6 +1040,12 @@ public function updateStatus(Request $request, $id)
     $actionText = $actionMap[strtolower($newStatus)] ?? ucfirst($newStatus);
 
     $activityMessage = "{$actionText} sales order: " . $salesOrder->sales_order_number;
+    
+    // ✅ Add flagged customer note to activity log
+    if ($newStatus === 'Approved' && $salesOrder->customer && $salesOrder->customer->is_flagged) {
+        $activityMessage .= " ⚠️ (Flagged Customer: {$salesOrder->customer->customer_name})";
+    }
+    
     if ($request->filled('notes')) {
         $activityMessage .= " - Reason: " . $request->notes;
     }
@@ -1058,8 +1059,15 @@ public function updateStatus(Request $request, $id)
         'message' => $activityMessage,
     ]);
 
+    $successMessage = "Sales order status updated to {$newStatus}!";
+    
+    // ✅ Add warning message if flagged customer was approved
+    if ($newStatus === 'Approved' && $salesOrder->customer && $salesOrder->customer->is_flagged) {
+        $successMessage .= " ⚠️ Note: This customer is currently flagged.";
+    }
+
     return redirect()->route('sales_orders.index')
-        ->with('success', "Sales order status updated to {$newStatus}!");
+        ->with('success', $successMessage);
 }
 
     public function accepted(Request $request)

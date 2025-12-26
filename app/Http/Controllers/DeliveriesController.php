@@ -20,53 +20,53 @@ use App\Traits\LogsControllerActions;
 
 class DeliveriesController extends Controller
 {
-        public function index(Request $request)
-    {
-        $query = Deliveries::with(['salesOrder.customer'])
-            ->withSum('items as quantity', 'quantity')
-            ->withSum('items as total_amount', 'total_amount')
-            ->orderByDesc('created_at');
+       public function index(Request $request)
+{
+    $query = Deliveries::with(['salesOrder.customer'])
+        ->withSum('items as quantity', 'quantity')
+        ->withSum('items as total_amount', 'total_amount')
+        ->orderBy('request_delivery_date', 'desc'); 
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-
-        // ✅ NEW: Status filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // ✅ NEW: Approval status filter
-        if ($request->filled('approval_status')) {
-            $query->where('approval_status', $request->approval_status);
-        }
-
-        if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('dr_no', 'like', '%' . $request->search . '%')
-                ->orWhere('sales_order_number', 'like', '%' . $request->search . '%')  
-                ->orWhere('customer_code', 'like', '%' . $request->search . '%')
-                ->orWhere('customer_name', 'like', '%' . $request->search . '%')
-                ->orWhere('plate_no', 'like', '%' . $request->search . '%') 
-                ->orWhereHas('salesOrder', function ($sq) use ($request) {
-                    $sq->where('customer_name', 'like', '%' . $request->search . '%')
-                        ->orWhere('sales_order_number', 'like', '%' . $request->search . '%');  
-                })
-                ->orWhereHas('salesOrder.customer', function ($cq) use ($request) {
-                    $cq->where('customer_name', 'like', '%' . $request->search . '%')
-                        ->orWhere('customer_code', 'like', '%' . $request->search . '%'); 
-                });
-            });
-        }
-
-        $deliveries = $query->get();
-
-        return view('deliveries.index', compact('deliveries'));
+    if ($request->filled('delivery_date_from')) {
+        $query->whereDate('request_delivery_date', '>=', $request->delivery_date_from);
     }
+
+    if ($request->filled('delivery_date_to')) {
+        $query->whereDate('request_delivery_date', '<=', $request->delivery_date_to);
+    }
+
+    // Status filters
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    if ($request->filled('approval_status')) {
+        $query->where('approval_status', $request->approval_status);
+    }
+
+    // Search filter
+    if ($request->search) {
+        $query->where(function ($q) use ($request) {
+            $q->where('dr_no', 'like', '%' . $request->search . '%')
+            ->orWhere('sales_order_number', 'like', '%' . $request->search . '%')  
+            ->orWhere('customer_code', 'like', '%' . $request->search . '%')
+            ->orWhere('customer_name', 'like', '%' . $request->search . '%')
+            ->orWhere('plate_no', 'like', '%' . $request->search . '%') 
+            ->orWhereHas('salesOrder', function ($sq) use ($request) {
+                $sq->where('customer_name', 'like', '%' . $request->search . '%')
+                    ->orWhere('sales_order_number', 'like', '%' . $request->search . '%');  
+            })
+            ->orWhereHas('salesOrder.customer', function ($cq) use ($request) {
+                $cq->where('customer_name', 'like', '%' . $request->search . '%')
+                    ->orWhere('customer_code', 'like', '%' . $request->search . '%'); 
+            });
+        });
+    }
+
+    $deliveries = $query->get();
+
+    return view('deliveries.index', compact('deliveries'));
+}
 
     // Create form
     public function create()
@@ -205,7 +205,7 @@ public function update(Request $request, $id)
         // ✅ Check if SO should be closed (AFTER all items are updated)
         $salesOrder->fresh()->checkAndClose();
 
-        app(\App\Services\NotificationService::class)->notifySalesOrderUpdated($salesOrder);
+        // app(\App\Services\NotificationService::class)->notifySalesOrderUpdated($salesOrder);
 
         // Create activity log
         Activity::create([
@@ -684,22 +684,22 @@ public function store(Request $request)
             ]);
         }
 
-        \Log::info('🔥 DELIVERY CREATED', [
-            'delivery_id' => $delivery->id,
-            'dr_no' => $delivery->dr_no,
-            'about_to_send_email' => true
-        ]);
+        // \Log::info('🔥 DELIVERY CREATED', [
+        //     'delivery_id' => $delivery->id,
+        //     'dr_no' => $delivery->dr_no,
+        //     'about_to_send_email' => true
+        // ]);
 
-        try {
-            $emailSent = app(\App\Services\NotificationService::class)->notifyNewDelivery($delivery);
-            \Log::info('🔥 DELIVERY EMAIL SENT', ['success' => $emailSent]);
-        } catch (\Exception $emailError) {
-            \Log::error('🔥 DELIVERY EMAIL FAILED', [
-                'error' => $emailError->getMessage(),
-                'trace' => $emailError->getTraceAsString()
-            ]);
-            // Don't throw - let delivery creation succeed even if email fails
-        }
+        // try {
+        //     $emailSent = app(\App\Services\NotificationService::class)->notifyNewDelivery($delivery);
+        //     \Log::info('🔥 DELIVERY EMAIL SENT', ['success' => $emailSent]);
+        // } catch (\Exception $emailError) {
+        //     \Log::error('🔥 DELIVERY EMAIL FAILED', [
+        //         'error' => $emailError->getMessage(),
+        //         'trace' => $emailError->getTraceAsString()
+        //     ]);
+        //     // Don't throw - let delivery creation succeed even if email fails
+        // }
 
         // Create activity log AFTER email attempt
         Activity::create([
@@ -755,7 +755,7 @@ public function approve($id)
             $salesOrder->fresh()->checkAndClose();
         }
 
-        app(\App\Services\NotificationService::class)->notifyDeliveryStatusChange($delivery, 'approved');
+        // app(\App\Services\NotificationService::class)->notifyDeliveryStatusChange($delivery, 'approved');
 
         Activity::create([
             'user_name' => auth()->user()->name ?? 'System',
@@ -797,7 +797,7 @@ public function reject(Request $request, $id)
             'rejection_reason' => $validated['rejection_reason'],
         ]);
 
-        app(\App\Services\NotificationService::class)->notifyDeliveryStatusChange($delivery, 'rejected');
+        // app(\App\Services\NotificationService::class)->notifyDeliveryStatusChange($delivery, 'rejected');
 
         Activity::create([
             'user_name' => auth()->user()->name ?? 'System',
@@ -1050,7 +1050,7 @@ public function quickUpdate(Request $request, $id)
             }
         }
         
-        app(\App\Services\NotificationService::class)->notifyDeliveryUpdated($delivery->fresh());
+        // app(\App\Services\NotificationService::class)->notifyDeliveryUpdated($delivery->fresh());
 
         // Create activity log
         Activity::create([
@@ -1265,57 +1265,68 @@ public function rejectEdit(Request $request, $id)
         return view('deliveries.deliveries', compact('deliveries'));
     }
 
-    public function printList(Request $request)
-    {
-        $dateFrom = $request->input('date_from');
-        $dateTo = $request->input('date_to');
-        $search = $request->input('search');
-        $status = $request->input('status'); // ✅ NEW
-        $approvalStatus = $request->input('approval_status'); // ✅ NEW
+   public function printList(Request $request)
+{
+    $deliveryDateFrom = $request->input('delivery_date_from');
+    $deliveryDateTo = $request->input('delivery_date_to');
+    $search = $request->input('search');
+    $status = $request->input('status');
+    $approvalStatus = $request->input('approval_status');
 
-        $query = Deliveries::with([
-            'salesOrder.customer',
-            'salesOrder.items.item',
-            'items.item'
-        ])
-        ->withSum('items as quantity', 'quantity')
-        ->withSum('items as total_amount', 'total_amount');
+    $query = Deliveries::with([
+        'salesOrder.customer',
+        'salesOrder.items.item',
+        'items.item'
+    ])
+    ->withSum('items as quantity', 'quantity')
+    ->withSum('items as total_amount', 'total_amount');
 
-        if ($dateFrom) {
-            $query->whereDate('created_at', '>=', $dateFrom);
-        }
-
-        if ($dateTo) {
-            $query->whereDate('created_at', '<=', $dateTo);
-        }
-
-        // ✅ NEW: Status filters
-        if ($status) {
-            $query->where('status', $status);
-        }
-
-        if ($approvalStatus) {
-            $query->where('approval_status', $approvalStatus);
-        }
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('dr_no', 'like', '%' . $search . '%')
-                ->orWhere('customer_code', 'like', '%' . $search . '%')
-                ->orWhere('customer_name', 'like', '%' . $search . '%')
-                ->orWhereHas('salesOrder', function($sq) use ($search) {
-                    $sq->where('customer_name', 'like', '%' . $search . '%');
-                })
-                ->orWhereHas('salesOrder.customer', function($cq) use ($search) {
-                    $cq->where('customer_name', 'like', '%' . $search . '%');
-                });
-            });
-        }
-
-        $deliveries = $query->orderByDesc('created_at')->get();
-
-        return view('deliveries.printlist', compact('deliveries', 'dateFrom', 'dateTo', 'status', 'approvalStatus'));
+    if ($deliveryDateFrom) {
+        $query->whereDate('request_delivery_date', '>=', $deliveryDateFrom);
     }
+
+    if ($deliveryDateTo) {
+        $query->whereDate('request_delivery_date', '<=', $deliveryDateTo);
+    }
+
+    if ($status) {
+        $query->where('status', $status);
+    }
+
+    if ($approvalStatus) {
+        $query->where('approval_status', $approvalStatus);
+    }
+
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('dr_no', 'like', '%' . $search . '%')
+            ->orWhere('customer_code', 'like', '%' . $search . '%')
+            ->orWhere('customer_name', 'like', '%' . $search . '%')
+            ->orWhereHas('salesOrder', function($sq) use ($search) {
+                $sq->where('customer_name', 'like', '%' . $search . '%');
+            })
+            ->orWhereHas('salesOrder.customer', function($cq) use ($search) {
+                $cq->where('customer_name', 'like', '%' . $search . '%');
+            });
+        });
+    }
+
+    $deliveries = $query->orderBy('request_delivery_date', 'desc')->get();
+
+    // ✅ ADD THESE ALIAS VARIABLES FOR THE VIEW
+    $dateFrom = $deliveryDateFrom;
+    $dateTo = $deliveryDateTo;
+
+    return view('deliveries.printlist', compact(
+        'deliveries', 
+        'deliveryDateFrom', 
+        'deliveryDateTo',
+        'dateFrom',      
+        'dateTo',        
+        'status', 
+        'approvalStatus'
+    ));
+}
 
     // 🖨️ Print single delivery
     public function print($id)
@@ -1337,225 +1348,229 @@ public function rejectEdit(Request $request, $id)
     }
 
     public function exportExcel(Request $request)
-    {
-        ini_set('display_errors', 1);
-        ini_set('display_startup_errors', 1);
-        error_reporting(E_ALL);
+{
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
 
-        try {
-            $dateFrom = $request->input('date_from');
-            $dateTo = $request->input('date_to');
-            $search = $request->input('search');
-            $status = $request->input('status'); // ✅ NEW
-            $approvalStatus = $request->input('approval_status'); // ✅ NEW
+    try {
+        // ✅ REMOVED: date_from and date_to (created date)
+        // ✅ NEW: Only delivery date filters
+        $deliveryDateFrom = $request->input('delivery_date_from');
+        $deliveryDateTo = $request->input('delivery_date_to');
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $approvalStatus = $request->input('approval_status');
 
-            Log::info('Export deliveries started', [
-                'date_from' => $dateFrom,
-                'date_to' => $dateTo,
-                'search' => $search,
-                'status' => $status,
-                'approval_status' => $approvalStatus
-            ]);
+        Log::info('Export deliveries started', [
+            'delivery_date_from' => $deliveryDateFrom,
+            'delivery_date_to' => $deliveryDateTo,
+            'search' => $search,
+            'status' => $status,
+            'approval_status' => $approvalStatus
+        ]);
 
-            $query = Deliveries::with(['items', 'salesOrder.customer', 'salesOrder.items']);
+        $query = Deliveries::with(['items', 'salesOrder.customer', 'salesOrder.items']);
 
-            if ($dateFrom) {
-                $query->whereDate('created_at', '>=', $dateFrom);
-            }
+        // ✅ REMOVED: created_at filters
+        // ✅ NEW: Only filter by request_delivery_date
+        if ($deliveryDateFrom) {
+            $query->whereDate('request_delivery_date', '>=', $deliveryDateFrom);
+        }
 
-            if ($dateTo) {
-                $query->whereDate('created_at', '<=', $dateTo);
-            }
+        if ($deliveryDateTo) {
+            $query->whereDate('request_delivery_date', '<=', $deliveryDateTo);
+        }
 
-            // ✅ NEW: Status filters
-            if ($status) {
-                $query->where('status', $status);
-            }
+        // Status filters
+        if ($status) {
+            $query->where('status', $status);
+        }
 
-            if ($approvalStatus) {
-                $query->where('approval_status', $approvalStatus);
-            }
+        if ($approvalStatus) {
+            $query->where('approval_status', $approvalStatus);
+        }
 
-            if ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('dr_no', 'like', '%' . $search . '%')
-                    ->orWhere('customer_code', 'like', '%' . $search . '%')
-                    ->orWhere('customer_name', 'like', '%' . $search . '%')
-                    ->orWhereHas('salesOrder', function ($sq) use ($search) {
-                        $sq->where('customer_name', 'like', '%' . $search . '%');
-                    })
-                    ->orWhereHas('salesOrder.customer', function ($cq) use ($search) {
-                        $cq->where('customer_name', 'like', '%' . $search . '%');
-                    });
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('dr_no', 'like', '%' . $search . '%')
+                ->orWhere('customer_code', 'like', '%' . $search . '%')
+                ->orWhere('customer_name', 'like', '%' . $search . '%')
+                ->orWhereHas('salesOrder', function ($sq) use ($search) {
+                    $sq->where('customer_name', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('salesOrder.customer', function ($cq) use ($search) {
+                    $cq->where('customer_name', 'like', '%' . $search . '%');
                 });
-            }
+            });
+        }
 
-            $deliveries = $query->orderByDesc('created_at')->get();
+        // ✅ Sort by delivery date instead of created_at
+        $deliveries = $query->orderBy('request_delivery_date', 'desc')->get();
 
-            Log::info('Deliveries found', ['count' => $deliveries->count()]);
+        Log::info('Deliveries found', ['count' => $deliveries->count()]);
 
-            $filename = 'deliveries_items_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        $filename = 'deliveries_items_' . now()->format('Y-m-d_H-i-s') . '.csv';
 
-            $headers = [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => "attachment; filename=\"$filename\"",
-                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-                'Expires' => '0',
-                'Pragma' => 'public',
-            ];
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+            'Pragma' => 'public',
+        ];
 
-            $callback = function () use ($deliveries) {
-                try {
-                    $file = fopen('php://output', 'w');
+        $callback = function () use ($deliveries) {
+            try {
+                $file = fopen('php://output', 'w');
 
-                    if ($file === false) {
-                        Log::error('Failed to open output stream');
-                        return;
+                if ($file === false) {
+                    Log::error('Failed to open output stream');
+                    return;
+                }
+
+                // UTF-8 BOM
+                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+                // Column headers
+                fputcsv($file, [
+                    'Sales Rep',
+                    'PO No.',
+                    'Sales Order',
+                    'Customer',
+                    'Branch',
+                    'Item Code',
+                    'Item Category',
+                    'Brand',
+                    'Item',
+                    'SO Quantity',
+                    'Price',
+                    'UOM',
+                    'Delivery Date',
+                    'Plate No.',
+                    'Status',
+                    'DR No.',
+                    'SI No.',
+                    'DR Weight',
+                    'Total Amount'
+                ]);
+
+                $overallGrandTotal = 0;
+
+                foreach ($deliveries as $delivery) {
+                    // Prepare delivery date
+                    $deliveryDate = '—';
+                    try {
+                        if ($delivery->request_delivery_date) {
+                            $deliveryDate = \Carbon\Carbon::parse($delivery->request_delivery_date)->format('m/d/Y');
+                        } elseif ($delivery->salesOrder?->request_delivery_date) {
+                            $deliveryDate = \Carbon\Carbon::parse($delivery->salesOrder->request_delivery_date)->format('m/d/Y');
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning('Date parsing failed', ['error' => $e->getMessage()]);
                     }
 
-                    // UTF-8 BOM
-                    fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+                    // Map SO items by item_code for comparison
+                    $soItemsMap = collect();
+                    if ($delivery->salesOrder && $delivery->salesOrder->items) {
+                        $soItemsMap = $delivery->salesOrder->items->keyBy('item_code');
+                    }
 
-                    // NEW COLUMN ORDER
-                    fputcsv($file, [
-                        'Sales Rep',
-                        'PO No.',
-                        'Sales Order',
-                        'Customer',
-                        'Branch',
-                        'Item Code',
-                        'Item Category',
-                        'Brand',
-                        'Item',
-                        'SO Quantity',
-                        'Price',
-                        'UOM',
-                        'Delivery Date',
-                        'Plate No.',
-                        'Status',
-                        'DR No.',
-                        'SI No.',
-                        'DR Weight',
-                        'Total Amount'
-                    ]);
+                    $deliveryTotal = 0;
 
-                    $overallGrandTotal = 0;
+                    if ($delivery->items && $delivery->items->count() > 0) {
+                        foreach ($delivery->items as $item) {
+                            $soItem = $soItemsMap->get($item->item_code);
+                            $soQty = $soItem?->quantity ?? $item->original_quantity ?? 0;
+                            $drQty = $item->quantity ?? 0;
 
-                    foreach ($deliveries as $delivery) {
-                        // Prepare delivery date
-                        $deliveryDate = '—';
-                        try {
-                            if ($delivery->request_delivery_date) {
-                                $deliveryDate = \Carbon\Carbon::parse($delivery->request_delivery_date)->format('m/d/Y');
-                            } elseif ($delivery->salesOrder?->request_delivery_date) {
-                                $deliveryDate = \Carbon\Carbon::parse($delivery->salesOrder->request_delivery_date)->format('m/d/Y');
-                            }
-                        } catch (\Exception $e) {
-                            Log::warning('Date parsing failed', ['error' => $e->getMessage()]);
-                        }
-
-                        // Map SO items by item_code for comparison
-                        $soItemsMap = collect();
-                        if ($delivery->salesOrder && $delivery->salesOrder->items) {
-                            $soItemsMap = $delivery->salesOrder->items->keyBy('item_code');
-                        }
-
-                        $deliveryTotal = 0;
-
-                        if ($delivery->items && $delivery->items->count() > 0) {
-                            foreach ($delivery->items as $item) {
-                                $soItem = $soItemsMap->get($item->item_code);
-                                $soQty = $soItem?->quantity ?? $item->original_quantity ?? 0;
-                                $drQty = $item->quantity ?? 0;
-
-                                // NEW ROW ORDER
-                                fputcsv($file, [
-                                    $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
-                                    $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
-                                    $delivery->sales_order_number ?? '—',
-                                    $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? '—',
-                                    $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
-                                    $item->item_code ?? '—',
-                                    $item->item_category ?? '—',
-                                    $item->brand ?? '—',
-                                    $item->item_description ?? '—',
-                                    number_format($soQty, 2),
-                                    number_format($item->unit_price ?? 0, 2),
-                                    $item->uom ?? '—',
-                                    $deliveryDate,
-                                    $delivery->plate_no ?? '—',
-                                    $delivery->status ?? '—',
-                                    $delivery->dr_no ?? '—',
-                                    $delivery->sales_invoice_no ?? '—',
-                                    number_format($drQty, 2), // DR Weight
-                                    number_format($item->total_amount ?? 0, 2),
-                                ]);
-
-                                $deliveryTotal += $item->total_amount ?? 0;
-                            }
-
-                            $overallGrandTotal += $deliveryTotal;
-
-                            // Add subtotal row
-                            $subtotalRow = array_fill(0, 18, '');
-                            $subtotalRow[17] = 'SUBTOTAL:';
-                            $subtotalRow[18] = number_format($deliveryTotal, 2);
-                            fputcsv($file, $subtotalRow);
-
-                            // Blank row
-                            fputcsv($file, []);
-                        } else {
-                            // No items
                             fputcsv($file, [
                                 $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
                                 $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
                                 $delivery->sales_order_number ?? '—',
                                 $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? '—',
                                 $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
-                                '—', '—', '—', '—', '—', '—', '—',
+                                $item->item_code ?? '—',
+                                $item->item_category ?? '—',
+                                $item->brand ?? '—',
+                                $item->item_description ?? '—',
+                                number_format($soQty, 2),
+                                number_format($item->unit_price ?? 0, 2),
+                                $item->uom ?? '—',
                                 $deliveryDate,
                                 $delivery->plate_no ?? '—',
                                 $delivery->status ?? '—',
                                 $delivery->dr_no ?? '—',
                                 $delivery->sales_invoice_no ?? '—',
-                                '—', '—'
+                                number_format($drQty, 2),
+                                number_format($item->total_amount ?? 0, 2),
                             ]);
-                            fputcsv($file, []);
+
+                            $deliveryTotal += $item->total_amount ?? 0;
                         }
+
+                        $overallGrandTotal += $deliveryTotal;
+
+                        // Add subtotal row
+                        $subtotalRow = array_fill(0, 18, '');
+                        $subtotalRow[17] = 'SUBTOTAL:';
+                        $subtotalRow[18] = number_format($deliveryTotal, 2);
+                        fputcsv($file, $subtotalRow);
+
+                        // Blank row
+                        fputcsv($file, []);
+                    } else {
+                        // No items
+                        fputcsv($file, [
+                            $delivery->sales_rep ?? $delivery->salesOrder?->sales_rep ?? '—',
+                            $delivery->po_number ?? $delivery->salesOrder?->po_number ?? '—',
+                            $delivery->sales_order_number ?? '—',
+                            $delivery->customer_name ?? $delivery->salesOrder?->customer?->customer_name ?? '—',
+                            $delivery->branch ?? $delivery->salesOrder?->branch ?? '—',
+                            '—', '—', '—', '—', '—', '—', '—',
+                            $deliveryDate,
+                            $delivery->plate_no ?? '—',
+                            $delivery->status ?? '—',
+                            $delivery->dr_no ?? '—',
+                            $delivery->sales_invoice_no ?? '—',
+                            '—', '—'
+                        ]);
+                        fputcsv($file, []);
                     }
-
-                    // Grand total
-                    fputcsv($file, []);
-                    $grandTotalRow = array_fill(0, 18, '');
-                    $grandTotalRow[17] = '>>> GRAND TOTAL <<<';
-                    $grandTotalRow[18] = number_format($overallGrandTotal, 2);
-                    fputcsv($file, $grandTotalRow);
-
-                    fclose($file);
-                    
-                } catch (\Exception $e) {
-                    Log::error('Error in export callback', [
-                        'message' => $e->getMessage(),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine()
-                    ]);
-                    throw $e;
                 }
-            };
 
-            return response()->stream($callback, 200, $headers);
+                // Grand total
+                fputcsv($file, []);
+                $grandTotalRow = array_fill(0, 18, '');
+                $grandTotalRow[17] = '>>> GRAND TOTAL <<<';
+                $grandTotalRow[18] = number_format($overallGrandTotal, 2);
+                fputcsv($file, $grandTotalRow);
 
-        } catch (\Exception $e) {
-            Log::error('Export deliveries failed', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            abort(500, 'Failed to export: ' . $e->getMessage());
-        }
+                fclose($file);
+                
+            } catch (\Exception $e) {
+                Log::error('Error in export callback', [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]);
+                throw $e;
+            }
+        };
+
+        return response()->stream($callback, 200, $headers);
+
+    } catch (\Exception $e) {
+        Log::error('Export deliveries failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        abort(500, 'Failed to export: ' . $e->getMessage());
     }
+}
 
     // Export Single Delivery Excel - NEW FORMAT
     public function exportDeliveryItemsExcel(Request $request)
@@ -1734,6 +1749,180 @@ public function rejectEdit(Request $request, $id)
             abort(500, 'Failed to export: ' . $e->getMessage());
         }
     }
+
+    // Add these methods to your DeliveriesController.php
+
+/**
+ * ✅ Batch Approve Multiple Deliveries
+ */
+public function batchApprove(Request $request)
+{
+    try {
+        if (!\App\Helpers\RoleHelper::canApproveDeliveries()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized to approve deliveries'], 403);
+        }
+
+        $validated = $request->validate([
+            'delivery_ids' => 'required|array|min:1',
+            'delivery_ids.*' => 'required|integer|exists:deliveries,id',
+        ]);
+
+        $deliveryIds = $validated['delivery_ids'];
+        $successCount = 0;
+        $failedCount = 0;
+        $errors = [];
+
+        foreach ($deliveryIds as $id) {
+            try {
+                $delivery = Deliveries::with('items')->findOrFail($id);
+
+                // Check if delivery is pending
+                if ($delivery->approval_status !== 'Pending') {
+                    $failedCount++;
+                    $errors[] = "DR {$delivery->dr_no} is not pending approval";
+                    continue;
+                }
+
+                // Check if pulled out
+                if ($delivery->is_pulled_out) {
+                    $failedCount++;
+                    $errors[] = "DR {$delivery->dr_no} is pulled out";
+                    continue;
+                }
+
+                // Approve delivery
+                $delivery->update([
+                    'approval_status' => 'Approved',
+                    'status' => 'Delivered',
+                    'approved_by_user' => auth()->user()->name,
+                    'approved_at' => now(),
+                ]);
+
+                // Check if SO should be closed
+                $salesOrder = SalesOrder::where('sales_order_number', $delivery->sales_order_number)->first();
+                if ($salesOrder) {
+                    $salesOrder->fresh()->checkAndClose();
+                }
+
+                // Create activity log
+                Activity::create([
+                    'user_name' => auth()->user()->name ?? 'System',
+                    'action' => 'Batch Approved',
+                    'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
+                    'target' => $delivery->sales_order_number ?? 'N/A',
+                    'type' => 'Delivery',
+                    'message' => "Batch approved delivery: {$delivery->dr_no}",
+                ]);
+
+                $successCount++;
+            } catch (\Exception $e) {
+                $failedCount++;
+                $errors[] = "Failed to approve delivery ID {$id}: " . $e->getMessage();
+                Log::error('Batch approve failed for delivery', ['id' => $id, 'error' => $e->getMessage()]);
+            }
+        }
+
+        $message = "Successfully approved {$successCount} delivery(ies).";
+        if ($failedCount > 0) {
+            $message .= " {$failedCount} failed.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'success_count' => $successCount,
+            'failed_count' => $failedCount,
+            'errors' => $errors,
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Batch approval failed', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => 'Batch approval failed: ' . $e->getMessage()], 500);
+    }
+}
+
+/**
+ * ✅ Batch Reject Multiple Deliveries
+ */
+public function batchReject(Request $request)
+{
+    try {
+        if (!\App\Helpers\RoleHelper::canApproveDeliveries()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized to reject deliveries'], 403);
+        }
+
+        $validated = $request->validate([
+            'delivery_ids' => 'required|array|min:1',
+            'delivery_ids.*' => 'required|integer|exists:deliveries,id',
+            'rejection_reason' => 'required|string|max:1000',
+        ]);
+
+        $deliveryIds = $validated['delivery_ids'];
+        $rejectionReason = $validated['rejection_reason'];
+        $successCount = 0;
+        $failedCount = 0;
+        $errors = [];
+
+        foreach ($deliveryIds as $id) {
+            try {
+                $delivery = Deliveries::findOrFail($id);
+
+                // Check if delivery is pending
+                if ($delivery->approval_status !== 'Pending') {
+                    $failedCount++;
+                    $errors[] = "DR {$delivery->dr_no} is not pending approval";
+                    continue;
+                }
+
+                // Check if pulled out
+                if ($delivery->is_pulled_out) {
+                    $failedCount++;
+                    $errors[] = "DR {$delivery->dr_no} is pulled out";
+                    continue;
+                }
+
+                // Reject delivery
+                $delivery->update([
+                    'approval_status' => 'Rejected',
+                    'status' => 'Cancelled',
+                    'approved_by_user' => auth()->user()->name,
+                    'rejection_reason' => $rejectionReason,
+                ]);
+
+                // Create activity log
+                Activity::create([
+                    'user_name' => auth()->user()->name ?? 'System',
+                    'action' => 'Batch Rejected',
+                    'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
+                    'target' => $delivery->sales_order_number ?? 'N/A',
+                    'type' => 'Delivery',
+                    'message' => "Batch rejected delivery: {$delivery->dr_no}. Reason: {$rejectionReason}",
+                ]);
+
+                $successCount++;
+            } catch (\Exception $e) {
+                $failedCount++;
+                $errors[] = "Failed to reject delivery ID {$id}: " . $e->getMessage();
+                Log::error('Batch reject failed for delivery', ['id' => $id, 'error' => $e->getMessage()]);
+            }
+        }
+
+        $message = "Successfully rejected {$successCount} delivery(ies).";
+        if ($failedCount > 0) {
+            $message .= " {$failedCount} failed.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'success_count' => $successCount,
+            'failed_count' => $failedCount,
+            'errors' => $errors,
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Batch rejection failed', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => 'Batch rejection failed: ' . $e->getMessage()], 500);
+    }
+}
 
                                                              
 }

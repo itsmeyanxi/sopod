@@ -507,7 +507,7 @@
                     <tr class="border-b border-gray-800 hover:bg-gray-800 
                         {{ $isPartial ? 'bg-orange-900/10' : '' }}">
                             <td class="px-4 py-2">{{ $item->item_code ?? '—' }}</td>
-                            <td class="px-4 py-2">{{ $item->item_description ?? '—' }}</td>
+                            <td class="px-4 py-2">{{  $item->item_description ?? $item->item?->item_description ?? $item->salesOrderItem?->item_description ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $item->brand ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $item->item_category ?? '—' }}</td>
 
