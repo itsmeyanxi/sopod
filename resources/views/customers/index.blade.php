@@ -72,10 +72,10 @@
                     <th class="px-4 py-3 text-left">ID</th>
                     <th class="px-4 py-3 text-left">Code</th>
                     <th class="px-4 py-3 text-left">Name</th>
-                    <th class="px-4 py-3 text-left">Business Style</th>
-                    <th class="px-4 py-3 text-left">Billing Address</th>
-                    <th class="px-4 py-3 text-left">TIN</th>
-                    <th class="px-4 py-3 text-left">Shipping Address</th>
+                    <!-- <th class="px-4 py-3 text-left">Business Style</th> -->
+                     <th class="px-4 py-3 text-left">Billing Address</th>
+                    <!-- <th class="px-4 py-3 text-left">TIN</th> 
+                    <th class="px-4 py-3 text-left">Shipping Address</th> -->
                     <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Flag Status</th>
                     <th class="px-4 py-3 text-center">Actions</th>
@@ -88,10 +88,10 @@
                         <td class="px-4 py-3">{{ $customer->id }}</td>
                         <td class="px-4 py-3">{{ $customer->customer_code }}</td>
                         <td class="px-4 py-3">{{ $customer->customer_name }}</td>
-                        <td class="px-4 py-3">{{ $customer->business_style ?? 'N/A' }}</td>
+                        <!-- <td class="px-4 py-3">{{ $customer->business_style ?? 'N/A' }}</td> -->
                         <td class="px-4 py-3">{{ Str::limit($customer->billing_address ?? 'N/A', 30) }}</td>
-                        <td class="px-4 py-3">{{ $customer->tin_no ?? '000-000-000-00000' }}</td>
-                        <td class="px-4 py-3">{{ Str::limit($customer->shipping_address ?? 'N/A', 30) }}</td>
+                        <!-- <td class="px-4 py-3">{{ $customer->tin_no ?? '000-000-000-00000' }}</td> -->
+                        <!-- <td class="px-4 py-3">{{ Str::limit($customer->shipping_address ?? 'N/A', 30) }}</td> -->
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded text-xs font-medium {{ $customer->status === 'enabled' ? 'bg-green-600 text-white' : 'bg-red-600 text-white' }}">
                                 {{ ucfirst($customer->status) }}
@@ -146,7 +146,7 @@
                                                               ? 'bg-orange-600 hover:bg-orange-700' 
                                                               : 'bg-blue-600 hover:bg-blue-700' }}"
                                                     title="{{ $customer->is_flagged ? 'Click to unflag customer' : 'Click to flag customer' }}">
-                                                {{ $customer->is_flagged ? '🚩 Unflag' : '✅ Flag' }}
+                                                {{ $customer->is_flagged ? ' Unflag' : ' Flag' }}
                                             </button>
                                         </form>
                                     @endif

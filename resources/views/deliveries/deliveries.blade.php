@@ -676,7 +676,9 @@ function renumberDeliveryItems() {
     });
 }
 
-// SEARCH SALES ORDER - UPDATED TO HANDLE ALL STATUSES
+// ✅ FIND THIS SECTION IN YOUR CODE (around line 710-950)
+// Replace the ENTIRE search button event listener with this fixed version:
+
 document.getElementById("search_btn").addEventListener("click", async () => {
     const soNumber = document.getElementById("so_search").value.trim();
     
@@ -767,6 +769,22 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             }
             
             return;
+        }
+
+        // ✅✅✅ AUTO-APPROVE NOTIFICATION (MOVED HERE FROM SAVE BUTTON)
+        if (data.will_auto_approve && !data.is_edit_mode && !data.is_view_only) {
+            await Swal.fire({
+                icon: 'info',
+                title: '✅ Auto-Approve Enabled',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-2">As a <strong class="text-green-600">Delivery Approver</strong>, your deliveries will be <strong>automatically approved</strong> upon creation.</p>
+                        <p class="text-sm text-gray-600 mt-2">This delivery will be marked as "Approved" and "Delivered" immediately after saving.</p>
+                    </div>
+                `,
+                confirmButtonText: 'Understood',
+                confirmButtonColor: '#16a34a'
+            });
         }
 
         // ✅ Show status/info alert if present
@@ -941,6 +959,8 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             successMessage = `Viewing ${data.so_status} Sales Order (Read-Only)`;
         } else if (data.is_edit_mode) {
             successMessage = `Editing delivery: ${batchValue}`;
+        } else if (data.will_auto_approve) {
+            successMessage = `Ready to create delivery (will auto-approve)`;
         } else if (batchValue === 'Full Delivery') {
             successMessage = `Ready to create full delivery`;
         } else if (batchValue.startsWith('Batch')) {
@@ -1062,8 +1082,6 @@ if (canManageDeliveries) {
             items: []
         };
 
-        // ✅ CRITICAL CHANGE: Collect items from ALL CARDS (including hidden ones with qty 0)
-       // ✅ CRITICAL CHANGE: Collect items from ALL CARDS (including hidden ones with qty 0)
 cards.forEach(card => {
     // ✅ Get values from hidden inputs (RELIABLE METHOD)
     const itemCode = card.querySelector('.data-item-code')?.value || '';
@@ -1089,12 +1107,11 @@ cards.forEach(card => {
     const calculatedRemaining = originalQty - totalDelivered;
     const remainingQty = calculatedRemaining < 0 ? 0 : calculatedRemaining;
     
-    // ✅ INCLUDE ALL ITEMS, even those with quantity 0
     payload.items.push({
-        item_code: itemCode,  // ✅ From hidden input
-        item_description: itemDesc,  // ✅ From hidden input
-        brand: brand,  // ✅ From hidden input
-        item_category: itemCategory,  // ✅ From hidden input
+        item_code: itemCode, 
+        item_description: itemDesc,  
+        brand: brand,  
+        item_category: itemCategory, 
         quantity: deliveredQty,
         original_quantity: originalQty,
         remaining_quantity: remainingQty,

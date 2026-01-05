@@ -454,6 +454,8 @@ public function search(Request $request)
         } else {
             $newBatchName = 'Batch ' . ($deliveryCount + 1);
         }
+        $userRole = auth()->user()->role ?? null;
+        $willAutoApprove = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
     } elseif (!$isEditMode && !$canCreateNewDelivery) {
         $newBatchName = 'View Only';
     }
@@ -501,6 +503,7 @@ public function search(Request $request)
         'id' => $isEditMode && $delivery ? $delivery->id : null,
         'is_edit_mode' => $isEditMode,
         'is_view_only' => $isViewOnly,
+        'will_auto_approve' => $willAutoApprove,
         'can_create_new_delivery' => $canCreateNewDelivery,
         'so_status' => $soExists->status,
         'is_closed' => $soExists->is_closed,
@@ -596,13 +599,38 @@ public function store(Request $request)
             $validated['attachment'] = $filename;
         }
 
-        $items = $validated['items'];
+       $items = $validated['items'];
         unset($validated['items']);
 
-        // ✅ Set initial status and approval tracking
-        $validated['status'] = 'Pending';
-        $validated['approval_status'] = 'Pending';
+        // Check user role and set approval status accordingly
+        $userRole = auth()->user()->role ?? null;
+        $isApprover = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
+
         $validated['created_by'] = auth()->user()->name ?? 'System';
+
+        if ($isApprover) {
+            // Auto-approve if created by Delivery_Approver, Admin, or IT
+            $validated['status'] = 'Delivered';
+            $validated['approval_status'] = 'Approved';
+            $validated['approved_by_user'] = auth()->user()->name ?? 'System';
+            $validated['approved_at'] = now();
+            
+            Log::info('📦 Creating auto-approved delivery', [
+                'so_number' => $validated['sales_order_number'],
+                'created_by' => $validated['created_by'],
+                'role' => $userRole,
+            ]);
+        } else {
+            // Require approval if created by Delivery_Creator
+            $validated['status'] = 'Pending';
+            $validated['approval_status'] = 'Pending';
+            
+            Log::info('📦 Creating delivery for approval', [
+                'so_number' => $validated['sales_order_number'],
+                'created_by' => $validated['created_by'],
+                'role' => $userRole,
+            ]);
+        }
 
         // ✅ Count existing APPROVED deliveries only (with actual delivered items)
         $existingDeliveryCount = Deliveries::where('sales_order_number', $validated['sales_order_number'])
@@ -684,36 +712,29 @@ public function store(Request $request)
             ]);
         }
 
-        // \Log::info('🔥 DELIVERY CREATED', [
-        //     'delivery_id' => $delivery->id,
-        //     'dr_no' => $delivery->dr_no,
-        //     'about_to_send_email' => true
-        // ]);
+        // Check if SO should be closed (only if auto-approved)
+        if ($isApprover) {
+            $salesOrder->fresh()->checkAndClose();
+        }
 
-        // try {
-        //     $emailSent = app(\App\Services\NotificationService::class)->notifyNewDelivery($delivery);
-        //     \Log::info('🔥 DELIVERY EMAIL SENT', ['success' => $emailSent]);
-        // } catch (\Exception $emailError) {
-        //     \Log::error('🔥 DELIVERY EMAIL FAILED', [
-        //         'error' => $emailError->getMessage(),
-        //         'trace' => $emailError->getTraceAsString()
-        //     ]);
-        //     // Don't throw - let delivery creation succeed even if email fails
-        // }
-
-        // Create activity log AFTER email attempt
         Activity::create([
             'user_name' => auth()->user()->name ?? 'System',
             'action' => 'Created',
             'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
             'target' => $delivery->sales_order_number ?? 'N/A',
             'type' => 'Delivery',
-            'message' => "Created delivery for approval: {$delivery->dr_no} ({$delivery->delivery_batch}) - Status: Pending Approval",
+            'message' => $isApprover 
+                ? "Created and auto-approved delivery: {$delivery->dr_no} ({$delivery->delivery_batch})"
+                : "Created delivery for approval: {$delivery->dr_no} ({$delivery->delivery_batch}) - Status: Pending Approval",
         ]);
+
+        $message = $isApprover 
+            ? "Delivery created and approved successfully! Batch: {$delivery->delivery_batch}"
+            : "Delivery created successfully! Status: Pending Approval. Batch: {$delivery->delivery_batch}";
 
         return response()->json([
             'success' => true,
-            'message' => "Delivery created successfully! Status: Pending Approval. Batch: {$delivery->delivery_batch}",
+            'message' => $message,
         ]);
     } catch (\Exception $e) {
         Log::error('💥 Delivery store failed', [
