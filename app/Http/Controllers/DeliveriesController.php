@@ -79,6 +79,148 @@ class DeliveriesController extends Controller
      * UPDATE 
      */
 
+/**
+ * ✅ Create Backload Entry as Receiving Report
+ * (No AR correlation - purely logistics/warehouse tracking)
+ */
+private function createBackloadEntry(Request $request)
+{
+    try {
+        // Generate RR Number
+        $rrNumber = $this->generateRRNumber();
+        
+        // Normalize empty strings to nulls
+        $data = $request->all();
+        foreach (['customer_name', 'customer_code', 'branch', 'tin_no', 'sales_rep', 'sales_representative', 'sales_executive', 'po_number', 'plate_no', 'sales_invoice_no'] as $field) {
+            if (isset($data[$field]) && $data[$field] === '') {
+                $data[$field] = null;
+            }
+        }
+        
+        // Handle attachment
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
+            $uploadPath = public_path('receiving_report_attachments');
+            if (!file_exists($uploadPath)) mkdir($uploadPath, 0755, true);
+            $file->move($uploadPath, $filename);
+            $attachmentPath = $filename;
+        }
+        
+        // ✅ FIXED: Use sales_representative (not sales_rep)
+        $salesRep = $data['sales_representative'] ?? $data['sales_rep'] ?? null;
+        
+        // Create Receiving Report
+        $receivingReport = \App\Models\ReceivingReport::create([
+            'rr_number' => $rrNumber,
+            'sales_order_number' => $data['sales_order_number'],
+            'customer_name' => $data['customer_name'] ?? null,
+            'customer_code' => $data['customer_code'] ?? null,
+            'tin_no' => $data['tin_no'] ?? null,
+            'branch' => $data['branch'] ?? null,
+            'sales_representative' => $salesRep, // ✅ FIXED
+            'sales_executive' => $data['sales_executive'] ?? null,
+            'po_number' => $data['po_number'] ?? null,
+            'plate_no' => $data['plate_no'] ?? null,
+            'sales_invoice_no' => $data['sales_invoice_no'] ?? null,
+            'received_by' => $data['approved_by'] ?? auth()->user()->name ?? 'System',
+            'delivery_batch' => $data['delivery_batch'] ?? null,
+            'delivery_type' => $data['delivery_type'] ?? 'Full',
+            'additional_instructions' => $data['additional_instructions'] ?? null,
+            'request_delivery_date' => $data['request_delivery_date'] ?? null,
+            'status' => 'Received',
+            'received_date' => now(),
+            'attachment' => $attachmentPath,
+            'created_by' => auth()->user()->name ?? 'System',
+        ]);
+        
+        // Fetch SO for item details
+        $salesOrder = SalesOrder::with('items')->where('sales_order_number', $data['sales_order_number'])->first();
+        $soItemsMap = collect();
+        if ($salesOrder) {
+            foreach ($salesOrder->items as $soItem) {
+                $soItemsMap->put($soItem->item_code, $soItem);
+            }
+        }
+        
+        // Create items for the receiving report
+        foreach ($request->items as $itemData) {
+            $itemCode = $itemData['item_code'] ?? null;
+            $soItem = $soItemsMap->get($itemCode);
+            $itemRecord = !$soItem && $itemCode ? Item::where('item_code', $itemCode)->first() : null;
+            
+            \App\Models\ReceivingReportItem::create([
+                'receiving_report_id' => $receivingReport->id,
+                'item_id' => $soItem?->item_id ?? $itemRecord?->id ?? null,
+                'sales_order_item_id' => $soItem?->id ?? null,
+                'item_code' => $itemCode,
+                'item_description' => $itemData['item_description'] ?? null,
+                'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
+                'item_category' => $soItem?->item_category ?? $itemRecord?->item_category ?? null,
+                'quantity' => $itemData['quantity'] ?? 0,
+                'original_quantity' => $itemData['original_quantity'] ?? ($itemData['quantity'] ?? 0),
+                'remaining_quantity' => $itemData['remaining_quantity'] ?? 0,
+                'uom' => $itemData['uom'] ?? null,
+                'unit_price' => $itemData['unit_price'] ?? 0,
+                'total_amount' => $itemData['total_amount'] ?? 0,
+                'notes' => $itemData['notes'] ?? null,
+            ]);
+        }
+        
+        // Create activity log
+        Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Created',
+            'item' => $rrNumber . ' - ' . ($data['customer_name'] ?? 'N/A'),
+            'target' => $data['sales_order_number'] ?? 'N/A',
+            'type' => 'Receiving Report',
+            'message' => "Created backload receiving report: {$rrNumber}",
+        ]);
+        
+        return response()->json([
+    'success' => true,
+    'message' => "Backload created successfully! RR Number: {$rrNumber}",
+    'rr_number' => $rrNumber,
+    'items_count' => count($request->items), // ✅ Add this
+    'redirect' => route('receiving-reports.index')
+]);
+        
+    } catch (\Exception $e) {
+        Log::error('💥 Backload creation failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create backload: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * ✅ Generate unique RR Number (e.g., RR-2026-001)
+ */
+private function generateRRNumber()
+{
+    $year = date('Y');
+    $lastRR = \App\Models\ReceivingReport::where('rr_number', 'like', "RR-{$year}-%")
+        ->orderBy('rr_number', 'desc')
+        ->first();
+    
+    if ($lastRR) {
+        $lastNumber = (int) substr($lastRR->rr_number, -3);
+        $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+    } else {
+        $newNumber = '001';
+    }
+    
+    return "RR-{$year}-{$newNumber}";
+}
+
 public function update(Request $request, $id)
 {
     try {
@@ -110,12 +252,12 @@ public function update(Request $request, $id)
             'items.*.original_quantity' => 'nullable|numeric|min:0',
             'items.*.remaining_quantity' => 'nullable|numeric|min:0',
             'items.*.uom' => 'nullable|string|max:50',
-            'items.*.unit_price' => 'nullable|numeric|min:0',
-            'items.*.total_amount' => 'required|numeric|min:0',
+            'items.*.unit_price' => 'required|numeric|min:0', // ✅ REQUIRED
+            'items.*.total_amount' => 'nullable|numeric|min:0',
             'items.*.notes' => 'nullable|string|max:2000',
         ]);
 
-        // Normalize empty strings to nulls
+        // Normalize empty strings
         foreach (['customer_code', 'customer_name', 'branch', 'tin_no', 'sales_rep', 'sales_representative', 'sales_executive', 'po_number', 'plate_no'] as $field) {
             if (isset($validated[$field]) && $validated[$field] === '') {
                 $validated[$field] = null;
@@ -139,7 +281,6 @@ public function update(Request $request, $id)
         unset($validated['items']);
         $delivery->update($validated);
 
-        // Fetch SO for reference
         $salesOrder = SalesOrder::with('items')->where('sales_order_number', $validated['sales_order_number'])->first();
         if (!$salesOrder) {
             throw new \Exception('Sales Order not found');
@@ -150,22 +291,20 @@ public function update(Request $request, $id)
             $soItemsMap->put($soItem->item_code, $soItem);
         }
 
-        // ✅ Compute previous delivered sums, EXCLUDING this delivery and qty=0 items
         $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($validated, $delivery) {
                 $q->where('sales_order_number', $validated['sales_order_number'])
                   ->where('status', 'Delivered');
             })
             ->where('delivery_id', '!=', $delivery->id)
-            ->where('quantity', '>', 0) // ✅ Only count actual deliveries
+            ->where('quantity', '>', 0)
             ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
             ->groupBy('item_code')
             ->get()
             ->keyBy('item_code');
 
-        // Delete existing delivery items for a clean replace
         DeliveryItem::where('delivery_id', $delivery->id)->delete();
 
-        // ✅ Create updated delivery items (INCLUDING qty=0 for tracking)
+        // ✅ CRITICAL: Recalculate totals
         foreach ($items as $item) {
             $itemCode = $item['item_code'] ?? null;
             $soItem = $soItemsMap->get($itemCode);
@@ -183,6 +322,10 @@ public function update(Request $request, $id)
 
             $itemRecord = !$soItem && $itemCode ? Item::where('item_code', $itemCode)->first() : null;
 
+            // ✅ ALWAYS recalculate - ignore client value
+            $unitPrice = $item['unit_price'] ?? 0;
+            $totalAmount = round($deliveredQty * $unitPrice, 2);
+
             DeliveryItem::create([
                 'delivery_id' => $delivery->id,
                 'item_id' => $soItem?->item_id ?? $itemRecord?->id ?? null,
@@ -191,23 +334,22 @@ public function update(Request $request, $id)
                 'item_description' => $item['item_description'] ?? null,
                 'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
                 'item_category' => $soItem?->item_category ?? $itemRecord?->item_category ?? null,
-                'quantity' => $deliveredQty, // ✅ Can be 0 if temporarily removed
+                'quantity' => $deliveredQty,
                 'original_quantity' => $originalQty,
                 'remaining_quantity' => $remainingQty,
                 'uom' => $item['uom'] ?? null,
-                'unit_price' => $item['unit_price'] ?? 0,
-                'total_amount' => $item['total_amount'] ?? 0,
+                'unit_price' => $unitPrice,
+                'total_amount' => $totalAmount, // ✅ Server-calculated only
                 'delivery_batch' => $validated['delivery_batch'] ?? null,
                 'notes' => $item['notes'] ?? $soItem?->note ?? null,
             ]);
         }
 
-        // ✅ Check if SO should be closed (AFTER all items are updated)
+        // ✅ ADDED: Verify all calculations
+        $this->recalculateDeliveryItemTotals($delivery->id);
+
         $salesOrder->fresh()->checkAndClose();
 
-        // app(\App\Services\NotificationService::class)->notifySalesOrderUpdated($salesOrder);
-
-        // Create activity log
         Activity::create([
             'user_name' => auth()->user()->name ?? 'System',
             'action' => 'Updated',
@@ -225,6 +367,509 @@ public function update(Request $request, $id)
             'line' => $e->getLine(),
         ]);
 
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to update delivery: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+public function fixExistingTotals()
+{
+    try {
+        $deliveries = Deliveries::all();
+        $fixedCount = 0;
+        
+        foreach ($deliveries as $delivery) {
+            $items = DeliveryItem::where('delivery_id', $delivery->id)->get();
+            
+            foreach ($items as $item) {
+                $correctTotal = round(($item->quantity ?? 0) * ($item->unit_price ?? 0), 2);
+                
+                if (abs($item->total_amount - $correctTotal) > 0.01) {
+                    Log::info('🔧 Fixing total for item', [
+                        'delivery_id' => $delivery->id,
+                        'dr_no' => $delivery->dr_no,
+                        'item_code' => $item->item_code,
+                        'old_total' => $item->total_amount,
+                        'new_total' => $correctTotal,
+                    ]);
+                    
+                    $item->update(['total_amount' => $correctTotal]);
+                    $fixedCount++;
+                }
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => "Fixed {$fixedCount} item total(s)",
+        ]);
+        
+    } catch (\Exception $e) {
+        Log::error('Failed to fix totals', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
+
+/**
+ * ✅ FIXED: Store Delivery - Server-side total calculation
+ */
+public function store(Request $request)
+{
+    try {
+        $status = $request->input('status', 'Delivered');
+        
+        $validationRules = [
+            'sales_order_number' => 'required|string|max:255',
+            'delivery_batch' => 'nullable|string|max:255',
+            'delivery_type' => 'required|string|in:Full,Partial',
+            'status' => 'required|string|in:Delivered,Cancelled,Backload',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_code' => 'nullable|string|max:255',
+            'tin_no' => 'nullable|string|max:255',
+            'branch' => 'nullable|string|max:255',
+            'sales_rep' => 'nullable|string|max:255',
+            'sales_representative' => 'nullable|string|max:255',
+            'sales_executive' => 'nullable|string|max:255',
+            'po_number' => 'nullable|string|max:255',
+            'request_delivery_date' => 'nullable|date',
+            'plate_no' => 'nullable|string|max:255',
+            'sales_invoice_no' => 'nullable|string|max:255',
+            'approved_by' => 'required|string|max:255',
+            'additional_instructions' => 'nullable|string',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'items' => 'required|array|min:1',
+            'items.*.item_code' => 'nullable|string|max:255',
+            'items.*.item_description' => 'nullable|string',
+            'items.*.quantity' => 'required|numeric|min:0',
+            'items.*.original_quantity' => 'nullable|numeric|min:0',
+            'items.*.remaining_quantity' => 'nullable|numeric|min:0',
+            'items.*.uom' => 'nullable|string|max:50',
+            'items.*.unit_price' => 'required|numeric|min:0', // ✅ MAKE REQUIRED
+            'items.*.total_amount' => 'nullable|numeric|min:0', // ✅ Keep nullable - we recalculate
+            'items.*.notes' => 'nullable|string|max:2000',
+        ];
+
+        if ($status !== 'Backload') {
+            $validationRules['dr_no'] = ['required', 'string', 'max:255', 'unique:deliveries,dr_no'];
+        } else {
+            $validationRules['dr_no'] = 'nullable|string|max:255';
+        }
+
+        $validated = $request->validate($validationRules);
+
+        if ($status === 'Backload') {
+            return $this->createBackloadEntry($request);
+        }
+
+        $validated['approval_status'] = 'Pending';
+        $validated['created_by'] = auth()->user()->name ?? 'System';
+
+        // Normalize empty strings
+        foreach (['customer_name', 'customer_code', 'branch', 'tin_no', 'sales_rep', 'sales_representative', 'sales_executive', 'po_number', 'plate_no', 'sales_invoice_no'] as $field) {
+            if (isset($validated[$field]) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
+        }
+
+        // Handle attachment
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
+            $uploadPath = public_path('delivery_images');
+            if (!file_exists($uploadPath)) mkdir($uploadPath, 0755, true);
+            $file->move($uploadPath, $filename);
+            $validated['attachment'] = $filename;
+        }
+
+        $items = $validated['items'];
+        unset($validated['items']);
+
+        // Check user role
+        $userRole = auth()->user()->role ?? null;
+        $isApprover = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
+        $validated['created_by'] = auth()->user()->name ?? 'System';
+
+        if ($isApprover) {
+            $validated['status'] = 'Delivered';
+            $validated['approval_status'] = 'Approved';
+            $validated['approved_by_user'] = auth()->user()->name ?? 'System';
+            $validated['approved_at'] = now();
+        } else {
+            $validated['status'] = 'Pending';
+            $validated['approval_status'] = 'Pending';
+        }
+
+        // Count existing deliveries (including pending ones)
+        $existingDeliveryCount = Deliveries::where('sales_order_number', $validated['sales_order_number'])
+            ->where('status', '!=', 'Cancelled')  // Exclude cancelled deliveries
+            ->whereHas('items', function($q) {
+                $q->where('quantity', '>', 0);
+            })
+            ->count();
+
+        if ($existingDeliveryCount === 0) {
+            $validated['delivery_batch'] = ($validated['delivery_type'] === 'Partial') ? 'Batch 1' : 'Full Delivery';
+        } else {
+            $validated['delivery_batch'] = 'Batch ' . ($existingDeliveryCount + 1);
+        }
+
+        // Fetch SO
+        $salesOrder = SalesOrder::with('items')->where('sales_order_number', $validated['sales_order_number'])->first();
+        if (!$salesOrder) {
+            throw new \Exception('Sales Order not found');
+        }
+
+        $soItemsMap = collect();
+        foreach ($salesOrder->items as $soItem) {
+            $soItemsMap->put($soItem->item_code, $soItem);
+        }
+
+        // Get delivered sums
+        $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($validated) {
+                $q->where('sales_order_number', $validated['sales_order_number'])
+                  ->where('approval_status', 'Approved')
+                  ->where('status', 'Delivered');
+            })
+            ->where('quantity', '>', 0)
+            ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
+            ->groupBy('item_code')
+            ->get()
+            ->keyBy('item_code');
+
+        // Create delivery
+        $delivery = Deliveries::create($validated);
+
+        // Sync delivery date to SO
+        if ($validated['request_delivery_date']) {
+            $salesOrder = SalesOrder::where('sales_order_number', $validated['sales_order_number'])->first();
+            
+            if ($salesOrder && $salesOrder->request_delivery_date != $validated['request_delivery_date']) {
+                $salesOrder->update(['request_delivery_date' => $validated['request_delivery_date']]);
+                SalesOrderItem::where('sales_order_id', $salesOrder->id)
+                    ->update(['request_delivery_date' => $validated['request_delivery_date']]);
+            }
+        }
+
+        // ✅ CRITICAL: Always recalculate total_amount server-side
+        foreach ($items as $item) {
+            $itemCode = $item['item_code'] ?? null;
+            $soItem = $soItemsMap->get($itemCode);
+
+            $originalQty = $soItem ? $soItem->quantity : ($item['original_quantity'] ?? ($item['quantity'] ?? 0));
+            $previousDelivered = $deliveredSums->get($itemCode)?->total_delivered ?? 0;
+            $deliveredQty = $item['quantity'] ?? 0;
+            $newTotalDelivered = $previousDelivered + $deliveredQty;
+            $remainingQty = max(0, $originalQty - $newTotalDelivered);
+
+            $itemRecord = !$soItem && $itemCode ? Item::where('item_code', $itemCode)->first() : null;
+
+            // ✅ ALWAYS calculate server-side - IGNORE client value
+            $unitPrice = $item['unit_price'] ?? 0;
+            $totalAmount = round($deliveredQty * $unitPrice, 2); // ✅ Round to 2 decimals
+
+            // ✅ Log if client sent different value
+            if (isset($item['total_amount']) && abs($item['total_amount'] - $totalAmount) > 0.01) {
+                Log::warning('⚠️ Client sent incorrect total_amount', [
+                    'item_code' => $itemCode,
+                    'client_sent' => $item['total_amount'],
+                    'server_calculated' => $totalAmount,
+                    'quantity' => $deliveredQty,
+                    'unit_price' => $unitPrice,
+                ]);
+            }
+
+            DeliveryItem::create([
+                'delivery_id' => $delivery->id,
+                'item_id' => $soItem?->item_id ?? $itemRecord?->id ?? null,
+                'sales_order_item_id' => $soItem?->id ?? null,
+                'item_code' => $itemCode,
+                'item_description' => $item['item_description'] ?? null,
+                'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
+                'item_category' => $soItem?->item_category ?? $itemRecord?->item_category ?? null,
+                'quantity' => $deliveredQty,
+                'original_quantity' => $originalQty,
+                'remaining_quantity' => $remainingQty,
+                'uom' => $item['uom'] ?? null,
+                'unit_price' => $unitPrice,
+                'total_amount' => $totalAmount, // ✅ Use ONLY server-calculated value
+                'delivery_batch' => $validated['delivery_batch'],
+                'notes' => $item['notes'] ?? $soItem?->note ?? null,      
+            ]);
+        }
+
+        // ✅ ADDED: Double-check all totals after creation
+        $this->recalculateDeliveryItemTotals($delivery->id);
+
+        if ($isApprover) {
+            $salesOrder->fresh()->checkAndClose();
+        }
+
+        Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Created',
+            'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
+            'target' => $delivery->sales_order_number ?? 'N/A',
+            'type' => 'Delivery',
+            'message' => $isApprover 
+                ? "Created and auto-approved delivery: {$delivery->dr_no} ({$delivery->delivery_batch})"
+                : "Created delivery for approval: {$delivery->dr_no} ({$delivery->delivery_batch}) - Status: Pending Approval",
+        ]);
+
+        $message = $isApprover 
+            ? "Delivery created and approved successfully! Batch: {$delivery->delivery_batch}"
+            : "Delivery created successfully! Status: Pending Approval. Batch: {$delivery->delivery_batch}";
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
+    } catch (\Exception $e) {
+        Log::error('💥 Delivery store failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create delivery: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+public function quickUpdate(Request $request, $id)
+{
+    try {
+        // ✅ Load delivery with fresh items
+        $delivery = Deliveries::with('items')->findOrFail($id);
+
+        if ($delivery->is_pulled_out) {
+            return response()->json(['success' => false, 'message' => 'Cannot edit pulled out delivery'], 400);
+        }
+
+        if ($delivery->approval_status === 'Approved') {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Approved deliveries are locked and cannot be edited. Only pullout is available for approved deliveries.'
+            ], 403);
+        }
+
+        $userRole = auth()->user()->role;
+        $canApprove = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
+        
+        if (!$canApprove) {
+            if (!$delivery->edit_approved) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'You need edit approval to modify this pending delivery.'
+                ], 403);
+            }
+        }
+
+        // ✅ CRITICAL: Build validation rules - items are REQUIRED
+        $validationRules = [
+            'request_delivery_date' => 'required|date',
+            'items' => 'required|array|min:1',
+            'items.*.item_code' => 'required|string',
+            'items.*.item_description' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:0',
+            'items.*.original_quantity' => 'required|numeric|min:0',
+            'items.*.already_delivered' => 'nullable|numeric|min:0',
+            'items.*.uom' => 'required|string',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.notes' => 'nullable|string',
+        ];
+
+        if ($request->has('dr_no')) {
+            $validationRules['dr_no'] = ['required', 'string', 'max:255', Rule::unique('deliveries', 'dr_no')->ignore($delivery->id)];
+        }
+
+        if ($request->has('po_number')) {
+            $validationRules['po_number'] = 'nullable|string|max:255';
+        }
+
+        if ($request->has('plate_no')) {
+            $validationRules['plate_no'] = 'nullable|string|max:255';
+        }
+
+        if ($request->has('sales_invoice_no')) {
+            $salesInvoiceNo = $request->input('sales_invoice_no');
+            if (!empty($salesInvoiceNo) && trim($salesInvoiceNo) !== '') {
+                if ($salesInvoiceNo !== $delivery->sales_invoice_no) {
+                    $validationRules['sales_invoice_no'] = [
+                        'nullable', 
+                        'string', 
+                        'max:255', 
+                        Rule::unique('deliveries', 'sales_invoice_no')->ignore($delivery->id)
+                    ];
+                }
+            }
+        }
+
+        Log::info('🔍 Quick Update Request', [
+            'delivery_id' => $id,
+            'request_data' => $request->all(),
+            'items_count' => count($request->input('items', [])),
+        ]);
+
+        try {
+            $validated = $request->validate($validationRules);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('❌ Validation Failed', [
+                'errors' => $e->errors(),
+                'request' => $request->all(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error: ' . implode(', ', array_map(fn($err) => implode(', ', $err), $e->errors())),
+                'errors' => $e->errors()
+            ], 422);
+        }
+
+        // ✅ Start database transaction
+        DB::beginTransaction();
+
+        try {
+            // ✅ Update delivery fields
+            $updateData = [
+                'request_delivery_date' => $validated['request_delivery_date'],
+            ];
+
+            if (isset($validated['dr_no'])) {
+                $updateData['dr_no'] = $validated['dr_no'];
+            }
+
+            if (isset($validated['po_number'])) {
+                $updateData['po_number'] = $validated['po_number'];
+            }
+
+            if (isset($validated['plate_no'])) {
+                $updateData['plate_no'] = $validated['plate_no'];
+            }
+
+            if (isset($validated['sales_invoice_no'])) {
+                $updateData['sales_invoice_no'] = $validated['sales_invoice_no'];
+            }
+
+            Log::info('📝 Updating delivery', [
+                'delivery_id' => $id,
+                'update_data' => $updateData
+            ]);
+
+            $delivery->update($updateData);
+
+            // ✅ Sync delivery date back to Sales Order
+            if ($validated['request_delivery_date']) {
+                $salesOrder = SalesOrder::where('sales_order_number', $delivery->sales_order_number)->first();
+                
+                if ($salesOrder) {
+                    $salesOrder->update(['request_delivery_date' => $validated['request_delivery_date']]);
+                    
+                    SalesOrderItem::where('sales_order_id', $salesOrder->id)
+                        ->update(['request_delivery_date' => $validated['request_delivery_date']]);
+                    
+                    Log::info('✅ Synced delivery date back to SO', [
+                        'so_number' => $delivery->sales_order_number,
+                        'new_date' => $validated['request_delivery_date'],
+                    ]);
+                }
+            }
+
+            // ✅ CRITICAL FIX: Update items with direct database query
+            if (isset($validated['items'])) {
+                $updatedCount = 0;
+                
+                foreach ($validated['items'] as $itemData) {
+                    $quantity = $itemData['quantity'];
+                    $unitPrice = $itemData['unit_price'];
+                    
+                    // ✅ Calculate total amount server-side
+                    $totalAmount = round($quantity * $unitPrice, 2);
+                    
+                    $remaining = max(0, $itemData['original_quantity'] - ($itemData['already_delivered'] ?? 0) - $quantity);
+                    
+                    // ✅ CRITICAL: Use direct DB update instead of eloquent collection
+                    $updated = DeliveryItem::where('delivery_id', $delivery->id)
+                        ->where('item_code', $itemData['item_code'])
+                        ->update([
+                            'quantity' => $quantity,
+                            'remaining_quantity' => $remaining,
+                            'total_amount' => $totalAmount,
+                            'updated_at' => now(),
+                        ]);
+                    
+                    if ($updated > 0) {
+                        $updatedCount++;
+                        Log::info('📦 Updated delivery item', [
+                            'item_code' => $itemData['item_code'],
+                            'new_quantity' => $quantity,
+                            'unit_price' => $unitPrice,
+                            'calculated_total' => $totalAmount,
+                            'rows_affected' => $updated,
+                        ]);
+                    } else {
+                        Log::warning('⚠️ No rows updated for item', [
+                            'delivery_id' => $delivery->id,
+                            'item_code' => $itemData['item_code'],
+                        ]);
+                    }
+                }
+                
+                Log::info('✅ Total items updated', [
+                    'delivery_id' => $id,
+                    'updated_count' => $updatedCount,
+                    'total_items' => count($validated['items']),
+                ]);
+            }
+
+            // ✅ Reset edit flags if this was an approved edit
+            if ($delivery->edit_approved) {
+                $delivery->update([
+                    'edit_requested' => false,
+                    'edit_approved' => false,
+                    'edit_requested_by' => null,
+                    'edit_requested_at' => null,
+                    'edit_approved_by' => null,
+                    'edit_approved_at' => null,
+                ]);
+            }
+
+            // ✅ Commit transaction
+            DB::commit();
+
+            Activity::create([
+                'user_name' => auth()->user()->name ?? 'System',
+                'action' => 'Updated',
+                'item' => $delivery->dr_no,
+                'target' => $delivery->sales_order_number,
+                'type' => 'Delivery',
+                'message' => "Updated delivery: {$delivery->dr_no}",
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Delivery updated successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            // ✅ Rollback transaction on error
+            DB::rollBack();
+            throw $e;
+        }
+
+    } catch (\Exception $e) {
+        Log::error('💥 Quick update failed', [
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString(),
+            'delivery_id' => $id ?? null,
+            'request_data' => $request->all(),
+        ]);
+        
         return response()->json([
             'success' => false,
             'message' => 'Failed to update delivery: ' . $e->getMessage()
@@ -295,8 +940,27 @@ public function search(Request $request)
         return response()->json(['error' => 'No items found in this Sales Order.'], 404);
     }
 
-    // ✅ Get request delivery date
-    $requestDeliveryDate = $soItems->first()->request_delivery_date ?? $soExists->request_delivery_date;
+    $requestDeliveryDate = null;
+    if ($soItems->first() && $soItems->first()->request_delivery_date) {
+        try {
+            $requestDeliveryDate = Carbon::parse($soItems->first()->request_delivery_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            Log::warning('Failed to parse SO item date', ['date' => $soItems->first()->request_delivery_date]);
+        }
+    } elseif ($soExists->request_delivery_date) {
+        try {
+            $requestDeliveryDate = Carbon::parse($soExists->request_delivery_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            Log::warning('Failed to parse SO date', ['date' => $soExists->request_delivery_date]);
+        }
+    }
+
+    Log::info('📅 Delivery date formatting', [
+        'so_number' => $soNumber,
+        'raw_so_date' => $soExists->request_delivery_date,
+        'raw_item_date' => $soItems->first()?->request_delivery_date,
+        'formatted_date' => $requestDeliveryDate
+    ]);
 
     // ✅ Check existing deliveries for THIS SPECIFIC SO ONLY
     $existingDeliveries = Deliveries::where('sales_order_number', $soNumber)
@@ -542,214 +1206,6 @@ public function search(Request $request)
     ]);
 }
 
-public function store(Request $request)
-{
-    try {
-        $validated = $request->validate([
-            'sales_order_number' => 'required|string|max:255',
-            'delivery_batch' => 'nullable|string|max:255',
-            'delivery_type' => 'required|string|in:Full,Partial',
-            'dr_no' => ['required', 'string', 'max:255', 'unique:deliveries,dr_no'],
-            'customer_name' => 'nullable|string|max:255',
-            'tin_no' => 'nullable|string|max:255',
-            'branch' => 'nullable|string|max:255',
-            'sales_rep' => 'nullable|string|max:255',
-            'sales_representative' => 'nullable|string|max:255',
-            'sales_executive' => 'nullable|string|max:255',
-            'po_number' => 'nullable|string|max:255',
-            'request_delivery_date' => 'nullable|date',
-            'plate_no' => 'nullable|string|max:255',
-            'sales_invoice_no' => 'nullable|string|max:255',
-            'approved_by' => 'required|string|max:255',
-            'additional_instructions' => 'nullable|string',
-            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
-            'items' => 'required|array|min:1',
-            'items.*.item_code' => 'nullable|string|max:255',
-            'items.*.item_description' => 'nullable|string',
-            'items.*.quantity' => 'required|numeric|min:0',
-            'items.*.original_quantity' => 'nullable|numeric|min:0',
-            'items.*.remaining_quantity' => 'nullable|numeric|min:0',
-            'items.*.uom' => 'nullable|string|max:50',
-            'items.*.unit_price' => 'nullable|numeric|min:0',
-            'items.*.total_amount' => 'required|numeric|min:0',
-            'items.*.notes' => 'nullable|string|max:2000',
-        ]);
-
-        $validated['approval_status'] = 'Pending';
-        $validated['created_by'] = auth()->user()->name ?? 'System';
-
-        \Log::info('✅ Validated items:', [
-            'items' => $validated['items']
-        ]);
-
-        // Normalize empty strings to nulls
-        foreach (['customer_name', 'branch', 'tin_no', 'sales_rep', 'sales_representative', 'sales_executive', 'po_number', 'plate_no', 'sales_invoice_no'] as $field) {
-            if (isset($validated[$field]) && $validated[$field] === '') {
-                $validated[$field] = null;
-            }
-        }
-
-        // Handle attachment
-        if ($request->hasFile('attachment')) {
-            $file = $request->file('attachment');
-            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-            $uploadPath = public_path('delivery_images');
-            if (!file_exists($uploadPath)) mkdir($uploadPath, 0755, true);
-            $file->move($uploadPath, $filename);
-            $validated['attachment'] = $filename;
-        }
-
-       $items = $validated['items'];
-        unset($validated['items']);
-
-        // Check user role and set approval status accordingly
-        $userRole = auth()->user()->role ?? null;
-        $isApprover = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
-
-        $validated['created_by'] = auth()->user()->name ?? 'System';
-
-        if ($isApprover) {
-            // Auto-approve if created by Delivery_Approver, Admin, or IT
-            $validated['status'] = 'Delivered';
-            $validated['approval_status'] = 'Approved';
-            $validated['approved_by_user'] = auth()->user()->name ?? 'System';
-            $validated['approved_at'] = now();
-            
-            Log::info('📦 Creating auto-approved delivery', [
-                'so_number' => $validated['sales_order_number'],
-                'created_by' => $validated['created_by'],
-                'role' => $userRole,
-            ]);
-        } else {
-            // Require approval if created by Delivery_Creator
-            $validated['status'] = 'Pending';
-            $validated['approval_status'] = 'Pending';
-            
-            Log::info('📦 Creating delivery for approval', [
-                'so_number' => $validated['sales_order_number'],
-                'created_by' => $validated['created_by'],
-                'role' => $userRole,
-            ]);
-        }
-
-        // ✅ Count existing APPROVED deliveries only (with actual delivered items)
-        $existingDeliveryCount = Deliveries::where('sales_order_number', $validated['sales_order_number'])
-            ->where('approval_status', 'Approved')
-            ->whereHas('items', function($q) {
-                $q->where('quantity', '>', 0); // ✅ Only count deliveries with actual items
-            })
-            ->count();
-        
-        // Determine batch name
-        if ($existingDeliveryCount === 0) {
-            $validated['delivery_batch'] = ($validated['delivery_type'] === 'Partial') ? 'Batch 1' : 'Full Delivery';
-        } else {
-            $validated['delivery_batch'] = 'Batch ' . ($existingDeliveryCount + 1);
-        }
-
-        Log::info('📦 Creating delivery for approval', [
-            'so_number' => $validated['sales_order_number'],
-            'batch_name' => $validated['delivery_batch'],
-            'created_by' => $validated['created_by'],
-            'approval_status' => 'Pending',
-        ]);
-
-        // Fetch SO
-        $salesOrder = SalesOrder::with('items')->where('sales_order_number', $validated['sales_order_number'])->first();
-        if (!$salesOrder) {
-            throw new \Exception('Sales Order not found');
-        }
-
-        $soItemsMap = collect();
-        foreach ($salesOrder->items as $soItem) {
-            $soItemsMap->put($soItem->item_code, $soItem);
-        }
-
-        // ✅ Get delivered sums (only approved deliveries with qty > 0)
-        $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($validated) {
-                $q->where('sales_order_number', $validated['sales_order_number'])
-                  ->where('approval_status', 'Approved')
-                  ->where('status', 'Delivered');
-            })
-            ->where('quantity', '>', 0) // ✅ Only count actual deliveries
-            ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
-            ->groupBy('item_code')
-            ->get()
-            ->keyBy('item_code');
-
-        // Create delivery
-        $delivery = Deliveries::create($validated);
-
-        // ✅ Create delivery items (INCLUDING items with qty=0 for tracking)
-        foreach ($items as $item) {
-            $itemCode = $item['item_code'] ?? null;
-            $soItem = $soItemsMap->get($itemCode);
-
-            $originalQty = $soItem ? $soItem->quantity : ($item['original_quantity'] ?? ($item['quantity'] ?? 0));
-            $previousDelivered = $deliveredSums->get($itemCode)?->total_delivered ?? 0;
-            $deliveredQty = $item['quantity'] ?? 0;
-            $newTotalDelivered = $previousDelivered + $deliveredQty;
-            $remainingQty = max(0, $originalQty - $newTotalDelivered);
-
-            $itemRecord = !$soItem && $itemCode ? Item::where('item_code', $itemCode)->first() : null;
-
-            DeliveryItem::create([
-                'delivery_id' => $delivery->id,
-                'item_id' => $soItem?->item_id ?? $itemRecord?->id ?? null,
-                'sales_order_item_id' => $soItem?->id ?? null,
-                'item_code' => $itemCode,
-                'item_description' => $item['item_description'] ?? null,
-                'brand' => $soItem?->brand ?? $itemRecord?->brand ?? null,
-                'item_category' => $soItem?->item_category ?? $itemRecord?->item_category ?? null,
-                'quantity' => $deliveredQty, // ✅ Can be 0 if temporarily removed
-                'original_quantity' => $originalQty,
-                'remaining_quantity' => $remainingQty,
-                'uom' => $item['uom'] ?? null,
-                'unit_price' => $item['unit_price'] ?? 0,
-                'total_amount' => $item['total_amount'] ?? 0,
-                'delivery_batch' => $validated['delivery_batch'],
-                'notes' => $item['notes'] ?? $soItem?->note ?? null,      
-            ]);
-        }
-
-        // Check if SO should be closed (only if auto-approved)
-        if ($isApprover) {
-            $salesOrder->fresh()->checkAndClose();
-        }
-
-        Activity::create([
-            'user_name' => auth()->user()->name ?? 'System',
-            'action' => 'Created',
-            'item' => $delivery->dr_no . ' - ' . ($delivery->customer_name ?? 'N/A'),
-            'target' => $delivery->sales_order_number ?? 'N/A',
-            'type' => 'Delivery',
-            'message' => $isApprover 
-                ? "Created and auto-approved delivery: {$delivery->dr_no} ({$delivery->delivery_batch})"
-                : "Created delivery for approval: {$delivery->dr_no} ({$delivery->delivery_batch}) - Status: Pending Approval",
-        ]);
-
-        $message = $isApprover 
-            ? "Delivery created and approved successfully! Batch: {$delivery->delivery_batch}"
-            : "Delivery created successfully! Status: Pending Approval. Batch: {$delivery->delivery_batch}";
-
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-        ]);
-    } catch (\Exception $e) {
-        Log::error('💥 Delivery store failed', [
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-        ]);
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to create delivery: ' . $e->getMessage()
-        ], 500);
-    }
-}
-
 public function approve($id)
 {
     try {
@@ -836,6 +1292,28 @@ public function reject(Request $request, $id)
     }
 }
 
+private function recalculateDeliveryItemTotals($deliveryId)
+{
+    $items = DeliveryItem::where('delivery_id', $deliveryId)->get();
+    
+    foreach ($items as $item) {
+        $correctTotal = ($item->quantity ?? 0) * ($item->unit_price ?? 0);
+        
+        // Only update if there's a mismatch
+        if ($item->total_amount != $correctTotal) {
+            Log::warning('⚠️ Total amount mismatch detected', [
+                'delivery_id' => $deliveryId,
+                'item_code' => $item->item_code,
+                'stored_total' => $item->total_amount,
+                'correct_total' => $correctTotal,
+                'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+            ]);
+            
+            $item->update(['total_amount' => $correctTotal]);
+        }
+    }
+}
 
 public function pullout(Request $request, $id)
 {
@@ -966,6 +1444,23 @@ public function getEditData($id)
             }
         }
 
+        // ✅ FIX: Format the date properly - use the delivery's date, NOT the current date
+        $requestDeliveryDate = null;
+        if ($delivery->request_delivery_date) {
+            // Ensure it's formatted as Y-m-d
+            $requestDeliveryDate = Carbon::parse($delivery->request_delivery_date)->format('Y-m-d');
+        } elseif ($delivery->salesOrder && $delivery->salesOrder->request_delivery_date) {
+            // Fallback to SO date if delivery date is null
+            $requestDeliveryDate = Carbon::parse($delivery->salesOrder->request_delivery_date)->format('Y-m-d');
+        }
+
+        Log::info('📅 getEditData - Date Information', [
+            'delivery_id' => $id,
+            'delivery_date' => $delivery->request_delivery_date,
+            'formatted_date' => $requestDeliveryDate,
+            'so_date' => $delivery->salesOrder?->request_delivery_date ?? 'N/A'
+        ]);
+
         return response()->json([
             'success' => true,
             'id' => $delivery->id,
@@ -977,126 +1472,17 @@ public function getEditData($id)
             'sales_invoice_no' => $delivery->sales_invoice_no,
             'po_number' => $delivery->po_number,
             'plate_no' => $delivery->plate_no,
+            'request_delivery_date' => $requestDeliveryDate, // ✅ FIXED: Use the properly formatted date
             'po_image_url' => $poImageUrl,
             'po_image_name' => $poImageName,
             'items' => $items,
         ]);
     } catch (\Exception $e) {
-        Log::error('Get edit data failed', ['error' => $e->getMessage()]);
-        return response()->json(['success' => false, 'message' => 'Failed to load delivery data'], 500);
-    }
-}
-
-/**
- * ✅ UPDATED: Quick update - Only PENDING deliveries can be updated
- */
-public function quickUpdate(Request $request, $id)
-{
-    try {
-        $delivery = Deliveries::with('items')->findOrFail($id);
-
-        if ($delivery->is_pulled_out) {
-            return response()->json(['success' => false, 'message' => 'Cannot edit pulled out delivery'], 400);
-        }
-
-        // ✅ CRITICAL: APPROVED DELIVERIES CANNOT BE EDITED BY ANYONE
-        if ($delivery->approval_status === 'Approved') {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Approved deliveries are locked and cannot be edited. Only pullout is available for approved deliveries.'
-            ], 403);
-        }
-
-        // ✅ For PENDING deliveries: Check permissions
-        $userRole = auth()->user()->role;
-        $canApprove = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
-        
-        if (!$canApprove) {
-            // Creators need edit approval even for pending deliveries
-            if (!$delivery->edit_approved) {
-                return response()->json([
-                    'success' => false, 
-                    'message' => 'You need edit approval to modify this pending delivery.'
-                ], 403);
-            }
-        }
-
-        // Validate only editable fields
-        $validated = $request->validate([
-            'dr_no' => ['required', 'string', 'max:255', Rule::unique('deliveries', 'dr_no')->ignore($delivery->id)],
-            'sales_invoice_no' => ['nullable', 'string', 'max:255', Rule::unique('deliveries', 'sales_invoice_no')->ignore($delivery->id)],
-            'po_number' => 'nullable|string|max:255',
-            'plate_no' => 'nullable|string|max:255',
-            'items' => 'required|array|min:1',
-            'items.*.item_code' => 'required|string',
-            'items.*.quantity' => 'required|numeric|min:0',
-            'items.*.original_quantity' => 'required|numeric|min:0',
-            'items.*.already_delivered' => 'nullable|numeric|min:0',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.total_amount' => 'required|numeric|min:0',
-        ]);
-
-        // Update delivery
-        $delivery->update([
-            'dr_no' => $validated['dr_no'],
-            'sales_invoice_no' => $validated['sales_invoice_no'],
-            'po_number' => $validated['po_number'],
-            'plate_no' => $validated['plate_no'],
-        ]);
-
-        // ✅ If this was an approved edit, reset the edit flags
-        if ($delivery->edit_approved) {
-            $delivery->update([
-                'edit_requested' => false,
-                'edit_approved' => false,
-                'edit_requested_by' => null,
-                'edit_requested_at' => null,
-                'edit_approved_by' => null,
-                'edit_approved_at' => null,
-            ]);
-        }
-
-        // Update delivery items
-        foreach ($validated['items'] as $itemData) {
-            $deliveryItem = $delivery->items->firstWhere('item_code', $itemData['item_code']);
-            
-            if ($deliveryItem) {
-                $remaining = max(0, $itemData['original_quantity'] - ($itemData['already_delivered'] ?? 0) - $itemData['quantity']);
-                
-                $deliveryItem->update([
-                    'quantity' => $itemData['quantity'],
-                    'remaining_quantity' => $remaining,
-                    'total_amount' => $itemData['total_amount'],
-                ]);
-            }
-        }
-        
-        // app(\App\Services\NotificationService::class)->notifyDeliveryUpdated($delivery->fresh());
-
-        // Create activity log
-        Activity::create([
-            'user_name' => auth()->user()->name ?? 'System',
-            'action' => 'Updated',
-            'item' => $delivery->dr_no,
-            'target' => $delivery->sales_order_number,
-            'type' => 'Delivery',
-            'message' => "Updated pending delivery: {$delivery->dr_no}",
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Delivery updated successfully!'
-        ]);
-    } catch (\Exception $e) {
-        Log::error('Quick update failed', [
+        Log::error('Get edit data failed', [
             'error' => $e->getMessage(),
             'trace' => $e->getTraceAsString()
         ]);
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to update delivery: ' . $e->getMessage()
-        ], 500);
+        return response()->json(['success' => false, 'message' => 'Failed to load delivery data'], 500);
     }
 }
 
@@ -1945,5 +2331,126 @@ public function batchReject(Request $request)
     }
 }
 
-                                                             
+/**
+ * Recalculate all delivery item totals (fixes decimal truncation issues)
+ * This method recalculates total_amount for all delivery items based on quantity * unit_price
+ */
+public function recalculateAllTotals(Request $request)
+{
+    try {
+        // Check authorization - only admins and IT can run this
+        if (!in_array(auth()->user()->role, ['Admin', 'IT'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only Admin and IT users can recalculate totals.'
+            ], 403);
+        }
+
+        $deliveryId = $request->input('delivery_id');
+
+        if ($deliveryId) {
+            // Recalculate for a specific delivery
+            $delivery = Deliveries::findOrFail($deliveryId);
+            $updatedCount = $this->recalculateSingleDelivery($deliveryId);
+
+            Log::info('🔄 Recalculated totals for single delivery', [
+                'delivery_id' => $deliveryId,
+                'dr_no' => $delivery->dr_no,
+                'updated_items' => $updatedCount,
+                'user' => auth()->user()->name,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully recalculated {$updatedCount} item(s) for delivery {$delivery->dr_no}",
+                'updated_count' => $updatedCount,
+            ]);
+        } else {
+            // Recalculate for ALL deliveries
+            $allItems = DeliveryItem::with('delivery')->get();
+            $updatedCount = 0;
+            $deliveriesAffected = [];
+
+            foreach ($allItems as $item) {
+                $correctTotal = round(($item->quantity ?? 0) * ($item->unit_price ?? 0), 2);
+
+                // Only update if there's a mismatch
+                if (abs($item->total_amount - $correctTotal) > 0.01) {
+                    $oldTotal = $item->total_amount;
+                    $item->update(['total_amount' => $correctTotal]);
+                    $updatedCount++;
+
+                    if (!in_array($item->delivery_id, $deliveriesAffected)) {
+                        $deliveriesAffected[] = $item->delivery_id;
+                    }
+
+                    Log::info('✅ Fixed total amount', [
+                        'delivery_id' => $item->delivery_id,
+                        'dr_no' => $item->delivery?->dr_no,
+                        'item_code' => $item->item_code,
+                        'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
+                        'old_total' => $oldTotal,
+                        'new_total' => $correctTotal,
+                    ]);
+                }
+            }
+
+            Activity::create([
+                'user_name' => auth()->user()->name,
+                'action' => 'System Recalculation',
+                'item' => 'All Deliveries',
+                'target' => "{$updatedCount} items across " . count($deliveriesAffected) . " deliveries",
+                'type' => 'Delivery',
+                'message' => "Recalculated total amounts for {$updatedCount} delivery items",
+            ]);
+
+            Log::info('🔄 Bulk recalculation completed', [
+                'total_items_updated' => $updatedCount,
+                'deliveries_affected' => count($deliveriesAffected),
+                'user' => auth()->user()->name,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully recalculated {$updatedCount} item(s) across " . count($deliveriesAffected) . " deliveries",
+                'updated_count' => $updatedCount,
+                'deliveries_affected' => count($deliveriesAffected),
+            ]);
+        }
+
+    } catch (\Exception $e) {
+        Log::error('💥 Recalculation failed', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to recalculate totals: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Helper method to recalculate a single delivery's totals
+ */
+private function recalculateSingleDelivery($deliveryId)
+{
+    $items = DeliveryItem::where('delivery_id', $deliveryId)->get();
+    $updatedCount = 0;
+
+    foreach ($items as $item) {
+        $correctTotal = round(($item->quantity ?? 0) * ($item->unit_price ?? 0), 2);
+
+        if (abs($item->total_amount - $correctTotal) > 0.01) {
+            $item->update(['total_amount' => $correctTotal]);
+            $updatedCount++;
+        }
+    }
+
+    return $updatedCount;
+}
+
+
 }

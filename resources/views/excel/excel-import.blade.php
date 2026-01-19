@@ -30,6 +30,27 @@
             'Accounting_Creator',
             'Accounting_Approver'
         ]);
+        
+        $canImportARAging = in_array($user->role, [
+            'Admin',
+            'IT',
+            'Accounting_Creator',
+            'Accounting_Approver'
+        ]);
+
+        $canImportCollections = in_array($user->role, [
+            'Admin',
+            'IT',
+            'Accounting_Creator',
+            'Accounting_Approver'
+        ]);
+
+        $canImportARAdjustments = in_array($user->role, [
+            'Admin',
+            'IT',
+            'Accounting_Creator',
+            'Accounting_Approver'
+        ]);
     @endphp
 
     <h1 class="text-3xl font-bold text-white mb-2">Import Data from Excel/CSV</h1>
@@ -38,9 +59,9 @@
     <!-- Tabs -->
     <div class="bg-gray-800 rounded-lg shadow-sm mb-6">
         <div class="border-b border-gray-700">
-            <div class="flex">
+            <div class="flex flex-wrap">
 
-                {{-- ITEMS TAB (show only if allowed) --}}
+                {{-- ITEMS TAB --}}
                 @if($canImportItems)
                 <button onclick="switchTab('items')" id="items-tab"
                     class="tab-button px-6 py-3 font-medium text-blue-400 border-b-2 border-blue-400">
@@ -48,7 +69,7 @@
                 </button>
                 @endif
 
-                {{-- CUSTOMERS TAB (show only if allowed) --}}
+                {{-- CUSTOMERS TAB --}}
                 @if($canImportCustomers)
                 <button onclick="switchTab('customers')" id="customers-tab"
                     class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-300">
@@ -56,11 +77,35 @@
                 </button>
                 @endif
 
-                {{-- MONTHLY SALES TAB (show only if allowed) --}}
+                {{-- MONTHLY SALES TAB --}}
                 @if($canImportMonthlySales)
                 <button onclick="switchTab('monthly_sales')" id="monthly_sales-tab"
                     class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-300">
                     Import Monthly Sales
+                </button>
+                @endif
+
+                {{-- AR AGING TAB --}}
+                @if($canImportARAging)
+                <button onclick="switchTab('ar_aging')" id="ar_aging-tab"
+                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-300">
+                    Import AR Aging
+                </button>
+                @endif
+
+                {{-- COLLECTIONS TAB --}}
+                @if($canImportCollections)
+                <button onclick="switchTab('collections')" id="collections-tab"
+                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-300">
+                    Import Collections
+                </button>
+                @endif
+
+                {{-- AR ADJUSTMENTS TAB --}}
+                @if($canImportARAdjustments)
+                <button onclick="switchTab('ar_adjustments')" id="ar_adjustments-tab"
+                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-300">
+                    Import AR Adjustments
                 </button>
                 @endif
 
@@ -69,7 +114,7 @@
 
         <div class="p-6">
 
-            {{-- ITEMS TAB CONTENT — only if allowed --}}
+            {{-- ITEMS TAB CONTENT --}}
             @if($canImportItems)
             <div id="items-content" class="tab-content">
                 <div class="mb-6">
@@ -111,86 +156,84 @@
             </div>
             @endif
 
+            {{-- CUSTOMERS TAB CONTENT --}}
+            @if($canImportCustomers)
+            <div id="customers-content" class="tab-content {{ $canImportItems ? 'hidden' : '' }}">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">Customers Import Requirements</h3>
+                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
 
-            {{-- CUSTOMERS TAB CONTENT — only if allowed --}}
-                @if($canImportCustomers)
-                <div id="customers-content" class="tab-content {{ $canImportItems ? 'hidden' : '' }}">
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold mb-2 text-white">Customers Import Requirements</h3>
-                        <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                        <p class="text-sm text-gray-300 mb-2"><strong>✅ Required columns:</strong></p>
+                        <ul class="text-sm text-gray-400 space-y-1 ml-4 mb-4">
+                            <li>• <strong class="text-red-400">customer_code</strong> / Customer Code</li>
+                            <li>• <strong class="text-red-400">customer_name</strong> / Customer Name</li>
+                            <li>• <strong class="text-red-400">billing_address</strong> / Billing Address</li>
+                            <li>• <strong class="text-red-400">sales_rep</strong> / Sales Rep</li>
+                            <li>• <strong class="text-red-400">collection_terms</strong> / Collection Terms</li>
+                            <li>• <strong class="text-yellow-400">flag_status</strong> / Flag Status 
+                                <span class="text-xs text-gray-500">(must be either "Flagged" or "Unflagged")</span>
+                            </li>
+                        </ul>
 
-                            <p class="text-sm text-gray-300 mb-2"><strong>✅ Required columns:</strong></p>
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4 mb-4">
-                                <li>• <strong class="text-red-400">customer_code</strong> / Customer Code</li>
-                                <li>• <strong class="text-red-400">customer_name</strong> / Customer Name</li>
-                                <li>• <strong class="text-red-400">billing_address</strong> / Billing Address</li>
-                                <li>• <strong class="text-red-400">sales_rep</strong> / Sales Rep</li>
-                                <li>• <strong class="text-red-400">collection_terms</strong> / Collection Terms</li>
-                                <li>• <strong class="text-yellow-400">flag_status</strong> / Flag Status 
-                                    <span class="text-xs text-gray-500">(must be either "Flagged" or "Unflagged")</span>
-                                </li>
+                        <div class="bg-yellow-900/20 border border-yellow-600 rounded p-3 mb-4">
+                            <p class="text-xs text-yellow-300 font-semibold mb-2">📋 Flag Status Examples:</p>
+                            <div class="text-xs text-gray-400 space-y-1">
+                                <p>• Use <strong class="text-yellow-400">"Flagged"</strong> for customers requiring approval</p>
+                                <p>• Use <strong class="text-green-400">"Unflagged"</strong> for customers with auto-approval</p>
+                                <p class="text-red-400 mt-2">⚠️ Case-insensitive: "flagged", "FLAGGED", or "Flagged" all work</p>
+                            </div>
+                        </div>
+
+                        <p class="text-sm text-gray-300 mt-3 mb-2"><strong>Optional columns:</strong></p>
+                        <div class="grid grid-cols-2 gap-x-4">
+                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                                <li>• business_style</li>
+                                <li>• branch</li>
+                                <li>• customer_group</li>
+                                <li>• customer_type</li>
+                                <li>• currency</li>
+                                <li>• telephone_1</li>
+                                <li>• mobile</li>
+                                <li>• email</li>
+                                <li>• website</li>
                             </ul>
-
-                            {{-- ✅ NEW: Flag Status Examples --}}
-                            <div class="bg-yellow-900/20 border border-yellow-600 rounded p-3 mb-4">
-                                <p class="text-xs text-yellow-300 font-semibold mb-2">📋 Flag Status Examples:</p>
-                                <div class="text-xs text-gray-400 space-y-1">
-                                    <p>• Use <strong class="text-yellow-400">"Flagged"</strong> for customers requiring approval</p>
-                                    <p>• Use <strong class="text-green-400">"Unflagged"</strong> for customers with auto-approval</p>
-                                    <p class="text-red-400 mt-2">⚠️ Case-insensitive: "flagged", "FLAGGED", or "Flagged" all work</p>
-                                </div>
-                            </div>
-
-                            <p class="text-sm text-gray-300 mt-3 mb-2"><strong>Optional columns:</strong></p>
-                            <div class="grid grid-cols-2 gap-x-4">
-                                <ul class="text-sm text-gray-400 space-y-1 ml-4">
-                                    <li>• business_style</li>
-                                    <li>• branch</li>
-                                    <li>• customer_group</li>
-                                    <li>• customer_type</li>
-                                    <li>• currency</li>
-                                    <li>• telephone_1</li>
-                                    <li>• mobile</li>
-                                    <li>• email</li>
-                                    <li>• website</li>
-                                </ul>
-                                <ul class="text-sm text-gray-400 space-y-1 ml-4">
-                                    <li>• shipping_address</li>
-                                    <li>• whtcode</li>
-                                    <li>• whtrate</li>
-                                    <li>• require_si</li>
-                                    <li>• ar_type</li>
-                                    <li>• tin_no</li>
-                                    <li>• credit_limit</li>
-                                </ul>
-                            </div>
-
+                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                                <li>• shipping_address</li>
+                                <li>• whtcode</li>
+                                <li>• whtrate</li>
+                                <li>• require_si</li>
+                                <li>• ar_type</li>
+                                <li>• tin_no</li>
+                                <li>• credit_limit</li>
+                            </ul>
                         </div>
+
                     </div>
-
-                    <button onclick="downloadTemplate('customers')" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mb-4">
-                        <i class="fas fa-download"></i>
-                        Download Template
-                    </button>
-
-                    <form action="{{ route('excel.import.customers') }}" method="POST" enctype="multipart/form-data" id="customers-form">
-                        @csrf
-                        <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
-                            <input type="file" name="file" accept=".xlsx,.xls,.csv" id="customers-file" class="hidden" onchange="handleFileSelect(this, 'customers')" required>
-                            <label for="customers-file" class="cursor-pointer">
-                                <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
-                                <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
-                                <p id="customers-filename" class="text-sm text-blue-400 mt-2"></p>
-                            </label>
-                        </div>
-                        <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                            Upload & Import Customers
-                        </button>
-                    </form>
                 </div>
-                @endif
 
-            {{-- MONTHLY SALES TAB CONTENT — only if allowed --}}
+                <button onclick="downloadTemplate('customers')" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mb-4">
+                    <i class="fas fa-download"></i>
+                    Download Template
+                </button>
+
+                <form action="{{ route('excel.import.customers') }}" method="POST" enctype="multipart/form-data" id="customers-form">
+                    @csrf
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="customers-file" class="hidden" onchange="handleFileSelect(this, 'customers')" required>
+                        <label for="customers-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
+                            <p id="customers-filename" class="text-sm text-blue-400 mt-2"></p>
+                        </label>
+                    </div>
+                    <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        Upload & Import Customers
+                    </button>
+                </form>
+            </div>
+            @endif
+
+            {{-- MONTHLY SALES TAB CONTENT --}}
             @if($canImportMonthlySales)
             <div id="monthly_sales-content" class="tab-content hidden">
                 <div class="mb-6">
@@ -227,6 +270,238 @@
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         Upload & Import Monthly Sales
+                    </button>
+                </form>
+            </div>
+            @endif
+
+            {{-- AR AGING TAB CONTENT --}}
+            @if($canImportARAging)
+            <div id="ar_aging-content" class="tab-content hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">AR Aging Import Requirements</h3>
+                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                        <p class="text-sm text-gray-300 mb-2"><strong>Available columns:</strong></p>
+                        <div class="grid grid-cols-2 gap-x-4">
+                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                                <li>• customer_code</li>
+                                <li>• invoice_no</li>
+                                <li>• invoice_date</li>
+                                <li>• net_ar</li>
+                                <li>• aging_date</li>
+                                <li>• counter_date</li>
+                                <li>• record_date</li>
+                                <li>• due_date</li>
+                                <li>• po_no</li>
+                                <li>• dr_no</li>
+                                <li>• client_name</li>
+                                <li>• branch</li>
+                                <li>• sales_executive</li>
+                            </ul>
+                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                                <li>• se2</li>
+                                <li>• terms</li>
+                                <li>• sales_week_no</li>
+                                <li>• age</li>
+                                <li>• age_category</li>
+                                <li>• invoice_amount</li>
+                                <li>• ar_adjustments</li>
+                                <li>• settled_invoice_amount</li>
+                                <li>• gross_ar_balance</li>
+                                <li>• cwt</li>
+                                <li>• net_of_cwt</li>
+                                <li>• net_ar_balance</li>
+                                <li>• factored_ar_amount</li>
+                                <li>• status</li>
+                                <li>• include_flag</li>
+                                <li>• ar_class</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-yellow-900/20 border border-yellow-600 rounded p-3 mt-4">
+                            <p class="text-xs text-yellow-300 font-semibold mb-2">💡 Tips:</p>
+                            <div class="text-xs text-gray-400 space-y-1">
+                                <p>• <strong>All columns are optional</strong> - import what you have!</p>
+                                <p>• Use underscores or spaces in column names (both work)</p>
+                                <p>• Numbers can include commas (e.g., 1,234.56)</p>
+                                <p>• Dates should be in YYYY-MM-DD format or Excel date format</p>
+                                <p>• More columns = more detailed reports!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="downloadTemplate('ar_aging')"
+                    class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mb-4">
+                    <i class="fas fa-download"></i>
+                    Download Template
+                </button>
+
+                <form action="{{ route('excel.import.ar_aging') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="ar-aging-file"
+                            class="hidden" onchange="handleFileSelect(this, 'ar_aging')" required>
+
+                        <label for="ar-aging-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
+                            <p id="ar_aging-filename" class="text-sm text-blue-400 mt-2"></p>
+                        </label>
+                    </div>
+
+                    <button type="submit"
+                        class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        Upload & Import AR Aging
+                    </button>
+                </form>
+            </div>
+            @endif
+
+            {{-- COLLECTIONS TAB CONTENT --}}
+            @if($canImportCollections)
+            <div id="collections-content" class="tab-content hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">Collections (Payments) Import Requirements</h3>
+                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                        <p class="text-sm text-gray-300 mb-2"><strong>Available columns (all optional):</strong></p>
+                        <div class="grid grid-cols-2 gap-x-4">
+                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                                <li>• customer_code</li>
+                                <li>• customer_name</li>
+                                <li>• collection_receipt_number</li>
+                                <li>• collection_receipt_date</li>
+                                <li>• payment_posting_date</li>
+                                <li>• payment_date</li>
+                                <li>• amount</li>
+                                <li>• payment_option</li>
+                                <li>• tax</li>
+                                <li>• ewt</li>
+                                <li>• net_of_cwt</li>
+                                <li>• payment_notes</li>
+                                <li>• created_by</li>
+                                <li>• payment_method</li>
+                            </ul>
+                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                                <li>• bank</li>
+                                <li>• reference_no</li>
+                                <li>• remarks</li>
+                                <li>• invoice_no</li>
+                                <li>• dr_no</li>
+                                <li>• branch</li>
+                                <li>• status</li>
+                                <li>• signed_by</li>
+                                <li>• other_adjustment</li>
+                                <li>• factoring</li>
+                                <li>• check_amount</li>
+                                <li>• checking_si</li>
+                                <li>• week_no</li>
+                                <li>• ar_class</li>
+                                <li>• data_check</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-yellow-900/20 border border-yellow-600 rounded p-3 mt-4">
+                            <p class="text-xs text-yellow-300 font-semibold mb-2">💡 Tips:</p>
+                            <div class="text-xs text-gray-400 space-y-1">
+                                <p>• All columns are optional - import what you have</p>
+                                <p>• Case-insensitive: "Customer Code" or "customer_code" both work</p>
+                                <p>• Numbers can include commas (e.g., 50,000.00)</p>
+                                <p>• Dates: YYYY-MM-DD format or Excel dates</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="downloadTemplate('collections')"
+                    class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mb-4">
+                    <i class="fas fa-download"></i>
+                    Download Template
+                </button>
+
+                <form action="{{ route('excel.import.collections') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="collections-file"
+                            class="hidden" onchange="handleFileSelect(this, 'collections')" required>
+
+                        <label for="collections-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
+                            <p id="collections-filename" class="text-sm text-blue-400 mt-2"></p>
+                        </label>
+                    </div>
+
+                    <button type="submit"
+                        class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        Upload & Import Collections
+                    </button>
+                </form>
+            </div>
+            @endif
+
+            {{-- AR ADJUSTMENTS TAB CONTENT --}}
+            @if($canImportARAdjustments)
+            <div id="ar_adjustments-content" class="tab-content hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">AR Adjustments Import Requirements</h3>
+                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                        <p class="text-sm text-gray-300 mb-2"><strong>Available columns (all optional):</strong></p>
+                        <div class="grid grid-cols-2 gap-x-4">
+                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                                <li>• customer_code</li>
+                                <li>• customer_name</li>
+                                <li>• reference_number</li>
+                                <li>• transaction_type</li>
+                                <li>• transaction_date</li>
+                                <li>• amount</li>
+                                <li>• is_decrease</li>
+                                <li>• invoice_number</li>
+                            </ul>
+                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                                <li>• dr_no</li>
+                                <li>• gl_account</li>
+                                <li>• remarks</li>
+                                <li>• signed_by</li>
+                                <li>• created_by</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-yellow-900/20 border border-yellow-600 rounded p-3 mt-4">
+                            <p class="text-xs text-yellow-300 font-semibold mb-2">💡 Tips:</p>
+                            <div class="text-xs text-gray-400 space-y-1">
+                                <p>• All columns are optional - import what you have</p>
+                                <p>• Case-insensitive: "Customer Code" or "customer_code" both work</p>
+                                <p>• is_decrease: use "yes"/"no", "true"/"false", or "1"/"0"</p>
+                                <p>• Numbers can include commas (e.g., 10,000.00)</p>
+                                <p>• Dates: YYYY-MM-DD format or Excel dates</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="downloadTemplate('ar_adjustments')"
+                    class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mb-4">
+                    <i class="fas fa-download"></i>
+                    Download Template
+                </button>
+
+                <form action="{{ route('excel.import.ar_adjustments') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="ar-adjustments-file"
+                            class="hidden" onchange="handleFileSelect(this, 'ar_adjustments')" required>
+
+                        <label for="ar-adjustments-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
+                            <p id="ar_adjustments-filename" class="text-sm text-blue-400 mt-2"></p>
+                        </label>
+                    </div>
+
+                    <button type="submit"
+                        class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        Upload & Import AR Adjustments
                     </button>
                 </form>
             </div>
@@ -308,68 +583,82 @@ function handleFileSelect(input, type) {
 function downloadTemplate(type) {
     let data, filename;
 
-    if (type === 'items') {
+    if (type === 'ar_aging') {
         data = [
             {
-                'Item Code': 'ITEM001',
-                'Item Category': 'Electronics',
-                'Item Description': 'Laptop',
-                'Brand': 'Dell',
-                'Unit': 'pcs'
+                'customer_code': 'CUST001',
+                'invoice_no': 'INV-2024-001',
+                'invoice_date': '2024-01-15',
+                'net_ar': '50000.00',
+                'client_name': 'ABC Corporation',
+                'sales_executive': 'John Doe',
+                'age': '45',
+                'age_category': '31-60 Days',
+                'status': 'Outstanding',
+                'due_date': '2024-02-15',
+                'branch': 'Main Branch',
+                'terms': '30 Days',
+                'invoice_amount': '53000.00',
+                'settled_invoice_amount': '3000.00',
+                'include_flag': 'yes',
+                'ar_class': 'Regular'
             }
         ];
-        filename = 'items_template.xlsx';
-    } else if (type === 'customers') {
-        // ✅ UPDATED: Added Flag Status as required column
+        filename = 'ar_aging_template.xlsx';
+    } else if (type === 'collections') {
         data = [
             {
-                'Customer Code': 'CUST001',
-                'Customer Name': 'ABC Corporation',
-                'Billing Address': '123 Main Street, Manila',
-                'Sales Rep': 'John Doe',
-                'Collection Terms': '30 Days',
-                'Flag Status': 'Unflagged'
-            },
-            {
-                'Customer Code': 'CUST002',
-                'Customer Name': 'XYZ Industries',
-                'Billing Address': '456 Business Ave, Quezon City',
-                'Sales Rep': 'Jane Smith',
-                'Collection Terms': '60 Days',
-                'Flag Status': 'Flagged'
+                'customer_code': 'CUST001',
+                'customer_name': 'ABC Corporation',
+                'collection_receipt_number': 'CR-2024-001',
+                'collection_receipt_date': '2024-01-15',
+                'payment_posting_date': '2024-01-15',
+                'payment_date': '2024-01-15',
+                'amount': '50000.00',
+                'payment_option': 'Check',
+                'tax': '0.00',
+                'ewt': '500.00',
+                'net_of_cwt': '49500.00',
+                'payment_notes': 'Payment for Invoice INV-001',
+                'payment_method': 'Check',
+                'bank': 'BDO',
+                'reference_no': 'CHK-12345',
+                'invoice_no': 'INV-001',
+                'dr_no': 'DR-001',
+                'branch': 'Main',
+                'status': 'Cleared'
             }
         ];
-        filename = 'customers_template.xlsx';
-    } else if (type === 'monthly_sales') {
+        filename = 'collections_template.xlsx';
+    } else if (type === 'ar_adjustments') {
         data = [
             {
-                'Month': 'January',
-                'Qty': '902352.22',
-                'PHP': '214312824'
-            },
-            {
-                'Month': 'February',
-                'Qty': '1210814.63',
-                'PHP': '284576739'
-            },
-            {
-                'Month': 'March',
-                'Qty': '1747477.00',
-                'PHP': '415267198'
+                'customer_code': 'CUST001',
+                'customer_name': 'ABC Corporation',
+                'reference_number': 'ADJ-2024-001',
+                'transaction_type': 'Credit Memo',
+                'transaction_date': '2024-01-15',
+                'amount': '5000.00',
+                'is_decrease': 'yes',
+                'invoice_number': 'INV-001',
+                'dr_no': 'DR-001',
+                'gl_account': '1200',
+                'remarks': 'Return of damaged goods',
+                'signed_by': 'Manager Name',
+                'created_by': 'Accounting Staff'
             }
         ];
-        filename = 'monthly_sales_template.xlsx';
+        filename = 'ar_adjustments_template.xlsx';
     }
 
     const ws = XLSX.utils.json_to_sheet(data);
     
-    // ✅ IMPROVED: Better column width calculation
     const colWidths = Object.keys(data[0]).map(key => {
         const maxLength = Math.max(
             key.length,
             ...data.map(row => String(row[key] || '').length)
         );
-        return { wch: Math.min(maxLength + 5, 50) }; // Cap at 50 characters
+        return { wch: Math.min(maxLength + 5, 50) };
     });
     
     ws['!cols'] = colWidths;

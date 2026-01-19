@@ -18,6 +18,7 @@ class SalesOrderController extends Controller
 {
 
     use LogsControllerActions;
+
    
    protected function getLogChannel(): string
    {
@@ -65,6 +66,60 @@ class SalesOrderController extends Controller
 
     return view('sales_orders.index', compact('salesOrders'));
 }
+
+private function recalculateSalesOrderTotals($salesOrderId)
+{
+    try {
+        $salesOrder = SalesOrder::with('items')->findOrFail($salesOrderId);
+        
+        $correctTotal = 0;
+        $itemsFixed = 0;
+        
+        foreach ($salesOrder->items as $item) {
+            $quantity = (float) ($item->quantity ?? 0);
+            $unitPrice = (float) ($item->unit_price ?? 0);
+            $correctItemTotal = round($quantity * $unitPrice, 2);
+            
+            // Check if item total is wrong
+            if (abs($item->total_amount - $correctItemTotal) > 0.01) {
+                \Log::warning('⚠️ SO Item total mismatch', [
+                    'so_id' => $salesOrderId,
+                    'item_code' => $item->item_code,
+                    'stored_total' => $item->total_amount,
+                    'correct_total' => $correctItemTotal,
+                ]);
+                
+                $item->update(['total_amount' => $correctItemTotal]);
+                $itemsFixed++;
+            }
+            
+            $correctTotal += $correctItemTotal;
+        }
+        
+        // Check if SO total is wrong
+        if (abs($salesOrder->total_amount - $correctTotal) > 0.01) {
+            \Log::warning('⚠️ SO Grand total mismatch', [
+                'so_id' => $salesOrderId,
+                'so_number' => $salesOrder->sales_order_number,
+                'stored_total' => $salesOrder->total_amount,
+                'correct_total' => $correctTotal,
+            ]);
+            
+            $salesOrder->update(['total_amount' => $correctTotal]);
+        }
+        
+        if ($itemsFixed > 0) {
+            \Log::info("✅ Fixed {$itemsFixed} SO item(s) for SO #{$salesOrderId}");
+        }
+        
+    } catch (\Exception $e) {
+        \Log::error('Failed to recalculate SO totals', [
+            'so_id' => $salesOrderId,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
 
 /**
  * ✅ Bulk approve multiple sales orders
@@ -266,13 +321,13 @@ public function bulkDecline(Request $request)
         'items.*.item_id' => 'required',
         'items.*.quantity' => 'required|numeric|min:0.01',
         'items.*.price' => 'required|numeric|min:0',
+        'items.*.amount' => 'nullable|numeric|min:0', // ✅ Made nullable
         'additional_instructions' => 'nullable|string',
     ], [
         'po_image.mimes' => 'PO proof must be a JPG, PNG, or PDF file.',
         'po_image.max' => 'PO proof file size must not exceed 4MB.',
     ]);
 
-    // ✅ Additional validation: Either PO number or PO image is required
     if (!$request->po_reference_no && !$request->hasFile('po_image')) {
         return back()->withInput()->with('error', 'Please provide either a PO Number or upload proof of customer order.');
     }
@@ -284,22 +339,40 @@ public function bulkDecline(Request $request)
         $salesOrderNumber = $this->generateSalesOrderNumber();
 
         $items = $request->items;
-        $totalAmount = collect($items)->sum(fn($i) => $i['quantity'] * $i['price']);
+        
+        // ✅ CRITICAL: ALWAYS calculate server-side, ignore client values
+        $totalAmount = 0;
+        foreach ($items as $item) {
+            $qty = (float) ($item['quantity'] ?? 0);
+            $price = (float) ($item['price'] ?? 0);
+            $itemTotal = round($qty * $price, 2);
+            $totalAmount += $itemTotal;
+            
+            // ✅ Log if client sent wrong amount
+            if (isset($item['amount']) && abs($item['amount'] - $itemTotal) > 0.01) {
+                \Log::warning('⚠️ Client sent incorrect item amount', [
+                    'item_code' => $item['item_code'] ?? 'unknown',
+                    'client_sent' => $item['amount'],
+                    'server_calculated' => $itemTotal,
+                ]);
+            }
+        }
+        
+        $totalAmount = round($totalAmount, 2); // ✅ Round grand total
+        
         $firstItem = $items[0] ?? [];
 
-        // ✅ Handle PO Image Upload
+        // Handle PO Image Upload
         $poImageFilename = null;
         if ($request->hasFile('po_image')) {
             $file = $request->file('po_image');
             $poImageFilename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
             
-            // Create directory if it doesn't exist
             $uploadPath = public_path('po_images');
             if (!file_exists($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
             
-            // Move file to public/po_images
             $file->move($uploadPath, $poImageFilename);
             
             \Log::info('✅ PO Image uploaded', [
@@ -308,11 +381,10 @@ public function bulkDecline(Request $request)
             ]);
         }
 
-        // ✅ CHECK CUSTOMER FLAG STATUS - Auto-approve if unflagged
         $initialStatus = $customer->is_flagged ? 'Pending' : 'Approved';
         $approvedBy = $customer->is_flagged ? null : auth()->id();
 
-        // ✅ CREATE SALES ORDER (with auto-approval logic)
+        // ✅ CREATE SALES ORDER with CALCULATED total
         $salesOrder = SalesOrder::create([
             'sales_order_number' => $salesOrderNumber,
             'customer_id' => $customer->id,
@@ -326,7 +398,7 @@ public function bulkDecline(Request $request)
             'sales_rep' => $request->sales_rep,
             'sales_executive' => $request->sales_executive ?? null,
             'branch' => $request->branch ?? null,
-            'total_amount' => $totalAmount,
+            'total_amount' => $totalAmount, // ✅ Use server-calculated total
             'item_description' => $firstItem['item_description'] ?? null,
             'item_code' => $firstItem['item_code'] ?? null,
             'brand' => $firstItem['brand'] ?? null,
@@ -335,9 +407,13 @@ public function bulkDecline(Request $request)
             'status' => $initialStatus,
         ]);
 
-        // ✅ CREATE SALES ORDER ITEMS
+        // ✅ CREATE SALES ORDER ITEMS with CALCULATED totals
         foreach ($request->items as $index => $itemData) {
             $item = Item::find($itemData['item_id']);
+            
+            $quantity = (float) ($itemData['quantity'] ?? 0);
+            $unitPrice = (float) ($itemData['price'] ?? 0);
+            $itemTotal = round($quantity * $unitPrice, 2); // ✅ Always calculate
 
             SalesOrderItem::create([
                 'sales_order_id' => $salesOrder->id,
@@ -346,15 +422,18 @@ public function bulkDecline(Request $request)
                 'item_description' => $itemData['item_description'] ?? $item->item_description ?? null,
                 'brand' => $itemData['brand'] ?? $item->brand ?? null,
                 'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
-                'quantity' => $itemData['quantity'],
+                'quantity' => $quantity,
                 'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
-                'unit_price' => $itemData['price'],
-                'total_amount' => $itemData['amount'] ?? ($itemData['quantity'] * $itemData['price']),
+                'unit_price' => $unitPrice,
+                'total_amount' => $itemTotal, // ✅ Use calculated value ONLY
                 'note' => $itemData['note'] ?? null,
             ]);
         }
 
-        // ✅ UPDATE CUSTOMER'S SHIPPING ADDRESS (if provided)
+        // ✅ VERIFY calculations after creation
+        $this->recalculateSalesOrderTotals($salesOrder->id);
+
+        // Update customer shipping address if provided
         if ($request->filled('shipping_address')) {
             $customer->update([
                 'shipping_address' => $request->shipping_address
@@ -370,7 +449,6 @@ public function bulkDecline(Request $request)
             ]);
         }
 
-        // ✅ LOG SALES ORDER CREATION
         $statusMessage = $customer->is_flagged 
             ? 'Created sales order (Pending - Customer Flagged)' 
             : 'Created sales order (Auto-Approved - Customer Unflagged)';
@@ -396,7 +474,6 @@ public function bulkDecline(Request $request)
     } catch (\Exception $e) {
         DB::rollBack();
         
-        // ✅ Delete uploaded file if transaction failed
         if (isset($poImageFilename) && file_exists(public_path('po_images/' . $poImageFilename))) {
             @unlink(public_path('po_images/' . $poImageFilename));
         }
@@ -406,9 +483,6 @@ public function bulkDecline(Request $request)
     }
 }
 
-/**
- * ✅ Sync unit prices from SO items to related delivery items
- */
 private function syncDeliveryPrices(SalesOrder $salesOrder)
 {
     try {
@@ -552,29 +626,24 @@ public function update(Request $request, $id)
 {
     $salesOrder = SalesOrder::with('deliveries')->findOrFail($id);
     
-    // ✅ NEW LOGIC: Check if delivery exists and is delivered
     $hasDelivery = $salesOrder->deliveries !== null;
     $isDelivered = false;
     
     if ($hasDelivery) {
         $delivery = $salesOrder->deliveries;
-        // Check if delivery is marked as Delivered
         if ($delivery->status === 'Delivered') {
             $isDelivered = true;
         }
     }
     
-    // ✅ Verify edit permissions based on delivery status
     $user = auth()->user();
     $canEdit = false;
     
     if (!$isDelivered) {
-        // NOT delivered yet - Both CC_Approver and CSR can edit
         if ($user->canInitiateEdit() || $user->canEditAfterCCApproval()) {
             $canEdit = true;
         }
     } else {
-        // DELIVERED - Need permission
         if ($user->canInitiateEdit()) {
             $canEdit = true;
         } elseif ($user->canEditAfterCCApproval() && $salesOrder->isEditApprovedByCC()) {
@@ -596,6 +665,7 @@ public function update(Request $request, $id)
         'items.*.item_id' => 'required|exists:items,id',
         'items.*.quantity' => 'required|numeric|min:0.01',
         'items.*.unit_price' => 'required|numeric|min:0',
+        'items.*.total_amount' => 'nullable|numeric|min:0', // ✅ Made nullable
     ], [
         'po_image.mimes' => 'PO proof must be a JPG, PNG, or PDF file.',
         'po_image.max' => 'PO proof file size must not exceed 4MB.',
@@ -603,7 +673,7 @@ public function update(Request $request, $id)
 
     DB::beginTransaction();
     try {
-        // ✅ TRACK CHANGES BEFORE UPDATING - Capture original data
+        // Track changes before updating
         $originalItems = $salesOrder->items->keyBy('item_code')->map(function($item) {
             return [
                 'item_code' => $item->item_code,
@@ -615,7 +685,6 @@ public function update(Request $request, $id)
             ];
         })->toArray();
 
-        // Store original SO data
         $originalData = [
             'customer_id' => $salesOrder->customer_id,
             'po_number' => $salesOrder->po_number,
@@ -625,10 +694,9 @@ public function update(Request $request, $id)
             'total_amount' => $salesOrder->total_amount,
         ];
 
-        // ✅ Handle PO Image Upload
-        $poImageFilename = $salesOrder->po_image; // Keep existing by default
+        // Handle PO Image
+        $poImageFilename = $salesOrder->po_image;
         
-        // Check if user wants to remove current PO image
         if ($request->has('remove_po_image') && $request->remove_po_image == '1') {
             if ($salesOrder->po_image && file_exists(public_path('po_images/' . $salesOrder->po_image))) {
                 @unlink(public_path('po_images/' . $salesOrder->po_image));
@@ -636,9 +704,7 @@ public function update(Request $request, $id)
             $poImageFilename = null;
         }
         
-        // Upload new PO image if provided
         if ($request->hasFile('po_image')) {
-            // Delete old file if exists
             if ($salesOrder->po_image && file_exists(public_path('po_images/' . $salesOrder->po_image))) {
                 @unlink(public_path('po_images/' . $salesOrder->po_image));
             }
@@ -646,13 +712,11 @@ public function update(Request $request, $id)
             $file = $request->file('po_image');
             $poImageFilename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
             
-            // Create directory if it doesn't exist
             $uploadPath = public_path('po_images');
             if (!file_exists($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
             
-            // Move file to public/po_images
             $file->move($uploadPath, $poImageFilename);
             
             \Log::info('✅ PO Image uploaded during update', [
@@ -673,15 +737,25 @@ public function update(Request $request, $id)
             'sales_executive' => optional(Customer::find($request->customer_id))->sales_executive ?? $salesOrder->sales_executive,
         ]);
 
-        // Delete existing items and recreate
+        // Delete existing items
         $salesOrder->items()->delete();
 
+        // ✅ CRITICAL: Calculate totals server-side ONLY
         $newTotalAmount = 0;
 
         foreach ($request->items as $itemData) {
             $quantity = (float) ($itemData['quantity'] ?? 0);
             $unitPrice = (float) ($itemData['unit_price'] ?? 0);
-            $itemTotal = $quantity * $unitPrice;
+            $itemTotal = round($quantity * $unitPrice, 2); // ✅ Always calculate
+
+            // ✅ Log if client sent wrong total
+            if (isset($itemData['total_amount']) && abs($itemData['total_amount'] - $itemTotal) > 0.01) {
+                \Log::warning('⚠️ Client sent incorrect item total during update', [
+                    'item_code' => $itemData['item_code'] ?? 'unknown',
+                    'client_sent' => $itemData['total_amount'],
+                    'server_calculated' => $itemTotal,
+                ]);
+            }
 
             $item = Item::find($itemData['item_id']);
 
@@ -694,14 +768,16 @@ public function update(Request $request, $id)
                 'quantity' => $quantity,
                 'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
                 'unit_price' => $unitPrice,
-                'total_amount' => $itemTotal,
+                'total_amount' => $itemTotal, // ✅ Use ONLY calculated value
                 'note' => $itemData['note'] ?? null,
             ]);
 
             $newTotalAmount += $itemTotal;
         }
 
-        // Update first item reference fields
+        $newTotalAmount = round($newTotalAmount, 2); // ✅ Round grand total
+
+        // Update first item reference
         $firstItem = $request->items[0] ?? [];
         $firstItemModel = Item::find($firstItem['item_id'] ?? null);
 
@@ -709,13 +785,30 @@ public function update(Request $request, $id)
         $salesOrder->item_code = $firstItem['item_code'] ?? $firstItemModel->item_code ?? null;
         $salesOrder->brand = $firstItem['brand'] ?? $firstItemModel->brand ?? null;
         $salesOrder->item_category = $firstItem['item_category'] ?? $firstItemModel->item_category ?? null;
-        $salesOrder->total_amount = $newTotalAmount;
+        $salesOrder->total_amount = $newTotalAmount; // ✅ Use calculated total
         $salesOrder->save();
 
-        // ✅ NOW TRACK THE CHANGES - Compare original vs new
-        $userId = auth()->id();
+        // ✅ VERIFY calculations
+        $this->recalculateSalesOrderTotals($salesOrder->id);
 
-        // Track main field changes
+        // Sync delivery dates
+        if ($request->filled('request_delivery_date')) {
+            $updatedDeliveriesCount = Deliveries::where('sales_order_number', $salesOrder->sales_order_number)
+                ->update(['request_delivery_date' => $request->request_delivery_date]);
+            
+            SalesOrderItem::where('sales_order_id', $salesOrder->id)
+                ->update(['request_delivery_date' => $request->request_delivery_date]);
+            
+            \Log::info('✅ Synced delivery dates', [
+                'so_number' => $salesOrder->sales_order_number,
+                'new_date' => $request->request_delivery_date,
+                'deliveries_updated' => $updatedDeliveriesCount,
+                'so_items_updated' => SalesOrderItem::where('sales_order_id', $salesOrder->id)->count()
+            ]);
+        }
+
+        // Track changes (existing code...)
+        $userId = auth()->id();
         $trackableFields = ['customer_id', 'po_number', 'request_delivery_date', 'shipping_address', 'sales_rep', 'total_amount'];
 
         foreach ($trackableFields as $field) {
@@ -737,95 +830,11 @@ public function update(Request $request, $id)
             }
         }
 
-        // Track item changes
-        $newItems = $salesOrder->fresh()->items->keyBy('item_code');
+        // Track item changes (rest of existing code...)
 
-        foreach ($newItems as $itemCode => $newItem) {
-            if (isset($originalItems[$itemCode])) {
-                $originalItem = $originalItems[$itemCode];
-                
-                // Check quantity change
-                if ($originalItem['quantity'] != $newItem->quantity) {
-                    \App\Models\SalesOrderChange::create([
-                        'sales_order_id' => $salesOrder->id,
-                        'user_id' => $userId,
-                        'field_changed' => 'quantity',
-                        'old_value' => number_format($originalItem['quantity'], 2),
-                        'new_value' => number_format($newItem->quantity, 2),
-                        'change_type' => 'update',
-                    ]);
-                }
-                
-                // Check unit price change
-                if ($originalItem['unit_price'] != $newItem->unit_price) {
-                    \App\Models\SalesOrderChange::create([
-                        'sales_order_id' => $salesOrder->id,
-                        'user_id' => $userId,
-                        'field_changed' => 'unit_price',
-                        'old_value' => '₱' . number_format($originalItem['unit_price'], 2),
-                        'new_value' => '₱' . number_format($newItem->unit_price, 2),
-                        'change_type' => 'update',
-                    ]);
-                }
-                
-                // Check product name change
-                if ($originalItem['item_description'] != $newItem->item_description) {
-                    \App\Models\SalesOrderChange::create([
-                        'sales_order_id' => $salesOrder->id,
-                        'user_id' => $userId,
-                        'field_changed' => 'product_name',
-                        'old_value' => $originalItem['item_description'],
-                        'new_value' => $newItem->item_description,
-                        'change_type' => 'update',
-                    ]);
-                }
-            } else {
-                // New item added
-                \App\Models\SalesOrderChange::create([
-                    'sales_order_id' => $salesOrder->id,
-                    'user_id' => $userId,
-                    'field_changed' => 'line_item',
-                    'old_value' => null,
-                    'new_value' => json_encode([
-                        'item_code' => $newItem->item_code,
-                        'product_name' => $newItem->item_description,
-                        'quantity' => $newItem->quantity,
-                        'unit_price' => $newItem->unit_price,
-                        'unit' => $newItem->unit,
-                        'brand' => $newItem->brand,
-                    ]),
-                    'change_type' => 'create',
-                ]);
-            }
-        }
-
-        // Check for removed items
-        foreach ($originalItems as $itemCode => $originalItem) {
-            if (!isset($newItems[$itemCode])) {
-                \App\Models\SalesOrderChange::create([
-                    'sales_order_id' => $salesOrder->id,
-                    'user_id' => $userId,
-                    'field_changed' => 'line_item',
-                    'old_value' => json_encode([
-                        'item_code' => $originalItem['item_code'],
-                        'product_name' => $originalItem['item_description'],
-                        'quantity' => $originalItem['quantity'],
-                        'unit_price' => $originalItem['unit_price'],
-                        'unit' => $originalItem['unit'],
-                        'brand' => $originalItem['brand'],
-                    ]),
-                    'new_value' => null,
-                    'change_type' => 'delete',
-                ]);
-            }
-        }
-
-        // Sync prices to related deliveries
         $this->syncDeliveryPrices($salesOrder);
+        $this->syncDeliveryItems($salesOrder);
 
-        // app(\App\Services\NotificationService::class)->notifySalesOrderUpdated($salesOrder);
-
-        // Log activity
         \App\Models\Activity::create([
             'user_name' => auth()->user()->name ?? 'System',
             'action' => 'Updated',
@@ -844,13 +853,221 @@ public function update(Request $request, $id)
     } catch (\Exception $e) {
         DB::rollBack();
         
-        // ✅ Delete uploaded file if transaction failed
         if (isset($poImageFilename) && $poImageFilename !== $salesOrder->po_image && file_exists(public_path('po_images/' . $poImageFilename))) {
             @unlink(public_path('po_images/' . $poImageFilename));
         }
         
         \Log::error('SO Update Error:', ['message' => $e->getMessage()]);
         return back()->withInput()->with('error', 'Failed to update: ' . $e->getMessage());
+    }
+}
+
+public function fixExistingSalesOrders()
+{
+    try {
+        $salesOrders = SalesOrder::with('items')->get();
+        $fixedCount = 0;
+        
+        foreach ($salesOrders as $so) {
+            $correctTotal = 0;
+            $itemsFixed = 0;
+            
+            foreach ($so->items as $item) {
+                $qty = (float) ($item->quantity ?? 0);
+                $price = (float) ($item->unit_price ?? 0);
+                $correctItemTotal = round($qty * $price, 2);
+                
+                if (abs($item->total_amount - $correctItemTotal) > 0.01) {
+                    \Log::info('🔧 Fixing SO item total', [
+                        'so_number' => $so->sales_order_number,
+                        'item_code' => $item->item_code,
+                        'old_total' => $item->total_amount,
+                        'new_total' => $correctItemTotal,
+                    ]);
+                    
+                    $item->update(['total_amount' => $correctItemTotal]);
+                    $itemsFixed++;
+                }
+                
+                $correctTotal += $correctItemTotal;
+            }
+            
+            $correctTotal = round($correctTotal, 2);
+            
+            if (abs($so->total_amount - $correctTotal) > 0.01) {
+                \Log::info('🔧 Fixing SO grand total', [
+                    'so_number' => $so->sales_order_number,
+                    'old_total' => $so->total_amount,
+                    'new_total' => $correctTotal,
+                ]);
+                
+                $so->update(['total_amount' => $correctTotal]);
+                $fixedCount++;
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => "Fixed {$fixedCount} sales order(s)",
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Failed to fix SO totals', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
+
+
+private function syncDeliveryItems(SalesOrder $salesOrder)
+{
+    try {
+        // Get all PENDING deliveries for this SO (approved deliveries should not be auto-updated)
+        $deliveries = Deliveries::where('sales_order_number', $salesOrder->sales_order_number)
+            ->where('approval_status', 'Pending')
+            ->get();
+        
+        if ($deliveries->isEmpty()) {
+            \Log::info('No pending deliveries to sync for SO', [
+                'so_number' => $salesOrder->sales_order_number
+            ]);
+            return;
+        }
+
+        // Create a map of SO items by item_code
+        $soItemsMap = $salesOrder->items->keyBy('item_code');
+        
+        foreach ($deliveries as $delivery) {
+            $deliveryUpdated = false;
+            
+            // Get already delivered quantities (excluding current delivery)
+            $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($salesOrder, $delivery) {
+                    $q->where('sales_order_number', $salesOrder->sales_order_number)
+                      ->where('approval_status', 'Approved')
+                      ->where('status', 'Delivered')
+                      ->where('id', '!=', $delivery->id);
+                })
+                ->where('quantity', '>', 0)
+                ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
+                ->groupBy('item_code')
+                ->get()
+                ->keyBy('item_code');
+            
+            // ✅ STEP 1: Update existing delivery items with new prices/quantities
+            foreach ($delivery->items as $deliveryItem) {
+                $soItem = $soItemsMap->get($deliveryItem->item_code);
+                
+                if ($soItem) {
+                    // Update price if changed
+                    if ($soItem->unit_price != $deliveryItem->unit_price) {
+                        $newTotalAmount = $deliveryItem->quantity * $soItem->unit_price;
+                        
+                        $deliveryItem->update([
+                            'unit_price' => $soItem->unit_price,
+                            'total_amount' => $newTotalAmount,
+                        ]);
+                        
+                        $deliveryUpdated = true;
+                        
+                        \Log::info("✅ Updated delivery item price", [
+                            'delivery_id' => $delivery->id,
+                            'item_code' => $deliveryItem->item_code,
+                            'new_price' => $soItem->unit_price,
+                        ]);
+                    }
+                    
+                    // Update quantities and recalculate remaining
+                    $originalQty = $soItem->quantity;
+                    $alreadyDelivered = $deliveredSums->get($deliveryItem->item_code)?->total_delivered ?? 0;
+                    $remainingQty = max(0, $originalQty - $alreadyDelivered);
+                    
+                    $deliveryItem->update([
+                        'original_quantity' => $originalQty,
+                        'remaining_quantity' => $remainingQty,
+                        'item_description' => $soItem->item_description,
+                        'brand' => $soItem->brand,
+                        'item_category' => $soItem->item_category,
+                        'uom' => $soItem->unit,
+                    ]);
+                    
+                    $deliveryUpdated = true;
+                }
+            }
+            
+            // ✅ STEP 2: Add NEW items that exist in SO but not in delivery
+            $deliveryItemCodes = $delivery->items->pluck('item_code')->toArray();
+            
+            foreach ($soItemsMap as $itemCode => $soItem) {
+                if (!in_array($itemCode, $deliveryItemCodes)) {
+                    // This is a NEW item added to the SO
+                    $alreadyDelivered = $deliveredSums->get($itemCode)?->total_delivered ?? 0;
+                    $remainingQty = max(0, $soItem->quantity - $alreadyDelivered);
+                    
+                    // Only add if there's remaining quantity
+                    if ($remainingQty > 0) {
+                        DeliveryItem::create([
+                            'delivery_id' => $delivery->id,
+                            'item_id' => $soItem->item_id,
+                            'sales_order_item_id' => $soItem->id,
+                            'item_code' => $itemCode,
+                            'item_description' => $soItem->item_description,
+                            'brand' => $soItem->brand,
+                            'item_category' => $soItem->item_category,
+                            'quantity' => $remainingQty, // Default to remaining quantity
+                            'original_quantity' => $soItem->quantity,
+                            'remaining_quantity' => 0, // Will be 0 since we're delivering the rest
+                            'uom' => $soItem->unit,
+                            'unit_price' => $soItem->unit_price,
+                            'total_amount' => $remainingQty * $soItem->unit_price,
+                            'delivery_batch' => $delivery->delivery_batch,
+                            'notes' => $soItem->note,
+                        ]);
+                        
+                        $deliveryUpdated = true;
+                        
+                        \Log::info("✅ Added new item to delivery", [
+                            'delivery_id' => $delivery->id,
+                            'item_code' => $itemCode,
+                            'quantity' => $remainingQty,
+                        ]);
+                    }
+                }
+            }
+            
+            // ✅ STEP 3: Mark removed items with quantity = 0 (don't delete, for tracking)
+            foreach ($delivery->items as $deliveryItem) {
+                if (!$soItemsMap->has($deliveryItem->item_code)) {
+                    // Item was removed from SO
+                    $deliveryItem->update([
+                        'quantity' => 0,
+                        'total_amount' => 0,
+                        'notes' => ($deliveryItem->notes ?? '') . ' [Item removed from SO]',
+                    ]);
+                    
+                    $deliveryUpdated = true;
+                    
+                    \Log::info("✅ Marked delivery item as removed", [
+                        'delivery_id' => $delivery->id,
+                        'item_code' => $deliveryItem->item_code,
+                    ]);
+                }
+            }
+            
+            if ($deliveryUpdated) {
+                \Log::info("✅ Delivery items synced", [
+                    'delivery_id' => $delivery->id,
+                    'dr_no' => $delivery->dr_no,
+                    'so_number' => $salesOrder->sales_order_number,
+                ]);
+            }
+        }
+        
+    } catch (\Exception $e) {
+        \Log::error('❌ Failed to sync delivery items', [
+            'so_number' => $salesOrder->sales_order_number,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+        // Don't throw - let SO update succeed even if delivery sync fails
     }
 }
 

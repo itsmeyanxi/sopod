@@ -7,13 +7,15 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Customer;
 use App\Models\Item;
 use Illuminate\Support\Facades\DB;
-// use App\Mail\CustomerBatchImported; // ✅ COMMENTED OUT - Not yet created
+// use App\Mail\CustomerBatchImported; 
+use App\Models\ARAging; 
+use App\Models\Payment; 
+use App\Models\ArAdjustment; 
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 
 class ExcelImportController extends Controller
 {
-    // Column mapping for customers - maps Excel headers to database columns
     private $customerColumnMap = [
         'customer code' => 'customer_code',
         'customer_code' => 'customer_code',
@@ -98,6 +100,238 @@ class ExcelImportController extends Controller
         'unit of measurement' => 'unit',
         'uom' => 'unit',
     ];
+
+    private $collectionColumnMap = [
+    // Customer info
+    'customer code' => 'customer_code',
+    'customer_code' => 'customer_code',
+    'customercode' => 'customer_code',
+    'customer name' => 'customer_name',
+    'customer_name' => 'customer_name',
+    'customername' => 'customer_name',
+    'client name' => 'customer_name', 
+    'client_name' => 'customer_name',
+    'clientname' => 'customer_name',
+    
+    // Receipt info
+    'collection receipt number' => 'collection_receipt_number',
+    'collection_receipt_number' => 'collection_receipt_number',
+    'collectionreceiptnumber' => 'collection_receipt_number',
+    'receipt number' => 'collection_receipt_number',
+    'receipt_number' => 'collection_receipt_number',
+    'cr number' => 'collection_receipt_number', 
+    'cr_number' => 'collection_receipt_number',
+    'crnumber' => 'collection_receipt_number',
+    
+    // Dates
+    'collection receipt date' => 'collection_receipt_date',
+    'collection_receipt_date' => 'collection_receipt_date',
+    'collectionreceiptdate' => 'collection_receipt_date',
+    'receipt date' => 'collection_receipt_date',
+    'cr date' => 'collection_receipt_date',
+    'cr_date' => 'collection_receipt_date',
+    'crdate' => 'collection_receipt_date',
+    
+    'payment posting date' => 'payment_posting_date',
+    'payment_posting_date' => 'payment_posting_date',
+    'paymentpostingdate' => 'payment_posting_date',
+    'posting date' => 'payment_posting_date',
+    'record date' => 'payment_posting_date', 
+    'record_date' => 'payment_posting_date',
+    'recorddate' => 'payment_posting_date',
+    
+    'payment date' => 'payment_date',
+    'payment_date' => 'payment_date',
+    'paymentdate' => 'payment_date',
+    'deposit date' => 'payment_date', 
+    'deposit_date' => 'payment_date',
+    'depositdate' => 'payment_date',
+    
+    // Amount fields
+    'amount' => 'amount',
+    'payment amount' => 'amount',
+    'payment_amount' => 'amount',
+    'gross amount' => 'amount', 
+    'gross_amount' => 'amount',
+    'grossamount' => 'amount',
+    
+    'payment option' => 'payment_option',
+    'payment_option' => 'payment_option',
+    'paymentoption' => 'payment_option',
+    
+    'tax' => 'tax',
+    'ewt' => 'ewt', 
+    'withholding tax' => 'ewt',
+    
+    'net of cwt' => 'net_of_cwt',
+    'net_of_cwt' => 'net_of_cwt',
+    'netofcwt' => 'net_of_cwt',
+    
+    'payment notes' => 'payment_notes',
+    'payment_notes' => 'payment_notes',
+    'paymentnotes' => 'payment_notes',
+    'notes' => 'payment_notes',
+    
+    'created by' => 'created_by',
+    'created_by' => 'created_by',
+    'createdby' => 'created_by',
+    
+    'payment method' => 'payment_method',
+    'payment_method' => 'payment_method',
+    'paymentmethod' => 'payment_method',
+    'method' => 'payment_method',
+    
+    'bank' => 'bank',
+    'bank name' => 'bank',
+    
+    'reference no' => 'reference_no',
+    'reference_no' => 'reference_no',
+    'referenceno' => 'reference_no',
+    'reference number' => 'reference_no',
+    'ref no' => 'reference_no',
+    
+    'remarks' => 'remarks', 
+    
+    // Invoice/DR info
+    'invoice no' => 'invoice_no', 
+    'invoice_no' => 'invoice_no',
+    'invoiceno' => 'invoice_no',
+    'invoice number' => 'invoice_no',
+    
+    'dr no' => 'dr_no',
+    'dr_no' => 'dr_no',
+    'drno' => 'dr_no',
+    'delivery receipt' => 'dr_no',
+    
+    'branch' => 'branch',
+    
+    'status' => 'status', 
+    
+    'signed by' => 'signed_by', 
+    'signed_by' => 'signed_by',
+    'signedby' => 'signed_by',
+    
+    'other adjustment' => 'other_adjustment', 
+    'other_adjustment' => 'other_adjustment',
+    'otheradjustment' => 'other_adjustment',
+    
+    'factoring' => 'factoring', 
+    
+    'check amount' => 'check_amount', 
+    'check_amount' => 'check_amount',
+    'checkamount' => 'check_amount',
+    
+    'checking si' => 'checking_si', 
+    'checking_si' => 'checking_si',
+    'checkingsi' => 'checking_si',
+    
+    'week no' => 'week_no', 
+    'week_no' => 'week_no',
+    'weekno' => 'week_no',
+    'week number' => 'week_no',
+    
+    'ar class' => 'ar_class',
+    'ar_class' => 'ar_class',
+    'arclass' => 'ar_class',
+    
+    'data check' => 'data_check', 
+    'data_check' => 'data_check',
+    'datacheck' => 'data_check',
+];
+
+private $arAdjustmentColumnMap = [
+    // Customer fields
+    'customer code' => 'customer_code',
+    'customer_code' => 'customer_code',
+    'customercode' => 'customer_code',
+    'client name' => 'customer_name',        
+    'client_name' => 'customer_name',
+    'clientname' => 'customer_name',
+    'customer name' => 'customer_name',
+    'customer_name' => 'customer_name',
+    'customername' => 'customer_name',
+    
+    // Reference/Transaction fields
+    'reference number' => 'reference_number',
+    'reference_number' => 'reference_number',
+    'referencenumber' => 'reference_number',
+    'ref number' => 'reference_number',
+    'ref no' => 'reference_number',
+    'reference no' => 'reference_number',    
+    
+    'transaction type' => 'transaction_type',
+    'transaction_type' => 'transaction_type',
+    'transactiontype' => 'transaction_type',
+    'type' => 'transaction_type',
+    
+    // Date fields
+    'transaction date' => 'transaction_date',
+    'transaction_date' => 'transaction_date',
+    'transactiondate' => 'transaction_date',
+    'date' => 'transaction_date',
+    
+    // Amount
+    'amount' => 'amount',
+    'adjustment amount' => 'amount',
+    
+    // Is Decrease
+    'is decrease' => 'is_decrease',
+    'is_decrease' => 'is_decrease',
+    'isdecrease' => 'is_decrease',
+    'decrease' => 'is_decrease',
+
+     // Branch
+    'branch' => 'branch',
+    'branch name' => 'branch',
+    'branch_name' => 'branch',
+    
+    // Invoice fields
+    'invoice_no' => 'invoice_number',  
+    'invoice no' => 'invoice_number', 
+    'invoicenumber' => 'invoice_number',
+    'invoice no' => 'invoice_number',
+    'invoice no.' => 'invoice_number',        
+    'invoiceno' => 'invoice_number',
+    'invoice' => 'invoice_number',             
+    'inv no' => 'invoice_number',               
+    'inv_no' => 'invoice_number',               
+    'invno' => 'invoice_number',                
+    'inv number' => 'invoice_number',          
+    
+    // DR fields
+    'dr no' => 'dr_no',
+    'dr no.' => 'dr_no',                      
+    'dr_no' => 'dr_no',
+    'drno' => 'dr_no',
+    'delivery receipt' => 'dr_no',
+    
+    // Branch
+    'branch' => 'branch',                     
+    
+    // GL Account
+    'gl account' => 'gl_account',
+    'gl_account' => 'gl_account',
+    'glaccount' => 'gl_account',
+    'account' => 'gl_account',
+    
+    // Remarks
+    'remarks' => 'remarks',
+    'notes' => 'remarks',
+    'remark' => 'remarks',
+    
+    // Signed By
+    'signed by' => 'signed_by',
+    'signed_by' => 'signed_by',
+    'signedby' => 'signed_by',
+    
+    // Created By
+    'created by' => 'created_by',
+    'created_by' => 'created_by',
+    'createdby' => 'created_by',
+    
+    // Time
+    'time' => 'time',                        
+];
 
     /**
      * Load spreadsheet with proper encoding handling for special characters
@@ -414,7 +648,7 @@ class ExcelImportController extends Controller
                         'billing_address' => $billingAddress,
                         'sales_rep' => $salesRep,
                         'collection_terms' => $collectionTerms,
-                        'is_flagged' => $isFlagged, // ✅ NEW
+                        'is_flagged' => $isFlagged, 
                         'status' => 'enabled',
                     ];
                     
@@ -481,8 +715,6 @@ class ExcelImportController extends Controller
 
             if ($imported > 0 && !empty($newCustomers)) {
                 try {
-                    // ✅ TEMPORARILY DISABLED - Create CustomerBatchImported mail class if needed
-                    // $this->sendBatchImportNotification(collect($newCustomers), $imported);
                     \Log::info('📧 Batch import completed (email notification disabled)', [
                         'count' => $imported,
                         'imported_by' => auth()->user()->name ?? 'System'
@@ -510,26 +742,668 @@ class ExcelImportController extends Controller
         }
     }
 
-    // ✅ COMMENTED OUT - Enable when CustomerBatchImported mail class is created
-    /*
-    private function sendBatchImportNotification($customers, $count)
+        public function importARAging(Request $request)
     {
-        $recipients = User::whereIn('role', ['CC_Approver', 'CC_Creator', 'CSR_Approver', 'Admin', 'IT'])
-                        ->whereNotNull('email')
-                        ->get();
-        
-        $data = [
-            'title' => 'Batch Customer Import Completed',
-            'message' => "$count new customers have been imported to the system.",
-            'count' => $count,
-            'customers' => $customers->take(10), // Show first 10
-            'imported_by' => auth()->user()->name ?? 'System',
-            'view_url' => route('customers.index'),
-        ];
-        
-        foreach ($recipients as $recipient) {
-            Mail::to($recipient->email)->send(new CustomerBatchImported($data));
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240'
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $worksheet = $this->loadSpreadsheet($file->getRealPath());
+            $rows = $worksheet->toArray();
+
+            if (empty($rows)) {
+                return redirect()->back()->with('error', 'The file is empty.');
+            }
+
+            // Find the header row
+            $headerRowFound = false;
+            $headerRow = null;
+            
+            foreach ($rows as $index => $row) {
+                $cleanedRow = array_map(function($cell) {
+                    return strtolower(trim($this->fixEncoding($cell ?? '')));
+                }, $row);
+                
+                // Look for any common AR Aging columns to identify header row
+                $hasAgingDate = in_array('aging date', $cleanedRow) || in_array('agingdate', $cleanedRow);
+                $hasInvoiceNo = in_array('invoice no', $cleanedRow) || in_array('invoice no.', $cleanedRow);
+                $hasCustomerCode = in_array('customer code', $cleanedRow) || in_array('customercode', $cleanedRow);
+                $hasNetAR = in_array('net ar', $cleanedRow) || in_array('netar', $cleanedRow);
+                
+                // If we find any of these common columns, assume it's the header
+                if ($hasAgingDate || $hasInvoiceNo || $hasCustomerCode || $hasNetAR) {
+                    $headerRow = $row;
+                    $rows = array_slice($rows, $index + 1);
+                    $headerRowFound = true;
+                    break;
+                }
+            }
+
+            if (!$headerRowFound || !$headerRow) {
+                return redirect()->back()->with('error', 'Could not find header row. Please ensure your Excel file contains recognizable column headers (e.g., Customer Code, Invoice No, Net AR, etc.).');
+            }
+
+            // Clean headers
+            $cleanHeaders = array_map(function($header) {
+                $cleaned = strtolower(trim($this->fixEncoding($header ?? '')));
+                $cleaned = preg_replace('/[^a-z0-9\s_]/', '', $cleaned);
+                $cleaned = preg_replace('/\s+/', '_', $cleaned);
+                return $cleaned;
+            }, $headerRow);
+
+            // Column mapping
+            $columnMap = [
+                'aging_date' => 'aging_date', 'agingdate' => 'aging_date',
+                'counter_date' => 'counter_date', 'counterdate' => 'counter_date',
+                'invoice_date' => 'invoice_date', 'invoicedate' => 'invoice_date',
+                'record_date' => 'record_date', 'recorddate' => 'record_date',
+                'due_date' => 'due_date', 'duedate' => 'due_date',
+                'invoice_no' => 'invoice_no', 'invoiceno' => 'invoice_no',
+                'po_no' => 'po_no', 'pono' => 'po_no',
+                'dr_no' => 'dr_no', 'drno' => 'dr_no',
+                'customer_code' => 'customer_code', 'customercode' => 'customer_code',
+                'client_name' => 'client_name', 'clientname' => 'client_name',
+                'branch' => 'branch',
+                'sales_executive' => 'sales_executive', 'salesexecutive' => 'sales_executive',
+                'se2' => 'se2',
+                'terms' => 'terms',
+                'sales_week_no' => 'sales_week_no', 'salesweekno' => 'sales_week_no',
+                'age' => 'age',
+                'age_category' => 'age_category', 'agecategory' => 'age_category',
+                'invoice_amount' => 'invoice_amount', 'invoiceamount' => 'invoice_amount',
+                'ar_adjustments' => 'ar_adjustments', 'aradjustments' => 'ar_adjustments',
+                'settled_invoice_amount' => 'settled_invoice_amount', 'settledinvoiceamount' => 'settled_invoice_amount',
+                'gross_ar_balance' => 'gross_ar_balance', 'grossarbalance' => 'gross_ar_balance',
+                'net_ar' => 'net_ar', 'netar' => 'net_ar',
+                'cwt' => 'cwt',
+                'net_of_cwt' => 'net_of_cwt', 'netofcwt' => 'net_of_cwt', 'net_of_cwtx' => 'net_of_cwt', 'netofcwtx' => 'net_of_cwt',
+                'net_ar_balance' => 'net_ar_balance', 'netarbalance' => 'net_ar_balance',
+                'factored_ar_amount' => 'factored_ar_amount', 'factoredaramount' => 'factored_ar_amount',
+                'status' => 'status',
+                'include' => 'include_flag', 'include_flag' => 'include_flag', 'includeflag' => 'include_flag',
+                'ar_class' => 'ar_class', 'arclass' => 'ar_class',
+            ];
+
+            $mappedHeaders = [];
+            foreach ($cleanHeaders as $header) {
+                $mappedHeaders[] = $columnMap[$header] ?? $header;
+            }
+
+            \Log::info('AR Aging Import - Headers Found', [
+                'clean_headers' => $cleanHeaders,
+                'mapped_headers' => $mappedHeaders
+            ]);
+
+            // ✅ REMOVED: No required columns check - all columns are now optional
+
+            $imported = 0;
+            $skipped = 0;
+            $errors = [];
+
+            DB::beginTransaction();
+
+            foreach ($rows as $index => $row) {
+                $rowNum = $index + 2;
+
+                // Skip completely empty rows
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                $row = array_map(fn($cell) => $this->fixEncoding($cell), $row);
+
+                if (count($row) < count($mappedHeaders)) {
+                    $row = array_pad($row, count($mappedHeaders), '');
+                }
+
+                $data = array_combine($mappedHeaders, array_slice($row, 0, count($mappedHeaders)));
+
+                // ✅ UPDATED: Create insert data with only the fields that exist and have values
+                $insertData = [];
+
+                // Process all possible fields
+                $allFields = [
+                    'customer_code', 'invoice_no', 'invoice_date', 'net_ar',
+                    'aging_date', 'counter_date', 'record_date', 'due_date',
+                    'po_no', 'dr_no', 'client_name', 'branch', 
+                    'sales_executive', 'se2', 'terms', 'sales_week_no',
+                    'age', 'age_category', 'invoice_amount', 'ar_adjustments',
+                    'settled_invoice_amount', 'gross_ar_balance', 'cwt',
+                    'net_of_cwt', 'net_ar_balance', 'factored_ar_amount',
+                    'status', 'include_flag', 'ar_class'
+                ];
+
+                $hasAnyData = false;
+
+                foreach ($allFields as $field) {
+                    if (isset($data[$field]) && $data[$field] !== null && trim($data[$field]) !== '') {
+                        $value = trim($data[$field]);
+                        $hasAnyData = true;
+                        
+                        // Handle date fields
+                        if (in_array($field, ['aging_date', 'counter_date', 'record_date', 'due_date', 'invoice_date'])) {
+                            $value = $this->convertExcelDate($value);
+                            if (!$value) {
+                                \Log::warning("Row $rowNum: Could not convert date for $field: " . $data[$field]);
+                                continue;
+                            }
+                        }
+                        // Clean numeric fields
+                        elseif (in_array($field, ['invoice_amount', 'ar_adjustments', 'settled_invoice_amount', 
+                                            'gross_ar_balance', 'cwt', 'net_of_cwt', 'net_ar_balance', 
+                                            'factored_ar_amount', 'age', 'net_ar'])) {
+                            $value = str_replace([',', ' ', '-'], '', $value);
+                            $value = is_numeric($value) ? (float) $value : 0;
+                        }
+                        // Special handling for sales_week_no
+                        elseif ($field === 'sales_week_no') {
+                            $value = preg_replace('/\s+/', '', $value);
+                            if (strlen($value) > 20) {
+                                $value = substr($value, 0, 20);
+                            }
+                        }
+                        // Special handling for include_flag
+                        elseif ($field === 'include_flag') {
+                            $valueLower = strtolower(trim($value));
+                            if (in_array($valueLower, ['yes', 'y', '1', 'true', 't'])) {
+                                $value = 'yes';
+                            } elseif (in_array($valueLower, ['no', 'n', '0', 'false', 'f'])) {
+                                $value = 'no';
+                            } else {
+                                $value = 'yes';
+                            }
+                        }
+                        
+                        $insertData[$field] = $value;
+                    }
+                }
+
+                // Skip row if it has no data at all
+                if (!$hasAnyData) {
+                    $skipped++;
+                    continue;
+                }
+
+                try {
+                    ArAging::create($insertData);
+                    $imported++;
+                    
+                } catch (\Exception $e) {
+                    $errors[] = "Row $rowNum: " . $e->getMessage();
+                    \Log::error("Row $rowNum import failed", [
+                        'error' => $e->getMessage(),
+                        'data' => $insertData ?? []
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            $message = "Successfully imported $imported AR Aging rows!";
+            if ($skipped > 0) {
+                $message .= " ($skipped empty rows skipped)";
+            }
+
+            if (!empty($errors)) {
+                $errorMessage = implode("\n", array_slice($errors, 0, 10));
+                if (count($errors) > 10) {
+                    $errorMessage .= "\n\n... and " . (count($errors) - 10) . " more errors. Check logs for details.";
+                }
+                
+                if ($imported > 0) {
+                    return redirect()->back()->with('error', "$message\n\nBut encountered " . count($errors) . " errors:\n\n" . $errorMessage);
+                }
+                return redirect()->back()->with('error', "Import failed with " . count($errors) . " errors:\n\n" . $errorMessage);
+            }
+
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('AR Aging import failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Error importing file: ' . $e->getMessage());
         }
     }
-    */
+
+   /**
+     * Convert various date formats to MySQL format (YYYY-MM-DD)
+     */
+    private function convertExcelDate($dateValue)
+    {
+        if (empty($dateValue)) {
+            return null;
+        }
+
+        $dateValue = trim($dateValue);
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateValue)) {
+            return $dateValue;
+        }
+
+        if (is_numeric($dateValue)) {
+            try {
+                $unixTimestamp = ($dateValue - 25569) * 86400;
+                return date('Y-m-d', $unixTimestamp);
+            } catch (\Exception $e) {
+                \Log::warning("Could not convert numeric date: $dateValue");
+                return null;
+            }
+        }
+
+        $formats = [
+            'm/d/Y', 'n/j/Y', 'm/d/y', 'n/j/y', 'm-d-Y',
+            'd/m/Y', 'Y/m/d', 'd-m-Y', 'Y-m-d', 'M d, Y', 'd M Y',
+        ];
+
+        foreach ($formats as $format) {
+            try {
+                $date = \DateTime::createFromFormat($format, $dateValue);
+                if ($date && $date->format($format) == $dateValue) {
+                    return $date->format('Y-m-d');
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        try {
+            $carbonDate = \Carbon\Carbon::parse($dateValue);
+            return $carbonDate->format('Y-m-d');
+        } catch (\Exception $e) {
+            \Log::warning("Could not parse date: $dateValue");
+            return null;
+        }
+    }
+
+    public function importCollections(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls,csv|max:10240'
+    ]);
+
+    try {
+        $file = $request->file('file');
+        $worksheet = $this->loadSpreadsheet($file->getRealPath());
+        $rows = $worksheet->toArray();
+
+        if (empty($rows)) {
+            return redirect()->back()->with('error', 'The file is empty.');
+        }
+
+        // ✅ Look for the exact payments table columns
+        $targetColumns = [
+            'customer_code', 'customer_name', 'collection_receipt_number',
+            'collection_receipt_date', 'payment_posting_date', 'payment_date',
+            'amount', 'payment_option', 'invoice_no', 'dr_no', 'branch'
+        ];
+
+        $headerRowFound = false;
+        $headerRow = null;
+        $headerRowIndex = 0;
+        
+        foreach ($rows as $index => $row) {
+            // Skip empty rows
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            $cleanedRow = array_map(function($cell) {
+                $cleaned = strtolower(trim($this->fixEncoding($cell ?? '')));
+                $cleaned = preg_replace('/[^a-z0-9\s_]/', '', $cleaned);
+                $cleaned = preg_replace('/\s+/', '_', $cleaned);
+                return $cleaned;
+            }, $row);
+            
+            // ✅ Count how many target columns we find
+            $matchCount = 0;
+            foreach ($targetColumns as $targetCol) {
+                // Check for exact match or mapped match
+                if (in_array($targetCol, $cleanedRow)) {
+                    $matchCount++;
+                } else {
+                    // Check if any column map exists for this
+                    foreach ($this->collectionColumnMap as $excelCol => $dbCol) {
+                        if ($dbCol === $targetCol && in_array($excelCol, $cleanedRow)) {
+                            $matchCount++;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // ✅ If we find at least 4 matching columns, this is our header
+            if ($matchCount >= 4) {
+                $headerRow = $row;
+                $headerRowIndex = $index;
+                $rows = array_slice($rows, $index + 1);
+                $headerRowFound = true;
+                
+                \Log::info('Collections - Header row found', [
+                    'row_index' => $index,
+                    'columns_found' => $cleanedRow,
+                    'match_count' => $matchCount
+                ]);
+                
+                break;
+            }
+        }
+
+        if (!$headerRowFound || !$headerRow) {
+            \Log::error('Could not find Collections header row', [
+                'first_10_rows' => array_slice($rows, 0, 10)
+            ]);
+            
+            return redirect()->back()->with('error', 
+                'Could not find the expected header row. Please ensure your Excel file contains columns like: customer_code, customer_name, amount, payment_date, invoice_no, etc.'
+            );
+        }
+
+        // Clean and map headers
+        $cleanHeaders = array_map(function($header) {
+            $cleaned = strtolower(trim($this->fixEncoding($header ?? '')));
+            $cleaned = preg_replace('/[^a-z0-9\s_]/', '', $cleaned);
+            $cleaned = preg_replace('/\s+/', '_', $cleaned);
+            return $cleaned;
+        }, $headerRow);
+
+        $mappedHeaders = [];
+        foreach ($cleanHeaders as $header) {
+            $mappedHeaders[] = $this->collectionColumnMap[$header] ?? $header;
+        }
+
+        \Log::info('Collections Import - Headers Mapped', [
+            'clean_headers' => $cleanHeaders,
+            'mapped_headers' => $mappedHeaders
+        ]);
+
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+
+        DB::beginTransaction();
+
+        foreach ($rows as $index => $row) {
+            $rowNum = $headerRowIndex + $index + 2;
+
+            if (empty(array_filter($row))) {
+                $skipped++;
+                continue;
+            }
+
+            $row = array_map(fn($cell) => $this->fixEncoding($cell), $row);
+
+            if (count($row) < count($mappedHeaders)) {
+                $row = array_pad($row, count($mappedHeaders), '');
+            }
+
+            $data = array_combine($mappedHeaders, array_slice($row, 0, count($mappedHeaders)));
+
+            $insertData = [];
+            $hasAnyData = false;
+
+            $allFields = [
+                'customer_code', 'customer_name', 'collection_receipt_number',
+                'collection_receipt_date', 'payment_posting_date', 'payment_date',
+                'amount', 'payment_option', 'tax', 'ewt', 'net_of_cwt',
+                'payment_notes', 'created_by', 'payment_method', 'bank',
+                'reference_no', 'remarks', 'invoice_no', 'dr_no', 'branch',
+                'status', 'signed_by', 'other_adjustment', 'factoring',
+                'check_amount', 'checking_si', 'week_no', 'ar_class', 'data_check'
+            ];
+
+            foreach ($allFields as $field) {
+                if (isset($data[$field]) && $data[$field] !== null && trim($data[$field]) !== '') {
+                    $value = trim($data[$field]);
+                    $hasAnyData = true;
+                    
+                    // Handle date fields
+                    if (in_array($field, ['collection_receipt_date', 'payment_posting_date', 'payment_date'])) {
+                        $value = $this->convertExcelDate($value);
+                        if (!$value) {
+                            \Log::warning("Row $rowNum: Could not convert date for $field: " . $data[$field]);
+                            continue;
+                        }
+                    }
+                    // Clean numeric fields
+                    elseif (in_array($field, ['amount', 'tax', 'ewt', 'net_of_cwt', 'other_adjustment', 'factoring', 'check_amount'])) {
+                        $value = str_replace([',', ' '], '', $value);
+                        $value = is_numeric($value) ? (float) $value : 0;
+                    }
+                    
+                    $insertData[$field] = $value;
+                }
+            }
+
+            if (!$hasAnyData) {
+                $skipped++;
+                continue;
+            }
+
+            try {
+                Payment::create($insertData);
+                $imported++;
+                
+            } catch (\Exception $e) {
+                $errors[] = "Row $rowNum: " . $e->getMessage();
+                \Log::error("Row $rowNum import failed", [
+                    'error' => $e->getMessage(),
+                    'data' => $insertData
+                ]);
+            }
+        }
+
+        DB::commit();
+
+        $message = "Successfully imported $imported collection records!";
+        if ($skipped > 0) {
+            $message .= " ($skipped empty rows skipped)";
+        }
+
+        if (!empty($errors)) {
+            $errorMessage = implode("\n", array_slice($errors, 0, 10));
+            if (count($errors) > 10) {
+                $errorMessage .= "\n\n... and " . (count($errors) - 10) . " more errors. Check logs for details.";
+            }
+            
+            if ($imported > 0) {
+                return redirect()->back()->with('warning', "$message\n\nBut encountered " . count($errors) . " errors:\n\n" . $errorMessage);
+            }
+            return redirect()->back()->with('error', "Import failed with " . count($errors) . " errors:\n\n" . $errorMessage);
+        }
+
+        return redirect()->back()->with('success', $message);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Collections import failed', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return redirect()->back()->with('error', 'Error importing file: ' . $e->getMessage());
+    }
+}
+
+   public function importArAdjustments(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls,csv|max:10240'
+    ]);
+
+    try {
+        $file = $request->file('file');
+        $worksheet = $this->loadSpreadsheet($file->getRealPath());
+        $rows = $worksheet->toArray();
+
+        if (empty($rows)) {
+            return redirect()->back()->with('error', 'The file is empty.');
+        }
+
+        $tableColumns = \Schema::getColumnListing('ar_adjustments');
+
+        // Find header row
+        $headerRowFound = false;
+        $headerRow = null;
+        $headerRowIndex = 0;
+        
+        foreach ($rows as $index => $row) {
+            $cleanedRow = array_map(function($cell) {
+                return strtolower(trim($this->fixEncoding($cell ?? '')));
+            }, $row);
+            
+            $hasCustomerCode = in_array('customer code', $cleanedRow) || in_array('customer_code', $cleanedRow);
+            $hasTransactionType = in_array('transaction type', $cleanedRow) || in_array('transaction_type', $cleanedRow);
+            $hasAmount = in_array('amount', $cleanedRow);
+            
+            if ($hasCustomerCode || $hasTransactionType || $hasAmount) {
+                $headerRow = $row;
+                $headerRowIndex = $index;
+                $rows = array_slice($rows, $index + 1);
+                $headerRowFound = true;
+                break;
+            }
+        }
+
+        if (!$headerRowFound || !$headerRow) {
+            return redirect()->back()->with('error', 'Could not find header row in the Excel file.');
+        }
+
+        // Clean and map headers
+        $cleanHeaders = array_map(function($header) {
+            $cleaned = strtolower(trim($this->fixEncoding($header ?? '')));
+            $cleaned = preg_replace('/[^a-z0-9\s_]/', '', $cleaned);
+            $cleaned = preg_replace('/\s+/', '_', $cleaned);
+            return $cleaned;
+        }, $headerRow);
+
+        $mappedHeaders = [];
+        foreach ($cleanHeaders as $header) {
+            $mappedHeaders[] = $this->arAdjustmentColumnMap[$header] ?? $header;
+        }
+
+        \Log::info('AR Adjustments Import - Headers Found', [
+            'clean_headers' => $cleanHeaders,
+            'mapped_headers' => $mappedHeaders
+        ]);
+
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+
+        DB::beginTransaction();
+
+        foreach ($rows as $index => $row) {
+            $rowNum = $headerRowIndex + $index + 2;
+
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            $row = array_map(fn($cell) => $this->fixEncoding($cell), $row);
+
+            if (count($row) < count($mappedHeaders)) {
+                $row = array_pad($row, count($mappedHeaders), '');
+            }
+
+            $data = array_combine($mappedHeaders, array_slice($row, 0, count($mappedHeaders)));
+
+            $insertData = [];
+            $hasAnyData = false;
+
+            // ✅ Loop through all mapped headers
+            foreach ($mappedHeaders as $mappedHeader) {
+                // Skip if column doesn't exist in database
+                if (!in_array($mappedHeader, $tableColumns)) {
+                    continue;
+                }
+
+                if (isset($data[$mappedHeader]) && $data[$mappedHeader] !== null && trim($data[$mappedHeader]) !== '') {
+                    $value = trim($data[$mappedHeader]);
+                    $hasAnyData = true;
+                    
+                    // Handle date fields
+                    if ($mappedHeader === 'transaction_date') {
+                        $value = $this->convertExcelDate($value);
+                        if (!$value) {
+                            \Log::warning("Row $rowNum: Could not convert date: " . $data[$mappedHeader]);
+                            continue;
+                        }
+                    }
+                    // Clean numeric fields
+                    elseif ($mappedHeader === 'amount') {
+                        $hasParentheses = strpos($value, '(') !== false && strpos($value, ')') !== false;
+                        $value = str_replace(['(', ')', ',', ' ', '$'], '', $value);
+                        $value = is_numeric($value) ? (float) $value : 0;
+                        
+                        if ($hasParentheses) {
+                            $value = -abs($value);
+                        }
+                    }
+                    // Handle is_decrease boolean
+                    elseif ($mappedHeader === 'is_decrease') {
+                        $valueLower = strtolower(trim($value));
+                        $value = in_array($valueLower, ['yes', 'y', '1', 'true', 't']) ? 1 : 0;
+                    }
+                    
+                    $insertData[$mappedHeader] = $value;
+                }
+            }
+
+            // Set created_by if not provided
+            if (!isset($insertData['created_by'])) {
+                $insertData['created_by'] = auth()->user()->name ?? 'System';
+            }
+
+            if (!$hasAnyData) {
+                $skipped++;
+                continue;
+            }
+
+            try {
+                $adjustment = ArAdjustment::create($insertData);
+                $imported++;
+                
+            } catch (\Exception $e) {
+                $errors[] = "Row $rowNum: " . $e->getMessage();
+                \Log::error("Row $rowNum import failed", [
+                    'error' => $e->getMessage(),
+                    'data' => $insertData,
+                ]);
+            }
+        }
+
+        DB::commit();
+
+        $message = "Successfully imported $imported AR adjustment records!";
+        if ($skipped > 0) {
+            $message .= " ($skipped empty rows skipped)";
+        }
+
+        if (!empty($errors)) {
+            $errorMessage = implode("\n", array_slice($errors, 0, 10));
+            if (count($errors) > 10) {
+                $errorMessage .= "\n\n... and " . (count($errors) - 10) . " more errors. Check logs for details.";
+            }
+            
+            if ($imported > 0) {
+                return redirect()->back()->with('warning', "$message\n\nBut encountered " . count($errors) . " errors:\n\n" . $errorMessage);
+            }
+            return redirect()->back()->with('error', "Import failed with " . count($errors) . " errors:\n\n" . $errorMessage);
+        }
+
+        return redirect()->back()->with('success', $message);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('AR Adjustments import failed', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return redirect()->back()->with('error', 'Error importing file: ' . $e->getMessage());
+    }
+}
 }

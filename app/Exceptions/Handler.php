@@ -15,21 +15,6 @@ class Handler extends ExceptionHandler
         'password_confirmation',
     ];
 
-    /**
-     * Roles that should NOT see detailed error messages
-     */
-    protected $protectedRoles = [
-        'admin',
-        'cc_approver',
-        'cc_creator',
-        'accounting_creator',
-        'accounting_approver',
-        'delivery_creator',
-        'delivery_approver',
-        'csr_approver',
-        'csr_creator',
-    ];
-
     public function register(): void
     {
         $this->reportable(function (Throwable $e) {
@@ -42,33 +27,30 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $e)
     {
-        // Get the authenticated user
-        $user = auth()->user();
-        
-        // Always handle HTML requests with custom pages
+        // Only handle HTML requests with custom pages
         if ($request->expectsHtml()) {
+            $user = auth()->user();
             
-            // Check if user has a protected role
-            if ($user && in_array(strtolower($user->role), $this->protectedRoles)) {
-                // Show friendly error page
-                return response()->view('errors.500', [
-                    'timestamp' => now()->format('M d, Y H:i'),
-                    'errorId' => \Illuminate\Support\Str::random(8),
-                    'userRole' => $user->role, // For debugging
+            // IT users see detailed debug page
+            if ($user && strtoupper($user->role) === 'IT') {
+                return response()->view('errors.it-debug', [
+                    'exception' => $e,
                 ], 500);
             }
             
-            // Guest users also see friendly page
-            if (!$user) {
-                return response()->view('errors.500', [
-                    'timestamp' => now()->format('M d, Y H:i'),
-                    'errorId' => \Illuminate\Support\Str::random(8),
-                    'userRole' => 'Guest', // For debugging
+            // Admin users see detailed debug page
+            if ($user && strtoupper($user->role) === 'ADMIN') {
+                return response()->view('errors.it-debug', [
+                    'exception' => $e,
                 ], 500);
             }
             
-            // IT and other roles see detailed error
-            return parent::render($request, $e);
+            // Everyone else (including guests) sees friendly error page
+            return response()->view('errors.500', [
+                'timestamp' => now()->format('M d, Y H:i'),
+                'errorId' => \Illuminate\Support\Str::random(8),
+                'userRole' => $user->role ?? 'Guest',
+            ], 500);
         }
 
         return parent::render($request, $e);

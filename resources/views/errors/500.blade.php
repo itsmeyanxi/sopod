@@ -79,13 +79,12 @@
                 This is a temporary issue. Most problems resolve within a few minutes.
             </p>
         </div>
-        <!-- At the very bottom of errors/500.blade.php, add this: -->
-<div class="mt-6 bg-yellow-100 border border-yellow-400 rounded-lg p-4 text-center">
-    <p class="text-xs text-gray-700">
-        <strong>DEBUG:</strong> You're seeing this friendly page because your role is: 
-        <span class="font-bold text-red-600">{{ $userRole ?? 'Unknown' }}</span>
-    </p>
-</div>
+        <div class="mt-6 bg-yellow-100 border border-yellow-400 rounded-lg p-4 text-center">
+            <p class="text-xs text-gray-700">
+                <strong>DEBUG:</strong> You're seeing this friendly page because your role is: 
+                <span class="font-bold text-red-600">{{ $userRole ?? 'Unknown' }}</span>
+            </p>
+        </div>
     </div>
 </body>
 </html>

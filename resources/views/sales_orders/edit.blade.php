@@ -7,7 +7,6 @@
     </h1>
 
     @php
-        // ✅ NEW LOGIC: Check if delivery exists and is delivered
         $hasDelivery = $salesOrder->deliveries !== null;
         $isDelivered = false;
         $needsApproval = false;

@@ -80,77 +80,92 @@
     </div>
 
     <!-- 📦 Delivery Details -->
-    <div class="mb-8">
-        <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-1">Delivery Details</h3>
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-gray-400 text-sm">Approved By</label>
-                <input id="approved_by" type="text" 
-                       value="{{ auth()->user()->name }}" 
-                       class="w-full bg-gray-800 border border-gray-700 text-gray-300 rounded-md p-2" readonly>
-            </div>
+<div class="mb-8">
+    <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-1">Delivery Details</h3>
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-gray-400 text-sm">Approved By</label>
+            <input id="approved_by" type="text" 
+                   value="{{ auth()->user()->name }}" 
+                   class="w-full bg-gray-800 border border-gray-700 text-gray-300 rounded-md p-2" readonly>
+        </div>
 
-            @foreach([
-                'plate_no' => 'Plate No',
-                'sales_invoice_no' => 'Sales Invoice No (Optional)',
-                'dr_no' => 'DR No'
-            ] as $id => $label)
-                <div>
-                    <label class="block text-gray-400 text-sm">{{ $label }}</label>
-                    <input id="{{ $id }}" type="text"
-                        class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
-                        {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}
-                        placeholder="{{ $id === 'sales_invoice_no' ? 'Optional' : '' }}">
-                </div>
-            @endforeach
+        <div>
+            <label class="block text-gray-400 text-sm">Plate No</label>
+            <input id="plate_no" type="text"
+                class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
+                {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}>
+        </div>
 
-            {{-- ✅ NEW: Type of Delivery (Replaces Partial in Status) --}}
-            <div>
-                <label class="block text-gray-400 text-sm mb-1">Type of Delivery</label>
-                <select id="delivery_type"
-                        class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
-                        {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
-                    <option value="Full">Full Delivery</option>
-                    <option value="Partial">Partial Delivery</option>
-                </select>
-            </div>
+        <div>
+            <label class="block text-gray-400 text-sm">Sales Invoice No (Optional)</label>
+            <input id="sales_invoice_no" type="text"
+                class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
+                {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}
+                placeholder="Optional">
+        </div>
 
-            {{-- ✅ UPDATED: Status (Only Delivered or Cancelled) --}}
-            <div>
-                <label class="block text-gray-400 text-sm">Status</label>
-                <select id="status"
-                        class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
-                        {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                </select>
-            </div>
+        {{-- ✅ UPDATED: DR/RR Number (Dynamic based on status) --}}
+        <div>
+            <label class="block text-gray-400 text-sm">
+                <span id="dr_rr_label">DR No</span>
+            </label>
+            <input id="dr_no" type="text"
+                class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
+                {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}
+                placeholder="Will be auto-generated for Backload">
+            <p id="dr_rr_hint" class="text-xs text-gray-500 mt-1 hidden">
+                🔄 RR Number will be auto-generated when saving a Backload
+            </p>
+        </div>
 
-            <div>
-                <label class="block text-gray-400 text-sm">Attachment (Optional)</label>
-                <input id="attachment" type="file" accept="image/*,application/pdf"
-                       class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-500"
-                       {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
-                <p class="text-xs text-gray-500 mt-1">Upload an image or PDF file (JPG, PNG, PDF)</p>
-                <div id="current_attachment_container" class="mt-2 hidden">
-                    <a id="current_attachment_link" href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-                        </svg>
-                        <span id="current_attachment_name">View Current Attachment</span>
-                    </a>
-                </div>
-            </div>
+        {{-- ✅ NEW: Type of Delivery (Replaces Partial in Status) --}}
+        <div>
+            <label class="block text-gray-400 text-sm mb-1">Type of Delivery</label>
+            <select id="delivery_type"
+                    class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
+                    {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
+                <option value="Full">Full Delivery</option>
+                <option value="Partial">Partial Delivery</option>
+            </select>
+        </div>
 
-            <div class="col-span-2">
-                <label class="block text-gray-400 text-sm">Additional Instructions</label>
-                <textarea id="additional_instructions" readonly
-                        class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2" rows="3"></textarea>
+        {{-- ✅ UPDATED: Status (Delivered, Cancelled, or Backload) --}}
+        <div>
+            <label class="block text-gray-400 text-sm">Status</label>
+            <select id="status"
+                    class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
+                    {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Backload">Backload</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-gray-400 text-sm">Attachment (Optional)</label>
+            <input id="attachment" type="file" accept="image/*,application/pdf"
+                   class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-500"
+                   {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
+            <p class="text-xs text-gray-500 mt-1">Upload an image or PDF file (JPG, PNG, PDF)</p>
+            <div id="current_attachment_container" class="mt-2 hidden">
+                <a id="current_attachment_link" href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                    </svg>
+                    <span id="current_attachment_name">View Current Attachment</span>
+                </a>
             </div>
         </div>
-    </div>
 
-    
+        <div class="col-span-2">
+            <label class="block text-gray-400 text-sm">Additional Instructions</label>
+            <textarea id="additional_instructions" readonly
+                    class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2" rows="3"></textarea>
+        </div>
+    </div>
+</div>
+
 <!-- 📋 Delivery Items Section - REDESIGNED -->
 <div class="mb-8">
     <div class="flex justify-between items-center mb-4">
@@ -187,10 +202,71 @@ const baseUpdateUrl = "{{ url('/deliveries') }}";
 const deliveriesIndexUrl = "{{ route('deliveries.index') }}";
 let deliveryId = null;
 let selectedBatch = null;
+let lastSearchResult = null;
 
 const attachmentContainer = document.getElementById("current_attachment_container");
 const attachmentLink = document.getElementById("current_attachment_link");
 const attachmentName = document.getElementById("current_attachment_name");
+
+// =====================================================
+// BACKLOAD STATUS HANDLING
+// =====================================================
+
+// Listen for status changes to update DR/RR field
+// ✅ UPDATED: Listen for status changes to update DR/RR field AND reload items
+document.getElementById("status").addEventListener("change", function() {
+    const status = this.value;
+    const drInput = document.getElementById("dr_no");
+    const drLabel = document.getElementById("dr_rr_label");
+    const drHint = document.getElementById("dr_rr_hint");
+    
+    if (status === "Backload") {
+        // Change to RR Number
+        drLabel.textContent = "RR No (Auto-generated)";
+        drInput.placeholder = "Will be auto-generated for Backload";
+        drInput.readOnly = true;
+        drInput.value = "";
+        drHint.classList.remove("hidden");
+        
+        // ✅ Re-render items if they exist to show checkboxes
+        const container = document.getElementById('delivery-items-container');
+        const hasItems = container.children.length > 0;
+        
+        if (hasItems && lastSearchResult) {
+            console.log('🔄 Reloading items for Backload mode...');
+            populateItemsTable(lastSearchResult.items, lastSearchResult.is_view_only);
+            
+            Swal.fire({
+                icon: 'info',
+                title: 'Backload Mode Enabled',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-2">Items have been reloaded with backload selection.</p>
+                        <p class="text-sm text-gray-600">✓ Check the items you want to include in the backload</p>
+                        <p class="text-sm text-gray-600">✓ Short-delivered items are pre-selected</p>
+                    </div>
+                `,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+    } else {
+        // Back to DR Number
+        drLabel.textContent = "DR No";
+        drInput.placeholder = "";
+        drInput.readOnly = !canManageDeliveries;
+        drHint.classList.add("hidden");
+        
+        // ✅ Re-render items to remove checkboxes
+        const container = document.getElementById('delivery-items-container');
+        const hasItems = container.children.length > 0;
+        
+        if (hasItems && lastSearchResult) {
+            console.log('🔄 Reloading items for normal delivery mode...');
+            populateItemsTable(lastSearchResult.items, lastSearchResult.is_view_only);
+        }
+    }
+});
 
 // =====================================================
 // UTILITY FUNCTIONS
@@ -361,15 +437,23 @@ function populateItemsTable(items, isViewOnly = false) {
     const container = document.getElementById('delivery-items-container');
     container.innerHTML = ''; // Clear existing items
     
+    // ✅ Get current status to determine if we should show backload checkboxes
+    const status = document.getElementById('status')?.value || 'Delivered';
+    const isBackloadMode = status === 'Backload';
+    
     if (items && items.length > 0) {
-        console.log(`📋 Loading ${items.length} items (view-only: ${isViewOnly})`);
+        console.log(`📋 Loading ${items.length} items (view-only: ${isViewOnly}, backload: ${isBackloadMode})`);
         
         items.forEach((item, index) => {
             const originalQty = item.original_quantity || item.quantity;
             const deliveredQty = item.quantity || 0;
             const alreadyDelivered = item.already_delivered || 0;
             const remaining = item.remaining_quantity || 0;
-            const isHidden = item.is_hidden || false; // ✅ NEW: Check if item should be hidden
+            const isHidden = item.is_hidden || false;
+            
+            // ✅ Calculate if this item is short-delivered
+            const isShortDelivered = deliveredQty < originalQty;
+            const shortage = originalQty - deliveredQty;
             
             const itemCard = document.createElement('div');
             itemCard.className = 'delivery-item-card border border-gray-700 rounded-lg p-4 bg-gray-800/50 hover:bg-gray-800/70 transition-colors';
@@ -377,7 +461,6 @@ function populateItemsTable(items, isViewOnly = false) {
             itemCard.setAttribute('data-already-delivered', alreadyDelivered);
             itemCard.setAttribute('data-index', index);
             
-            // ✅ NEW: Mark card as hidden if quantity is 0 (was removed)
             if (isHidden) {
                 itemCard.setAttribute('data-hidden', 'true');
                 itemCard.style.display = 'none';
@@ -405,28 +488,36 @@ function populateItemsTable(items, isViewOnly = false) {
             const inputReadonly = (isViewOnly || !canManageDeliveries) ? 'readonly' : '';
             const inputDisabled = (isViewOnly || !canManageDeliveries) ? 'disabled' : '';
             
-           itemCard.innerHTML = `
-            <div class="flex justify-between items-start mb-4">
-                <h4 class="text-sm font-semibold text-gray-300">Item #${index + 1}</h4>
-                ${!isViewOnly && canManageDeliveries ? `
-                <button type="button" onclick="removeDeliveryItem(this)" 
-                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-all flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    Remove
-                </button>
-                ` : ''}
-            </div>
+            itemCard.innerHTML = `
+    <div class="flex justify-between items-start mb-4">
+        <h4 class="text-sm font-semibold text-gray-300">Item #${index + 1}</h4>
+        <div class="flex items-center gap-2">
+            ${status === 'Backload' && !isViewOnly && canManageDeliveries ? `
+            <label class="flex items-center gap-2 text-xs text-orange-400 bg-orange-900/20 px-3 py-1 rounded border border-orange-700">
+                <input type="checkbox" class="backload-checkbox w-4 h-4" checked>
+                <span>Include in Backload</span>
+            </label>
+            ` : ''}
+            ${!isViewOnly && canManageDeliveries ? `
+            <button type="button" onclick="removeDeliveryItem(this)" 
+                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-all flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                Remove
+            </button>
+            ` : ''}
+        </div>
+    </div>
 
-            <!-- ✅ ADD THESE HIDDEN INPUTS -->
-            <input type="hidden" class="data-item-code" value="${item.item_code || ''}">
-            <input type="hidden" class="data-item-description" value="${item.item_description || ''}">
-            <input type="hidden" class="data-brand" value="${item.brand || ''}">
-            <input type="hidden" class="data-item-category" value="${item.item_category || ''}">
+    <!-- ✅ ADD THESE HIDDEN INPUTS -->
+    <input type="hidden" class="data-item-code" value="${item.item_code || ''}">
+    <input type="hidden" class="data-item-description" value="${item.item_description || ''}">
+    <input type="hidden" class="data-brand" value="${item.brand || ''}">
+    <input type="hidden" class="data-item-category" value="${item.item_category || ''}">
 
-            <!-- Item Details Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                <!-- Item Details Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Item Code</label>
                         <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm font-mono">
@@ -704,6 +795,8 @@ document.getElementById("search_btn").addEventListener("click", async () => {
 
         const data = await response.json();
         Swal.close();
+
+        lastSearchResult = data;
 
         // ✅ Handle errors with specific messages for rejected/cancelled/delivered
         if (!response.ok) {
@@ -993,24 +1086,84 @@ if (canManageDeliveries) {
             return; 
         }
 
+        const status = document.getElementById("status").value;
         const drNo = document.getElementById("dr_no").value.trim();
         
-        if (!deliveryId && !drNo) {
+        // ✅ Different validation for Backload vs regular delivery
+        if (!deliveryId && status !== "Backload" && !drNo) {
             Swal.fire("Required Field", "Please enter a DR Number before saving.", "warning");
             return;
         }
 
-        // ✅ FIXED: Check for variances using ALL CARDS (including hidden ones)
+        // ✅ UPDATED: Check for backload items selection
+        if (status === "Backload") {
+            const container = document.getElementById("delivery-items-container");
+            const cards = container.querySelectorAll('.delivery-item-card:not([data-hidden="true"])');
+            const checkedBackloadItems = Array.from(cards).filter(card => {
+                const checkbox = card.querySelector('.backload-checkbox');
+                return checkbox && checkbox.checked;
+            });
+
+            if (checkedBackloadItems.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Items Selected',
+                    text: 'Please select at least one item to include in the backload.',
+                });
+                return;
+            }
+
+            // ✅ Show selected items in confirmation
+            let itemsList = '<ul class="text-sm text-left mt-2 space-y-1">';
+            checkedBackloadItems.forEach(card => {
+                const itemCode = card.querySelector('.data-item-code')?.value || 'Unknown';
+                const qtyInput = card.querySelector('.delivered-qty-input');
+                const qty = parseFloat(qtyInput?.value) || 0;
+                const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
+                const shortage = originalQty - qty;
+                
+                itemsList += `<li class="text-orange-300">• <strong>${itemCode}</strong>: Shortage of <span class="text-red-400">${shortage.toFixed(2)}</span> (Delivered: ${qty.toFixed(2)} / Required: ${originalQty})</li>`;
+            });
+            itemsList += '</ul>';
+
+            const result = await Swal.fire({
+                icon: 'question',
+                title: '🔄 Create Backload Entry?',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-3">This will create a <strong class="text-blue-600">Receiving Report (RR)</strong> for the following short-delivered items:</p>
+                        ${itemsList}
+                        <div class="bg-blue-900/20 border border-blue-700 rounded p-3 mt-3 mb-3">
+                            <p class="text-sm text-blue-300 mb-2"><strong>What happens:</strong></p>
+                            <ul class="text-sm text-gray-300 space-y-1 ml-4">
+                                <li>✓ RR Number auto-generated (e.g., RR-2026-001)</li>
+                                <li>✓ Only selected items will be included</li>
+                                <li>✓ Saved to <strong>Receiving Reports</strong> module</li>
+                                <li>✓ Tracks shortage quantities</li>
+                            </ul>
+                        </div>
+                        <p class="text-sm text-gray-500">Continue with backload creation?</p>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Create Backload',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#2563eb',
+                width: '600px'
+            });
+            
+            if (!result.isConfirmed) return;
+        }
+        
+        // ... rest of variance checks (skip for Backload)
+        
         const container = document.getElementById("delivery-items-container");
-        const cards = container.querySelectorAll('.delivery-item-card'); // ✅ Get ALL cards, not just visible
+        const cards = container.querySelectorAll('.delivery-item-card');
         let hasUnderDelivery = false;
         let hasOverDelivery = false;
         
         cards.forEach(card => {
-            // ✅ Skip hidden items for variance check
-            if (card.getAttribute('data-hidden') === 'true') {
-                return;
-            }
+            if (card.getAttribute('data-hidden') === 'true') return;
             
             const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
             const qtyInput = card.querySelector('.delivered-qty-input');
@@ -1023,8 +1176,8 @@ if (canManageDeliveries) {
             if (variance > 0) hasOverDelivery = true;
         });
         
-        // Confirm over-delivery if detected
-        if (hasOverDelivery) {
+        // Skip variance confirmations for Backload
+        if (hasOverDelivery && status !== "Backload") {
             const result = await Swal.fire({
                 icon: 'warning',
                 title: 'Over-Delivery Detected',
@@ -1042,8 +1195,7 @@ if (canManageDeliveries) {
             if (!result.isConfirmed) return;
         }
         
-        // Confirm under-delivery if detected
-        if (hasUnderDelivery) {
+        if (hasUnderDelivery && status !== "Backload") {
             const result = await Swal.fire({
                 icon: 'warning',
                 title: 'Partial Delivery Confirmation',
@@ -1066,7 +1218,8 @@ if (canManageDeliveries) {
             sales_order_number: document.getElementById("sales_order_number").value.trim(),
             delivery_batch: document.getElementById("delivery_batch").value.trim() || null,
             delivery_type: document.getElementById("delivery_type").value,
-            dr_no: drNo,
+            dr_no: status === "Backload" ? null : drNo,
+            customer_code: document.getElementById("customer_code").value.trim() || null,
             customer_name: document.getElementById("customer_name").value.trim() || null,
             tin_no: document.getElementById("tin_no").value.trim() || null,
             branch: document.getElementById("branch").value.trim() || null,
@@ -1077,54 +1230,63 @@ if (canManageDeliveries) {
             plate_no: document.getElementById("plate_no").value.trim() || null,
             sales_invoice_no: document.getElementById("sales_invoice_no").value.trim() || null,
             approved_by: document.getElementById("approved_by").value.trim() || null,
-            status: document.getElementById("status").value,
+            status: status,
             additional_instructions: document.getElementById("additional_instructions").value.trim() || null,
             items: []
         };
 
-cards.forEach(card => {
-    // ✅ Get values from hidden inputs (RELIABLE METHOD)
-    const itemCode = card.querySelector('.data-item-code')?.value || '';
-    const itemDesc = card.querySelector('.data-item-description')?.value || '';
-    const brand = card.querySelector('.data-brand')?.value || '';
-    const itemCategory = card.querySelector('.data-item-category')?.value || '';
-    
-    // Get inputs
-    const deliveredQtyInput = card.querySelector('.delivered-qty-input');
-    const amountInput = card.querySelector('.amount-input');
-    const notesInput = card.querySelector('.notes-input');
-    const priceCell = card.querySelector('.price-cell');
-    
-    // Get UOM
-    const uomDivs = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.text-center');
-    
-    const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
-    const deliveredQty = parseFloat(deliveredQtyInput?.value) || 0;
-    const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
-    
-    // Calculate remaining (total delivered from all batches)
-    const totalDelivered = alreadyDelivered + deliveredQty;
-    const calculatedRemaining = originalQty - totalDelivered;
-    const remainingQty = calculatedRemaining < 0 ? 0 : calculatedRemaining;
-    
-    payload.items.push({
-        item_code: itemCode, 
-        item_description: itemDesc,  
-        brand: brand,  
-        item_category: itemCategory, 
-        quantity: deliveredQty,
-        original_quantity: originalQty,
-        remaining_quantity: remainingQty,
-        uom: uomDivs[0]?.textContent.trim() || 'Kgs',
-        unit_price: parseFloat(priceCell?.textContent.trim()) || 0,
-        total_amount: parseFloat(amountInput?.value) || 0,
-        notes: notesInput?.value || ''
-    });
-});
+        // ✅ UPDATED: Only include checked items for Backload
+        cards.forEach(card => {
+            // Skip hidden items
+            if (card.getAttribute('data-hidden') === 'true') return;
+            
+            // ✅ For Backload: only include checked items
+            if (status === 'Backload') {
+                const checkbox = card.querySelector('.backload-checkbox');
+                if (!checkbox || !checkbox.checked) return; // Skip unchecked items
+            }
+            
+            const itemCode = card.querySelector('.data-item-code')?.value || '';
+            const itemDesc = card.querySelector('.data-item-description')?.value || '';
+            const brand = card.querySelector('.data-brand')?.value || '';
+            const itemCategory = card.querySelector('.data-item-category')?.value || '';
+            
+            const deliveredQtyInput = card.querySelector('.delivered-qty-input');
+            const amountInput = card.querySelector('.amount-input');
+            const notesInput = card.querySelector('.notes-input');
+            const priceCell = card.querySelector('.price-cell');
+            
+            const uomDivs = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.text-center');
+            
+            const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
+            const deliveredQty = parseFloat(deliveredQtyInput?.value) || 0;
+            const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
+            
+            const totalDelivered = alreadyDelivered + deliveredQty;
+            const calculatedRemaining = originalQty - totalDelivered;
+            const remainingQty = calculatedRemaining < 0 ? 0 : calculatedRemaining;
+            
+            // ✅ For backload: calculate shortage quantity
+            const shortageQty = status === 'Backload' ? (originalQty - deliveredQty) : 0;
+            
+            payload.items.push({
+                item_code: itemCode, 
+                item_description: itemDesc,  
+                brand: brand,  
+                item_category: itemCategory, 
+                quantity: status === 'Backload' ? shortageQty : deliveredQty, // ✅ Use shortage for backload
+                original_quantity: originalQty,
+                remaining_quantity: remainingQty,
+                uom: uomDivs[0]?.textContent.trim() || 'Kgs',
+                unit_price: parseFloat(priceCell?.textContent.trim()) || 0,
+                total_amount: status === 'Backload' ? (shortageQty * (parseFloat(priceCell?.textContent.trim()) || 0)) : parseFloat(amountInput?.value) || 0,
+                notes: notesInput?.value || ''
+            });
+        });
 
         try {
             Swal.fire({
-                title: 'Saving...',
+                title: status === "Backload" ? 'Creating Backload...' : 'Saving...',
                 text: 'Please wait',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading()
@@ -1158,13 +1320,36 @@ cards.forEach(card => {
             Swal.close();
 
             if(response.ok && data.success){
+                let successTitle = deliveryId ? 'Updated!' : 'Created!';
+                let successMessage = data.message || 'Delivery saved successfully!';
+                
+                if (status === "Backload" && data.rr_number) {
+                    successTitle = '🔄 Backload Created!';
+                    successMessage = `
+                        <div class="text-left">
+                            <p class="mb-2">Receiving Report created successfully!</p>
+                            <div class="bg-blue-900/20 border border-blue-700 rounded p-3 mt-3">
+                                <p class="text-sm text-blue-300">RR Number: <strong class="text-blue-400">${data.rr_number}</strong></p>
+                                <p class="text-sm text-gray-400 mt-1">Items: <strong>${data.items_count || 0}</strong> short-delivered item(s)</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
                 Swal.fire({
-                    icon:'success',
-                    title: deliveryId ? 'Updated!' : 'Created!',
-                    html: data.message || 'Delivery saved successfully!',
-                    showConfirmButton:false,
-                    timer:2000
-                }).then(() => window.location.href = deliveriesIndexUrl);
+                    icon: 'success',
+                    title: successTitle,
+                    html: successMessage,
+                    showConfirmButton: true,
+                    confirmButtonText: status === "Backload" ? 'View Receiving Reports' : 'OK',
+                    timer: status === "Backload" ? undefined : 2000
+                }).then(() => {
+                    if (status === "Backload" && data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.href = deliveriesIndexUrl;
+                    }
+                });
             } else {
                 let errorText = data.message || "Something went wrong.";
                 if(data.errors) {

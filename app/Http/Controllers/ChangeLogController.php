@@ -44,9 +44,7 @@ class ChangeLogController extends Controller
 
     // View changes for specific sales order
     public function salesOrderChanges($id)
-    {
-        // Authorization is already handled in routes - no need for additional check
-        
+    {        
         $salesOrder = SalesOrder::findOrFail($id);
         $changes = SalesOrderChange::where('sales_order_id', $id)
             ->with('user')

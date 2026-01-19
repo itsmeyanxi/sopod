@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\RoleHelper;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\DB;  
+use Illuminate\Support\Facades\Log;
 
 class CustomerController extends Controller
 {
@@ -108,6 +110,11 @@ class CustomerController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+        public function arProfile()
+    {
+        return view('customers.ar_profile');
     }
 
     // Save new customer to database
@@ -291,7 +298,6 @@ class CustomerController extends Controller
         return redirect()->back()->with('success', 'Customer status updated successfully!');
     }
 
-    // ✅ NEW: Toggle customer flag status (CC_Approver only)
     public function toggleFlag($id)
     {
         // Check if user is CC_Approver
@@ -318,4 +324,454 @@ class CustomerController extends Controller
 
         return redirect()->back()->with('success', "Customer {$flagStatus} successfully!");
     }
+
+ /**
+ * ✅ STEP 1: Add this method to your CustomerController.php or create a new FixController
+ * This will populate missing customer_code in ar_adjustments by matching customer_name
+ */
+
+public function fixAdjustmentsCustomerCodes()
+{
+    try {
+        DB::beginTransaction();
+        
+        $fixed = 0;
+        $failed = 0;
+        $results = [];
+        
+        // Get all adjustments with NULL or empty customer_code
+        $adjustments = DB::table('ar_adjustments')
+            ->whereNull('customer_code')
+            ->orWhere('customer_code', '')
+            ->get();
+        
+        Log::info("🔍 Found {$adjustments->count()} adjustments with missing customer_code");
+        
+        foreach ($adjustments as $adjustment) {
+            $customerCode = null;
+            $customerName = null;
+            $matchStrategy = null;
+            
+            // Strategy 1: Match by DR number first (PRIORITY - since most have this)
+            if (!empty($adjustment->dr_no)) {
+                $delivery = DB::table('deliveries')
+                    ->where('dr_no', $adjustment->dr_no)
+                    ->first();
+                
+                if ($delivery && !empty($delivery->customer_code)) {
+                    $customerCode = $delivery->customer_code;
+                    $matchStrategy = 'DR number match from deliveries';
+                    
+                    // Get customer name too
+                    $customer = DB::table('customers')
+                        ->where('customer_code', $customerCode)
+                        ->first();
+                    
+                    if ($customer) {
+                        $customerName = $customer->customer_name;
+                    }
+                }
+            }
+            
+            // Strategy 2: Match by invoice_number in ar_aging
+            if (!$customerCode && !empty($adjustment->invoice_number)) {
+                $arRecord = DB::table('ar_aging')
+                    ->where('invoice_no', $adjustment->invoice_number)
+                    ->first();
+                
+                if ($arRecord && !empty($arRecord->customer_code)) {
+                    $customerCode = $arRecord->customer_code;
+                    $customerName = $arRecord->client_name ?? null;
+                    $matchStrategy = 'Invoice match from ar_aging';
+                }
+            }
+            
+            // Strategy 3: Match by customer_name from customers table
+            if (!$customerCode && !empty($adjustment->customer_name)) {
+                // Try exact match first
+                $customer = DB::table('customers')
+                    ->where('customer_name', $adjustment->customer_name)
+                    ->first();
+                
+                if ($customer) {
+                    $customerCode = $customer->customer_code;
+                    $customerName = $customer->customer_name;
+                    $matchStrategy = 'Exact customer_name match';
+                } else {
+                    // Try LIKE match (fuzzy)
+                    $customer = DB::table('customers')
+                        ->where('customer_name', 'LIKE', '%' . trim($adjustment->customer_name) . '%')
+                        ->first();
+                    
+                    if ($customer) {
+                        $customerCode = $customer->customer_code;
+                        $customerName = $customer->customer_name;
+                        $matchStrategy = 'Fuzzy customer_name match';
+                    }
+                }
+            }
+            
+            // Update if we found a match
+            if ($customerCode) {
+                DB::table('ar_adjustments')
+                    ->where('id', $adjustment->id)
+                    ->update([
+                        'customer_code' => $customerCode,
+                        'customer_name' => $customerName, // Also update customer_name
+                        'updated_at' => now()
+                    ]);
+                
+                $fixed++;
+                $results[] = [
+                    'id' => $adjustment->id,
+                    'reference' => $adjustment->reference_number,
+                    'customer_name' => $adjustment->customer_name,
+                    'matched_code' => $customerCode,
+                    'strategy' => $matchStrategy,
+                    'status' => 'FIXED ✅'
+                ];
+                
+                Log::info("✅ Fixed adjustment #{$adjustment->id}: {$adjustment->reference_number} -> {$customerCode} ({$matchStrategy})");
+            } else {
+                $failed++;
+                $results[] = [
+                    'id' => $adjustment->id,
+                    'reference' => $adjustment->reference_number,
+                    'customer_name' => $adjustment->customer_name,
+                    'matched_code' => null,
+                    'strategy' => 'No match found',
+                    'status' => 'FAILED ❌'
+                ];
+                
+                Log::warning("❌ Could not match adjustment #{$adjustment->id}: {$adjustment->reference_number}");
+            }
+        }
+        
+        DB::commit();
+        
+        $summary = [
+            'total_adjustments' => $adjustments->count(),
+            'fixed' => $fixed,
+            'failed' => $failed,
+            'success_rate' => $adjustments->count() > 0 ? round(($fixed / $adjustments->count()) * 100, 2) . '%' : '0%'
+        ];
+        
+        Log::info('🎯 Fix Summary', $summary);
+        
+        return response()->json([
+            'success' => true,
+            'message' => "Fixed {$fixed} adjustments, {$failed} could not be matched",
+            'summary' => $summary,
+            'details' => $results
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('❌ Failed to fix adjustment customer codes', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+public function fixAdjustmentsViaArAging()
+{
+    try {
+        DB::beginTransaction();
+        
+        $fixed = 0;
+        $failed = 0;
+        $results = [];
+        
+        // Get all adjustments with NULL customer_code
+        $adjustments = DB::table('ar_adjustments')
+            ->whereNull('customer_code')
+            ->orWhere('customer_code', '')
+            ->get();
+        
+        Log::info("🔍 Found {$adjustments->count()} adjustments to fix");
+        
+        foreach ($adjustments as $adjustment) {
+            $customerCode = null;
+            $customerName = null;
+            $matchStrategy = null;
+            
+            // Strategy 1: Match by DR number in ar_aging table
+            if (!empty($adjustment->dr_no)) {
+                $arRecord = DB::table('ar_aging')
+                    ->where('dr_no', $adjustment->dr_no)
+                    ->first();
+                
+                if ($arRecord && !empty($arRecord->customer_code)) {
+                    $customerCode = $arRecord->customer_code;
+                    $customerName = $arRecord->client_name ?? null;
+                    $matchStrategy = 'DR number match from ar_aging';
+                }
+            }
+            
+            // Strategy 2: Match by invoice_number in ar_aging
+            if (!$customerCode && !empty($adjustment->invoice_number)) {
+                $arRecord = DB::table('ar_aging')
+                    ->where('invoice_no', $adjustment->invoice_number)
+                    ->first();
+                
+                if ($arRecord && !empty($arRecord->customer_code)) {
+                    $customerCode = $arRecord->customer_code;
+                    $customerName = $arRecord->client_name ?? null;
+                    $matchStrategy = 'Invoice number match from ar_aging';
+                }
+            }
+            
+            // Strategy 3: Match by reference_number pattern (CM-YYYY-XXXX might contain invoice info)
+            if (!$customerCode && !empty($adjustment->reference_number)) {
+                // Try to extract any numbers that might be invoice-related
+                // This is a fallback strategy
+                $matchStrategy = 'Reference number (no match)';
+            }
+            
+            // Update if we found a match
+            if ($customerCode) {
+                DB::table('ar_adjustments')
+                    ->where('id', $adjustment->id)
+                    ->update([
+                        'customer_code' => $customerCode,
+                        'customer_name' => $customerName,
+                        'updated_at' => now()
+                    ]);
+                
+                $fixed++;
+                $results[] = [
+                    'id' => $adjustment->id,
+                    'dr_no' => $adjustment->dr_no,
+                    'reference' => $adjustment->reference_number,
+                    'matched_code' => $customerCode,
+                    'matched_name' => $customerName,
+                    'strategy' => $matchStrategy,
+                    'status' => 'FIXED ✅'
+                ];
+                
+                Log::info("✅ Fixed adjustment #{$adjustment->id}: DR {$adjustment->dr_no} -> {$customerCode}");
+            } else {
+                $failed++;
+                $results[] = [
+                    'id' => $adjustment->id,
+                    'dr_no' => $adjustment->dr_no,
+                    'reference' => $adjustment->reference_number,
+                    'matched_code' => null,
+                    'matched_name' => null,
+                    'strategy' => 'No match found',
+                    'status' => 'FAILED ❌'
+                ];
+            }
+        }
+        
+        DB::commit();
+        
+        $summary = [
+            'total_adjustments' => $adjustments->count(),
+            'fixed' => $fixed,
+            'failed' => $failed,
+            'success_rate' => $adjustments->count() > 0 ? round(($fixed / $adjustments->count()) * 100, 2) . '%' : '0%'
+        ];
+        
+        Log::info('🎯 Fix Summary', $summary);
+        
+        return response()->json([
+            'success' => true,
+            'message' => "Fixed {$fixed} adjustments, {$failed} could not be matched",
+            'summary' => $summary,
+            'details' => $results
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('❌ Failed to fix adjustments', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+public function diagnosticAdjustments()
+{
+    $adjustmentsWithoutCode = DB::table('ar_adjustments')
+        ->whereNull('customer_code')
+        ->orWhere('customer_code', '')
+        ->get();
+    
+    $adjustmentsWithCode = DB::table('ar_adjustments')
+        ->whereNotNull('customer_code')
+        ->where('customer_code', '!=', '')
+        ->get();
+    
+    // Check DR number matches
+    $drNumbers = DB::table('ar_adjustments')
+        ->whereNull('customer_code')
+        ->whereNotNull('dr_no')
+        ->select('dr_no')
+        ->distinct()
+        ->limit(10)
+        ->pluck('dr_no');
+    
+    $drMatchAttempts = [];
+    foreach ($drNumbers as $drNo) {
+        $delivery = DB::table('deliveries')
+            ->where('dr_no', $drNo)
+            ->first();
+        
+        $drMatchAttempts[] = [
+            'dr_no' => $drNo,
+            'found_in_deliveries' => $delivery ? 'Yes ✅' : 'No ❌',
+            'customer_code' => $delivery->customer_code ?? 'N/A',
+        ];
+    }
+    
+    // Sample adjustments breakdown
+    $withDR = DB::table('ar_adjustments')
+        ->whereNull('customer_code')
+        ->whereNotNull('dr_no')
+        ->count();
+    
+    $withInvoice = DB::table('ar_adjustments')
+        ->whereNull('customer_code')
+        ->whereNotNull('invoice_number')
+        ->count();
+    
+    $withCustomerName = DB::table('ar_adjustments')
+        ->whereNull('customer_code')
+        ->whereNotNull('customer_name')
+        ->count();
+    
+    return response()->json([
+        'summary' => [
+            'total_adjustments' => DB::table('ar_adjustments')->count(),
+            'without_customer_code' => $adjustmentsWithoutCode->count(),
+            'with_customer_code' => $adjustmentsWithCode->count(),
+            'percentage_missing' => round(($adjustmentsWithoutCode->count() / DB::table('ar_adjustments')->count()) * 100, 2) . '%'
+        ],
+        'matching_potential' => [
+            'have_dr_no' => $withDR . ' adjustments',
+            'have_invoice_number' => $withInvoice . ' adjustments',
+            'have_customer_name' => $withCustomerName . ' adjustments',
+        ],
+        'dr_number_test' => [
+            'sample_dr_numbers_tested' => $drNumbers->count(),
+            'matches' => $drMatchAttempts
+        ],
+        'sample_adjustments_without_code' => $adjustmentsWithoutCode->take(5),
+        'sample_adjustments_with_code' => $adjustmentsWithCode->take(5),
+    ]);
+}
+
+/**
+ * ✅ DIAGNOSTIC: Check if DR numbers exist in ar_aging table
+ */
+public function diagnosticArAgingMatch()
+{
+    // Get sample DR numbers from adjustments
+    $sampleDRs = DB::table('ar_adjustments')
+        ->whereNull('customer_code')
+        ->whereNotNull('dr_no')
+        ->select('dr_no', 'reference_number')
+        ->distinct()
+        ->limit(20)
+        ->get();
+    
+    $matchResults = [];
+    $totalMatches = 0;
+    
+    foreach ($sampleDRs as $adj) {
+        $arRecord = DB::table('ar_aging')
+            ->where('dr_no', $adj->dr_no)
+            ->first();
+        
+        if ($arRecord) {
+            $totalMatches++;
+        }
+        
+        $matchResults[] = [
+            'adjustment_dr_no' => $adj->dr_no,
+            'adjustment_reference' => $adj->reference_number,
+            'found_in_ar_aging' => $arRecord ? 'Yes ✅' : 'No ❌',
+            'customer_code' => $arRecord->customer_code ?? 'N/A',
+            'customer_name' => $arRecord->client_name ?? 'N/A',
+        ];
+    }
+    
+    return response()->json([
+        'summary' => [
+            'total_adjustments_checked' => $sampleDRs->count(),
+            'matches_found' => $totalMatches,
+            'match_rate' => round(($totalMatches / $sampleDRs->count()) * 100, 2) . '%'
+        ],
+        'sample_matches' => $matchResults,
+        'recommendation' => $totalMatches > 0 
+            ? "✅ Great! Found {$totalMatches} matches. Run the fix at /fix-adjustments-via-ar-aging"
+            : "❌ No matches found. DR numbers in adjustments don't exist in ar_aging table. Use bulk assign instead."
+    ]);
+}
+
+/**
+ * ✅ BULK ASSIGN: Assign all adjustments to one customer
+ */
+public function bulkAssignCustomer(Request $request)
+{
+    $customerCode = $request->input('customer_code');
+    
+    if (!$customerCode) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Customer code is required'
+        ], 400);
+    }
+    
+    $customer = DB::table('customers')
+        ->where('customer_code', $customerCode)
+        ->first();
+    
+    if (!$customer) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Customer not found'
+        ], 404);
+    }
+    
+    try {
+        DB::beginTransaction();
+        
+        $updated = DB::table('ar_adjustments')
+            ->whereNull('customer_code')
+            ->orWhere('customer_code', '')
+            ->update([
+                'customer_code' => $customerCode,
+                'customer_name' => $customer->customer_name,
+                'updated_at' => now()
+            ]);
+        
+        DB::commit();
+        
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully assigned {$updated} adjustments to {$customer->customer_name}",
+            'updated_count' => $updated
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }
