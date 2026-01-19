@@ -157,7 +157,7 @@ class CustomerController extends Controller
         $customer = Customer::create($validated);
 
         // ✅ Send email notification
-        app(\App\Services\NotificationService::class)->notifyNewItem($customer);
+        // app(\App\Services\NotificationService::class)->notifyNewItem($customer);
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
