@@ -143,17 +143,19 @@ class ExcelImportController extends Controller
     'payment date' => 'payment_date',
     'payment_date' => 'payment_date',
     'paymentdate' => 'payment_date',
-    'deposit date' => 'payment_date', 
-    'deposit_date' => 'payment_date',
-    'depositdate' => 'payment_date',
-    
+
+    'deposit date' => 'deposit_date',
+    'deposit_date' => 'deposit_date',
+    'depositdate' => 'deposit_date',
+
     // Amount fields
     'amount' => 'amount',
     'payment amount' => 'amount',
     'payment_amount' => 'amount',
-    'gross amount' => 'amount', 
-    'gross_amount' => 'amount',
-    'grossamount' => 'amount',
+
+    'gross amount' => 'gross_amount',
+    'gross_amount' => 'gross_amount',
+    'grossamount' => 'gross_amount',
     
     'payment option' => 'payment_option',
     'payment_option' => 'payment_option',
@@ -1149,11 +1151,12 @@ private $arAdjustmentColumnMap = [
             $allFields = [
                 'customer_code', 'customer_name', 'collection_receipt_number',
                 'collection_receipt_date', 'payment_posting_date', 'payment_date',
-                'amount', 'payment_option', 'tax', 'ewt', 'net_of_cwt',
-                'payment_notes', 'created_by', 'payment_method', 'bank',
-                'reference_no', 'remarks', 'invoice_no', 'dr_no', 'branch',
-                'status', 'signed_by', 'other_adjustment', 'factoring',
-                'check_amount', 'checking_si', 'week_no', 'ar_class', 'data_check'
+                'deposit_date', 'amount', 'gross_amount', 'payment_option',
+                'tax', 'ewt', 'net_of_cwt', 'payment_notes', 'created_by',
+                'payment_method', 'bank', 'reference_no', 'remarks',
+                'invoice_no', 'dr_no', 'branch', 'status', 'signed_by',
+                'other_adjustment', 'factoring', 'check_amount', 'checking_si',
+                'week_no', 'ar_class', 'data_check'
             ];
 
             foreach ($allFields as $field) {
@@ -1162,7 +1165,7 @@ private $arAdjustmentColumnMap = [
                     $hasAnyData = true;
                     
                     // Handle date fields
-                    if (in_array($field, ['collection_receipt_date', 'payment_posting_date', 'payment_date'])) {
+                    if (in_array($field, ['collection_receipt_date', 'payment_posting_date', 'payment_date', 'deposit_date'])) {
                         $value = $this->convertExcelDate($value);
                         if (!$value) {
                             \Log::warning("Row $rowNum: Could not convert date for $field: " . $data[$field]);
@@ -1170,7 +1173,7 @@ private $arAdjustmentColumnMap = [
                         }
                     }
                     // Clean numeric fields
-                    elseif (in_array($field, ['amount', 'tax', 'ewt', 'net_of_cwt', 'other_adjustment', 'factoring', 'check_amount'])) {
+                    elseif (in_array($field, ['amount', 'gross_amount', 'tax', 'ewt', 'net_of_cwt', 'other_adjustment', 'factoring', 'check_amount'])) {
                         $value = str_replace([',', ' '], '', $value);
                         $value = is_numeric($value) ? (float) $value : 0;
                     }

@@ -491,4 +491,44 @@ class PaymentController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * View all payments with duplicate CR numbers
+     */
+    public function viewDuplicateCR(Request $request)
+    {
+        try {
+            $crNumber = $request->input('cr_number');
+
+            if ($crNumber) {
+                // Show all records for a specific CR number
+                $payments = Payment::where('collection_receipt_number', $crNumber)
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+
+                $title = "CR Number: {$crNumber} ({$payments->count()} records)";
+            } else {
+                // Show all CR numbers that have duplicates
+                $duplicates = DB::table('payments')
+                    ->select('collection_receipt_number', DB::raw('COUNT(*) as count'))
+                    ->whereNotNull('collection_receipt_number')
+                    ->where('collection_receipt_number', '!=', '')
+                    ->groupBy('collection_receipt_number')
+                    ->having('count', '>', 1)
+                    ->orderBy('count', 'desc')
+                    ->get();
+
+                return view('payments.duplicate-cr-list', compact('duplicates'));
+            }
+
+            return view('payments.duplicate-cr-details', compact('payments', 'title', 'crNumber'));
+
+        } catch (\Exception $e) {
+            Log::error('Failed to view duplicate CR numbers', [
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with('error', 'Failed to load duplicate CR data');
+        }
+    }
 }

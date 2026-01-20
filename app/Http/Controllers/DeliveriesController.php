@@ -246,6 +246,7 @@ public function update(Request $request, $id)
             'additional_instructions' => 'nullable|string',
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
             'items' => 'required|array|min:1',
+            'items.*.sales_order_item_id' => 'nullable|integer',
             'items.*.item_code' => 'nullable|string|max:255',
             'items.*.item_description' => 'nullable|string',
             'items.*.quantity' => 'required|numeric|min:0',
@@ -288,7 +289,8 @@ public function update(Request $request, $id)
 
         $soItemsMap = collect();
         foreach ($salesOrder->items as $soItem) {
-            $soItemsMap->put($soItem->item_code, $soItem);
+            // ✅ Use sales_order_item_id as key to handle duplicate item_codes
+            $soItemsMap->put($soItem->id, $soItem);
         }
 
         $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($validated, $delivery) {
@@ -297,17 +299,18 @@ public function update(Request $request, $id)
             })
             ->where('delivery_id', '!=', $delivery->id)
             ->where('quantity', '>', 0)
-            ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
-            ->groupBy('item_code')
+            ->select('sales_order_item_id', DB::raw('SUM(quantity) as total_delivered'))
+            ->groupBy('sales_order_item_id')
             ->get()
-            ->keyBy('item_code');
+            ->keyBy('sales_order_item_id');
 
         DeliveryItem::where('delivery_id', $delivery->id)->delete();
 
         // ✅ CRITICAL: Recalculate totals
         foreach ($items as $item) {
+            $salesOrderItemId = $item['sales_order_item_id'] ?? null;
             $itemCode = $item['item_code'] ?? null;
-            $soItem = $soItemsMap->get($itemCode);
+            $soItem = $salesOrderItemId ? $soItemsMap->get($salesOrderItemId) : null;
 
             if ($soItem && $soItem->quantity > 0) {
                 $originalQty = $soItem->quantity;
@@ -315,7 +318,7 @@ public function update(Request $request, $id)
                 $originalQty = $item['original_quantity'] ?? ($item['quantity'] ?? 0);
             }
 
-            $previousDelivered = $deliveredSums->get($itemCode)?->total_delivered ?? 0;
+            $previousDelivered = $salesOrderItemId ? ($deliveredSums->get($salesOrderItemId)?->total_delivered ?? 0) : 0;
             $deliveredQty = $item['quantity'] ?? 0;
             $newTotalDelivered = $previousDelivered + $deliveredQty;
             $remainingQty = max(0, $originalQty - $newTotalDelivered);
@@ -440,6 +443,7 @@ public function store(Request $request)
             'additional_instructions' => 'nullable|string',
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
             'items' => 'required|array|min:1',
+            'items.*.sales_order_item_id' => 'nullable|integer',
             'items.*.item_code' => 'nullable|string|max:255',
             'items.*.item_description' => 'nullable|string',
             'items.*.quantity' => 'required|numeric|min:0',
@@ -523,7 +527,8 @@ public function store(Request $request)
 
         $soItemsMap = collect();
         foreach ($salesOrder->items as $soItem) {
-            $soItemsMap->put($soItem->item_code, $soItem);
+            // ✅ Use sales_order_item_id as key to handle duplicate item_codes
+            $soItemsMap->put($soItem->id, $soItem);
         }
 
         // Get delivered sums
@@ -533,10 +538,10 @@ public function store(Request $request)
                   ->where('status', 'Delivered');
             })
             ->where('quantity', '>', 0)
-            ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
-            ->groupBy('item_code')
+            ->select('sales_order_item_id', DB::raw('SUM(quantity) as total_delivered'))
+            ->groupBy('sales_order_item_id')
             ->get()
-            ->keyBy('item_code');
+            ->keyBy('sales_order_item_id');
 
         // Create delivery
         $delivery = Deliveries::create($validated);
@@ -554,11 +559,12 @@ public function store(Request $request)
 
         // ✅ CRITICAL: Always recalculate total_amount server-side
         foreach ($items as $item) {
+            $salesOrderItemId = $item['sales_order_item_id'] ?? null;
             $itemCode = $item['item_code'] ?? null;
-            $soItem = $soItemsMap->get($itemCode);
+            $soItem = $salesOrderItemId ? $soItemsMap->get($salesOrderItemId) : null;
 
             $originalQty = $soItem ? $soItem->quantity : ($item['original_quantity'] ?? ($item['quantity'] ?? 0));
-            $previousDelivered = $deliveredSums->get($itemCode)?->total_delivered ?? 0;
+            $previousDelivered = $salesOrderItemId ? ($deliveredSums->get($salesOrderItemId)?->total_delivered ?? 0) : 0;
             $deliveredQty = $item['quantity'] ?? 0;
             $newTotalDelivered = $previousDelivered + $deliveredQty;
             $remainingQty = max(0, $originalQty - $newTotalDelivered);
@@ -672,6 +678,8 @@ public function quickUpdate(Request $request, $id)
         $validationRules = [
             'request_delivery_date' => 'required|date',
             'items' => 'required|array|min:1',
+            'items.*.delivery_item_id' => 'nullable|integer',  // ✅ Primary identifier
+            'items.*.sales_order_item_id' => 'nullable|integer',
             'items.*.item_code' => 'required|string',
             'items.*.item_description' => 'required|string',
             'items.*.quantity' => 'required|numeric|min:0',
@@ -781,29 +789,43 @@ public function quickUpdate(Request $request, $id)
             // ✅ CRITICAL FIX: Update items with direct database query
             if (isset($validated['items'])) {
                 $updatedCount = 0;
-                
+
                 foreach ($validated['items'] as $itemData) {
                     $quantity = $itemData['quantity'];
                     $unitPrice = $itemData['unit_price'];
-                    
+
                     // ✅ Calculate total amount server-side
                     $totalAmount = round($quantity * $unitPrice, 2);
-                    
+
                     $remaining = max(0, $itemData['original_quantity'] - ($itemData['already_delivered'] ?? 0) - $quantity);
-                    
-                    // ✅ CRITICAL: Use direct DB update instead of eloquent collection
-                    $updated = DeliveryItem::where('delivery_id', $delivery->id)
-                        ->where('item_code', $itemData['item_code'])
-                        ->update([
-                            'quantity' => $quantity,
-                            'remaining_quantity' => $remaining,
-                            'total_amount' => $totalAmount,
-                            'updated_at' => now(),
-                        ]);
-                    
+
+                    // ✅ CRITICAL: Use delivery_item_id to identify the exact delivery item
+                    $query = DeliveryItem::where('delivery_id', $delivery->id);
+
+                    if (!empty($itemData['delivery_item_id'])) {
+                        // Use delivery_item_id (primary key) for precise identification
+                        $query->where('id', $itemData['delivery_item_id']);
+                    } elseif (!empty($itemData['sales_order_item_id'])) {
+                        // Fallback to sales_order_item_id (may update multiple items if duplicates exist)
+                        $query->where('sales_order_item_id', $itemData['sales_order_item_id']);
+                    } else {
+                        // Last resort: item_code for custom items
+                        $query->where('item_code', $itemData['item_code'])
+                              ->whereNull('sales_order_item_id');
+                    }
+
+                    $updated = $query->update([
+                        'quantity' => $quantity,
+                        'remaining_quantity' => $remaining,
+                        'total_amount' => $totalAmount,
+                        'updated_at' => now(),
+                    ]);
+
                     if ($updated > 0) {
                         $updatedCount++;
                         Log::info('📦 Updated delivery item', [
+                            'delivery_item_id' => $itemData['delivery_item_id'] ?? 'N/A',
+                            'sales_order_item_id' => $itemData['sales_order_item_id'] ?? 'N/A',
                             'item_code' => $itemData['item_code'],
                             'new_quantity' => $quantity,
                             'unit_price' => $unitPrice,
@@ -813,6 +835,7 @@ public function quickUpdate(Request $request, $id)
                     } else {
                         Log::warning('⚠️ No rows updated for item', [
                             'delivery_id' => $delivery->id,
+                            'sales_order_item_id' => $itemData['sales_order_item_id'] ?? 'N/A',
                             'item_code' => $itemData['item_code'],
                         ]);
                     }
@@ -1391,34 +1414,37 @@ public function getEditData($id)
             }
         }
 
-        // Map SO items for comparison
+        // Map SO items for comparison - ✅ Use sales_order_item_id as key
         $soItemsMap = collect();
         if ($delivery->salesOrder && $delivery->salesOrder->items) {
             foreach ($delivery->salesOrder->items as $soItem) {
-                $soItemsMap->put($soItem->item_code, $soItem);
+                $soItemsMap->put($soItem->id, $soItem);
             }
         }
 
-        // Get already delivered quantities (excluding this delivery)
+        // Get already delivered quantities (excluding this delivery) - ✅ Group by sales_order_item_id
         $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($delivery) {
                 $q->where('sales_order_number', $delivery->sales_order_number)
                   ->where('approval_status', 'Approved')
                   ->where('status', 'Delivered')
                   ->where('id', '!=', $delivery->id);
             })
-            ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
-            ->groupBy('item_code')
+            ->select('sales_order_item_id', DB::raw('SUM(quantity) as total_delivered'))
+            ->groupBy('sales_order_item_id')
             ->get()
-            ->keyBy('item_code');
+            ->keyBy('sales_order_item_id');
 
         // Prepare items data
         $items = [];
         foreach ($delivery->items as $item) {
-            $soItem = $soItemsMap->get($item->item_code);
+            // ✅ Use sales_order_item_id to find the correct SO item
+            $soItem = $item->sales_order_item_id ? $soItemsMap->get($item->sales_order_item_id) : null;
             $originalQty = $soItem ? $soItem->quantity : ($item->original_quantity ?? 0);
-            $alreadyDelivered = $deliveredSums->get($item->item_code)?->total_delivered ?? 0;
+            $alreadyDelivered = $item->sales_order_item_id ? ($deliveredSums->get($item->sales_order_item_id)?->total_delivered ?? 0) : 0;
 
             $items[] = [
+                'delivery_item_id' => $item->id,  // ✅ CRITICAL: Unique identifier for THIS delivery item
+                'sales_order_item_id' => $item->sales_order_item_id,
                 'item_code' => $item->item_code,
                 'item_description' => $item->item_description,
                 'brand' => $item->brand,

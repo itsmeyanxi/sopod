@@ -316,7 +316,7 @@ public function bulkDecline(Request $request)
         'request_delivery_date' => 'required|date',
         'po_reference_no' => 'nullable|string|max:255',
         'po_image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
-        'sales_rep' => 'required|string',
+        'sales_rep' => 'nullable|string',
         'items' => 'required|array|min:1',
         'items.*.item_id' => 'required',
         'items.*.quantity' => 'required|numeric|min:0.01',

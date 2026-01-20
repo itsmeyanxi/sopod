@@ -1168,11 +1168,13 @@ function populateEditModal(data) {
             <td class="px-3 py-2">${parseFloat(item.original_quantity || 0).toFixed(2)}</td>
             <td class="px-3 py-2 text-gray-400">${parseFloat(item.already_delivered || 0).toFixed(2)}</td>
             <td class="px-3 py-2">
-                <input type="number" 
-                       step="0.01" 
+                <input type="number"
+                       step="0.01"
                        min="0"
                        value="${parseFloat(item.quantity || 0).toFixed(2)}"
                        data-index="${index}"
+                       data-delivery-item-id="${item.delivery_item_id || ''}"
+                       data-sales-order-item-id="${item.sales_order_item_id || ''}"
                        data-item-code="${item.item_code}"
                        data-unit-price="${item.unit_price || 0}"
                        data-original-qty="${item.original_quantity || 0}"
@@ -1297,8 +1299,17 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
     document.querySelectorAll('.edit-item-qty').forEach(input => {
         const index = input.dataset.index;
         const originalItem = editDeliveryData.items[index];
-        
+
+        console.log(`📋 Item ${index}:`, {
+            delivery_item_id: input.dataset.deliveryItemId,
+            sales_order_item_id: input.dataset.salesOrderItemId,
+            item_code: input.dataset.itemCode,
+            quantity: input.value
+        });
+
         items.push({
+            delivery_item_id: input.dataset.deliveryItemId ? parseInt(input.dataset.deliveryItemId) : null,
+            sales_order_item_id: input.dataset.salesOrderItemId ? parseInt(input.dataset.salesOrderItemId) : null,
             item_code: input.dataset.itemCode,
             item_description: originalItem.item_description,
             quantity: parseFloat(input.value || 0),

@@ -42,6 +42,7 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     Route::post('/store', [PaymentController::class, 'store'])->name('store');
     Route::get('/collection-report', [PaymentController::class, 'collectionReport'])->name('collectionReport');
     Route::get('/export', [PaymentController::class, 'export'])->name('export');
+    Route::get('/duplicate-cr', [PaymentController::class, 'viewDuplicateCR'])->name('duplicateCR');
 });
     // ===================== CHANGE LOG & NOTIFICATIONS =====================
     Route::get('/changelog', [ChangeLogController::class, 'index'])->name('changelog.index');

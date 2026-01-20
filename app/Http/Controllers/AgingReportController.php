@@ -1525,13 +1525,24 @@ public function debugAdjustments($customerCode)
                 'customer_name' => $record->client_name
             ]);
 
-            // Get all AR records for this customer
-            $arRecords = ArAging::where('customer_code', $record->customer_code)
-                ->orderBy('invoice_date', 'desc')
-                ->get();
+            // 🔥 CRITICAL FIX: Get AR records for THIS specific customer only
+            // Many customers have customer_code = #N/A, so we MUST filter by client_name too!
+            $arRecords = ArAging::where(function($query) use ($record) {
+                if (!empty($record->customer_code) && $record->customer_code !== '#N/A' && $record->customer_code !== 'N/A') {
+                    // Valid customer_code - use it
+                    $query->where('customer_code', $record->customer_code);
+                } else {
+                    // Invalid customer_code - MUST filter by client_name only
+                    $query->whereRaw('TRIM(LOWER(client_name)) = ?', [trim(strtolower($record->client_name))]);
+                }
+            })
+            ->orderBy('invoice_date', 'desc')
+            ->get();
 
             Log::info('AR Profile: Fetched AR records', [
-                'count' => $arRecords->count()
+                'count' => $arRecords->count(),
+                'customer_code' => $record->customer_code,
+                'client_name' => $record->client_name
             ]);
 
             // Get all invoice numbers for this customer
@@ -1611,43 +1622,47 @@ public function debugAdjustments($customerCode)
      */
     private function fetchCollectionsFlexible($customerCode, $invoiceNumbers, $customerName)
     {
-        $collections = collect();
+        Log::info('🔍 Fetching collections for customer', [
+            'customer_code' => $customerCode,
+            'customer_name' => $customerName
+        ]);
 
-        // Try 1: Direct customer_code match
-        $direct = DB::table('payments')
-            ->where('customer_code', $customerCode)
-            ->get();
+        // ✅ HYBRID APPROACH: Match by customer_code OR customer_name
+        // Most payments have NULL customer_code, so we need to match by name too
+        $query = DB::table('payments');
 
-        if ($direct->count() > 0) {
-            $collections = $collections->merge($direct);
-        }
-
-        // Try 2: Trimmed customer_code match
-        if ($collections->count() === 0) {
-            $trimmed = DB::table('payments')
-                ->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
-                ->get();
-            $collections = $collections->merge($trimmed);
-        }
-
-        // Try 3: Match by invoice numbers
-        if (!empty($invoiceNumbers)) {
-            $byInvoice = DB::table('payments')
-                ->whereIn('invoice_no', $invoiceNumbers)
-                ->get();
-            $collections = $collections->merge($byInvoice);
-        }
-
-        // Try 4: Match by customer name
         if (!empty($customerName)) {
-            $byName = DB::table('payments')
-                ->where('customer_name', 'LIKE', '%' . $customerName . '%')
-                ->get();
-            $collections = $collections->merge($byName);
+            // ALWAYS match by customer_name (since most payments have NULL customer_code)
+            Log::info('Matching collections by customer_name', ['name' => $customerName]);
+            $query->where(function($q) use ($customerCode, $customerName) {
+                // Match by customer_name (most reliable since payments often have NULL customer_code)
+                $q->whereRaw('TRIM(LOWER(customer_name)) = ?', [trim(strtolower($customerName))]);
+
+                // OR match by customer_code if it's valid
+                if (!empty($customerCode) && $customerCode !== '#N/A' && $customerCode !== 'N/A') {
+                    $q->orWhere(function($subQ) use ($customerCode) {
+                        $subQ->where('customer_code', $customerCode)
+                             ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+                    });
+                }
+            });
+        } elseif (!empty($customerCode) && $customerCode !== '#N/A' && $customerCode !== 'N/A') {
+            // Fallback: only customer_code available
+            Log::info('Matching collections by customer_code only', ['code' => $customerCode]);
+            $query->where(function($q) use ($customerCode) {
+                $q->where('customer_code', $customerCode)
+                  ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+            });
+        } else {
+            Log::warning('No valid identifier for collections');
+            return collect();
         }
 
-        // Remove duplicates and format
-        return $collections->unique('id')->map(function($payment) {
+        $collections = $query->get();
+        Log::info('Raw collections fetched', ['count' => $collections->count()]);
+
+        // Remove duplicates and format (no post-filter needed, SQL query is already exact)
+        return collect($collections)->unique('id')->map(function($payment) {
             $grossAmount = (float)($payment->gross_amount ?? 0);
             $ewt = (float)($payment->ewt ?? 0);
             $otherAdjustment = (float)($payment->other_adjustment ?? 0);
@@ -1688,62 +1703,48 @@ public function debugAdjustments($customerCode)
      */
     private function fetchAdjustmentsFlexible($customerCode, $invoiceNumbers, $customerName)
     {
-        $adjustments = collect();
-
-        Log::info('Fetching adjustments', [
+        Log::info('🔍 Fetching adjustments for customer', [
             'customer_code' => $customerCode,
             'invoice_count' => count($invoiceNumbers),
             'customer_name' => $customerName
         ]);
 
-        // Try 1: Direct customer_code match
-        $direct = DB::table('ar_adjustments')
-            ->where('customer_code', $customerCode)
-            ->get();
+        // ✅ HYBRID APPROACH: Match by customer_code OR customer_name
+        // Most adjustments have NULL customer_code, so we need to match by name too
+        $query = DB::table('ar_adjustments');
 
-        if ($direct->count() > 0) {
-            Log::info('Adjustments found by direct customer_code', ['count' => $direct->count()]);
-            $adjustments = $adjustments->merge($direct);
-        }
-
-        // Try 2: Trimmed customer_code match
-        $trimmed = DB::table('ar_adjustments')
-            ->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
-            ->get();
-        
-        if ($trimmed->count() > 0) {
-            Log::info('Adjustments found by trimmed customer_code', ['count' => $trimmed->count()]);
-            $adjustments = $adjustments->merge($trimmed);
-        }
-
-        // Try 3: Match by invoice numbers
-        if (!empty($invoiceNumbers)) {
-            $byInvoice = DB::table('ar_adjustments')
-                ->whereIn('invoice_number', $invoiceNumbers)
-                ->get();
-            
-            if ($byInvoice->count() > 0) {
-                Log::info('Adjustments found by invoice_number', ['count' => $byInvoice->count()]);
-                $adjustments = $adjustments->merge($byInvoice);
-            }
-        }
-
-        // Try 4: Match by customer name
         if (!empty($customerName)) {
-            $byName = DB::table('ar_adjustments')
-                ->where('customer_name', 'LIKE', '%' . $customerName . '%')
-                ->get();
-            
-            if ($byName->count() > 0) {
-                Log::info('Adjustments found by customer_name', ['count' => $byName->count()]);
-                $adjustments = $adjustments->merge($byName);
-            }
+            // ALWAYS match by customer_name (since most adjustments have NULL customer_code)
+            Log::info('Matching adjustments by customer_name', ['name' => $customerName]);
+            $query->where(function($q) use ($customerCode, $customerName) {
+                // Match by customer_name (most reliable since adjustments often have NULL customer_code)
+                $q->whereRaw('TRIM(LOWER(customer_name)) = ?', [trim(strtolower($customerName))]);
+
+                // OR match by customer_code if it's valid
+                if (!empty($customerCode) && $customerCode !== '#N/A' && $customerCode !== 'N/A') {
+                    $q->orWhere(function($subQ) use ($customerCode) {
+                        $subQ->where('customer_code', $customerCode)
+                             ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+                    });
+                }
+            });
+        } elseif (!empty($customerCode) && $customerCode !== '#N/A' && $customerCode !== 'N/A') {
+            // Fallback: only customer_code available
+            Log::info('Matching adjustments by customer_code only', ['code' => $customerCode]);
+            $query->where(function($q) use ($customerCode) {
+                $q->where('customer_code', $customerCode)
+                  ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+            });
+        } else {
+            Log::warning('No valid identifier for adjustments');
+            return collect();
         }
 
-        Log::info('Total adjustments after all strategies', ['count' => $adjustments->unique('id')->count()]);
+        $adjustments = $query->get();
+        Log::info('Raw adjustments fetched', ['count' => $adjustments->count()]);
 
-        // Remove duplicates and format
-        return $adjustments->unique('id')->map(function($adj) {
+        // Remove duplicates and format (no post-filter needed, SQL query is already exact)
+        return collect($adjustments)->unique('id')->map(function($adj) {
             $amount = (float)($adj->amount ?? 0);
             $isDecrease = $amount < 0;
 

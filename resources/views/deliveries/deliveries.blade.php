@@ -417,11 +417,17 @@ function handleQuantityChange(e) {
     const input = e.target;
     const card = input.closest('.delivery-item-card');
     const currentQty = parseFloat(input.value) || 0;
-    
+
+    // ✅ DEBUG: Log which item is being changed
+    const soItemId = input.getAttribute('data-sales-order-item-id');
+    const itemIndex = input.getAttribute('data-item-index');
+    const itemCode = card.querySelector('.data-item-code')?.value;
+    console.log(`📝 Quantity changed for Item #${parseInt(itemIndex)+1}: ${itemCode} (SO Item ID: ${soItemId}) - New Qty: ${currentQty}`);
+
     if (currentQty < 0) {
         input.value = 0;
     }
-    
+
     calculateRowAmount(card);
 }
 
@@ -460,6 +466,8 @@ function populateItemsTable(items, isViewOnly = false) {
             itemCard.setAttribute('data-original-qty', originalQty);
             itemCard.setAttribute('data-already-delivered', alreadyDelivered);
             itemCard.setAttribute('data-index', index);
+            itemCard.setAttribute('data-sales-order-item-id', item.sales_order_item_id || '');
+            itemCard.setAttribute('data-item-code', item.item_code || '');
             
             if (isHidden) {
                 itemCard.setAttribute('data-hidden', 'true');
@@ -511,6 +519,7 @@ function populateItemsTable(items, isViewOnly = false) {
     </div>
 
     <!-- ✅ ADD THESE HIDDEN INPUTS -->
+    <input type="hidden" class="data-sales-order-item-id" value="${item.sales_order_item_id || ''}">
     <input type="hidden" class="data-item-code" value="${item.item_code || ''}">
     <input type="hidden" class="data-item-description" value="${item.item_description || ''}">
     <input type="hidden" class="data-brand" value="${item.brand || ''}">
@@ -558,10 +567,12 @@ function populateItemsTable(items, isViewOnly = false) {
                     
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Delivered Qty *</label>
-                        <input type="number" 
-                            class="delivered-qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-center font-semibold" 
-                            value="${deliveredQty}" 
-                            step="0.01" 
+                        <input type="number"
+                            class="delivered-qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-center font-semibold"
+                            value="${deliveredQty}"
+                            data-sales-order-item-id="${item.sales_order_item_id || ''}"
+                            data-item-index="${index}"
+                            step="0.01"
                             min="0"
                             ${inputReadonly}>
                     </div>
@@ -1246,34 +1257,36 @@ if (canManageDeliveries) {
                 if (!checkbox || !checkbox.checked) return; // Skip unchecked items
             }
             
+            const salesOrderItemId = card.querySelector('.data-sales-order-item-id')?.value || '';
             const itemCode = card.querySelector('.data-item-code')?.value || '';
             const itemDesc = card.querySelector('.data-item-description')?.value || '';
             const brand = card.querySelector('.data-brand')?.value || '';
             const itemCategory = card.querySelector('.data-item-category')?.value || '';
-            
+
             const deliveredQtyInput = card.querySelector('.delivered-qty-input');
             const amountInput = card.querySelector('.amount-input');
             const notesInput = card.querySelector('.notes-input');
             const priceCell = card.querySelector('.price-cell');
-            
+
             const uomDivs = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.text-center');
-            
+
             const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
             const deliveredQty = parseFloat(deliveredQtyInput?.value) || 0;
             const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
-            
+
             const totalDelivered = alreadyDelivered + deliveredQty;
             const calculatedRemaining = originalQty - totalDelivered;
             const remainingQty = calculatedRemaining < 0 ? 0 : calculatedRemaining;
-            
+
             // ✅ For backload: calculate shortage quantity
             const shortageQty = status === 'Backload' ? (originalQty - deliveredQty) : 0;
-            
+
             payload.items.push({
-                item_code: itemCode, 
-                item_description: itemDesc,  
-                brand: brand,  
-                item_category: itemCategory, 
+                sales_order_item_id: salesOrderItemId,
+                item_code: itemCode,
+                item_description: itemDesc,
+                brand: brand,
+                item_category: itemCategory,
                 quantity: status === 'Backload' ? shortageQty : deliveredQty, // ✅ Use shortage for backload
                 original_quantity: originalQty,
                 remaining_quantity: remainingQty,
