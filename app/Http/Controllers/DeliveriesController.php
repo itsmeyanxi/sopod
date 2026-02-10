@@ -953,9 +953,12 @@ public function search(Request $request)
         ], 403);
     }
 
-    // ✅ Fetch all SO items
+    // ✅ Fetch all SO items (exclude only explicitly cancelled items, include NULL batch_status)
     $soItems = SalesOrderItem::where('sales_order_id', $soExists->id)
-        ->where('batch_status', 'Active')
+        ->where(function($q) {
+            $q->where('batch_status', '!=', 'Cancelled')
+              ->orWhereNull('batch_status');
+        })
         ->with('item')
         ->get();
 
@@ -1056,11 +1059,12 @@ public function search(Request $request)
         $deliveredQuery->where('delivery_id', '!=', $delivery->id);
     }
 
+    // ✅ FIXED: Group by sales_order_item_id to handle duplicate item_codes correctly
     $deliveredSums = $deliveredQuery
-        ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
-        ->groupBy('item_code')
+        ->select('sales_order_item_id', DB::raw('SUM(quantity) as total_delivered'))
+        ->groupBy('sales_order_item_id')
         ->get()
-        ->keyBy('item_code');
+        ->keyBy('sales_order_item_id');
 
     // ✅ Build items list and check if anything remains to deliver
     $items = [];
@@ -1068,17 +1072,20 @@ public function search(Request $request)
 
     foreach ($soItems as $soItem) {
         $originalQty = $soItem->quantity ?? 0;
-        $alreadyDelivered = $deliveredSums->get($soItem->item_code)?->total_delivered ?? 0;
+        // ✅ FIXED: Use sales_order_item_id to lookup delivered quantities (handles duplicate item_codes)
+        $alreadyDelivered = $deliveredSums->get($soItem->id)?->total_delivered ?? 0;
         $remainingAvailable = $originalQty - $alreadyDelivered;
 
         // ✅ For edit mode: show ALL items including those with 0 quantity
         if ($isEditMode && $delivery) {
-            $existingDeliveryItem = $delivery->items->firstWhere('item_code', $soItem->item_code);
-            
+            // ✅ FIXED: Use sales_order_item_id to find the correct delivery item (handles duplicate item_codes)
+            $existingDeliveryItem = $delivery->items->firstWhere('sales_order_item_id', $soItem->id);
+
             $deliveredQty = $existingDeliveryItem ? ($existingDeliveryItem->quantity ?? 0) : 0;
             $notes = $existingDeliveryItem ? ($existingDeliveryItem->notes ?? $soItem->note ?? null) : ($soItem->note ?? null);
-            
+
             $items[] = [
+                'sales_order_item_id' => $soItem->id, // ✅ CRITICAL: Include SO item ID to keep items unique
                 'item_code' => $soItem->item_code,
                 'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
                 'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
@@ -1093,23 +1100,26 @@ public function search(Request $request)
                 'notes' => $notes,
                 'is_hidden' => $deliveredQty == 0,
             ];
-            
+
             // Edit mode always has items to show
             $hasRemainingItems = true;
         } else {
-            // ✅ NEW: For new deliveries, SKIP fully delivered items
+            // ✅ For new deliveries, ONLY show items with remaining quantity > 0
+            // Skip fully delivered items (remaining = 0) or over-delivered items (remaining < 0)
             if ($remainingAvailable <= 0) {
-                continue; // Don't add fully delivered items
+                continue; // Skip this item - nothing left to deliver
             }
-            
-            $hasRemainingItems = true; // ✅ Found an item that needs delivery
-            
+
+            // Item has remaining quantity, so mark that we have items to deliver
+            $hasRemainingItems = true;
+
             $items[] = [
+                'sales_order_item_id' => $soItem->id, // ✅ CRITICAL: Include SO item ID to keep items unique
                 'item_code' => $soItem->item_code,
                 'item_description' => $soItem->item_description ?? $soItem->item->item_description ?? '',
                 'brand' => $soItem->brand ?? $soItem->item?->brand ?? '',
                 'item_category' => $soItem->item_category ?? $soItem->item?->item_category ?? '',
-                'quantity' => $remainingAvailable, // ✅ Default to remaining quantity
+                'quantity' => $remainingAvailable, // Default to remaining quantity for new delivery
                 'original_quantity' => $originalQty,
                 'remaining_quantity' => $remainingAvailable,
                 'already_delivered' => $alreadyDelivered,
@@ -1903,17 +1913,17 @@ public function rejectEdit(Request $request, $id)
                         Log::warning('Date parsing failed', ['error' => $e->getMessage()]);
                     }
 
-                    // Map SO items by item_code for comparison
+                    // Map SO items by ID for comparison (handles duplicate item_codes)
                     $soItemsMap = collect();
                     if ($delivery->salesOrder && $delivery->salesOrder->items) {
-                        $soItemsMap = $delivery->salesOrder->items->keyBy('item_code');
+                        $soItemsMap = $delivery->salesOrder->items->keyBy('id');
                     }
 
                     $deliveryTotal = 0;
 
                     if ($delivery->items && $delivery->items->count() > 0) {
                         foreach ($delivery->items as $item) {
-                            $soItem = $soItemsMap->get($item->item_code);
+                            $soItem = $soItemsMap->get($item->sales_order_item_id);
                             $soQty = $soItem?->quantity ?? $item->original_quantity ?? 0;
                             $drQty = $item->quantity ?? 0;
 
@@ -2093,17 +2103,17 @@ public function rejectEdit(Request $request, $id)
                         Log::warning('Date parsing failed', ['error' => $e->getMessage()]);
                     }
 
-                    // Map SO items
+                    // Map SO items by ID (handles duplicate item_codes)
                     $soItemsMap = collect();
                     if ($delivery->salesOrder && $delivery->salesOrder->items) {
-                        $soItemsMap = $delivery->salesOrder->items->keyBy('item_code');
+                        $soItemsMap = $delivery->salesOrder->items->keyBy('id');
                     }
 
                     $grandTotal = 0;
 
                     if ($delivery->items && $delivery->items->count() > 0) {
                         foreach ($delivery->items as $item) {
-                            $soItem = $soItemsMap->get($item->item_code);
+                            $soItem = $soItemsMap->get($item->sales_order_item_id);
                             $soQty = $soItem?->quantity ?? $item->original_quantity ?? 0;
                             $drQty = $item->quantity ?? 0;
 
@@ -2478,5 +2488,245 @@ private function recalculateSingleDelivery($deliveryId)
     return $updatedCount;
 }
 
+/**
+ * ✅ Repair delivery items that have duplicate item_codes in the same SO
+ * This fixes the sales_order_item_id linkage for proper tracking
+ */
+public function repairDuplicateItemCodes(Request $request)
+{
+    if (!in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
+
+    $soNumber = $request->input('so_number');
+
+    try {
+        DB::beginTransaction();
+
+        $query = Deliveries::with(['items', 'salesOrder.items']);
+
+        if ($soNumber) {
+            $query->where('sales_order_number', $soNumber);
+        }
+
+        $deliveries = $query->get();
+        $fixedCount = 0;
+        $details = [];
+
+        foreach ($deliveries as $delivery) {
+            if (!$delivery->salesOrder || !$delivery->salesOrder->items) {
+                continue;
+            }
+
+            // Get SO items - check for duplicates
+            $soItems = $delivery->salesOrder->items;
+            $itemCodeGroups = $soItems->groupBy('item_code');
+
+            // Find item_codes that appear multiple times in SO
+            $duplicateCodes = $itemCodeGroups->filter(fn($group) => $group->count() > 1)->keys();
+
+            if ($duplicateCodes->isEmpty()) {
+                continue; // No duplicates in this SO
+            }
+
+            // Process delivery items that have duplicate item_codes
+            foreach ($delivery->items as $deliveryItem) {
+                if (!$duplicateCodes->contains($deliveryItem->item_code)) {
+                    continue; // Not a duplicate code
+                }
+
+                // Get all SO items with this item_code
+                $matchingSoItems = $soItems->where('item_code', $deliveryItem->item_code)->values();
+
+                if ($matchingSoItems->count() <= 1) {
+                    continue;
+                }
+
+                // If delivery item already has sales_order_item_id, check if it's valid
+                if ($deliveryItem->sales_order_item_id) {
+                    $validId = $matchingSoItems->pluck('id')->contains($deliveryItem->sales_order_item_id);
+                    if ($validId) {
+                        continue; // Already has valid linkage
+                    }
+                }
+
+                // Try to match by quantity or position
+                $matchedSoItem = null;
+
+                // First try: exact quantity match
+                foreach ($matchingSoItems as $soItem) {
+                    if (abs($soItem->quantity - $deliveryItem->original_quantity) < 0.01) {
+                        // Check if this SO item is already used by another delivery item
+                        $alreadyUsed = $delivery->items
+                            ->where('id', '!=', $deliveryItem->id)
+                            ->where('sales_order_item_id', $soItem->id)
+                            ->count() > 0;
+
+                        if (!$alreadyUsed) {
+                            $matchedSoItem = $soItem;
+                            break;
+                        }
+                    }
+                }
+
+                // Second try: match by position in the list
+                if (!$matchedSoItem) {
+                    $deliveryItemsWithSameCode = $delivery->items
+                        ->where('item_code', $deliveryItem->item_code)
+                        ->values();
+
+                    $position = $deliveryItemsWithSameCode->search(fn($item) => $item->id === $deliveryItem->id);
+
+                    if ($position !== false && isset($matchingSoItems[$position])) {
+                        $matchedSoItem = $matchingSoItems[$position];
+                    }
+                }
+
+                // Update the delivery item
+                if ($matchedSoItem) {
+                    $oldId = $deliveryItem->sales_order_item_id;
+                    $deliveryItem->update([
+                        'sales_order_item_id' => $matchedSoItem->id,
+                        'original_quantity' => $matchedSoItem->quantity,
+                    ]);
+
+                    $fixedCount++;
+                    $details[] = [
+                        'delivery_id' => $delivery->id,
+                        'dr_no' => $delivery->dr_no,
+                        'item_code' => $deliveryItem->item_code,
+                        'old_so_item_id' => $oldId,
+                        'new_so_item_id' => $matchedSoItem->id,
+                        'so_item_qty' => $matchedSoItem->quantity,
+                    ];
+
+                    Log::info('✅ Fixed delivery item linkage', [
+                        'delivery_id' => $delivery->id,
+                        'delivery_item_id' => $deliveryItem->id,
+                        'item_code' => $deliveryItem->item_code,
+                        'old_so_item_id' => $oldId,
+                        'new_so_item_id' => $matchedSoItem->id,
+                    ]);
+                }
+            }
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Fixed {$fixedCount} delivery item(s) with duplicate item codes",
+            'fixed_count' => $fixedCount,
+            'details' => $details,
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('❌ Failed to repair duplicate item codes', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to repair: ' . $e->getMessage(),
+        ], 500);
+    }
+}
+
+/**
+ * ✅ Recalculate remaining quantities for all delivery items in an SO
+ */
+public function recalculateSODeliveries(Request $request)
+{
+    if (!in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
+
+    $soNumber = $request->input('so_number');
+    if (!$soNumber) {
+        return response()->json(['success' => false, 'message' => 'SO number required'], 400);
+    }
+
+    try {
+        DB::beginTransaction();
+
+        $salesOrder = SalesOrder::with('items')->where('sales_order_number', $soNumber)->first();
+        if (!$salesOrder) {
+            return response()->json(['success' => false, 'message' => 'SO not found'], 404);
+        }
+
+        // Create SO items map by ID
+        $soItemsMap = $salesOrder->items->keyBy('id');
+
+        // Get all deliveries for this SO
+        $deliveries = Deliveries::with('items')
+            ->where('sales_order_number', $soNumber)
+            ->where('status', 'Delivered')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Track cumulative delivered per SO item
+        $cumulativeDelivered = [];
+        $updatedCount = 0;
+
+        foreach ($deliveries as $delivery) {
+            foreach ($delivery->items as $item) {
+                $soItemId = $item->sales_order_item_id;
+
+                if (!$soItemId) {
+                    continue;
+                }
+
+                $soItem = $soItemsMap->get($soItemId);
+                if (!$soItem) {
+                    continue;
+                }
+
+                // Initialize cumulative tracking
+                if (!isset($cumulativeDelivered[$soItemId])) {
+                    $cumulativeDelivered[$soItemId] = 0;
+                }
+
+                // Calculate what this item's remaining should be
+                $originalQty = $soItem->quantity;
+                $previousDelivered = $cumulativeDelivered[$soItemId];
+                $thisDeliveryQty = $item->quantity ?? 0;
+                $newTotalDelivered = $previousDelivered + $thisDeliveryQty;
+                $newRemaining = max(0, $originalQty - $newTotalDelivered);
+
+                // Update if different
+                if (abs($item->original_quantity - $originalQty) > 0.01 ||
+                    abs($item->remaining_quantity - $newRemaining) > 0.01) {
+
+                    $item->update([
+                        'original_quantity' => $originalQty,
+                        'remaining_quantity' => $newRemaining,
+                    ]);
+                    $updatedCount++;
+                }
+
+                // Track cumulative for next delivery
+                $cumulativeDelivered[$soItemId] = $newTotalDelivered;
+            }
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Recalculated {$updatedCount} delivery item(s) for {$soNumber}",
+            'updated_count' => $updatedCount,
+            'cumulative_delivered' => $cumulativeDelivered,
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed: ' . $e->getMessage(),
+        ], 500);
+    }
+}
 
 }

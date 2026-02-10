@@ -62,7 +62,53 @@ class SalesOrderController extends Controller
         });
     }
 
+    // Filter by SO status
+    if ($request->filled('so_status')) {
+        $query->where('status', $request->so_status);
+    }
+
+    // Get initial results
     $salesOrders = $query->get();
+
+    // Filter by DR status if requested (must be done after fetching due to complex logic)
+    if ($request->filled('dr_status')) {
+        $drStatusFilter = $request->dr_status;
+
+        $salesOrders = $salesOrders->filter(function($order) use ($drStatusFilter) {
+            $delivery = $order->deliveries;
+
+            // Determine the DR status for this order (same logic as in the view)
+            if (!$delivery) {
+                $drStatus = ($order->status === 'Approved') ? 'Awaiting Delivery' : 'Not Delivered';
+            } else {
+                if ($delivery->is_pulled_out) {
+                    $drStatus = 'Pulled Out';
+                } elseif ($delivery->approval_status === 'Rejected') {
+                    $drStatus = 'Rejected';
+                } elseif ($delivery->status === 'Cancelled') {
+                    $drStatus = 'Cancelled';
+                } elseif ($order->is_closed) {
+                    $drStatus = 'Fully Delivered';
+                } elseif ($delivery->approval_status === 'Pending') {
+                    $drStatus = 'Pending Approval';
+                } elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Full') {
+                    $drStatus = 'Delivered (Full)';
+                } elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Partial') {
+                    $drStatus = 'Partial';
+                } elseif ($delivery->status === 'Delivered') {
+                    $drStatus = 'Delivered';
+                } elseif ($delivery->status === 'In Transit') {
+                    $drStatus = 'In Transit';
+                } elseif ($delivery->status === 'Preparing') {
+                    $drStatus = 'Preparing';
+                } else {
+                    $drStatus = $delivery->status ?? 'Pending';
+                }
+            }
+
+            return $drStatus === $drStatusFilter;
+        });
+    }
 
     return view('sales_orders.index', compact('salesOrders'));
 }
@@ -493,15 +539,15 @@ private function syncDeliveryPrices(SalesOrder $salesOrder)
             return; // No deliveries to update
         }
 
-        // Create a map of SO items by item_code for quick lookup
-        $soItemsMap = $salesOrder->items->keyBy('item_code');
-        
+        // Create a map of SO items by ID for quick lookup (handles duplicate item_codes)
+        $soItemsMap = $salesOrder->items->keyBy('id');
+
         foreach ($deliveries as $delivery) {
             $deliveryUpdated = false;
-            
+
             foreach ($delivery->items as $deliveryItem) {
-                // Find matching SO item
-                $soItem = $soItemsMap->get($deliveryItem->item_code);
+                // Find matching SO item using sales_order_item_id
+                $soItem = $soItemsMap->get($deliveryItem->sales_order_item_id);
                 
                 if ($soItem && $soItem->unit_price != $deliveryItem->unit_price) {
                     // Update unit price and recalculate total
@@ -671,11 +717,42 @@ public function update(Request $request, $id)
         'po_image.max' => 'PO proof file size must not exceed 4MB.',
     ]);
 
+    // ✅ NEW LOGIC: Allow switching between PO number and PO image
+    $hasPoNumber = $request->filled('po_number');
+    $willUploadImage = $request->hasFile('po_image');
+    $currentlyHasImage = (bool) $salesOrder->po_image;
+    $currentlyHasNumber = (bool) $salesOrder->po_number;
+
+    // Calculate what we'll have after the update
+    $willHaveNumber = $hasPoNumber;
+    $willHaveImage = $willUploadImage || ($currentlyHasImage && !$hasPoNumber);
+
+    // If removing PO number (was set, now empty or being replaced)
+    if ($currentlyHasNumber && !$hasPoNumber) {
+        // Allow only if uploading new image OR keeping existing image
+        if (!$willUploadImage && !$currentlyHasImage) {
+            return back()->withInput()->with('error', 'You must provide either a PO Number OR PO Image. Cannot remove both.');
+        }
+        // Switching from number to image is OK
+    }
+
+    // If clearing image by adding PO number (switching from image to number)
+    if ($currentlyHasImage && !$currentlyHasNumber && $hasPoNumber) {
+        // This is OK - user is switching from image to number
+        // We'll delete the image below
+    }
+
+    // Final check: Must have at least one after update
+    if (!$willHaveNumber && !$willHaveImage) {
+        return back()->withInput()->with('error', 'You must provide either a PO Number OR PO Image.');
+    }
+
     DB::beginTransaction();
     try {
-        // Track changes before updating
-        $originalItems = $salesOrder->items->keyBy('item_code')->map(function($item) {
+        // Track changes before updating (keyed by ID to handle duplicate item_codes)
+        $originalItems = $salesOrder->items->keyBy('id')->map(function($item) {
             return [
+                'id' => $item->id,
                 'item_code' => $item->item_code,
                 'item_description' => $item->item_description,
                 'quantity' => $item->quantity,
@@ -696,29 +773,47 @@ public function update(Request $request, $id)
 
         // Handle PO Image
         $poImageFilename = $salesOrder->po_image;
-        
-        if ($request->has('remove_po_image') && $request->remove_po_image == '1') {
+
+        // ✅ NEW: If user adds PO number and had image (switching from image to number)
+        if ($hasPoNumber && !$currentlyHasNumber && $currentlyHasImage && !$willUploadImage) {
+            // Delete existing image since user is switching to PO number
             if ($salesOrder->po_image && file_exists(public_path('po_images/' . $salesOrder->po_image))) {
                 @unlink(public_path('po_images/' . $salesOrder->po_image));
             }
             $poImageFilename = null;
+
+            \Log::info('✅ PO Image removed (switched to PO number)', [
+                'so_number' => $salesOrder->sales_order_number,
+                'old_image' => $salesOrder->po_image
+            ]);
         }
-        
+
+        // ✅ If user removes PO number and uploads image (switching from number to image)
+        if (!$hasPoNumber && $currentlyHasNumber && $willUploadImage) {
+            // This is OK, we'll upload the new image below
+            \Log::info('✅ Switching from PO number to image', [
+                'so_number' => $salesOrder->sales_order_number,
+                'old_po_number' => $salesOrder->po_number
+            ]);
+        }
+
+        // Handle new image upload
         if ($request->hasFile('po_image')) {
+            // Replace existing image with new one
             if ($salesOrder->po_image && file_exists(public_path('po_images/' . $salesOrder->po_image))) {
                 @unlink(public_path('po_images/' . $salesOrder->po_image));
             }
-            
+
             $file = $request->file('po_image');
             $poImageFilename = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-            
+
             $uploadPath = public_path('po_images');
             if (!file_exists($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
-            
+
             $file->move($uploadPath, $poImageFilename);
-            
+
             \Log::info('✅ PO Image uploaded during update', [
                 'so_number' => $salesOrder->sales_order_number,
                 'filename' => $poImageFilename
@@ -841,9 +936,8 @@ public function update(Request $request, $id)
             'item' => $salesOrder->sales_order_number,
             'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
             'type' => 'Sales Order',
-            'message' => 'Updated sales order: ' . $salesOrder->sales_order_number . 
-                        ($request->hasFile('po_image') ? ' (PO proof updated)' : '') .
-                        ($request->has('remove_po_image') ? ' (PO proof removed)' : ''),
+            'message' => 'Updated sales order: ' . $salesOrder->sales_order_number .
+                        ($request->hasFile('po_image') ? ' (PO proof updated)' : ''),
         ]);
 
         DB::commit();
@@ -933,13 +1027,13 @@ private function syncDeliveryItems(SalesOrder $salesOrder)
             return;
         }
 
-        // Create a map of SO items by item_code
-        $soItemsMap = $salesOrder->items->keyBy('item_code');
-        
+        // Create a map of SO items by ID (handles duplicate item_codes)
+        $soItemsMap = $salesOrder->items->keyBy('id');
+
         foreach ($deliveries as $delivery) {
             $deliveryUpdated = false;
-            
-            // Get already delivered quantities (excluding current delivery)
+
+            // Get already delivered quantities (excluding current delivery) - keyed by sales_order_item_id
             $deliveredSums = DeliveryItem::whereHas('delivery', function($q) use ($salesOrder, $delivery) {
                     $q->where('sales_order_number', $salesOrder->sales_order_number)
                       ->where('approval_status', 'Approved')
@@ -947,14 +1041,14 @@ private function syncDeliveryItems(SalesOrder $salesOrder)
                       ->where('id', '!=', $delivery->id);
                 })
                 ->where('quantity', '>', 0)
-                ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
-                ->groupBy('item_code')
+                ->select('sales_order_item_id', DB::raw('SUM(quantity) as total_delivered'))
+                ->groupBy('sales_order_item_id')
                 ->get()
-                ->keyBy('item_code');
-            
+                ->keyBy('sales_order_item_id');
+
             // ✅ STEP 1: Update existing delivery items with new prices/quantities
             foreach ($delivery->items as $deliveryItem) {
-                $soItem = $soItemsMap->get($deliveryItem->item_code);
+                $soItem = $soItemsMap->get($deliveryItem->sales_order_item_id);
                 
                 if ($soItem) {
                     // Update price if changed
@@ -975,11 +1069,11 @@ private function syncDeliveryItems(SalesOrder $salesOrder)
                         ]);
                     }
                     
-                    // Update quantities and recalculate remaining
+                    // Update quantities and recalculate remaining (using sales_order_item_id)
                     $originalQty = $soItem->quantity;
-                    $alreadyDelivered = $deliveredSums->get($deliveryItem->item_code)?->total_delivered ?? 0;
+                    $alreadyDelivered = $deliveredSums->get($deliveryItem->sales_order_item_id)?->total_delivered ?? 0;
                     $remainingQty = max(0, $originalQty - $alreadyDelivered);
-                    
+
                     $deliveryItem->update([
                         'original_quantity' => $originalQty,
                         'remaining_quantity' => $remainingQty,
@@ -988,18 +1082,19 @@ private function syncDeliveryItems(SalesOrder $salesOrder)
                         'item_category' => $soItem->item_category,
                         'uom' => $soItem->unit,
                     ]);
-                    
+
                     $deliveryUpdated = true;
                 }
             }
-            
+
             // ✅ STEP 2: Add NEW items that exist in SO but not in delivery
-            $deliveryItemCodes = $delivery->items->pluck('item_code')->toArray();
-            
-            foreach ($soItemsMap as $itemCode => $soItem) {
-                if (!in_array($itemCode, $deliveryItemCodes)) {
+            // Using sales_order_item_id to handle duplicate item_codes
+            $deliveryItemIds = $delivery->items->pluck('sales_order_item_id')->toArray();
+
+            foreach ($soItemsMap as $soItemId => $soItem) {
+                if (!in_array($soItemId, $deliveryItemIds)) {
                     // This is a NEW item added to the SO
-                    $alreadyDelivered = $deliveredSums->get($itemCode)?->total_delivered ?? 0;
+                    $alreadyDelivered = $deliveredSums->get($soItemId)?->total_delivered ?? 0;
                     $remainingQty = max(0, $soItem->quantity - $alreadyDelivered);
                     
                     // Only add if there's remaining quantity
@@ -1008,7 +1103,7 @@ private function syncDeliveryItems(SalesOrder $salesOrder)
                             'delivery_id' => $delivery->id,
                             'item_id' => $soItem->item_id,
                             'sales_order_item_id' => $soItem->id,
-                            'item_code' => $itemCode,
+                            'item_code' => $soItem->item_code,
                             'item_description' => $soItem->item_description,
                             'brand' => $soItem->brand,
                             'item_category' => $soItem->item_category,
@@ -1021,21 +1116,23 @@ private function syncDeliveryItems(SalesOrder $salesOrder)
                             'delivery_batch' => $delivery->delivery_batch,
                             'notes' => $soItem->note,
                         ]);
-                        
+
                         $deliveryUpdated = true;
-                        
+
                         \Log::info("✅ Added new item to delivery", [
                             'delivery_id' => $delivery->id,
-                            'item_code' => $itemCode,
+                            'item_code' => $soItem->item_code,
+                            'sales_order_item_id' => $soItem->id,
                             'quantity' => $remainingQty,
                         ]);
                     }
                 }
             }
-            
+
             // ✅ STEP 3: Mark removed items with quantity = 0 (don't delete, for tracking)
+            // Using sales_order_item_id to check if item was removed
             foreach ($delivery->items as $deliveryItem) {
-                if (!$soItemsMap->has($deliveryItem->item_code)) {
+                if (!$soItemsMap->has($deliveryItem->sales_order_item_id)) {
                     // Item was removed from SO
                     $deliveryItem->update([
                         'quantity' => 0,
@@ -1352,8 +1449,10 @@ public function updateStatus(Request $request, $id)
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
         $search = $request->input('search');
+        $soStatus = $request->input('so_status');
+        $drStatus = $request->input('dr_status');
 
-        $query = SalesOrder::with(['customer', 'preparer', 'approver']);
+        $query = SalesOrder::with(['customer', 'preparer', 'approver', 'deliveries']);
 
         if ($dateFrom) {
             $query->whereDate('created_at', '>=', $dateFrom);
@@ -1374,9 +1473,53 @@ public function updateStatus(Request $request, $id)
             });
         }
 
-        $query->where('status', '!=', 'Pending');
+        // Filter by SO status
+        if ($soStatus) {
+            $query->where('status', $soStatus);
+        } else {
+            // Default: exclude pending if no SO status filter is specified
+            $query->where('status', '!=', 'Pending');
+        }
 
         $salesOrders = $query->orderByDesc('created_at')->get();
+
+        // Filter by DR status if requested
+        if ($drStatus) {
+            $salesOrders = $salesOrders->filter(function($order) use ($drStatus) {
+                $delivery = $order->deliveries;
+
+                // Determine the DR status for this order (same logic as in the view)
+                if (!$delivery) {
+                    $drStatusValue = ($order->status === 'Approved') ? 'Awaiting Delivery' : 'Not Delivered';
+                } else {
+                    if ($delivery->is_pulled_out) {
+                        $drStatusValue = 'Pulled Out';
+                    } elseif ($delivery->approval_status === 'Rejected') {
+                        $drStatusValue = 'Rejected';
+                    } elseif ($delivery->status === 'Cancelled') {
+                        $drStatusValue = 'Cancelled';
+                    } elseif ($order->is_closed) {
+                        $drStatusValue = 'Fully Delivered';
+                    } elseif ($delivery->approval_status === 'Pending') {
+                        $drStatusValue = 'Pending Approval';
+                    } elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Full') {
+                        $drStatusValue = 'Delivered (Full)';
+                    } elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Partial') {
+                        $drStatusValue = 'Partial';
+                    } elseif ($delivery->status === 'Delivered') {
+                        $drStatusValue = 'Delivered';
+                    } elseif ($delivery->status === 'In Transit') {
+                        $drStatusValue = 'In Transit';
+                    } elseif ($delivery->status === 'Preparing') {
+                        $drStatusValue = 'Preparing';
+                    } else {
+                        $drStatusValue = $delivery->status ?? 'Pending';
+                    }
+                }
+
+                return $drStatusValue === $drStatus;
+            });
+        }
 
         if ($salesOrders->isEmpty()) {
             return back()->with('error', 'No approved sales orders found to print.');
@@ -1401,8 +1544,10 @@ public function updateStatus(Request $request, $id)
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
         $search = $request->input('search');
+        $soStatus = $request->input('so_status');
+        $drStatus = $request->input('dr_status');
 
-        $query = SalesOrder::with(['customer', 'preparer', 'approver']);
+        $query = SalesOrder::with(['customer', 'preparer', 'approver', 'deliveries']);
 
         if ($dateFrom) {
             $query->whereDate('created_at', '>=', $dateFrom);
@@ -1423,9 +1568,53 @@ public function updateStatus(Request $request, $id)
             });
         }
 
-        $query->where('status', '!=', 'Pending');
+        // Filter by SO status
+        if ($soStatus) {
+            $query->where('status', $soStatus);
+        } else {
+            // Default: exclude pending if no SO status filter is specified
+            $query->where('status', '!=', 'Pending');
+        }
 
         $salesOrders = $query->orderByDesc('created_at')->get();
+
+        // Filter by DR status if requested
+        if ($drStatus) {
+            $salesOrders = $salesOrders->filter(function($order) use ($drStatus) {
+                $delivery = $order->deliveries;
+
+                // Determine the DR status for this order (same logic as in the view)
+                if (!$delivery) {
+                    $drStatusValue = ($order->status === 'Approved') ? 'Awaiting Delivery' : 'Not Delivered';
+                } else {
+                    if ($delivery->is_pulled_out) {
+                        $drStatusValue = 'Pulled Out';
+                    } elseif ($delivery->approval_status === 'Rejected') {
+                        $drStatusValue = 'Rejected';
+                    } elseif ($delivery->status === 'Cancelled') {
+                        $drStatusValue = 'Cancelled';
+                    } elseif ($order->is_closed) {
+                        $drStatusValue = 'Fully Delivered';
+                    } elseif ($delivery->approval_status === 'Pending') {
+                        $drStatusValue = 'Pending Approval';
+                    } elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Full') {
+                        $drStatusValue = 'Delivered (Full)';
+                    } elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Partial') {
+                        $drStatusValue = 'Partial';
+                    } elseif ($delivery->status === 'Delivered') {
+                        $drStatusValue = 'Delivered';
+                    } elseif ($delivery->status === 'In Transit') {
+                        $drStatusValue = 'In Transit';
+                    } elseif ($delivery->status === 'Preparing') {
+                        $drStatusValue = 'Preparing';
+                    } else {
+                        $drStatusValue = $delivery->status ?? 'Pending';
+                    }
+                }
+
+                return $drStatusValue === $drStatus;
+            });
+        }
 
         if ($salesOrders->isEmpty()) {
             return back()->with('error', 'No approved sales orders found to export.');

@@ -22,6 +22,56 @@ class ArAdjustmentController extends Controller
         return view('ar_adjustments.index');
     }
 
+    /**
+     * Search AR Aging records by customer name or DR number
+     */
+    public function searchArAging(Request $request)
+    {
+        try {
+            $search = $request->get('search');
+
+            if (empty($search)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Search term is required'
+                ], 400);
+            }
+
+            // Search in AR Aging table by customer name or DR number
+            $records = ArAging::where(function($query) use ($search) {
+                $query->where('client_name', 'LIKE', "%{$search}%")
+                      ->orWhere('dr_no', 'LIKE', "%{$search}%")
+                      ->orWhere('customer_code', 'LIKE', "%{$search}%");
+            })
+            ->where('net_ar_balance', '>', 0) // Only show records with outstanding balance
+            ->orderBy('dr_no', 'desc')
+            ->get();
+
+            if ($records->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No matching records found'
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'records' => $records
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to search AR Aging', [
+                'error' => $e->getMessage(),
+                'line' => $e->getLine()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to search: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 public function getAdjustments(Request $request)
 {
     try {

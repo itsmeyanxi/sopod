@@ -3,126 +3,82 @@
 @section('title', 'AR Adjustments')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
+<div class="container mx-auto">
     <div class="bg-gray-800 rounded-lg shadow-lg p-6">
-        
+
         {{-- Header --}}
         <div class="flex justify-between items-center mb-6">
-            <div>
-                <h2 class="text-3xl font-bold text-white flex items-center gap-3">
-                    <i class="fas fa-edit text-purple-400"></i>
-                    AR Adjustments
-                </h2>
-                <p class="text-gray-300 text-sm mt-1">Manage accounts receivable adjustments and transactions</p>
-            </div>
-            <button type="button" id="add_adjustment_btn" 
-                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition flex items-center gap-2">
-                <i class="fas fa-plus"></i>
-                New Adjustment
+            <h2 class="text-2xl font-bold text-white">AR Adjustments</h2>
+
+            {{-- Toggle View Button --}}
+            <button type="button" id="toggle_view_btn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
+                <i class="fas fa-table"></i>
+                <span id="toggle_btn_text">Adjustment List</span>
             </button>
         </div>
 
-        {{-- Filters Section --}}
+        {{-- Search Section --}}
         <div class="bg-gray-700 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-white mb-4">Filters</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label for="filter_start_date" class="block text-sm font-medium text-gray-300 mb-2">
-                        Start Date
-                    </label>
-                    <input type="date" id="filter_start_date" 
-                           class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label for="filter_end_date" class="block text-sm font-medium text-gray-300 mb-2">
-                        End Date
-                    </label>
-                    <input type="date" id="filter_end_date" 
-                           class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label for="filter_transaction_type" class="block text-sm font-medium text-gray-300 mb-2">
-                        Transaction Type
-                    </label>
-                    <select id="filter_transaction_type" 
-                            class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Types</option>
-                        <option value="credit_memo">Credit Memo</option>
-                        <option value="debit_memo">Debit Memo</option>
-                        <option value="adjustment">Adjustment</option>
-                        <option value="write_off">Write-off</option>
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button type="button" id="apply_filters_btn" 
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition">
-                        <i class="fas fa-filter mr-2"></i>Apply Filters
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        {{-- Search Bar --}}
-        <div class="bg-gray-700 rounded-lg p-4 mb-6">
+            <h3 class="text-lg font-semibold text-white mb-4">Search Customer / DR Number</h3>
             <div class="flex items-center space-x-4">
                 <div class="flex-1">
-                    <input type="text" id="search_input" 
-                           placeholder="Search by reference number, client name, invoice number..." 
-                           class="w-full bg-gray-600 text-white border border-gray-500 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="customer_search" placeholder="Enter Customer Name or DR Number"
+                           class="w-full bg-gray-600 text-white border border-gray-500 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                <button type="button" id="search_btn" 
-                        class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition flex items-center gap-2">
+                <button type="button" id="search_customer_btn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-search"></i>
-                    Search
-                </button>
-                <button type="button" id="export_btn" 
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded font-medium transition flex items-center gap-2">
-                    <i class="fas fa-file-excel"></i>
-                    Export
+                    <span>Search</span>
                 </button>
             </div>
         </div>
 
-        {{-- Summary Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-gradient-to-br from-blue-900/40 to-blue-800/30 border border-blue-700/50 rounded-lg p-4">
-                <p class="text-gray-300 text-xs mb-1">Total Adjustments</p>
-                <p class="text-white text-2xl font-bold" id="total_count">0</p>
-            </div>
-            <div class="bg-gradient-to-br from-green-900/40 to-green-800/30 border border-green-700/50 rounded-lg p-4">
-                <p class="text-gray-300 text-xs mb-1">Credit Memos</p>
-                <p class="text-white text-2xl font-bold" id="credit_total">₱0.00</p>
-            </div>
-            <div class="bg-gradient-to-br from-red-900/40 to-red-800/30 border border-red-700/50 rounded-lg p-4">
-                <p class="text-gray-300 text-xs mb-1">Debit Memos</p>
-                <p class="text-white text-2xl font-bold" id="debit_total">₱0.00</p>
-            </div>
-            <div class="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border border-purple-700/50 rounded-lg p-4">
-                <p class="text-gray-300 text-xs mb-1">Net Adjustment</p>
-                <p class="text-white text-2xl font-bold" id="net_total">₱0.00</p>
-            </div>
-        </div>
-
-        {{-- AR Adjustments Table --}}
-        <div class="bg-gray-700 rounded-lg p-6">
+        {{-- Adjustment List View (shown initially) --}}
+        <div id="adjustment_list_view" class="bg-gray-700 rounded-lg p-4">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                    <i class="fas fa-table text-blue-400"></i>
-                    AR Adjustment Records
-                </h3>
-                <span class="text-gray-300 text-sm">
-                    <i class="fas fa-info-circle mr-1"></i>
-                    Showing <strong id="record_count">0</strong> record(s)
-                </span>
+                <h4 class="text-lg font-semibold text-white">Adjustment List</h4>
+                <button type="button" onclick="exportAdjustmentList()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-2">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Export to Excel</span>
+                </button>
             </div>
-            
+
+            {{-- Filter Section --}}
+            <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date From</label>
+                        <input type="date" id="filter_start_date" class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date To</label>
+                        <input type="date" id="filter_end_date" class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Type</label>
+                        <select id="filter_transaction_type" class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2">
+                            <option value="">All Types</option>
+                            <option value="credit_memo">Credit Memo</option>
+                            <option value="debit_memo">Debit Memo</option>
+                            <option value="adjustment">Adjustment</option>
+                            <option value="write_off">Write-off</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button" onclick="filterAdjustmentList()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                            Apply Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Adjustment List Table --}}
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-gray-800 rounded-lg text-sm">
                     <thead>
-                        <tr class="bg-gray-900 text-gray-200">
+                        <tr class="bg-gray-900 text-gray-300">
                             <th class="px-3 py-3 text-left">Date</th>
                             <th class="px-3 py-3 text-left">Reference No.</th>
-                            <th class="px-3 py-3 text-left">Transaction Type</th>
+                            <th class="px-3 py-3 text-left">Type</th>
                             <th class="px-3 py-3 text-left">DR No.</th>
                             <th class="px-3 py-3 text-left">Invoice No.</th>
                             <th class="px-3 py-3 text-left">Customer Code</th>
@@ -136,352 +92,323 @@
                             <th class="px-3 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="adjustments_tbody" class="text-gray-200">
-s                    </tbody>
+                    <tbody id="adjustment_list_tbody" class="text-gray-300">
+                        <tr>
+                            <td colspan="15" class="px-4 py-8 text-center text-gray-400">
+                                <i class="fas fa-file-invoice text-4xl mb-2"></i>
+                                <p>No adjustment data available</p>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
-    </div>
-</div>
 
-{{-- Modal for New/Edit Adjustment --}}
-<div id="adjustment_modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-white" id="modal_title">New AR Adjustment</h3>
-            <button id="close_modal_btn" class="text-gray-400 hover:text-white">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
+        {{-- Adjustment Entries View (shown after search) --}}
+        <div id="adjustment_entries_view" class="hidden">
+            {{-- DR Selection --}}
+            <div id="dr_selection_container" class="bg-gray-700 rounded-lg p-4 mb-4">
+                <h4 class="text-sm font-semibold text-white mb-3 flex items-center">
+                    <i class="fas fa-file-invoice mr-2"></i>
+                    Select DR Number
+                </h4>
+                <div id="dr_numbers_list" class="space-y-2">
+                    <!-- DR numbers will be populated here -->
+                </div>
+            </div>
+
+            {{-- Customer & DR Information --}}
+            <div id="customer_info_container" class="bg-gray-700 rounded-lg p-4 mb-4">
+                <h4 class="text-sm font-semibold text-white mb-3 flex items-center">
+                    <i class="fas fa-user mr-2"></i>
+                    Customer & DR Information
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
+                    <div>
+                        <label class="block text-gray-400 text-xs mb-1">Customer Name</label>
+                        <p class="text-white font-semibold" id="display_customer_name">—</p>
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 text-xs mb-1">DR Number</label>
+                        <p class="text-white font-semibold" id="display_dr_no">—</p>
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 text-xs mb-1">Invoice Number</label>
+                        <p class="text-white font-semibold" id="display_invoice_no">—</p>
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 text-xs mb-1">Current AR Balance</label>
+                        <p class="text-red-400 font-bold text-lg" id="display_ar_balance">₱0.00</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Adjustment Entry Form --}}
+            <div id="adjustment_table_container" class="bg-gray-700 rounded-lg p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-sm font-semibold text-white">New AR Adjustment</h4>
+                    <button type="button" onclick="saveAdjustment()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-1">
+                        <i class="fas fa-save"></i>
+                        <span>Save Adjustment</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Date *</label>
+                        <input type="date" id="transaction_date" required
+                               class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Reference Number *</label>
+                        <input type="text" id="reference_number" required
+                               placeholder="e.g., ADJ-2026-001"
+                               class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Type *</label>
+                        <select id="transaction_type" required
+                                class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Type</option>
+                            <option value="credit_memo">Credit Memo (Decrease AR)</option>
+                            <option value="debit_memo">Debit Memo (Increase AR)</option>
+                            <option value="adjustment">Adjustment</option>
+                            <option value="write_off">Write-off</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Amount *</label>
+                        <input type="text" id="amount" required
+                               placeholder="Enter amount (e.g., -100 to decrease AR by 100)"
+                               class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-400 mt-1">Use negative value (e.g., -100) to decrease AR</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">GL Account *</label>
+                        <input type="text" id="gl_account" required
+                               placeholder="e.g., 1200-AR"
+                               class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Signed By *</label>
+                        <input type="text" id="signed_by" required
+                               placeholder="e.g., John Doe"
+                               class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Remarks</label>
+                        <textarea id="remarks" rows="3"
+                                  placeholder="Optional remarks or notes"
+                                  class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <form id="adjustment_form" class="space-y-4">
-            <input type="hidden" id="adjustment_id" name="adjustment_id">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Date *</label>
-                    <input type="date" name="transaction_date" id="transaction_date" required
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Reference Number *</label>
-                    <input type="text" name="reference_number" id="reference_number" required
-                           placeholder="e.g., ADJ-2025-001"
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Type *</label>
-                    <select name="transaction_type" id="transaction_type" required
-                            class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Type</option>
-                        <option value="credit_memo">Credit Memo (Decrease AR)</option>
-                        <option value="debit_memo">Debit Memo (Increase AR)</option>
-                        <option value="adjustment">Adjustment</option>
-                        <option value="write_off">Write-off</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">DR No.</label>
-                    <input type="text" name="dr_no" id="dr_no"
-                           placeholder="Optional"
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Invoice Number</label>
-                    <input type="text" name="invoice_number" id="invoice_number"
-                           placeholder="e.g., INV-2025-0001"
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Customer Code</label>
-                    <input type="text" name="customer_code" id="customer_code"
-                           placeholder="e.g., CUST-001"
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Customer Name *</label>
-                    <input type="text" name="customer_name" id="customer_name" required
-                           placeholder="e.g., ABC Corporation"
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Branch</label>
-                    <input type="text" name="branch" id="branch"
-                           placeholder="e.g., Manila Branch"
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Amount *</label>
-                    <input type="text" name="amount" id="amount" required
-                           placeholder="For credit memo: (1000) or -1000"
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-400 mt-1">Use parentheses (1000) or minus -1000 for credits</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">GL Account *</label>
-                    <input type="text" name="gl_account" id="gl_account" required
-                           placeholder="e.g., 1200-AR"
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Signed By *</label>
-                    <input type="text" name="signed_by" id="signed_by" required
-                           placeholder="e.g., John Doe"
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Remarks</label>
-                    <textarea name="remarks" id="remarks" rows="3"
-                              placeholder="Optional remarks or notes"
-                              class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-4 mt-6">
-                <button type="button" id="cancel_modal_btn"
-                        class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded font-medium transition">
-                    Cancel
-                </button>
-                <button type="submit"
-                        class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition">
-                    <i class="fas fa-save mr-2"></i>Save Adjustment
-                </button>
-            </div>
-        </form>
+        {{-- No Results Message --}}
+        <div id="no_results_message" class="hidden bg-gray-700 rounded-lg p-8 text-center">
+            <i class="fas fa-user-slash text-5xl text-gray-500 mb-4"></i>
+            <h3 class="text-xl font-semibold text-white mb-2">No Results Found</h3>
+            <p class="text-gray-400">The customer or DR number you searched for does not exist. Please check and try again.</p>
+        </div>
     </div>
 </div>
-
 <script>
-// ✅ Load adjustments on page load
+let currentView = 'adjustment_list';
+let selectedArAging = null;
+let currentCustomer = null;
+
+// ✅ Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    loadAdjustments();
+    loadAdjustmentList();
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('transaction_date').value = today;
 });
 
-function loadAdjustments(filters = {}) {
-    const params = new URLSearchParams({
-        start_date: filters.start_date || '',
-        end_date: filters.end_date || '',
-        transaction_type: filters.transaction_type || '',
-        search: filters.search || ''
-    });
+// ✅ Toggle between views
+document.getElementById('toggle_view_btn').addEventListener('click', function() {
+    if (currentView === 'adjustment_list') {
+        switchToAdjustmentEntries();
+    } else {
+        switchToAdjustmentList();
+    }
+});
 
-    fetch(`{{ route('ar_adjustments.get') }}?${params}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                renderAdjustments(data.adjustments || []);
-                updateSummary(data.summary || {
-                    total_count: 0,
-                    credit_total: 0,
-                    debit_total: 0,
-                    net_total: 0
-                });
-            } else {
-                console.error('Error:', data.message);
-                showError('Failed to load adjustments: ' + data.message);
-                // Show empty state
-                renderAdjustments([]);
-                updateSummary({
-                    total_count: 0,
-                    credit_total: 0,
-                    debit_total: 0,
-                    net_total: 0
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showError('Failed to load adjustments. Please check your connection.');
-            // Show empty state
-            renderAdjustments([]);
-            updateSummary({
-                total_count: 0,
-                credit_total: 0,
-                debit_total: 0,
-                net_total: 0
-            });
+function switchToAdjustmentEntries() {
+    document.getElementById('adjustment_list_view').classList.add('hidden');
+    document.getElementById('adjustment_entries_view').classList.remove('hidden');
+    document.getElementById('no_results_message').classList.add('hidden');
+    document.getElementById('toggle_btn_text').textContent = 'Adjustment List';
+    currentView = 'adjustment_entries';
+}
+
+function switchToAdjustmentList() {
+    document.getElementById('adjustment_list_view').classList.remove('hidden');
+    document.getElementById('adjustment_entries_view').classList.add('hidden');
+    document.getElementById('no_results_message').classList.add('hidden');
+    document.getElementById('toggle_btn_text').textContent = 'New Adjustment';
+    currentView = 'adjustment_list';
+
+    // Reload adjustment list
+    loadAdjustmentList();
+}
+
+// ✅ Search customer or DR number
+document.getElementById('search_customer_btn').addEventListener('click', function() {
+    const searchValue = document.getElementById('customer_search').value.trim();
+
+    if (searchValue === '') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Empty Search',
+            text: 'Please enter a customer name or DR number.',
+            background: '#1f2937',
+            color: '#fff'
         });
-}
-
-// ✅ Render adjustments table
-function renderAdjustments(adjustments) {
-    const tbody = document.getElementById('adjustments_tbody');
-    const recordCount = document.getElementById('record_count');
-
-    if (!tbody) {
-        console.error('adjustments_tbody element not found');
         return;
     }
 
-    // Clear existing content
-    tbody.innerHTML = '';
-
-    if (!adjustments || adjustments.length === 0) {
-        // Show empty state
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="14" class="px-4 py-8 text-center text-gray-400">
-                    <i class="fas fa-inbox text-4xl mb-2"></i>
-                    <p>No AR adjustments found.</p>
-                    <p class="text-sm mt-2">Click "New Adjustment" to create one.</p>
-                </td>
-            </tr>
-        `;
-        recordCount.textContent = '0';
-        return;
-    }
-
-    recordCount.textContent = adjustments.length;
-
-    adjustments.forEach(adj => {
-        const typeColor = {
-            'credit_memo': 'green',
-            'debit_memo': 'red',
-            'adjustment': 'yellow',
-            'write_off': 'purple'
-        }[adj.transaction_type] || 'gray';
-
-        const amountColor = adj.is_decrease ? 'text-red-400' : 'text-green-400';
-        const amountSign = adj.is_decrease ? '-' : '+';
-
-        const row = document.createElement('tr');
-        row.className = 'border-b border-gray-700 hover:bg-gray-750 transition';
-        row.innerHTML = `
-            <td class="px-3 py-3">${adj.transaction_date || 'N/A'}</td>
-            <td class="px-3 py-3">
-                <span class="bg-blue-900/30 border border-blue-700/50 px-2 py-1 rounded text-xs font-mono">
-                    ${adj.reference_number || 'N/A'}
-                </span>
-            </td>
-            <td class="px-3 py-3">
-                <span class="bg-${typeColor}-600 px-2 py-1 rounded text-xs font-medium">
-                    ${adj.formatted_type || 'N/A'}
-                </span>
-            </td>
-            <td class="px-3 py-3">${adj.dr_no || 'N/A'}</td>
-            <td class="px-3 py-3">
-                <span class="bg-gray-700 px-2 py-1 rounded text-xs">
-                    ${adj.invoice_number || 'N/A'}
-                </span>
-            </td>
-            <td class="px-3 py-3">${adj.customer_code || 'N/A'}</td>
-            <td class="px-3 py-3">${adj.customer_name || 'N/A'}</td>
-            <td class="px-3 py-3">${adj.branch || 'N/A'}</td>
-            <td class="px-3 py-3 text-right font-semibold ${amountColor}">
-                ${amountSign}₱${(adj.absolute_amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-            </td>
-            <td class="px-3 py-3">
-                <span class="text-xs bg-purple-900/30 border border-purple-700/50 px-2 py-1 rounded">
-                    ${adj.gl_account || 'N/A'}
-                </span>
-            </td>
-            <td class="px-3 py-3 text-xs">${adj.remarks || '-'}</td>
-            <td class="px-3 py-3">${adj.signed_by || 'N/A'}</td>
-            <td class="px-3 py-3 text-xs">
-                <div>${adj.created_at ? adj.created_at.split(' ')[0] : 'N/A'}</div>
-                <div class="text-gray-400">${adj.created_at ? adj.created_at.split(' ')[1] : ''}</div>
-            </td>
-            <td class="px-3 py-3 text-center">
-                <div class="flex items-center justify-center gap-2">
-                    <button onclick="viewAdjustment(${adj.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-xs transition" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="deleteAdjustment(${adj.id})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs transition" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(row);
+    Swal.fire({
+        title: 'Searching...',
+        text: 'Looking up customer information',
+        background: '#1f2937',
+        color: '#fff',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
     });
-}
 
-// ✅ Update summary cards
-function updateSummary(summary) {
-    document.getElementById('total_count').textContent = summary.total_count || 0;
-    document.getElementById('credit_total').textContent = '₱' + (summary.credit_total || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    document.getElementById('debit_total').textContent = '₱' + (summary.debit_total || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    
-    const netTotal = summary.net_total || 0;
-    const netElement = document.getElementById('net_total');
-    netElement.textContent = (netTotal >= 0 ? '+' : '') + '₱' + Math.abs(netTotal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-}
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-// Modal controls
-const modal = document.getElementById('adjustment_modal');
-const addBtn = document.getElementById('add_adjustment_btn');
-const closeBtn = document.getElementById('close_modal_btn');
-const cancelBtn = document.getElementById('cancel_modal_btn');
+    fetch(`/ar-adjustments/search-ar?search=${encodeURIComponent(searchValue)}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        Swal.close();
 
-addBtn.addEventListener('click', () => {
-    document.getElementById('adjustment_form').reset();
-    document.getElementById('adjustment_id').value = '';
-    document.getElementById('modal_title').textContent = 'New AR Adjustment';
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('transaction_date').value = today;
-    modal.classList.remove('hidden');
+        if (data.success && data.records && data.records.length > 0) {
+            // Display DR numbers for selection
+            displayDRSelection(data.records);
+            switchToAdjustmentEntries();
+        } else {
+            // Show no results message
+            document.getElementById('adjustment_list_view').classList.add('hidden');
+            document.getElementById('adjustment_entries_view').classList.add('hidden');
+            document.getElementById('no_results_message').classList.remove('hidden');
+        }
+    })
+    .catch(error => {
+        Swal.close();
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to search. Please try again.',
+            background: '#1f2937',
+            color: '#fff'
+        });
+    });
 });
 
-closeBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
-});
-
-cancelBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
-});
-
-// ✅ Apply filters
-document.getElementById('apply_filters_btn').addEventListener('click', function() {
-    const filters = {
-        start_date: document.getElementById('filter_start_date').value,
-        end_date: document.getElementById('filter_end_date').value,
-        transaction_type: document.getElementById('filter_transaction_type').value
-    };
-    loadAdjustments(filters);
-});
-
-// ✅ Search functionality
-document.getElementById('search_btn').addEventListener('click', function() {
-    const searchValue = document.getElementById('search_input').value.trim();
-    loadAdjustments({ search: searchValue });
-});
-
-// Allow Enter key in search
-document.getElementById('search_input').addEventListener('keypress', function(e) {
+// Allow Enter key to trigger search
+document.getElementById('customer_search').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         e.preventDefault();
-        document.getElementById('search_btn').click();
+        document.getElementById('search_customer_btn').click();
     }
 });
 
-// ✅ Export functionality
-document.getElementById('export_btn').addEventListener('click', function() {
-    const filters = {
-        start_date: document.getElementById('filter_start_date').value,
-        end_date: document.getElementById('filter_end_date').value,
-        transaction_type: document.getElementById('filter_transaction_type').value,
-        search: document.getElementById('search_input').value
+// ✅ Display DR selection
+function displayDRSelection(records) {
+    const container = document.getElementById('dr_numbers_list');
+    container.innerHTML = '';
+
+    if (records.length === 1) {
+        // Auto-select if only one record
+        selectDRRecord(records[0]);
+        document.getElementById('dr_selection_container').classList.add('hidden');
+    } else {
+        // Show selection buttons
+        document.getElementById('dr_selection_container').classList.remove('hidden');
+
+        records.forEach(record => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'w-full bg-gray-600 hover:bg-gray-500 text-white px-4 py-3 rounded text-left transition flex justify-between items-center';
+            button.innerHTML = `
+                <div>
+                    <div class="font-semibold">${record.dr_no || 'N/A'}</div>
+                    <div class="text-xs text-gray-300">
+                        ${record.client_name} | Invoice: ${record.invoice_no || 'N/A'} | Balance: ₱${parseFloat(record.net_ar_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            `;
+            button.onclick = () => selectDRRecord(record);
+            container.appendChild(button);
+        });
+    }
+}
+
+// ✅ Select DR record
+function selectDRRecord(record) {
+    selectedArAging = record;
+    currentCustomer = {
+        name: record.client_name,
+        code: record.customer_code
     };
 
-    const params = new URLSearchParams(filters);
-    window.location.href = `{{ route('ar_adjustments.export') }}?${params}`;
-    
-    showSuccess('Your file will be downloaded shortly');
-});
+    // Hide DR selection
+    document.getElementById('dr_selection_container').classList.add('hidden');
 
-// ✅ Form submission
-document.getElementById('adjustment_form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const data = {};
-    
-    // Convert FormData to object
-    formData.forEach((value, key) => {
-        data[key] = value;
-    });
+    // Update display
+    document.getElementById('display_customer_name').textContent = record.client_name || '—';
+    document.getElementById('display_dr_no').textContent = record.dr_no || '—';
+    document.getElementById('display_invoice_no').textContent = record.invoice_no || '—';
+    document.getElementById('display_ar_balance').textContent = '₱' + parseFloat(record.net_ar_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+
+    // Show customer info and adjustment form
+    document.getElementById('customer_info_container').classList.remove('hidden');
+    document.getElementById('adjustment_table_container').classList.remove('hidden');
+}
+
+// ✅ Save adjustment
+function saveAdjustment() {
+    if (!selectedArAging) {
+        Swal.fire({
+            icon: 'error',
+            title: 'No DR Selected',
+            text: 'Please search and select a DR number first.',
+            background: '#1f2937',
+            color: '#fff'
+        });
+        return;
+    }
+
+    const transaction_date = document.getElementById('transaction_date').value;
+    const reference_number = document.getElementById('reference_number').value;
+    const transaction_type = document.getElementById('transaction_type').value;
+    const amount = document.getElementById('amount').value;
+    const gl_account = document.getElementById('gl_account').value;
+    const signed_by = document.getElementById('signed_by').value;
+    const remarks = document.getElementById('remarks').value;
+
+    if (!transaction_date || !reference_number || !transaction_type || !amount || !gl_account || !signed_by) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: 'Please fill in all required fields.',
+            background: '#1f2937',
+            color: '#fff'
+        });
+        return;
+    }
 
     Swal.fire({
         title: 'Saving...',
@@ -494,32 +421,214 @@ document.getElementById('adjustment_form').addEventListener('submit', function(e
         }
     });
 
-    fetch('{{ route("ar_adjustments.store") }}', {
+    const data = {
+        transaction_date: transaction_date,
+        reference_number: reference_number,
+        transaction_type: transaction_type,
+        dr_no: selectedArAging.dr_no,
+        invoice_number: selectedArAging.invoice_no,
+        customer_code: selectedArAging.customer_code,
+        customer_name: selectedArAging.client_name,
+        branch: selectedArAging.branch,
+        amount: amount,
+        gl_account: gl_account,
+        signed_by: signed_by,
+        remarks: remarks
+    };
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch('/ar-adjustments', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
         },
         body: JSON.stringify(data)
     })
     .then(response => response.json())
     .then(data => {
         Swal.close();
-        
+
         if (data.success) {
-            modal.classList.add('hidden');
-            showSuccess(data.message);
-            loadAdjustments();
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message,
+                background: '#1f2937',
+                color: '#fff'
+            }).then(() => {
+                // Clear form
+                document.getElementById('reference_number').value = '';
+                document.getElementById('transaction_type').value = '';
+                document.getElementById('amount').value = '';
+                document.getElementById('gl_account').value = '';
+                document.getElementById('signed_by').value = '';
+                document.getElementById('remarks').value = '';
+
+                // Switch back to list view
+                switchToAdjustmentList();
+            });
         } else {
-            showError(data.message || 'Failed to save adjustment');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Failed to save adjustment',
+                background: '#1f2937',
+                color: '#fff'
+            });
         }
     })
     .catch(error => {
         Swal.close();
         console.error('Error:', error);
-        showError('Failed to save adjustment');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to save adjustment. Please try again.',
+            background: '#1f2937',
+            color: '#fff'
+        });
     });
-});
+}
+
+// ✅ Load adjustment list
+function loadAdjustmentList() {
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    // Set default dates if not already set
+    if (!document.getElementById('filter_start_date').value) {
+        document.getElementById('filter_start_date').valueAsDate = thirtyDaysAgo;
+    }
+    if (!document.getElementById('filter_end_date').value) {
+        document.getElementById('filter_end_date').valueAsDate = today;
+    }
+
+    filterAdjustmentList();
+}
+
+// ✅ Filter adjustment list
+function filterAdjustmentList() {
+    const dateFrom = document.getElementById('filter_start_date').value;
+    const dateTo = document.getElementById('filter_end_date').value;
+    const transactionType = document.getElementById('filter_transaction_type').value;
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch(`/ar-adjustments/get?start_date=${dateFrom}&end_date=${dateTo}&transaction_type=${transactionType}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const tbody = document.getElementById('adjustment_list_tbody');
+            tbody.innerHTML = '';
+
+            if (!data.adjustments || data.adjustments.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="15" class="px-4 py-8 text-center text-gray-400">
+                            <i class="fas fa-file-invoice text-4xl mb-2"></i>
+                            <p>No adjustment data available</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.adjustments.forEach(adj => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-700 hover:bg-gray-750';
+
+                const typeColor = {
+                    'credit_memo': 'green',
+                    'debit_memo': 'red',
+                    'adjustment': 'yellow',
+                    'write_off': 'purple'
+                }[adj.transaction_type] || 'gray';
+
+                const amountColor = adj.amount < 0 ? 'text-red-400' : 'text-green-400';
+                const amountSign = adj.amount < 0 ? '-' : '+';
+                const amountDisplay = `${amountSign}₱${Math.abs(adj.amount).toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+
+                row.innerHTML = `
+                    <td class="px-3 py-3">${new Date(adj.transaction_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                    <td class="px-3 py-3">
+                        <span class="bg-blue-900/30 border border-blue-700/50 px-2 py-1 rounded text-xs font-mono">
+                            ${adj.reference_number}
+                        </span>
+                    </td>
+                    <td class="px-3 py-3">
+                        <span class="bg-${typeColor}-600 px-2 py-1 rounded text-xs font-medium">
+                            ${adj.formatted_type || adj.transaction_type}
+                        </span>
+                    </td>
+                    <td class="px-3 py-3">${adj.dr_no || 'N/A'}</td>
+                    <td class="px-3 py-3">
+                        <span class="bg-gray-700 px-2 py-1 rounded text-xs">
+                            ${adj.invoice_number || 'N/A'}
+                        </span>
+                    </td>
+                    <td class="px-3 py-3">${adj.customer_code || 'N/A'}</td>
+                    <td class="px-3 py-3">${adj.customer_name}</td>
+                    <td class="px-3 py-3">${adj.branch || 'N/A'}</td>
+                    <td class="px-3 py-3 text-right font-semibold ${amountColor}">${amountDisplay}</td>
+                    <td class="px-3 py-3">
+                        <span class="text-xs bg-purple-900/30 border border-purple-700/50 px-2 py-1 rounded">
+                            ${adj.gl_account}
+                        </span>
+                    </td>
+                    <td class="px-3 py-3 text-xs">${adj.remarks || '—'}</td>
+                    <td class="px-3 py-3">${adj.signed_by}</td>
+                    <td class="px-3 py-3 text-xs">
+                        <div>${adj.created_at ? adj.created_at.split(' ')[0] : 'N/A'}</div>
+                        <div class="text-gray-400">${adj.created_at ? adj.created_at.split(' ')[1] : ''}</div>
+                    </td>
+                    <td class="px-3 py-3 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="viewAdjustment(${adj.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="deleteAdjustment(${adj.id})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+// ✅ Export adjustment list
+function exportAdjustmentList() {
+    const dateFrom = document.getElementById('filter_start_date').value;
+    const dateTo = document.getElementById('filter_end_date').value;
+    const transactionType = document.getElementById('filter_transaction_type').value;
+
+    Swal.fire({
+        icon: 'info',
+        title: 'Export Started',
+        text: 'Adjustment list will be downloaded shortly.',
+        background: '#1f2937',
+        color: '#fff',
+        timer: 2000,
+        showConfirmButton: false
+    });
+
+    window.location.href = `/ar-adjustments/export/csv?start_date=${dateFrom}&end_date=${dateTo}&transaction_type=${transactionType}`;
+}
 
 // ✅ View Adjustment Details
 function viewAdjustment(id) {
@@ -538,12 +647,12 @@ function viewAdjustment(id) {
         .then(response => response.json())
         .then(data => {
             Swal.close();
-            
+
             if (data.success) {
                 const adj = data.adjustment;
-                const amountColor = adj.is_decrease ? 'text-red-400' : 'text-green-400';
-                const amountSign = adj.is_decrease ? '-' : '+';
-                
+                const amountColor = adj.amount < 0 ? 'color: #f87171' : 'color: #4ade80';
+                const amountSign = adj.amount < 0 ? '-' : '+';
+
                 Swal.fire({
                     title: '<strong>AR Adjustment Details</strong>',
                     html: `
@@ -563,7 +672,7 @@ function viewAdjustment(id) {
                                 </div>
                                 <div>
                                     <p class="text-gray-400 text-xs">Amount</p>
-                                    <p class="font-semibold ${amountColor}">${amountSign}₱${adj.absolute_amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
+                                    <p class="font-semibold" style="${amountColor}">${amountSign}₱${Math.abs(adj.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
                                 </div>
                                 <div>
                                     <p class="text-gray-400 text-xs">DR No.</p>
@@ -593,10 +702,6 @@ function viewAdjustment(id) {
                                     <p class="text-gray-400 text-xs">Signed By</p>
                                     <p class="font-semibold">${adj.signed_by}</p>
                                 </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">Created By</p>
-                                    <p class="font-semibold">${adj.created_by}</p>
-                                </div>
                                 <div class="col-span-2">
                                     <p class="text-gray-400 text-xs">Remarks</p>
                                     <p class="font-semibold">${adj.remarks || 'N/A'}</p>
@@ -618,7 +723,13 @@ function viewAdjustment(id) {
         })
         .catch(error => {
             Swal.close();
-            showError('Failed to load adjustment details');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to load adjustment details',
+                background: '#1f2937',
+                color: '#fff'
+            });
         });
 }
 
@@ -637,48 +748,48 @@ function deleteAdjustment(id) {
         color: '#fff'
     }).then((result) => {
         if (result.isConfirmed) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
             fetch(`/ar-adjustments/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': csrfToken
                 }
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showSuccess(data.message);
-                    loadAdjustments();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: data.message,
+                        background: '#1f2937',
+                        color: '#fff',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    // Reload the list
+                    loadAdjustmentList();
                 } else {
-                    showError(data.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message,
+                        background: '#1f2937',
+                        color: '#fff'
+                    });
                 }
             })
             .catch(error => {
-                showError('Failed to delete adjustment');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to delete adjustment',
+                    background: '#1f2937',
+                    color: '#fff'
+                });
             });
         }
-    });
-}
-
-// ✅ Helper functions
-function showSuccess(message) {
-    Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: message,
-        background: '#1f2937',
-        color: '#fff',
-        timer: 2000,
-        showConfirmButton: false
-    });
-}
-
-function showError(message) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: message,
-        background: '#1f2937',
-        color: '#fff'
     });
 }
 </script>

@@ -14,14 +14,14 @@
                     Apply Filters & View Summary
                 </button>
             </div>
-            <form id="filter-form" method="GET" action="{{ route('aging_reports.summary') }}" class="grid grid-cols-1 md:grid-cols-1 gap-4">
-                <!-- Date Filter (Record Date) -->
+            <form id="filter-form" method="GET" action="{{ route('aging_reports.summary') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Record Date Filter (filters which records to show) -->
                 <div>
                     <label for="filter_date" class="block text-sm font-medium text-gray-300 mb-2">
                         Record Date (On or Before)
-                        <span class="text-xs text-gray-400 ml-1">(filters by record_date)</span>
+                        <span class="text-xs text-gray-400 ml-1">(filters records by record_date)</span>
                     </label>
-                    <input type="date" id="filter_date" name="filter_date" 
+                    <input type="date" id="filter_date" name="filter_date"
                            value="{{ request('filter_date') }}"
                            class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                            required>
@@ -29,17 +29,23 @@
             </form>
 
             {{-- Active Filters Display --}}
-            @if(request()->has('filter_date'))
+            @if(request()->has('filter_date') || request()->has('aging_date'))
             <div class="mt-4 flex items-center gap-2 flex-wrap">
                 <span class="text-sm text-gray-300">Active filters:</span>
-                
+
+                @if(request()->has('filter_date'))
                 <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs flex items-center gap-2">
                     Record Date ≤ {{ request('filter_date') }}
-                    <a href="{{ route('aging_reports.view') }}" 
-                       class="hover:text-gray-300">×</a>
                 </span>
+                @endif
 
-                <a href="{{ route('aging_reports.view') }}" 
+                @if(request()->has('aging_date'))
+                <span class="bg-yellow-600 text-white px-3 py-1 rounded-full text-xs flex items-center gap-2">
+                    ⚡ Aging Date: {{ request('aging_date') }}
+                </span>
+                @endif
+
+                <a href="{{ route('aging_reports.view') }}"
                    class="text-xs text-red-400 hover:text-red-300 ml-2">
                     Clear all filters
                 </a>
@@ -49,6 +55,18 @@
 
         <!-- Search and Table Section -->
         <div class="bg-gray-700 rounded-lg p-6">
+            <!-- Aging Date Filter (calculates age dynamically) -->
+            <div class="mb-4">
+                <label for="aging_date" class="block text-sm font-medium text-gray-300 mb-2">
+                    Aging Date (As of Date)
+                    <span class="text-xs text-yellow-400 ml-1">⚡ (age = days since counter date; leave empty to use each record's own record date)</span>
+                </label>
+                <input type="date" id="aging_date" name="aging_date" form="filter-form"
+                       value="{{ request('aging_date') }}"
+                       class="bg-gray-600 text-white border border-yellow-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                       placeholder="Leave empty for record date">
+            </div>
+
             <!-- Enhanced Search Bar -->
             <div class="mb-4 flex items-center space-x-4">
                 <div class="flex-1 flex space-x-2">
@@ -186,7 +204,8 @@
         const searchValue = document.getElementById('search_input').value;
         const searchType = document.getElementById('search_type').value;
         const filterDate = document.getElementById('filter_date').value;
-        
+        const agingDate = document.getElementById('aging_date').value;
+
         if (searchValue.trim() === '') {
             Swal.fire({
                 icon: 'warning',
@@ -203,6 +222,7 @@
         params.append(searchType, searchValue);
 
         if (filterDate) params.append('filter_date', filterDate);
+        if (agingDate) params.append('aging_date', agingDate);
 
         // AJAX search implementation
         fetch(`/aging-reports/search?${params.toString()}`)
@@ -247,6 +267,26 @@
             e.preventDefault();
             document.getElementById('search_button').click();
         }
+    });
+
+    // Auto-reload when aging date changes (recalculate ages dynamically)
+    document.getElementById('aging_date').addEventListener('change', function() {
+        // Reload the current page with the new aging_date parameter
+        const agingDate = this.value;
+        const filterDate = document.getElementById('filter_date').value;
+        const include = document.getElementById('include_filter')?.value || 'all';
+
+        // Build URL with current filters
+        let url = window.location.pathname + '?';
+        if (filterDate) url += 'filter_date=' + filterDate + '&';
+        if (agingDate) url += 'aging_date=' + agingDate + '&';
+        url += 'include=' + include;
+
+        console.log('Reloading with aging_date:', agingDate);
+        console.log('Full URL:', url);
+
+        // Reload page with new parameters
+        window.location.href = url;
     });
 
     // Export to Excel

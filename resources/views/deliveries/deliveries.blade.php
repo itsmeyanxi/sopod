@@ -276,31 +276,26 @@ function calculateRemaining(card) {
     const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
     const deliveredInput = card.querySelector('.delivered-qty-input');
     const remainingCell = card.querySelector('.remaining-qty');
-    
+
     if (deliveredInput && remainingCell) {
-        const currentDeliveryQty = parseFloat(deliveredInput.value) || 0;
         const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
-        const totalDelivered = alreadyDelivered + currentDeliveryQty;
-        const remaining = originalQty - totalDelivered;
-        
+
+        // ✅ FIXED: Remaining = Original - Already Delivered (what still needs to be delivered)
+        const remaining = originalQty - alreadyDelivered;
+
         // Remove all status classes first
         card.classList.remove('bg-orange-900/10', 'bg-red-900/10');
         remainingCell.classList.remove('text-orange-400', 'text-green-400', 'text-red-400', 'font-semibold');
-        
-        if (remaining < 0) {
-            // Over-delivery
-            remainingCell.textContent = 'OVER: +' + Math.abs(remaining).toFixed(2);
-            remainingCell.classList.add('text-red-400', 'font-semibold');
-            card.classList.add('bg-red-900/10');
-        } else if (remaining > 0) {
-            // Under-delivery (partial)
+
+        if (remaining <= 0) {
+            // Fully delivered already
+            remainingCell.textContent = '—';
+            remainingCell.classList.add('text-green-400');
+        } else {
+            // Has remaining to deliver
             remainingCell.textContent = remaining.toFixed(2);
             remainingCell.classList.add('text-orange-400', 'font-semibold');
             card.classList.add('bg-orange-900/10');
-        } else {
-            // Perfect (fully delivered)
-            remainingCell.textContent = '—';
-            remainingCell.classList.add('text-green-400');
         }
     }
 }
@@ -569,10 +564,10 @@ function populateItemsTable(items, isViewOnly = false) {
                         <label class="block text-xs text-gray-400 mb-1">Delivered Qty *</label>
                         <input type="number"
                             class="delivered-qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-center font-semibold"
-                            value="${deliveredQty}"
+                            value="${parseFloat(deliveredQty).toFixed(3)}"
                             data-sales-order-item-id="${item.sales_order_item_id || ''}"
                             data-item-index="${index}"
-                            step="0.01"
+                            step="0.001"
                             min="0"
                             ${inputReadonly}>
                     </div>
@@ -625,6 +620,12 @@ function populateItemsTable(items, isViewOnly = false) {
 
         if (!isViewOnly) {
             attachQuantityListeners();
+
+            // ✅ FIXED: Recalculate remaining for all items on initial load
+            document.querySelectorAll('.delivery-item-card').forEach(card => {
+                calculateRemaining(card);
+            });
+
             checkPartialDelivery();
         }
     } else {

@@ -98,25 +98,27 @@ class SalesOrder extends Model
             return false;
         }
         
-        // ✅ FIXED: Get delivered quantities (ONLY count items with qty > 0)
+        // ✅ FIXED: Get delivered quantities by sales_order_item_id (handles duplicate item_codes)
         $deliveredSums = DeliveryItem::whereHas('delivery', function($q) {
                 $q->where('sales_order_number', $this->sales_order_number)
                   ->where('status', 'Delivered');
             })
-            ->where('quantity', '>', 0) // ✅ ADD THIS LINE - Only count actual deliveries
-            ->select('item_code', DB::raw('SUM(quantity) as total_delivered'))
-            ->groupBy('item_code')
+            ->where('quantity', '>', 0) // Only count actual deliveries
+            ->select('sales_order_item_id', DB::raw('SUM(quantity) as total_delivered'))
+            ->groupBy('sales_order_item_id')
             ->get()
-            ->keyBy('item_code');
-        
+            ->keyBy('sales_order_item_id');
+
         $allFullyDelivered = true;
         $debugInfo = [];
-        
+
         foreach ($soItems as $soItem) {
             $soQty = floatval($soItem->quantity);
-            $deliveredQty = floatval($deliveredSums->get($soItem->item_code)?->total_delivered ?? 0);
+            // ✅ Use sales_order_item_id (soItem->id) for lookup instead of item_code
+            $deliveredQty = floatval($deliveredSums->get($soItem->id)?->total_delivered ?? 0);
             
             $debugInfo[] = [
+                'so_item_id' => $soItem->id,
                 'item_code' => $soItem->item_code,
                 'so_qty' => $soQty,
                 'delivered_qty' => $deliveredQty,

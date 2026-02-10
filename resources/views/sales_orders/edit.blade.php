@@ -79,7 +79,16 @@
                 <input type="text" name="po_number" id="po_number"
                     value="{{ old('po_number', $salesOrder->po_number) }}"
                     class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2"
-                    placeholder="Enter PO Number (optional)">
+                    placeholder="Enter PO Number"
+                    data-has-po-image="{{ $salesOrder->po_image ? 'true' : 'false' }}"
+                    data-original-value="{{ $salesOrder->po_number }}">
+                @if($salesOrder->po_number)
+                    <p class="text-xs text-blue-400 mt-1">💡 To remove this and use an image instead, upload a PO image below</p>
+                @elseif($salesOrder->po_image)
+                    <p class="text-xs text-blue-400 mt-1">💡 Enter a PO Number here to remove the current image</p>
+                @else
+                    <p class="text-xs text-gray-400 mt-1">Provide either PO Number OR upload image below</p>
+                @endif
             </div>
 
             <div>
@@ -121,8 +130,8 @@
                         <div class="mb-3 bg-gray-900/50 border border-gray-700 rounded-lg p-3">
                             <p class="text-xs text-gray-400 mb-2">Current PO Proof:</p>
                             @if(Str::endsWith($salesOrder->po_image, '.pdf'))
-                                <a href="{{ asset('po_images/' . $salesOrder->po_image) }}" 
-                                   target="_blank" 
+                                <a href="{{ asset('po_images/' . $salesOrder->po_image) }}"
+                                   target="_blank"
                                    class="text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -130,15 +139,16 @@
                                     <span class="underline">View Current PO Document (PDF)</span>
                                 </a>
                             @else
-                                <a href="{{ asset('po_images/' . $salesOrder->po_image) }}" 
+                                <a href="{{ asset('po_images/' . $salesOrder->po_image) }}"
                                    target="_blank"
                                    class="block">
-                                    <img src="{{ asset('po_images/' . $salesOrder->po_image) }}" 
-                                        alt="Current PO Proof" 
+                                    <img src="{{ asset('po_images/' . $salesOrder->po_image) }}"
+                                        alt="Current PO Proof"
                                         class="max-w-xs rounded border border-gray-600 hover:border-blue-500 transition-all cursor-pointer">
                                 </a>
                                 <p class="text-xs text-gray-400 mt-2">Click to view full size</p>
                             @endif
+                            <p class="text-xs text-blue-400 mt-2">💡 To remove this image, provide a PO Number above</p>
                         </div>
                     @endif
 
@@ -146,34 +156,42 @@
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">
                             @if($salesOrder->po_image)
-                                Upload New PO Proof (Optional - will replace current)
+                                Replace PO Proof (will replace current proof)
                             @else
-                                Upload PO Proof (Optional)
+                                Upload PO Proof (Required if no PO Number)
                             @endif
                         </label>
                         <input type="file" id="po_image" name="po_image" accept="image/*,application/pdf"
-                            class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2 
-                                file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 
+                            class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2
+                                file:mr-4 file:py-1 file:px-3 file:rounded file:border-0
                                 file:bg-blue-600 file:text-white hover:file:bg-blue-500">
                         <p class="text-xs text-gray-400 mt-2">
-                            Accepts JPG, PNG, or PDF (max 4MB). Leave empty to keep current proof.
+                            Accepts JPG, PNG, or PDF (max 4MB).
+                            @if($salesOrder->po_image)
+                                Leave empty to keep current proof.
+                            @else
+                                Upload proof if no PO Number is provided.
+                            @endif
                         </p>
-                        
+
                         {{-- Preview for new upload --}}
                         <div id="po_image_preview" class="mt-3 hidden">
                             <p class="text-xs text-gray-400 mb-2">New upload preview:</p>
-                            <img id="po_image_preview_img" src="" alt="New PO Preview" 
+                            <img id="po_image_preview_img" src="" alt="New PO Preview"
                                 class="max-w-xs rounded border border-gray-700">
                         </div>
                     </div>
 
-                    {{-- Hidden input to track if we should remove the image --}}
-                    @if($salesOrder->po_image)
-                        <div class="mt-3">
-                            <label class="flex items-center gap-2 text-sm text-gray-400 cursor-pointer hover:text-red-400 transition-colors">
-                                <input type="checkbox" name="remove_po_image" value="1" class="rounded bg-gray-700 border-gray-600">
-                                <span>Remove current PO proof (check this to delete the current file)</span>
-                            </label>
+                    {{-- Option to remove PO image by providing PO number --}}
+                    @if($salesOrder->po_image && !$salesOrder->po_number)
+                        <div class="mt-3 bg-yellow-900/20 border border-yellow-700 rounded-lg p-3">
+                            <p class="text-xs text-yellow-300 mb-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                <strong>Want to use PO Number instead?</strong>
+                            </p>
+                            <p class="text-xs text-gray-300">
+                                Enter a PO Number in the field above to switch from image to number. The image will be removed automatically.
+                            </p>
                         </div>
                     @endif
                 </div>
@@ -443,12 +461,47 @@ function customMatcher(params, data) {
     return null;
 }
 
-// PO Image Preview
+// ================= PO NUMBER / PO IMAGE SWITCHING LOGIC =================
+const poNumberInput = document.getElementById('po_number');
+const poImageInput = document.getElementById('po_image');
+const hasPoImage = poNumberInput && poNumberInput.getAttribute('data-has-po-image') === 'true';
+const originalPoValue = poNumberInput ? poNumberInput.getAttribute('data-original-value') : '';
+
+// Warn when trying to clear PO number if no image will be provided
+if (poNumberInput) {
+    poNumberInput.addEventListener('blur', function() {
+        const currentPoNumber = this.value.trim();
+        const willUploadImage = poImageInput && poImageInput.files.length > 0;
+
+        // If clearing PO number (was filled, now empty)
+        if (originalPoValue && currentPoNumber === '') {
+            // Allow clearing only if uploading a new image OR if image already exists
+            if (!willUploadImage && !hasPoImage) {
+                alert('You must provide either a PO Number or PO Image. Restoring PO Number.');
+                this.value = originalPoValue;
+            } else if (willUploadImage) {
+                // Confirm switch from number to image
+                if (!confirm('Switch from PO Number to PO Image? The PO Number will be removed.')) {
+                    this.value = originalPoValue;
+                }
+            }
+        }
+
+        // If adding PO number when image exists
+        if (hasPoImage && currentPoNumber && currentPoNumber !== originalPoValue) {
+            if (!confirm('Adding a PO Number will remove the current PO Image. Continue?')) {
+                this.value = originalPoValue;
+            }
+        }
+    });
+}
+
+// ================= PO IMAGE PREVIEW =================
 document.getElementById('po_image').addEventListener('change', function(e) {
     const file = e.target.files[0];
     const previewContainer = document.getElementById('po_image_preview');
     const previewImg = document.getElementById('po_image_preview_img');
-    
+
     if (file) {
         if (file.size > 4 * 1024 * 1024) {
             alert('File size must not exceed 4MB.');
@@ -456,7 +509,7 @@ document.getElementById('po_image').addEventListener('change', function(e) {
             previewContainer.classList.add('hidden');
             return;
         }
-        
+
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
         if (!allowedTypes.includes(file.type)) {
             alert('Please upload a JPG, PNG, or PDF file.');
@@ -464,7 +517,7 @@ document.getElementById('po_image').addEventListener('change', function(e) {
             previewContainer.classList.add('hidden');
             return;
         }
-        
+
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = function(e) {

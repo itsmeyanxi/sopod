@@ -28,52 +28,63 @@ class SalesDashboardController extends Controller
 
         // =================== KEY METRICS ===================
 
-        // Monthly Sales (PHP)
+        // Monthly Sales (PHP) - Only Delivered AND Approved (using request_delivery_date to match Deliveries List)
         $monthlySalesPHP = DB::table('delivery_items')
             ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-            ->whereBetween('deliveries.created_at', [$startOfMonth, $endOfMonth])
+            ->whereBetween('deliveries.request_delivery_date', [$startOfMonth, $endOfMonth])
             ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.approval_status', 'Approved')
             ->sum('delivery_items.total_amount');
 
-        // Weekly Sales (PHP)
+        // Weekly Sales (PHP) - Only Delivered AND Approved
         $weeklySalesPHP = DB::table('delivery_items')
             ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-            ->whereBetween('deliveries.created_at', [$startOfWeek, $endOfWeek])
+            ->whereBetween('deliveries.request_delivery_date', [$startOfWeek, $endOfWeek])
             ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.approval_status', 'Approved')
             ->sum('delivery_items.total_amount');
 
-        // Year to Date Sales (PHP)
+        // Year to Date Sales (PHP) - Only Delivered AND Approved
         $ytdSalesPHP = DB::table('delivery_items')
             ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-            ->whereBetween('deliveries.created_at', [$startOfYear, $endOfYear])
+            ->whereBetween('deliveries.request_delivery_date', [$startOfYear, $endOfYear])
             ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.approval_status', 'Approved')
             ->sum('delivery_items.total_amount');
 
-        // Monthly Sales (KG)
+        // Monthly Sales (KG) - Only Delivered AND Approved
         $monthlySalesKG = DB::table('delivery_items')
             ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-            ->whereBetween('deliveries.created_at', [$startOfMonth, $endOfMonth])
+            ->whereBetween('deliveries.request_delivery_date', [$startOfMonth, $endOfMonth])
             ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.approval_status', 'Approved')
             ->sum('delivery_items.quantity');
 
-        // Weekly Sales (KG)
+        // Weekly Sales (KG) - Only Delivered AND Approved
         $weeklySalesKG = DB::table('delivery_items')
             ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-            ->whereBetween('deliveries.created_at', [$startOfWeek, $endOfWeek])
+            ->whereBetween('deliveries.request_delivery_date', [$startOfWeek, $endOfWeek])
             ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.approval_status', 'Approved')
             ->sum('delivery_items.quantity');
 
-        // Year to Date Sales (KG)
+        // Year to Date Sales (KG) - Only Delivered AND Approved
         $ytdSalesKG = DB::table('delivery_items')
             ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-            ->whereBetween('deliveries.created_at', [$startOfYear, $endOfYear])
+            ->whereBetween('deliveries.request_delivery_date', [$startOfYear, $endOfYear])
             ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.approval_status', 'Approved')
             ->sum('delivery_items.quantity');
 
-        // Count Metrics
-        $totalSalesOrders = SalesOrder::count();
-        $deliveredCount = Deliveries::where('status', 'Delivered')->count();
-        $pendingSO = SalesOrder::where('status', 'pending')->count();
+        // Count Metrics (filtered by selected month/year)
+        $totalSalesOrders = SalesOrder::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
+        $deliveredCount = Deliveries::whereBetween('request_delivery_date', [$startOfMonth, $endOfMonth])
+            ->where('status', 'Delivered')
+            ->where('approval_status', 'Approved')
+            ->count();
+        $pendingSO = SalesOrder::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->where('status', 'pending')
+            ->count();
 
         // =================== CHARTS DATA ===================
 
@@ -85,11 +96,13 @@ class SalesDashboardController extends Controller
 
         for ($m = 1; $m <= 12; $m++) {
             // Get data from delivery_items (joined with deliveries)
+            // ✅ FIXED: Only count Delivered AND Approved deliveries (using request_delivery_date)
             $monthData = DB::table('delivery_items')
                 ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-                ->whereYear('deliveries.created_at', $year)
-                ->whereMonth('deliveries.created_at', $m)
+                ->whereYear('deliveries.request_delivery_date', $year)
+                ->whereMonth('deliveries.request_delivery_date', $m)
                 ->where('deliveries.status', 'Delivered')
+                ->where('deliveries.approval_status', 'Approved')
                 ->selectRaw('
                     COALESCE(SUM(delivery_items.total_amount), 0) as total_php,
                     COALESCE(SUM(delivery_items.quantity), 0) as total_kg
@@ -119,11 +132,12 @@ class SalesDashboardController extends Controller
             
             $weekLabels[] = $weekStart->format('M d');
             
-            // Get weekly data from delivery_items
+            // Get weekly data from delivery_items (using request_delivery_date)
             $weekData = DB::table('delivery_items')
                 ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-                ->whereBetween('deliveries.created_at', [$weekStart, $weekEnd])
+                ->whereBetween('deliveries.request_delivery_date', [$weekStart, $weekEnd])
                 ->where('deliveries.status', 'Delivered')
+                ->where('deliveries.approval_status', 'Approved')
                 ->selectRaw('
                     COALESCE(SUM(delivery_items.total_amount), 0) as total_php,
                     COALESCE(SUM(delivery_items.quantity), 0) as total_kg
@@ -135,13 +149,14 @@ class SalesDashboardController extends Controller
         }
 
         // =================== TOP CUSTOMERS ===================
-        // Top customers based on delivery_items total_amount
+        // Top customers based on delivery_items total_amount (using request_delivery_date)
         $topCustomers = DB::table('delivery_items')
             ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
             ->select('deliveries.customer_name')
             ->selectRaw('SUM(delivery_items.total_amount) as total_sales')
-            ->whereYear('deliveries.created_at', $year)
+            ->whereYear('deliveries.request_delivery_date', $year)
             ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.approval_status', 'Approved')
             ->whereNotNull('deliveries.customer_name')
             ->where('deliveries.customer_name', '!=', '')
             ->groupBy('deliveries.customer_name')
@@ -156,6 +171,7 @@ class SalesDashboardController extends Controller
                 ->select('deliveries.customer_name')
                 ->selectRaw('SUM(delivery_items.total_amount) as total_sales')
                 ->where('deliveries.status', 'Delivered')
+                ->where('deliveries.approval_status', 'Approved')
                 ->whereNotNull('deliveries.customer_name')
                 ->where('deliveries.customer_name', '!=', '')
                 ->groupBy('deliveries.customer_name')
@@ -164,12 +180,13 @@ class SalesDashboardController extends Controller
                 ->get();
         }
 
-        // =================== TOP 5 ITEMS ===================
+        // =================== TOP 5 ITEMS =================== (using request_delivery_date)
         $topItems = DB::table('delivery_items')
             ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
             ->selectRaw('delivery_items.item_description, SUM(delivery_items.quantity) as total_quantity, delivery_items.item_code')
-            ->whereYear('deliveries.created_at', $year)
+            ->whereYear('deliveries.request_delivery_date', $year)
             ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.approval_status', 'Approved')
             ->whereNotNull('delivery_items.item_description')
             ->where('delivery_items.item_description', '!=', '')
             ->groupBy('delivery_items.item_description', 'delivery_items.item_code')
@@ -183,6 +200,7 @@ class SalesDashboardController extends Controller
                 ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
                 ->selectRaw('delivery_items.item_description, SUM(delivery_items.quantity) as total_quantity, delivery_items.item_code')
                 ->where('deliveries.status', 'Delivered')
+                ->where('deliveries.approval_status', 'Approved')
                 ->whereNotNull('delivery_items.item_description')
                 ->where('delivery_items.item_description', '!=', '')
                 ->groupBy('delivery_items.item_description', 'delivery_items.item_code')
@@ -276,9 +294,10 @@ class SalesDashboardController extends Controller
             for ($m = 1; $m <= 12; $m++) {
                 $monthData = DB::table('delivery_items')
                     ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-                    ->whereYear('deliveries.created_at', $selectedAnnualYear)
-                    ->whereMonth('deliveries.created_at', $m)
+                    ->whereYear('deliveries.request_delivery_date', $selectedAnnualYear)
+                    ->whereMonth('deliveries.request_delivery_date', $m)
                     ->where('deliveries.status', 'Delivered')
+                    ->where('deliveries.approval_status', 'Approved')
                     ->selectRaw('
                         COALESCE(SUM(delivery_items.total_amount), 0) as total_php,
                         COALESCE(SUM(delivery_items.quantity), 0) as total_kg,
@@ -351,21 +370,23 @@ class SalesDashboardController extends Controller
 
         $salesPHP = DB::table('delivery_items')
             ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-            ->whereBetween('deliveries.created_at', [$startDate, $endDate])
+            ->whereBetween('deliveries.request_delivery_date', [$startDate, $endDate])
             ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.approval_status', 'Approved')
             ->sum('delivery_items.total_amount');
 
         $salesKG = DB::table('delivery_items')
             ->join('deliveries', 'delivery_items.delivery_id', '=', 'deliveries.id')
-            ->whereBetween('deliveries.created_at', [$startDate, $endDate])
+            ->whereBetween('deliveries.request_delivery_date', [$startDate, $endDate])
             ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.approval_status', 'Approved')
             ->sum('delivery_items.quantity');
 
         return response()->json([
             'period' => $period,
             'sales_php' => number_format($salesPHP, 2),
             'sales_kg' => number_format($salesKG, 2),
-            'delivered_count' => Deliveries::where('status','Delivered')->count(),
+            'delivered_count' => Deliveries::where('status','Delivered')->where('approval_status', 'Approved')->count(),
             'pending_so' => SalesOrder::where('status', 'pending')->count(),
         ]);
     }

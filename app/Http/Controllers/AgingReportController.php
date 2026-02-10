@@ -17,6 +17,7 @@ class AgingReportController extends Controller
     /**
      * Display the aging reports view
      * ✅ UPDATED: Filter by record_date and include_flag
+     * ✅ NEW: Dynamic age calculation based on filter_date
      */
     public function view(Request $request)
     {
@@ -27,10 +28,15 @@ class AgingReportController extends Controller
             // Use imported AR Aging data
             $agingReports = $this->getImportedAgingData($request);
         } else {
+            // Get aging date for calculated data
+            $agingDate = $request->filled('filter_date')
+                ? Carbon::parse($request->filter_date)
+                : now();
+
             // Fallback to calculated data from sales invoices
             $query = $this->buildAgingQuery($request);
-            $agingReports = $query->get()->map(function($invoice) {
-                return $this->calculateInvoiceAging($invoice);
+            $agingReports = $query->get()->map(function($invoice) use ($agingDate) {
+                return $this->calculateInvoiceAging($invoice, $agingDate);
             });
         }
 
@@ -40,10 +46,24 @@ class AgingReportController extends Controller
     /**
      * ✅ UPDATED: Get imported AR Aging data with proper filtering
      * Shows ALL records but separates outstanding vs closed
+     * ✅ NEW: Dynamically calculates age based on filter_date (aging_date)
      */
     private function getImportedAgingData(Request $request)
     {
         $query = ArAging::query();
+
+        // Get the aging date to use for age calculation (separate from filter_date)
+        // If no aging_date is provided, use today's date (ages auto-increment daily)
+        $agingDate = $request->filled('aging_date')
+            ? Carbon::parse($request->aging_date)
+            : now();
+
+        // Debug logging
+        Log::info('getImportedAgingData called', [
+            'aging_date_param' => $request->input('aging_date'),
+            'aging_date_filled' => $request->filled('aging_date'),
+            'aging_date_used' => $agingDate->format('Y-m-d'),
+        ]);
 
         // Apply date filter on record_date if provided
         if ($request->filled('filter_date')) {
@@ -59,10 +79,58 @@ class AgingReportController extends Controller
         return $query->orderBy('record_date', 'desc')
             ->orderBy('invoice_date', 'desc')
             ->get()
-            ->map(function($record) {
+            ->map(function($record, $index) use ($agingDate, $request) {
+                // ✅ Calculate age based on counter_date (days passed since counter_date)
+                // Use counter_date if available, otherwise fall back to due_date or invoice_date
+                $baseDate = null;
+                if ($record->counter_date) {
+                    $baseDate = Carbon::parse($record->counter_date)->startOfDay();
+                } elseif ($record->due_date) {
+                    $baseDate = Carbon::parse($record->due_date)->startOfDay();
+                } elseif ($record->invoice_date) {
+                    $baseDate = Carbon::parse($record->invoice_date)->startOfDay();
+                }
+
+                if ($baseDate) {
+                    // If aging_date is provided, use it; otherwise use the record's own record_date
+                    if ($request->filled('aging_date')) {
+                        $agingDateForCalc = $agingDate->copy()->startOfDay();
+                    } else {
+                        // Use record_date from the database record
+                        $agingDateForCalc = $record->record_date
+                            ? Carbon::parse($record->record_date)->startOfDay()
+                            : now()->startOfDay();
+                    }
+
+                    // Age = days passed since base date (signed difference - can be negative if base date is in future)
+                    $age = $baseDate->diffInDays($agingDateForCalc, false);
+
+                    // Debug log for first 3 records
+                    if ($index < 3) {
+                        Log::info("Age calculation (record $index)", [
+                            'invoice_no' => $record->invoice_no,
+                            'base_date' => $baseDate->format('Y-m-d'),
+                            'base_date_source' => $record->counter_date ? 'counter_date' : ($record->due_date ? 'due_date' : 'invoice_date'),
+                            'aging_date_param' => $request->input('aging_date'),
+                            'aging_date_for_calc' => $agingDateForCalc->format('Y-m-d'),
+                            'calculated_age' => $age,
+                        ]);
+                    }
+                } else {
+                    // No valid date found, use fallback
+                    $age = $record->age ?? 0;
+                    if ($index < 3) {
+                        Log::info("No valid date (record $index)", [
+                            'invoice_no' => $record->invoice_no,
+                            'fallback_age' => $age,
+                        ]);
+                    }
+                }
+                $ageCategory = $this->getAgeCategory($age);
+
                 return [
                     'id' => $record->id,
-                    'aging_date' => $record->aging_date ?? now()->format('Y-m-d'),
+                    'aging_date' => $record->aging_date ?? $agingDate->format('Y-m-d'),
                     'counter_date' => $record->counter_date ?? $record->due_date ?? 'N/A',
                     'invoice_date' => $record->invoice_date ? Carbon::parse($record->invoice_date)->format('Y-m-d') : 'N/A',
                     'record_date' => $record->record_date ? Carbon::parse($record->record_date)->format('Y-m-d') : ($record->created_at ? $record->created_at->format('Y-m-d') : 'N/A'),
@@ -74,8 +142,8 @@ class AgingReportController extends Controller
                     'invoice_amount' => $record->invoice_amount ?? 0,
                     'settled_amount' => $record->settled_invoice_amount ?? 0,
                     'net_ar' => $record->net_ar_balance ?? 0,
-                    'age' => $record->age ?? 0,
-                    'age_category' => $record->age_category ?? 'N/A',
+                    'age' => $age, // ✅ Dynamically calculated age
+                    'age_category' => $ageCategory, // ✅ Dynamically calculated category
                     'status' => $record->status ?? 'Outstanding',
                     'due_date' => $record->due_date ?? 'N/A',
                     'branch' => $record->branch ?? 'N/A',
@@ -111,7 +179,7 @@ class AgingReportController extends Controller
 {
     $customerSearch = $request->input('customer');
     $invoiceSearch = $request->input('invoice');
-    
+
     // Validate that at least one search parameter is provided
     if (empty($customerSearch) && empty($invoiceSearch)) {
         return response()->json([
@@ -124,9 +192,15 @@ class AgingReportController extends Controller
     $hasImportedData = ArAging::count() > 0;
 
     if ($hasImportedData) {
+        // Get the aging date to use for age calculation (separate from filter_date)
+        // If no aging_date is provided, use today's date (ages auto-increment daily)
+        $agingDate = $request->filled('aging_date')
+            ? Carbon::parse($request->aging_date)
+            : now();
+
         // Search in imported AR Aging data
         $query = ArAging::query();
-        
+
         // Apply search filters based on what was provided
         $query->where(function($q) use ($customerSearch, $invoiceSearch) {
             if (!empty($customerSearch)) {
@@ -134,7 +208,7 @@ class AgingReportController extends Controller
                 $q->where('client_name', 'LIKE', "%{$customerSearch}%")
                   ->orWhere('customer_code', 'LIKE', "%{$customerSearch}%");
             }
-            
+
             if (!empty($invoiceSearch)) {
                 // Search by invoice number
                 if (!empty($customerSearch)) {
@@ -160,10 +234,39 @@ class AgingReportController extends Controller
 
         $agingReports = $query->orderBy('record_date', 'desc')
             ->get()
-            ->map(function($record) {
+            ->map(function($record) use ($agingDate, $request) {
+                // ✅ Calculate age based on counter_date (days passed since counter_date)
+                // Use counter_date if available, otherwise fall back to due_date or invoice_date
+                $baseDate = null;
+                if ($record->counter_date) {
+                    $baseDate = Carbon::parse($record->counter_date)->startOfDay();
+                } elseif ($record->due_date) {
+                    $baseDate = Carbon::parse($record->due_date)->startOfDay();
+                } elseif ($record->invoice_date) {
+                    $baseDate = Carbon::parse($record->invoice_date)->startOfDay();
+                }
+
+                if ($baseDate) {
+                    // If aging_date is provided, use it; otherwise use the record's own record_date
+                    if ($request->filled('aging_date')) {
+                        $agingDateForCalc = $agingDate->copy()->startOfDay();
+                    } else {
+                        // Use record_date from the database record
+                        $agingDateForCalc = $record->record_date
+                            ? Carbon::parse($record->record_date)->startOfDay()
+                            : now()->startOfDay();
+                    }
+
+                    // Age = days passed since base date (signed difference - can be negative if base date is in future)
+                    $age = $baseDate->diffInDays($agingDateForCalc, false);
+                } else {
+                    $age = $record->age ?? 0; // fallback to pre-calculated
+                }
+                $ageCategory = $this->getAgeCategory($age);
+
                 return [
                     'id' => $record->id,
-                    'aging_date' => $record->aging_date ?? now()->format('Y-m-d'),
+                    'aging_date' => $record->aging_date ?? $agingDate->format('Y-m-d'),
                     'counter_date' => $record->counter_date ?? $record->due_date ?? 'N/A',
                     'invoice_date' => $record->invoice_date ? Carbon::parse($record->invoice_date)->format('Y-m-d') : 'N/A',
                     'record_date' => $record->record_date ? Carbon::parse($record->record_date)->format('Y-m-d') : 'N/A',
@@ -175,8 +278,8 @@ class AgingReportController extends Controller
                     'invoice_amount' => $record->invoice_amount ?? 0,
                     'settled_amount' => $record->settled_invoice_amount ?? 0,
                     'net_ar' => $record->net_ar_balance ?? 0,
-                    'age' => $record->age ?? 0,
-                    'age_category' => $record->age_category ?? 'N/A',
+                    'age' => $age, // ✅ Dynamically calculated age
+                    'age_category' => $ageCategory, // ✅ Dynamically calculated category
                     'status' => $record->status ?? 'Outstanding',
                     'include_flag' => $record->include_flag ?? 'yes',
                 ];
@@ -184,7 +287,12 @@ class AgingReportController extends Controller
     } else {
         // Fallback to sales invoices
         $query = $this->buildAgingQuery($request);
-        
+
+        // Get aging date for calculated data
+        $agingDate = $request->filled('filter_date')
+            ? Carbon::parse($request->filter_date)
+            : now();
+
         // Apply search filters based on what was provided
         $query->where(function($q) use ($customerSearch, $invoiceSearch) {
             if (!empty($customerSearch)) {
@@ -192,7 +300,7 @@ class AgingReportController extends Controller
                 $q->where('customers.customer_name', 'LIKE', "%{$customerSearch}%")
                   ->orWhere('customers.customer_code', 'LIKE', "%{$customerSearch}%");
             }
-            
+
             if (!empty($invoiceSearch)) {
                 // Search by invoice number
                 if (!empty($customerSearch)) {
@@ -205,14 +313,14 @@ class AgingReportController extends Controller
             }
         });
 
-        $agingReports = $query->get()->map(function($invoice) {
-            return $this->calculateInvoiceAging($invoice);
+        $agingReports = $query->get()->map(function($invoice) use ($agingDate) {
+            return $this->calculateInvoiceAging($invoice, $agingDate);
         });
     }
 
     // Determine search type for response message
-    $searchType = !empty($customerSearch) && !empty($invoiceSearch) 
-        ? 'customer/invoice' 
+    $searchType = !empty($customerSearch) && !empty($invoiceSearch)
+        ? 'customer/invoice'
         : (!empty($customerSearch) ? 'customer' : 'invoice');
 
     return response()->json([
@@ -235,6 +343,9 @@ class AgingReportController extends Controller
             if ($hasImportedData) {
                 return $this->arAgingFromImported($request);
             }
+
+            // Get aging date for age calculation
+            $agingDate = $filterDate ? Carbon::parse($filterDate) : now();
 
             // Original logic for sales invoices
             $query = SalesInvoice::with(['customer', 'delivery'])
@@ -266,8 +377,8 @@ class AgingReportController extends Controller
             ];
 
             foreach ($invoices as $invoice) {
-                $aging = $this->calculateInvoiceAging($invoice);
-                
+                $aging = $this->calculateInvoiceAging($invoice, $agingDate);
+
                 $customerKey = $invoice->customer_code . '_' . ($aging['sales_executive'] ?? 'N/A');
 
                 if (!isset($agingData[$customerKey])) {
@@ -285,14 +396,14 @@ class AgingReportController extends Controller
                 }
 
                 $netAR = $aging['net_ar'];
-                
+
                 // ✅ Only add to age bucket if outstanding (net_ar > 0)
                 if ($netAR > 0) {
                     $ageBucket = $this->getAgeBucket($aging['age']);
                     $agingData[$customerKey][$ageBucket] += $netAR;
                     $grandTotals[$ageBucket] += $netAR;
                 }
-                
+
                 // ✅ Always add to total (outstanding + closed)
                 $agingData[$customerKey]['total'] += $netAR;
                 $grandTotals['total'] += $netAR;
@@ -320,12 +431,19 @@ class AgingReportController extends Controller
     /**
      * ✅ UPDATED: Generate AR Aging from imported data with proper filtering
      * ✅ FIXED: Only count outstanding balances in age buckets, but include all in total
+     * ✅ NEW: Dynamic age calculation based on filter_date
      */
     private function arAgingFromImported(Request $request)
     {
         try {
             $filterDate = $request->input('filter_date');
             $include = $request->input('include', 'all');
+
+            // Get aging date for age calculation (separate from filter_date)
+            // If no aging_date is provided, use today's date (ages auto-increment daily)
+            $agingDate = $request->filled('aging_date')
+                ? Carbon::parse($request->aging_date)
+                : now();
 
             $query = ArAging::query();
 
@@ -372,15 +490,42 @@ class AgingReportController extends Controller
                 }
 
                 $netAR = $record->net_ar_balance ?? 0;
-                $age = $record->age ?? 0;
-                
+
+                // ✅ Calculate age based on counter_date (days passed since counter_date)
+                // Use counter_date if available, otherwise fall back to due_date or invoice_date
+                $baseDate = null;
+                if ($record->counter_date) {
+                    $baseDate = Carbon::parse($record->counter_date)->startOfDay();
+                } elseif ($record->due_date) {
+                    $baseDate = Carbon::parse($record->due_date)->startOfDay();
+                } elseif ($record->invoice_date) {
+                    $baseDate = Carbon::parse($record->invoice_date)->startOfDay();
+                }
+
+                if ($baseDate) {
+                    // If aging_date is provided, use it; otherwise use the record's own record_date
+                    if ($request->filled('aging_date')) {
+                        $agingDateForCalc = $agingDate->copy()->startOfDay();
+                    } else {
+                        // Use record_date from the database record
+                        $agingDateForCalc = $record->record_date
+                            ? Carbon::parse($record->record_date)->startOfDay()
+                            : now()->startOfDay();
+                    }
+
+                    // Age = days passed since base date (signed difference - can be negative if base date is in future)
+                    $age = $baseDate->diffInDays($agingDateForCalc, false);
+                } else {
+                    $age = $record->age ?? 0; // fallback to pre-calculated
+                }
+
                 // ✅ Only add to age bucket if outstanding (net_ar_balance > 0)
                 if ($netAR > 0) {
                     $ageBucket = $this->getAgeBucket($age);
                     $agingData[$customerKey][$ageBucket] += $netAR;
                     $grandTotals[$ageBucket] += $netAR;
                 }
-                
+
                 // ✅ Always add to total using invoice_amount (original amount before payments)
                 $totalAmount = $record->invoice_amount ?? $record->gross_ar_balance ?? $netAR;
                 $agingData[$customerKey]['total'] += $totalAmount;
@@ -408,6 +553,7 @@ class AgingReportController extends Controller
     /**
      * Export aging reports to Excel
      * ✅ UPDATED: Apply same filtering
+     * ✅ NEW: Dynamic age calculation based on filter_date
      * Shows all records (outstanding + closed)
      */
     public function export(Request $request)
@@ -425,10 +571,13 @@ class AgingReportController extends Controller
         if ($hasImportedData) {
             $agingReports = $this->getImportedAgingData($request);
         } else {
+            // Get aging date for age calculation
+            $agingDate = Carbon::parse($filterDate);
+
             $query = $this->buildAgingQuery($request);
             $agingReports = $query->get()
-                ->map(function($invoice) {
-                    return $this->calculateInvoiceAging($invoice);
+                ->map(function($invoice) use ($agingDate) {
+                    return $this->calculateInvoiceAging($invoice, $agingDate);
                 });
         }
 
@@ -616,8 +765,9 @@ class AgingReportController extends Controller
     /**
      * Calculate aging information for an invoice
      * ✅ Returns net_ar which is already the outstanding balance
+     * ✅ NEW: Accepts optional agingDate parameter for dynamic age calculation
      */
-    private function calculateInvoiceAging($invoice)
+    private function calculateInvoiceAging($invoice, $agingDate = null)
     {
         $settledAmount = ARLedger::where('invoice_id', $invoice->id)
             ->where('transaction_type', 'Payment')
@@ -626,8 +776,11 @@ class AgingReportController extends Controller
         $invoiceAmount = $invoice->invoice_amount ?? 0;
         $netAR = $invoiceAmount - $settledAmount;
 
-        $invoiceDate = Carbon::parse($invoice->invoice_date);
-        $age = $invoiceDate->diffInDays(now());
+        $invoiceDate = Carbon::parse($invoice->invoice_date)->startOfDay();
+
+        // ✅ Use provided agingDate or default to now()
+        $calculationDate = $agingDate ? Carbon::parse($agingDate)->startOfDay() : now()->startOfDay();
+        $age = $invoiceDate->diffInDays($calculationDate);
 
         $ageCategory = $this->getAgeCategory($age);
 
@@ -636,7 +789,7 @@ class AgingReportController extends Controller
         $status = $netAR <= 0 ? 'Paid' : ($age > 60 ? 'Overdue' : 'Outstanding');
 
         return [
-            'aging_date' => now()->format('Y-m-d'),
+            'aging_date' => $calculationDate->format('Y-m-d'),
             'counter_date' => $invoice->due_date ? Carbon::parse($invoice->due_date)->format('Y-m-d') : 'N/A',
             'invoice_date' => $invoiceDate->format('Y-m-d'),
             'record_date' => $invoice->created_at ? $invoice->created_at->format('Y-m-d') : 'N/A',
@@ -648,8 +801,8 @@ class AgingReportController extends Controller
             'invoice_amount' => $invoiceAmount,
             'settled_amount' => $settledAmount,
             'net_ar' => $netAR,
-            'age' => $age,
-            'age_category' => $ageCategory,
+            'age' => $age, // ✅ Dynamically calculated age
+            'age_category' => $ageCategory, // ✅ Dynamically calculated category
             'status' => $status,
             'due_date' => $invoice->due_date ?? 'N/A',
             'invoice_id' => $invoice->id
@@ -707,6 +860,7 @@ class AgingReportController extends Controller
     /**
      * ✅ UPDATED: Display AR Aging Summary Page (Pivot Table View)
      * ✅ FIXED: Only count outstanding in age buckets, include all in total
+     * ✅ NEW: Dynamic age calculation based on filter_date
      */
     public function summary(Request $request)
     {
@@ -725,10 +879,16 @@ class AgingReportController extends Controller
                 ->with('error', 'No AR Aging data available. Please import data first.');
         }
 
+        // Get aging date for age calculation (separate from filter_date)
+        // If no aging_date is provided, use today's date (ages auto-increment daily)
+        $agingDate = $request->filled('aging_date')
+            ? Carbon::parse($request->aging_date)
+            : now();
+
         // Build query with filters
         $query = ArAging::query();
 
-        $query->whereDate('record_date', '<=', Carbon::parse($filterDate));
+        $query->whereDate('record_date', '<=', $agingDate);
 
         if ($include !== 'all') {
             $query->where('include_flag', $include);
@@ -768,15 +928,42 @@ class AgingReportController extends Controller
             }
 
             $netAR = $record->net_ar_balance ?? 0;
-            $age = $record->age ?? 0;
-            
+
+            // ✅ Dynamically calculate age based on counter_date
+            // Use counter_date if available, otherwise fall back to due_date or invoice_date
+            $baseDate = null;
+            if ($record->counter_date) {
+                $baseDate = Carbon::parse($record->counter_date)->startOfDay();
+            } elseif ($record->due_date) {
+                $baseDate = Carbon::parse($record->due_date)->startOfDay();
+            } elseif ($record->invoice_date) {
+                $baseDate = Carbon::parse($record->invoice_date)->startOfDay();
+            }
+
+            if ($baseDate) {
+                // If aging_date is provided, use it; otherwise use the record's own record_date
+                if ($request->filled('aging_date')) {
+                    $agingDateForCalc = $agingDate->copy()->startOfDay();
+                } else {
+                    // Use record_date from the database record
+                    $agingDateForCalc = $record->record_date
+                        ? Carbon::parse($record->record_date)->startOfDay()
+                        : now()->startOfDay();
+                }
+
+                // Age = days passed since base date (signed difference - can be negative if base date is in future)
+                $age = $baseDate->diffInDays($agingDateForCalc, false);
+            } else {
+                $age = $record->age ?? 0; // fallback to pre-calculated
+            }
+
             // ✅ Only add to age bucket if outstanding
             if ($netAR > 0) {
                 $ageBucket = $this->getAgeBucket($age);
                 $agingSummary[$key][$ageBucket] += $netAR;
                 $grandTotals[$ageBucket] += $netAR;
             }
-            
+
             // ✅ Always add to total using invoice_amount (original amount)
             $totalAmount = $record->invoice_amount ?? $record->gross_ar_balance ?? $netAR;
             $agingSummary[$key]['total'] += $totalAmount;

@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\{
     CustomerController,
     UserController,
-    SalesOrderController,   
+    SalesOrderController,
     ItemController,
     DashboardController,
     DeliveriesController,
@@ -19,7 +19,8 @@ use App\Http\Controllers\{
     ExcelImportController,
     PaymentController,
     ReceivingReportsController,
-    ArAdjustmentController
+    ArAdjustmentController,
+    LockController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -85,22 +86,25 @@ Route::prefix('aging-reports')->name('aging_reports.')->group(function () {
 Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     // Main view
     Route::get('/', [ArAdjustmentController::class, 'index'])->name('index');
-    
+
+    // Search AR Aging records
+    Route::get('/search-ar', [ArAdjustmentController::class, 'searchArAging'])->name('search_ar');
+
     // Get adjustments data (for AJAX)
     Route::get('/get', [ArAdjustmentController::class, 'getAdjustments'])->name('get');
-    
+
     // Store new adjustment
     Route::post('/store', [ArAdjustmentController::class, 'store'])->name('store');
-    
+
     // Show single adjustment
     Route::get('/{id}', [ArAdjustmentController::class, 'show'])->name('show');
-    
+
     // Update adjustment
     Route::put('/{id}', [ArAdjustmentController::class, 'update'])->name('update');
-    
+
     // Delete adjustment
     Route::delete('/{id}', [ArAdjustmentController::class, 'destroy'])->name('destroy');
-    
+
     // Export adjustments
     Route::get('/export/csv', [ArAdjustmentController::class, 'export'])->name('export');
 });
@@ -111,6 +115,38 @@ Route::prefix('receiving-reports')->name('receiving-reports.')->group(function (
     Route::get('/{id}', [ReceivingReportsController::class, 'show'])->name('show');
     Route::get('/{id}/print', [ReceivingReportsController::class, 'print'])->name('print');
     Route::get('/export/excel', [ReceivingReportsController::class, 'exportExcel'])->name('export');
+});
+
+// ===================== RECORD LOCK MANAGEMENT =====================
+// Only Admin and IT roles can access this module
+Route::prefix('lock')->name('lock.')->group(function () {
+    Route::get('/', function () {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+            return view('errors.noaccess');
+        }
+        return app(LockController::class)->index(request());
+    })->name('index');
+
+    Route::get('/details', function () {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        return app(LockController::class)->getMonthDetails(request());
+    })->name('details');
+
+    Route::post('/lock', function () {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        return app(LockController::class)->lock(request());
+    })->name('lock');
+
+    Route::post('/unlock', function () {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        return app(LockController::class)->unlock(request());
+    })->name('unlock');
 });
 
     // =================== INVOICE ROUTES ===================
@@ -816,7 +852,11 @@ Route::prefix('items')->name('items.')->group(function () {
 
         Route::post('/batch-approve', [DeliveriesController::class, 'batchApprove'])->name('batch-approve');
 Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name('batch-reject');
-                
+
+        // ✅ Repair routes for fixing duplicate item_code issues
+        Route::post('/repair-duplicate-items', [DeliveriesController::class, 'repairDuplicateItemCodes'])->name('repair-duplicate-items');
+        Route::post('/recalculate-so-deliveries', [DeliveriesController::class, 'recalculateSODeliveries'])->name('recalculate-so-deliveries');
+
        // ✅ FIXED: Request Edit 
         Route::post('/{id}/request-edit', function($id) {
             if (in_array(auth()->user()->role, ['Delivery_Creator'])) {
@@ -949,6 +989,29 @@ Route::get('/fix-sales-order-totals', [SalesOrderController::class, 'fixExisting
 
 // In routes/web.php
 Route::get('/fix-delivery-totals', [DeliveriesController::class, 'fixExistingTotals']);
+
+// ✅ Fix duplicate item codes for a specific SO (run once to repair data)
+Route::get('/fix-duplicate-items/{so_number?}', function($soNumber = null) {
+    if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $request = request();
+    $request->merge(['so_number' => $soNumber]);
+
+    return app(DeliveriesController::class)->repairDuplicateItemCodes($request);
+})->middleware('auth');
+
+Route::get('/recalculate-deliveries/{so_number}', function($soNumber) {
+    if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $request = request();
+    $request->merge(['so_number' => $soNumber]);
+
+    return app(DeliveriesController::class)->recalculateSODeliveries($request);
+})->middleware('auth');
 
 Route::get('/debug-delivery', function() {
     $delivery = \App\Models\Deliveries::with(['salesOrder.customer'])->first();
