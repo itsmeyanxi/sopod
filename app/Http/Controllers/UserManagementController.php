@@ -32,7 +32,24 @@ class UserManagementController extends Controller
             return RoleHelper::unauthorized();
         }
 
-        $roles = ['Admin', 'IT', 'CSR_Approver','CSR_Creator',  'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'];
+        $roles = [
+                    'Admin', 
+                    'IT', 
+                    'CSR_Approver',
+                    'CSR_Creator',  
+                    'Delivery_Creator', 
+                    'Delivery_Approver', 
+                    'CC_Creator', 
+                    'CC_Approver', 
+                    'Accounting_Creator', 
+                    'Accounting_Approver',
+                    'PR_creator',
+                    'PR_approver',
+                    'PO_creator',
+                    'PO_approver',
+                    'RFP_creator',
+                    'RFP_approver'
+                ];
         return view('admin.users.create', compact('roles'));
     }
 
@@ -92,7 +109,24 @@ class UserManagementController extends Controller
         }
 
         $user = User::with('lockedBy')->findOrFail($id);
-        $roles = ['Admin', 'IT', 'CSR_Approver','CSR_Creator',  'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver','Accounting_Creator', 'Accounting_Approver'];
+        $roles = [
+            'Admin', 
+            'IT', 
+            'CSR_Approver',
+            'CSR_Creator',  
+            'Delivery_Creator', 
+            'Delivery_Approver', 
+            'CC_Creator', 
+            'CC_Approver', 
+            'Accounting_Creator', 
+            'Accounting_Approver',
+            'PR_creator',
+            'PR_approver',
+            'PO_creator',
+            'PO_approver',
+            'RFP_creator',
+            'RFP_approver'
+        ];
         return view('admin.users.edit', compact('user', 'roles'));
     }
 

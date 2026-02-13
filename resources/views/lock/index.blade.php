@@ -421,11 +421,28 @@ function lockMonth(year, month, monthName, soCount, deliveryCount) {
         confirmButtonColor: '#dc2626',
     }).then((result) => {
         if (result.isConfirmed) {
-            // TODO: Implement lock API call
-            Swal.fire({
-                icon: 'info',
-                title: 'Coming Soon',
-                text: 'Lock functionality will be implemented next.',
+            fetch(`{{ route('lock.lock') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ year, month })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Locked!', text: data.message }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to lock records.' });
             });
         }
     });
@@ -447,11 +464,28 @@ function unlockMonth(year, month, monthName) {
         confirmButtonColor: '#16a34a',
     }).then((result) => {
         if (result.isConfirmed) {
-            // TODO: Implement unlock API call
-            Swal.fire({
-                icon: 'info',
-                title: 'Coming Soon',
-                text: 'Unlock functionality will be implemented next.',
+            fetch(`{{ route('lock.unlock') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ year, month })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Unlocked!', text: data.message }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to unlock records.' });
             });
         }
     });

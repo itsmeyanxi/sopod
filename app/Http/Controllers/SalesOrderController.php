@@ -671,7 +671,12 @@ private function syncDeliveryPrices(SalesOrder $salesOrder)
 public function update(Request $request, $id)
 {
     $salesOrder = SalesOrder::with('deliveries')->findOrFail($id);
-    
+
+    if ($salesOrder->is_locked) {
+        return redirect()->route('sales_orders.show', $id)
+            ->with('error', 'This Sales Order is locked and cannot be edited.');
+    }
+
     $hasDelivery = $salesOrder->deliveries !== null;
     $isDelivered = false;
     
@@ -1191,7 +1196,11 @@ private function formatChangeValue($field, $value)
     public function approveForEdit($id)
     {
         $salesOrder = SalesOrder::findOrFail($id);
-        
+
+        if ($salesOrder->is_locked) {
+            return redirect()->back()->with('error', 'This Sales Order is locked and cannot be modified.');
+        }
+
         if (!auth()->user()->canInitiateEdit()) {
             return redirect()->back()->with('error', 'Only CC_Approver can approve Sales Orders for editing.');
         }
@@ -1218,6 +1227,10 @@ private function formatChangeValue($field, $value)
     {
         try {
             $salesOrder = SalesOrder::findOrFail($id);
+
+            if ($salesOrder->is_locked) {
+                return back()->with('error', 'This Sales Order is locked and cannot be deleted.');
+            }
 
             $soNumber = $salesOrder->sales_order_number;
             $customer = optional($salesOrder->customer)->customer_name ?? 'N/A';
@@ -1256,6 +1269,11 @@ private function formatChangeValue($field, $value)
     {
         try {
             $salesOrder = SalesOrder::findOrFail($id);
+
+            if ($salesOrder->is_locked) {
+                return redirect()->back()->with('error', 'This Sales Order is locked and cannot be modified.');
+            }
+
             $oldStatus = $salesOrder->status;
 
             $approverId = auth()->check() ? auth()->id() : 40;
@@ -1315,7 +1333,11 @@ public function updateStatus(Request $request, $id)
     ]);
 
     $salesOrder = SalesOrder::with(['customer', 'items'])->findOrFail($id);
-    
+
+    if ($salesOrder->is_locked) {
+        return redirect()->back()->with('error', 'This Sales Order is locked and cannot be modified.');
+    }
+
     $oldStatus = $salesOrder->status;
     $newStatus = $request->status;
 

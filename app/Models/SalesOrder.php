@@ -32,6 +32,7 @@ class SalesOrder extends Model
         'brand',            
         'item_category',
         'is_closed',
+        'is_locked',
         'shipping_address',
         'po_image',
         'notes',

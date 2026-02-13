@@ -226,6 +226,10 @@ public function update(Request $request, $id)
     try {
         $delivery = Deliveries::findOrFail($id);
 
+        if ($delivery->is_locked) {
+            return response()->json(['success' => false, 'message' => 'This Delivery is locked and cannot be edited.'], 403);
+        }
+
         $validated = $request->validate([
             'sales_order_number' => 'required|string|max:255',
             'delivery_type' => 'required|string|in:Full,Partial',
@@ -1248,6 +1252,10 @@ public function approve($id)
 
         $delivery = Deliveries::with('items')->findOrFail($id);
 
+        if ($delivery->is_locked) {
+            return response()->json(['success' => false, 'message' => 'This Delivery is locked and cannot be modified.'], 403);
+        }
+
         if ($delivery->approval_status !== 'Pending') {
             return response()->json(['success' => false, 'message' => 'Delivery is not pending approval'], 400);
         }
@@ -1360,6 +1368,10 @@ public function pullout(Request $request, $id)
         ]);
 
         $delivery = Deliveries::findOrFail($id);
+
+        if ($delivery->is_locked) {
+            return response()->json(['success' => false, 'message' => 'This Delivery is locked and cannot be modified.'], 403);
+        }
 
         if ($delivery->is_pulled_out) {
             return response()->json(['success' => false, 'message' => 'Already pulled out'], 400);
@@ -1590,6 +1602,10 @@ public function approveEdit($id)
         }
 
         $delivery = Deliveries::findOrFail($id);
+
+        if ($delivery->is_locked) {
+            return response()->json(['success' => false, 'message' => 'This Delivery is locked and cannot be modified.'], 403);
+        }
 
         if (!$delivery->edit_requested) {
             return response()->json(['success' => false, 'message' => 'No edit request found'], 400);
