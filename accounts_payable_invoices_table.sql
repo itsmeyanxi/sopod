@@ -1,0 +1,46 @@
+-- =====================================================
+-- Accounts Payable Invoices Module - Database Table
+-- Run this SQL in phpMyAdmin to create the table
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS `accounts_payable_invoices` (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `apv_no` varchar(255) NOT NULL,
+  `request_for_payment_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `apv_date` date NOT NULL,
+  `payment_type` varchar(255) NOT NULL,
+  `vendor_code` varchar(255) DEFAULT NULL,
+  `vendor_name` varchar(255) NOT NULL,
+  `vendor_address` text DEFAULT NULL,
+  `vendor_tin` varchar(255) DEFAULT NULL,
+  `document_date` date NOT NULL,
+  `payment_terms` varchar(255) DEFAULT NULL,
+  `due_date` date DEFAULT NULL,
+  `reference_no` varchar(255) DEFAULT NULL,
+  `purchase_order_no` varchar(255) DEFAULT NULL,
+  `currency` varchar(255) NOT NULL,
+  `forex_rate` decimal(10,4) DEFAULT NULL,
+  `particulars` text NOT NULL,
+  `item_code` varchar(255) DEFAULT NULL,
+  `cost_center` varchar(255) DEFAULT NULL,
+  `account_code` varchar(255) DEFAULT NULL,
+  `account_name` varchar(255) DEFAULT NULL,
+  `total` decimal(15,2) NOT NULL,
+  `downpayment_amount` decimal(15,2) DEFAULT NULL,
+  `total_before_vat` decimal(15,2) NOT NULL,
+  `vat_amount` decimal(15,2) DEFAULT NULL,
+  `total_after_vat` decimal(15,2) NOT NULL,
+  `w_tax_amount` decimal(15,2) DEFAULT NULL,
+  `grand_total` decimal(15,2) NOT NULL,
+  `prepared_by` varchar(255) DEFAULT NULL,
+  `reviewed_by` varchar(255) DEFAULT NULL,
+  `remarks` text DEFAULT NULL,
+  `status` varchar(255) NOT NULL DEFAULT 'pending',
+  `created_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `accounts_payable_invoices_apv_no_unique` (`apv_no`),
+  KEY `accounts_payable_invoices_request_for_payment_id_index` (`request_for_payment_id`),
+  KEY `accounts_payable_invoices_created_by_index` (`created_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

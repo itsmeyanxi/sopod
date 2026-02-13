@@ -5,7 +5,7 @@
 @section('content')
 <div class="bg-gray-800 p-6">
     <div class="flex justify-between items-center mb-4">
-        <h1 class="text-white text-2xl font-bold">Dashboard</h1>
+        <h1 class="text-yellow text-2xl font-bold">Dashboard</h1>
     </div>
 
     {{-- ========================================================= --}}

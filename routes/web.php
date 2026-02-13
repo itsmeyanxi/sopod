@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\{
     CustomerController,
     UserController,
-    SalesOrderController,   
+    SalesOrderController,
     ItemController,
     DashboardController,
     DeliveriesController,
@@ -14,11 +14,23 @@ use App\Http\Controllers\{
     ImportController,
     ChangeLogController,
     SalesDashboardController,
+    PurchaseRequestController,
+    PurchaseOrderController,
+    RequestForPaymentController,
+    AccountsPayableInvoiceController,
+    CheckVoucherController,
+    SuppliersController,
+    PurchaseOrderRecordsController,
+    SupplierImportController,
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
     ->name('users.reset-attempts')
     ->middleware('auth');
+
+    // ===================== SUPPLIER IMPORT =====================
+    Route::post('/excel/import/suppliers', [SupplierImportController::class, 'importSuppliers'])
+    ->name('excel.import.suppliers');
 
     // ===================== AUTH (Public Routes) =====================
     Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');
@@ -494,6 +506,127 @@ Route::prefix('items')->name('items.')->group(function () {
         })->name('show');
     });
 
+    // ===================== SUPPLIERS =====================
+    Route::prefix('suppliers')->name('suppliers.')->group(function () {
+
+        // Index
+        Route::get('/', function () {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->index();
+            }
+            return view('errors.noaccess');
+        })->name('index');
+
+        // Export
+        Route::get('/export', function () {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->export();
+            }
+            return view('errors.noaccess');
+        })->name('export');
+
+        // Create
+        Route::get('/create', function () {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->create();
+            }
+            return view('errors.noaccess');
+        })->name('create');
+
+        // Store
+        Route::post('/', function () {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->store(request());
+            }
+            return view('errors.noaccess');
+        })->name('store');
+
+        // Edit
+        Route::get('/{id}/edit', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->edit($id);
+            }
+            return view('errors.noaccess');
+        })->name('edit');
+
+        // Update
+        Route::put('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->update(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update');
+
+        // Toggle Status
+        Route::patch('/{id}/toggle-status', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->toggleStatus($id);
+            }
+            return view('errors.noaccess');
+        })->name('toggleStatus');
+
+        // Delete
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canDeleteSuppliers()) {
+                return app(SuppliersController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+
+        // Upload Documents
+        Route::post('/{id}/documents', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->uploadDocuments(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('uploadDocuments');
+
+        // Download Document
+        Route::get('/{id}/documents/{documentId}/download', function ($id, $documentId) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->downloadDocument($id, $documentId);
+            }
+            return view('errors.noaccess');
+        })->name('downloadDocument');
+
+        // View Document
+        Route::get('/{id}/documents/{documentId}/view', function ($id, $documentId) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->viewDocument($id, $documentId);
+            }
+            return view('errors.noaccess');
+        })->name('viewDocument');
+
+        // Delete Document
+        Route::delete('/{id}/documents/{documentId}', function ($id, $documentId) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->deleteDocument($id, $documentId);
+            }
+            return view('errors.noaccess');
+        })->name('deleteDocument');
+
+        // Show (must be last)
+        Route::get('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->show($id);
+            }
+            return view('errors.noaccess');
+        })->name('show');
+    });
+
     // ===================== DELIVERIES =====================
     Route::prefix('deliveries')->name('deliveries.')->group(function () {
         
@@ -651,6 +784,487 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return view('errors.noaccess');
         })->name('show');
     });
+
+    // ===================== PURCHASE REQUESTS =====================
+    Route::prefix('purchase_requests')->name('purchase_requests.')->group(function () {
+
+        // Index
+        Route::get('/', function () {
+            $user = auth()->user();
+            if ($user->canManagePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->index();
+            }
+            return view('errors.noaccess');
+        })->name('index');
+
+        // Create
+        Route::get('/create', function () {
+            $user = auth()->user();
+            if ($user->canCreatePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->create();
+            }
+            return view('errors.noaccess');
+        })->name('create');
+
+        // Store
+        Route::post('/', function () {
+            $user = auth()->user();
+            if ($user->canCreatePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->store(request());
+            }
+            return view('errors.noaccess');
+        })->name('store');
+
+        // Approve
+        Route::post('/{id}/approve', function ($id) {
+            $user = auth()->user();
+            if ($user->canApprovePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->approve($id);
+            }
+            return view('errors.noaccess');
+        })->name('approve');
+
+        // Reject
+        Route::post('/{id}/reject', function ($id) {
+            $user = auth()->user();
+            if ($user->canApprovePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->reject(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('reject');
+
+        // Edit
+        Route::get('/{id}/edit', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->edit($id);
+            }
+            return view('errors.noaccess');
+        })->name('edit');
+
+        // Update
+        Route::put('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->update(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update');
+
+        // Delete
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canApprovePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+
+        // Show (must be last)
+        Route::get('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->show($id);
+            }
+            return view('errors.noaccess');
+        })->name('show');
+    });
+
+    // ===================== PURCHASE ORDERS =====================
+    Route::prefix('purchase_orders')->name('purchase_orders.')->group(function () {
+
+        // Search PRs (AJAX)
+        Route::get('/search-prs', function () {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->searchPRs(request());
+            }
+            return response()->json([]);
+        })->name('search_prs');
+
+        // Index
+        Route::get('/', function () {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->index();
+            }
+            return view('errors.noaccess');
+        })->name('index');
+
+        // Create
+        Route::get('/create', function () {
+            $user = auth()->user();
+            if ($user->canCreatePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->create(request());
+            }
+            return view('errors.noaccess');
+        })->name('create');
+
+        // Store
+        Route::post('/', function () {
+            $user = auth()->user();
+            if ($user->canCreatePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->store(request());
+            }
+            return view('errors.noaccess');
+        })->name('store');
+
+        // Approve
+        Route::post('/{id}/approve', function ($id) {
+            $user = auth()->user();
+            if ($user->canApprovePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->approve($id);
+            }
+            return view('errors.noaccess');
+        })->name('approve');
+
+        // Reject
+        Route::post('/{id}/reject', function ($id) {
+            $user = auth()->user();
+            if ($user->canApprovePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->reject(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('reject');
+
+        // Edit
+        Route::get('/{id}/edit', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->edit($id);
+            }
+            return view('errors.noaccess');
+        })->name('edit');
+
+        // Update
+        Route::put('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->update(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update');
+
+        // Delete
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canApprovePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+
+        // Show (must be last)
+        Route::get('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->show($id);
+            }
+            return view('errors.noaccess');
+        })->name('show');
+    });
+
+    // ===================== REQUEST FOR PAYMENTS =====================
+    Route::prefix('request_for_payments')->name('request_for_payments.')->group(function () {
+
+        // Search POs (AJAX)
+        Route::get('/search-pos', function () {
+            $user = auth()->user();
+            if ($user->canManageRequestForPayments()) {
+                return app(RequestForPaymentController::class)->searchPOs(request());
+            }
+            return response()->json([]);
+        })->name('search_pos');
+
+        // Index
+        Route::get('/', function () {
+            $user = auth()->user();
+            if ($user->canManageRequestForPayments()) {
+                return app(RequestForPaymentController::class)->index();
+            }
+            return view('errors.noaccess');
+        })->name('index');
+
+        // Create
+        Route::get('/create', function () {
+            $user = auth()->user();
+            if ($user->canCreateRequestForPayments()) {
+                return app(RequestForPaymentController::class)->create(request());
+            }
+            return view('errors.noaccess');
+        })->name('create');
+
+        // Store
+        Route::post('/', function () {
+            $user = auth()->user();
+            if ($user->canCreateRequestForPayments()) {
+                return app(RequestForPaymentController::class)->store(request());
+            }
+            return view('errors.noaccess');
+        })->name('store');
+
+        // Approve
+        Route::post('/{id}/approve', function ($id) {
+            $user = auth()->user();
+            if ($user->canApproveRequestForPayments()) {
+                return app(RequestForPaymentController::class)->approve($id);
+            }
+            return view('errors.noaccess');
+        })->name('approve');
+
+        // Reject
+        Route::post('/{id}/reject', function ($id) {
+            $user = auth()->user();
+            if ($user->canApproveRequestForPayments()) {
+                return app(RequestForPaymentController::class)->reject(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('reject');
+
+        // Edit
+        Route::get('/{id}/edit', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageRequestForPayments()) {
+                return app(RequestForPaymentController::class)->edit($id);
+            }
+            return view('errors.noaccess');
+        })->name('edit');
+
+        // Update
+        Route::put('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageRequestForPayments()) {
+                return app(RequestForPaymentController::class)->update(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update');
+
+        // Delete
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canApproveRequestForPayments()) {
+                return app(RequestForPaymentController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+
+        // Show (must be last)
+        Route::get('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageRequestForPayments()) {
+                return app(RequestForPaymentController::class)->show($id);
+            }
+            return view('errors.noaccess');
+        })->name('show');
+    });
+
+    // ===================== ACCOUNTS PAYABLE INVOICES =====================
+    Route::prefix('accounts_payable_invoices')->name('accounts_payable_invoices.')->group(function () {
+
+        // Search RFPs (AJAX)
+        Route::get('/search-rfps', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->searchRFPs(request());
+            }
+            return response()->json([]);
+        })->name('search_rfps');
+
+        // Index
+        Route::get('/', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->index();
+            }
+            return view('errors.noaccess');
+        })->name('index');
+
+        // Create
+        Route::get('/create', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->create(request());
+            }
+            return view('errors.noaccess');
+        })->name('create');
+
+        // Store
+        Route::post('/', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->store(request());
+            }
+            return view('errors.noaccess');
+        })->name('store');
+
+        // Approve
+        Route::post('/{id}/approve', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->approve($id);
+            }
+            return view('errors.noaccess');
+        })->name('approve');
+
+        // Reject
+        Route::post('/{id}/reject', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->reject(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('reject');
+
+        // Edit
+        Route::get('/{id}/edit', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->edit($id);
+            }
+            return view('errors.noaccess');
+        })->name('edit');
+
+        // Update
+        Route::put('/{id}', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->update(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update');
+
+        // Delete
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+
+        // Show (must be last)
+        Route::get('/{id}', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->show($id);
+            }
+            return view('errors.noaccess');
+        })->name('show');
+    });
+
+    // ===================== CHECK VOUCHERS =====================
+    Route::prefix('check_vouchers')->name('check_vouchers.')->group(function () {
+
+        // Search APVs (AJAX)
+        Route::get('/search-apvs', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(CheckVoucherController::class)->searchAPVs(request());
+            }
+            return response()->json([]);
+        })->name('search_apvs');
+
+        // Index
+        Route::get('/', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(CheckVoucherController::class)->index();
+            }
+            return view('errors.noaccess');
+        })->name('index');
+
+        // Create
+        Route::get('/create', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(CheckVoucherController::class)->create(request());
+            }
+            return view('errors.noaccess');
+        })->name('create');
+
+        // Store
+        Route::post('/', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(CheckVoucherController::class)->store(request());
+            }
+            return view('errors.noaccess');
+        })->name('store');
+
+        // Approve
+        Route::post('/{id}/approve', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
+                return app(CheckVoucherController::class)->approve($id);
+            }
+            return view('errors.noaccess');
+        })->name('approve');
+
+        // Reject
+        Route::post('/{id}/reject', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
+                return app(CheckVoucherController::class)->reject(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('reject');
+
+        // Edit
+        Route::get('/{id}/edit', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(CheckVoucherController::class)->edit($id);
+            }
+            return view('errors.noaccess');
+        })->name('edit');
+
+        // Update
+        Route::put('/{id}', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(CheckVoucherController::class)->update(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update');
+
+        // Delete
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
+                return app(CheckVoucherController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+
+        // Show (must be last)
+        Route::get('/{id}', function ($id) {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(CheckVoucherController::class)->show($id);
+            }
+            return view('errors.noaccess');
+        })->name('show');
+    });
+
+    // ===================== PO RECORDS =====================
+    Route::middleware('auth')->prefix('po-records')->name('po_records.')->group(function () {
+        Route::get('/', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'PR_Creator', 'PR_Approver', 'PO_Creator', 'PO_Approver', 'RFP_Creator', 'RFP_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(PurchaseOrderRecordsController::class)->index(request());
+            }
+            return view('errors.noaccess');
+        })->name('index');
+
+        Route::get('/export', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'PR_Creator', 'PR_Approver', 'PO_Creator', 'PO_Approver', 'RFP_Creator', 'RFP_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(PurchaseOrderRecordsController::class)->exportExcel(request());
+            }
+            return view('errors.noaccess');
+        })->name('export');
+    });
+
     //====================== CHANGE LOG CONTROLLER =====================
     Route::middleware('auth')->prefix('changelog')->name('changelog.')->group(function () {
         
@@ -737,7 +1351,7 @@ Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.
 
 // ===================== ROOT REDIRECT =====================
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
+    return redirect()->route('login');
 });
 
 Route::get('/debug-delivery', function() {

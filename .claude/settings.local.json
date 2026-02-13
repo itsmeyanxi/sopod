@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan migrate:*)",
+      "Bash(run-migration.bat)",
+      "Bash(cmd /c c:sopodrun-migration.bat)",
+      "Bash(powershell.exe:*)",
+      "Bash(where:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(C:\\\\xampp\\\\php\\\\php.exe artisan migrate:*)"
+    ]
+  }
+}

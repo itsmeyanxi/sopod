@@ -15,7 +15,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'role', // Keep for backward compatibility
+        'roles', // New multi-role field
         'is_locked',
         'locked_at',
         'locked_by',
@@ -31,6 +32,7 @@ class User extends Authenticatable
         'password' => 'hashed',
         'is_locked' => 'boolean',
         'locked_at' => 'datetime',
+        'roles' => 'array', // Cast JSON to array
     ];
 
     public function setPasswordAttribute($value)
@@ -43,128 +45,226 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::creating(function ($user) {
-            if (empty($user->role)) {
-                $user->role = 'User';
+            // If roles array is empty, default to 'User'
+            if (empty($user->roles)) {
+                $user->roles = ['User'];
+            }
+            // Set legacy role field to first role
+            if (empty($user->role) && !empty($user->roles)) {
+                $user->role = $user->roles[0];
             }
         });
     }
 
+    /**
+     * 🔧 FIX: Fallback to single 'role' if 'roles' is empty
+     * This ensures backward compatibility
+     */
+    public function getRolesAttribute($value)
+    {
+        $roles = json_decode($value, true);
+        
+        // Fallback: if roles is empty/null, use legacy 'role' field
+        if (empty($roles) && !empty($this->attributes['role'])) {
+            return [$this->attributes['role']];
+        }
+        
+        return $roles ?? [];
+    }
+
+    /**
+     * Check if user has ANY of the specified roles
+     */
     public function hasRole($role)
     {
         if (is_array($role)) {
-            return in_array($this->role, $role);
+            return !empty(array_intersect($this->roles ?? [], $role));
         }
-        return $this->role === $role;
+        return in_array($role, $this->roles ?? []);
     }
 
+    /**
+     * Check if user has ALL of the specified roles
+     */
+    public function hasAllRoles(array $roles)
+    {
+        return count(array_intersect($this->roles ?? [], $roles)) === count($roles);
+    }
+
+    /**
+     * Get display name for roles (comma-separated)
+     */
+    public function getRolesDisplayAttribute()
+    {
+        return implode(', ', $this->roles ?? []);
+    }
+
+    // ==================== SALES ORDER PERMISSIONS ====================
+    
     public function canManageSalesOrders()
     {
-        return in_array($this->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
+        return $this->hasRole(['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
     }
 
     public function canCreateSalesOrders()
     {
-        return in_array($this->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
+        return $this->hasRole(['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
     }
 
     public function canApproveSalesOrders()
     {
-        return in_array($this->role, ['Admin', 'IT', 'CC_Approver','Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'Accounting_Approver']);
     }
 
-    // ✅ Already correct
+    // ==================== ITEM PERMISSIONS ====================
+    
     public function canManageItems()
     {
-        return in_array($this->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Creator', 'CC_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Creator', 'CC_Approver']);
     }
     
     public function canAddItems()
     {
-        return in_array($this->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
     }
 
     public function canEditItems()
     {
-        return in_array($this->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
     }
 
     public function canDeleteItems()
     {
-        return in_array($this->role, ['Admin', 'IT', 'Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
     }
 
-        public function canApproveItems()
+    public function canApproveItems()
     {
-        return in_array($this->role, ['Admin', 'IT', 'Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
     }
 
+    // ==================== CUSTOMER PERMISSIONS ====================
+    
     public function canManageCustomers()
     {
-        return in_array($this->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver']);
     }
 
     public function canAddCustomers()
     {
-        return in_array($this->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'CC_Creator', 'CC_Approver']);
     }
 
     public function canEditCustomers()
     {
-        return in_array($this->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'CC_Creator', 'CC_Approver']);
     }
 
     public function canDeleteCustomers()
     {
-        return in_array($this->role, ['Admin', 'IT', 'CC_Approver']); 
+        return $this->hasRole(['Admin', 'IT', 'CC_Approver']); 
     }
 
+    // ==================== DELIVERY PERMISSIONS ====================
+    
     public function canManageDeliveries()
     {
-        return in_array($this->role, ['Delivery_Creator', 'Delivery_Approver', 'Admin', 'IT', 'CC_Approver']);
+        return $this->hasRole(['Delivery_Creator', 'Delivery_Approver', 'Admin', 'IT', 'CC_Approver']);
     }
 
-    public function canManageUsers()
-    {
-        return in_array($this->role, ['Admin', 'IT']);
-    }
-
-        public function canImportItems()
-    {
-        return in_array($this->role, [
-            'Admin',
-            'IT',
-            'Accounting_Creator',
-            'Accounting_Approver'
-        ]);
-    }
-
-        /**
-     * Check if user can approve deliveries
-     */
     public function canApproveDeliveries()
     {
-        return in_array($this->role, ['Admin', 'IT', 'Delivery_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Delivery_Approver']);
     }
 
-    /**
-     * Check if user can create deliveries
-     */
     public function canCreateDeliveries()
     {
-        return in_array($this->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver']);
+    }
+
+    // ==================== USER MANAGEMENT ====================
+    
+    public function canManageUsers()
+    {
+        return $this->hasRole(['Admin', 'IT']);
+    }
+
+    // ==================== IMPORT PERMISSIONS ====================
+    
+    public function canImportItems()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
     }
 
     public function canImportCustomers()
     {
-        return in_array($this->role, [
-            'Admin',
-            'IT',
-            'CC_Approver',
-            'CC_Creator',
-            'Accounting_Creator',
-            'Accounting_Approver'
-        ]);
+        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
     }
+
+    // ==================== SUPPLIER MANAGEMENT ====================
+
+    public function canManageSuppliers()
+    {
+        return $this->hasRole(['Admin', 'IT', 'PO_Creator', 'RFP_Creator', 'Accounting_Creator', 'Accounting_Approver']);
+    }
+
+    public function canDeleteSuppliers()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+    }
+
+    // ==================== PURCHASE REQUEST ROLES ====================
+
+    public function canManagePurchaseRequests()
+    {
+        return $this->hasRole(['Admin', 'IT', 'PR_Creator', 'PR_Approver']);
+    }
+
+    public function canCreatePurchaseRequests()
+    {
+        return $this->hasRole(['Admin', 'IT', 'PR_Creator', 'PR_Approver']);
+    }
+
+    public function canApprovePurchaseRequests()
+    {
+        return $this->hasRole(['Admin', 'IT', 'PR_Approver']);
+    }
+
+    // ==================== PURCHASE ORDER ROLES ====================
+
+    public function canManagePurchaseOrders()
+    {
+        return $this->hasRole(['Admin', 'IT', 'PO_Creator', 'PO_Approver']);
+    }
+
+    public function canCreatePurchaseOrders()
+    {
+        return $this->hasRole(['Admin', 'IT', 'PO_Creator', 'PO_Approver']);
+    }
+
+    public function canApprovePurchaseOrders()
+    {
+        return $this->hasRole(['Admin', 'IT', 'PO_Approver']);
+    }
+
+    // ==================== REQUEST FOR PAYMENT ROLES ====================
+
+    public function canManageRequestForPayments()
+    {
+        return $this->hasRole(['Admin', 'IT', 'RFP_Creator', 'RFP_Approver']);
+    }
+
+    public function canCreateRequestForPayments()
+    {
+        return $this->hasRole(['Admin', 'IT', 'RFP_Creator', 'RFP_Approver']);
+    }
+
+    public function canApproveRequestForPayments()
+    {
+        return $this->hasRole(['Admin', 'IT', 'RFP_Approver']);
+    }
+
+    // ==================== OTHER PERMISSIONS ====================
 
     public static function canaccessexcelimport()
     {
@@ -172,46 +272,34 @@ class User extends Authenticatable
             return false;
         }
         
-        $role = auth()->user()->role ?? null;
-        return in_array($role, [
-            'Admin', 
-            'IT', 
-            'CC_Approver', 
-            'CC_Creator',
-            'Accounting_Creator', 
-            'Accounting_Approver'
-        ]);
+        $user = auth()->user();
+        return $user->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
     }
 
     public function canaccesssalesanalytics()
     {
-        return in_array($this->role, [
-            'Admin', 
-            'IT',
-            'Accounting_Creator', 
-            'Accounting_Approver'
-        ]);
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
     }
 
     public function canInitiateEdit()
     {
-        return in_array($this->role, ['Admin', 'IT', 'CC_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'CC_Approver']);
     }
 
     public function canEditAfterCCApproval()
     {
-        return in_array($this->role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
+        return $this->hasRole(['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
     }
 
-        public function lockedBy()
+    // ==================== RELATIONSHIPS ====================
+    
+    public function lockedBy()
     {
         return $this->belongsTo(User::class, 'locked_by');
     }
 
-    // Check if account is locked
     public function isLocked()
     {
         return $this->is_locked;
     }
-
 }

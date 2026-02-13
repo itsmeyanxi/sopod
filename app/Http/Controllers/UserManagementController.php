@@ -32,8 +32,26 @@ class UserManagementController extends Controller
             return RoleHelper::unauthorized();
         }
 
-        $roles = ['Admin', 'IT', 'CSR_Approver','CSR_Creator',  'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'];
-        return view('admin.users.create', compact('roles'));
+        $availableRoles = [
+            'Admin',
+            'IT',
+            'CSR_Approver',
+            'CSR_Creator',
+            'Delivery_Creator',
+            'Delivery_Approver',
+            'CC_Creator',
+            'CC_Approver',
+            'Accounting_Creator',
+            'Accounting_Approver',
+            'PR_Creator',
+            'PR_Approver',
+            'PO_Creator',
+            'PO_Approver',
+            'RFP_Creator',
+            'RFP_Approver',
+        ];
+        
+        return view('admin.users.create', compact('availableRoles'));
     }
 
     /**
@@ -50,15 +68,17 @@ class UserManagementController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users',
                 'password' => 'required|min:6',
-                'role' => 'required|in:Admin,IT,CSR_Approver,CSR_Creator,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver',
+                'roles' => 'required|array|min:1',
+                'roles.*' => 'required|in:Admin,IT,CSR_Approver,CSR_Creator,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,PR_Creator,PR_Approver,PO_Creator,PO_Approver,RFP_Creator,RFP_Approver',
             ]);
 
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => $request->password,
-                'role' => $request->role,
-                'login_attempts' => 0, // Initialize to 0
+                'roles' => $request->roles,
+                'role' => $request->roles[0], // Legacy field
+                'login_attempts' => 0,
             ]);
 
             Activity::create([
@@ -67,7 +87,7 @@ class UserManagementController extends Controller
                 'item' => $user->name,
                 'target' => 'User Account',
                 'type' => 'User Management',
-                'message' => "User account created by " . auth()->user()->name,
+                'message' => "User account created with roles: " . implode(', ', $request->roles),
             ]);
 
             return redirect()->route('admin.users.create')
@@ -92,7 +112,27 @@ class UserManagementController extends Controller
         }
 
         $user = User::with('lockedBy')->findOrFail($id);
-        $roles = ['Admin', 'IT', 'CSR_Approver','CSR_Creator',  'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver','Accounting_Creator', 'Accounting_Approver'];
+        
+        // 🔧 FIX: Changed variable name to match blade file
+        $roles = [
+            'Admin',
+            'IT',
+            'CSR_Approver',
+            'CSR_Creator',
+            'Delivery_Creator',
+            'Delivery_Approver',
+            'CC_Creator',
+            'CC_Approver',
+            'Accounting_Creator',
+            'Accounting_Approver',
+            'PR_Creator',
+            'PR_Approver',
+            'PO_Creator',
+            'PO_Approver',
+            'RFP_Creator',
+            'RFP_Approver',
+        ];
+        
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
@@ -110,13 +150,11 @@ class UserManagementController extends Controller
 
             // Check if this is a password reset from the user list
             if ($request->has('password_reset')) {
-                // Only validate and update password
                 $request->validate([
                     'password' => 'required|min:6',
                 ]);
 
-                $user->password = $request->password; // Will be hashed by User model
-                // 🔥 RESET LOGIN ATTEMPTS WHEN PASSWORD IS RESET
+                $user->password = $request->password;
                 $user->login_attempts = 0;
                 $user->save();
 
@@ -137,17 +175,18 @@ class UserManagementController extends Controller
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $id,
-                'role' => 'required|in:Admin,IT,CSR_Approver,CSR_Creator,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver',
+                'roles' => 'required|array|min:1',
+                'roles.*' => 'required|in:Admin,IT,CSR_Approver,CSR_Creator,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,PR_Creator,PR_Approver,PO_Creator,PO_Approver,RFP_Creator,RFP_Approver',
                 'password' => 'nullable|min:6',
             ]);
 
             $user->name = $request->name;
             $user->email = $request->email;
-            $user->role = $request->role;
+            $user->roles = $request->roles;
+            $user->role = $request->roles[0]; // Update legacy field
 
             if ($request->filled('password')) {
                 $user->password = $request->password;
-                // 🔥 RESET LOGIN ATTEMPTS WHEN PASSWORD IS CHANGED
                 $user->login_attempts = 0;
             }
 
@@ -159,7 +198,7 @@ class UserManagementController extends Controller
                 'item' => $user->name,
                 'target' => 'User Account',
                 'type' => 'User Management',
-                'message' => "User account updated by " . auth()->user()->name,
+                'message' => "User account updated with roles: " . implode(', ', $request->roles),
             ]);
 
             return redirect()->route('admin.users.index')
@@ -218,94 +257,90 @@ class UserManagementController extends Controller
     /**
      * Toggle lock/unlock user account
      */
-  /**
- * Toggle lock/unlock user account
- */
-public function toggleLock($user)
-{
-    // If $user is passed as ID (string/int), fetch the model
-    if (!$user instanceof \App\Models\User) {
-        $user = User::findOrFail($user);
-    }
-
-    if (!RoleHelper::canManageUsers()) {
-        return RoleHelper::unauthorized();
-    }
-
-    try {
-        // Prevent locking yourself
-        if ($user->id === Auth::id()) {
-            return redirect()->route('admin.users.index')
-                ->with('error', 'You cannot lock your own account!');
+    public function toggleLock($user)
+    {
+        // If $user is passed as ID (string/int), fetch the model
+        if (!$user instanceof \App\Models\User) {
+            $user = User::findOrFail($user);
         }
 
-        // ✅ FIX: Check if account is EFFECTIVELY locked (either manually OR via failed attempts)
-        $isEffectivelyLocked = $user->is_locked || $user->login_attempts >= 6;
+        if (!RoleHelper::canManageUsers()) {
+            return RoleHelper::unauthorized();
+        }
 
-        if ($isEffectivelyLocked) {
-            // ✅ UNLOCK THE ACCOUNT - Clear BOTH manual lock AND login attempts
-            $user->update([
-                'is_locked' => false,
-                'locked_at' => null,
-                'locked_by' => null,
-                'login_attempts' => 0, // 🔥 ALWAYS RESET LOGIN ATTEMPTS WHEN UNLOCKING
+        try {
+            // Prevent locking yourself
+            if ($user->id === Auth::id()) {
+                return redirect()->route('admin.users.index')
+                    ->with('error', 'You cannot lock your own account!');
+            }
+
+            // ✅ FIX: Check if account is EFFECTIVELY locked (either manually OR via failed attempts)
+            $isEffectivelyLocked = $user->is_locked || $user->login_attempts >= 6;
+
+            if ($isEffectivelyLocked) {
+                // ✅ UNLOCK THE ACCOUNT - Clear BOTH manual lock AND login attempts
+                $user->update([
+                    'is_locked' => false,
+                    'locked_at' => null,
+                    'locked_by' => null,
+                    'login_attempts' => 0, 
+                ]);
+                
+                Activity::create([
+                    'user_name' => auth()->user()->name,
+                    'action' => 'Unlocked',
+                    'item' => $user->name,
+                    'target' => 'User Account',
+                    'type' => 'User Management',
+                    'message' => "Account unlocked by " . auth()->user()->name,
+                ]);
+
+                \Log::info('Account unlocked', [
+                    'unlocked_user' => $user->name,
+                    'unlocked_by' => auth()->user()->name,
+                    'was_manually_locked' => $user->is_locked,
+                    'had_failed_attempts' => $user->login_attempts,
+                    'login_attempts_reset' => true,
+                ]);
+
+                return redirect()->route('admin.users.index')
+                    ->with('success', "Account for {$user->name} has been unlocked! Login attempts have been reset.");
+            } else {
+                // ✅ LOCK THE ACCOUNT
+                $user->update([
+                    'is_locked' => true,
+                    'locked_at' => now(),
+                    'locked_by' => Auth::id(),
+                ]);
+
+                Activity::create([
+                    'user_name' => auth()->user()->name,
+                    'action' => 'Locked',
+                    'item' => $user->name,
+                    'target' => 'User Account',
+                    'type' => 'User Management',
+                    'message' => "Account locked by " . auth()->user()->name,
+                ]);
+
+                \Log::warning('Account locked', [
+                    'locked_user' => $user->name,
+                    'locked_by' => auth()->user()->name,
+                    'reason' => 'Manual lock by administrator',
+                ]);
+
+                return redirect()->route('admin.users.index')
+                    ->with('success', "Account for {$user->name} has been locked!");
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Error toggling account lock: ' . $e->getMessage(), [
+                'user_id' => $user->id ?? 'unknown',
+                'trace' => $e->getTraceAsString()
             ]);
             
-            Activity::create([
-                'user_name' => auth()->user()->name,
-                'action' => 'Unlocked',
-                'item' => $user->name,
-                'target' => 'User Account',
-                'type' => 'User Management',
-                'message' => "Account unlocked by " . auth()->user()->name,
-            ]);
-
-            \Log::info('Account unlocked', [
-                'unlocked_user' => $user->name,
-                'unlocked_by' => auth()->user()->name,
-                'was_manually_locked' => $user->is_locked,
-                'had_failed_attempts' => $user->login_attempts,
-                'login_attempts_reset' => true,
-            ]);
-
             return redirect()->route('admin.users.index')
-                ->with('success', "Account for {$user->name} has been unlocked! Login attempts have been reset.");
-        } else {
-            // ✅ LOCK THE ACCOUNT
-            $user->update([
-                'is_locked' => true,
-                'locked_at' => now(),
-                'locked_by' => Auth::id(),
-            ]);
-
-            Activity::create([
-                'user_name' => auth()->user()->name,
-                'action' => 'Locked',
-                'item' => $user->name,
-                'target' => 'User Account',
-                'type' => 'User Management',
-                'message' => "Account locked by " . auth()->user()->name,
-            ]);
-
-            \Log::warning('Account locked', [
-                'locked_user' => $user->name,
-                'locked_by' => auth()->user()->name,
-                'reason' => 'Manual lock by administrator',
-            ]);
-
-            return redirect()->route('admin.users.index')
-                ->with('success', "Account for {$user->name} has been locked!");
+                ->with('error', 'Error toggling account lock: ' . $e->getMessage());
         }
-
-    } catch (\Exception $e) {
-        \Log::error('Error toggling account lock: ' . $e->getMessage(), [
-            'user_id' => $user->id ?? 'unknown',
-            'trace' => $e->getTraceAsString()
-        ]);
-        
-        return redirect()->route('admin.users.index')
-            ->with('error', 'Error toggling account lock: ' . $e->getMessage());
     }
-}
-    
 }

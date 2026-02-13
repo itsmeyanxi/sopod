@@ -67,7 +67,24 @@ class UserController extends Controller
             'target_user_email' => $user->email,
         ]);
 
-        $roles = ['Admin', 'IT', 'CSR_Approver','CSR_Creator', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'];
+        $roles = [
+            'Admin',
+            'IT',
+            'CSR_Approver',
+            'CSR_Creator',
+            'Delivery_Creator',
+            'Delivery_Approver',
+            'CC_Creator',
+            'CC_Approver',
+            'Accounting_Creator',
+            'Accounting_Approver',
+            'PR_Creator',
+            'PR_Approver',
+            'PO_Creator',
+            'PO_Approver',
+            'RFP_Creator',
+            'RFP_Approver',
+        ];
         return view('users.edit', compact('user', 'roles'));
     }
 
@@ -146,11 +163,7 @@ class UserController extends Controller
     {
         return view('auth.login');
     }
-
-    /**
-     * Handle user login with database-based attempt tracking
-     * After 6 failed attempts, account is locked until IT intervention
-     */
+    
     public function login(Request $request)
     {
         $credentials = $request->validate([
