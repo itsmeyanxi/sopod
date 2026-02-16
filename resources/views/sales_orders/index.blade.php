@@ -116,7 +116,30 @@
                     class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 w-full">
             </div>
 
-            <button type="submit" 
+            <div>
+                <label class="block text-sm text-gray-300 mb-1">SO Status</label>
+                <select name="so_status" class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
+                    <option value="">All</option>
+                    <option value="Pending" {{ request('so_status') === 'Pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="Approved" {{ request('so_status') === 'Approved' ? 'selected' : '' }}>Approved</option>
+                    <option value="Declined" {{ request('so_status') === 'Declined' ? 'selected' : '' }}>Declined</option>
+                    <option value="Cancelled" {{ request('so_status') === 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-300 mb-1">DR Status</label>
+                <select name="dr_status" class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
+                    <option value="">All</option>
+                    <option value="Awaiting Delivery" {{ request('dr_status') === 'Awaiting Delivery' ? 'selected' : '' }}>Awaiting Delivery</option>
+                    <option value="Partial" {{ request('dr_status') === 'Partial' ? 'selected' : '' }}>Partial</option>
+                    <option value="Delivered (Full)" {{ request('dr_status') === 'Delivered (Full)' ? 'selected' : '' }}>Full Delivery</option>
+                    <option value="Fully Delivered" {{ request('dr_status') === 'Fully Delivered' ? 'selected' : '' }}>Fully Delivered</option>
+                    <option value="Pulled Out" {{ request('dr_status') === 'Pulled Out' ? 'selected' : '' }}>Pullout</option>
+                </select>
+            </div>
+
+            <button type="submit"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition">
                 Filter
             </button>
@@ -126,7 +149,7 @@
                 Clear
             </a>
 
-            @if(request('date_from') || request('date_to') || request('search'))
+            @if(request('date_from') || request('date_to') || request('search') || request('so_status') || request('dr_status'))
                 @php
                     $hasNonPendingSO = $salesOrders->contains(function($order) {
                         return $order->status !== 'Pending';
@@ -550,13 +573,17 @@ function printList() {
     const dateFrom = document.querySelector('input[name="date_from"]').value;
     const dateTo = document.querySelector('input[name="date_to"]').value;
     const search = document.querySelector('input[name="search"]').value;
-    
+    const soStatus = document.querySelector('select[name="so_status"]').value;
+    const drStatus = document.querySelector('select[name="dr_status"]').value;
+
     let url = '{{ route("sales_orders.printList") }}?';
-    
+
     if (dateFrom) url += 'date_from=' + dateFrom + '&';
     if (dateTo) url += 'date_to=' + dateTo + '&';
-    if (search) url += 'search=' + encodeURIComponent(search);
-    
+    if (search) url += 'search=' + encodeURIComponent(search) + '&';
+    if (soStatus) url += 'so_status=' + encodeURIComponent(soStatus) + '&';
+    if (drStatus) url += 'dr_status=' + encodeURIComponent(drStatus);
+
     window.open(url, '_blank');
 }
 
@@ -564,13 +591,17 @@ function exportExcel() {
     const dateFrom = document.querySelector('input[name="date_from"]').value;
     const dateTo = document.querySelector('input[name="date_to"]').value;
     const search = document.querySelector('input[name="search"]').value;
-    
+    const soStatus = document.querySelector('select[name="so_status"]').value;
+    const drStatus = document.querySelector('select[name="dr_status"]').value;
+
     let url = '{{ route("sales_orders.exportExcel") }}?';
-    
+
     if (dateFrom) url += 'date_from=' + dateFrom + '&';
     if (dateTo) url += 'date_to=' + dateTo + '&';
-    if (search) url += 'search=' + encodeURIComponent(search);
-    
+    if (search) url += 'search=' + encodeURIComponent(search) + '&';
+    if (soStatus) url += 'so_status=' + encodeURIComponent(soStatus) + '&';
+    if (drStatus) url += 'dr_status=' + encodeURIComponent(drStatus);
+
     window.location.href = url;
 }
 </script>

@@ -45,6 +45,7 @@ class Deliveries extends Model
         'pulled_out_at',
         'pullout_reason',
         'created_by',
+        'is_locked',
     ];
 
     protected $casts = [
@@ -56,6 +57,7 @@ class Deliveries extends Model
         'edit_requested' => 'boolean',
         'edit_approved' => 'boolean',
         'is_pulled_out' => 'boolean',
+        'is_locked' => 'boolean',
     ];
 
     // Relationships
@@ -72,6 +74,11 @@ class Deliveries extends Model
     // ✅ Check if user can edit this delivery
     public function canBeEdited()
     {
+        // Cannot edit if locked
+        if ($this->is_locked) {
+            return false;
+        }
+
         // Cannot edit if pulled out
         if ($this->is_pulled_out) {
             return false;

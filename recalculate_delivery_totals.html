@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recalculate Delivery Totals</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        .warning {
+            background: #ff9800;
+            color: #000;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .info {
+            background: #2196F3;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.danger {
+            background: #f44336;
+        }
+        button.danger:hover {
+            background: #da190b;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        #result.success {
+            background: #4CAF50;
+            display: block;
+        }
+        #result.error {
+            background: #f44336;
+            display: block;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 16px;
+        }
+        .stats {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .stats h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Recalculate Delivery Totals</h1>
+        <p>This tool fixes incorrect total amounts caused by decimal truncation issues.</p>
+
+        <div class="warning">
+            ⚠️ Warning: This operation will update delivery item totals in the database. Only Admin and IT users can run this.
+        </div>
+
+        <div class="info">
+            <strong>What this does:</strong>
+            <ul>
+                <li>Recalculates total_amount for each delivery item</li>
+                <li>Uses formula: quantity × unit_price</li>
+                <li>Only updates items where the total is incorrect</li>
+                <li>Logs all changes to the activity log</li>
+            </ul>
+        </div>
+
+        <div class="input-group">
+            <label>Delivery ID (Optional - leave blank to recalculate ALL deliveries):</label>
+            <input type="number" id="deliveryId" placeholder="e.g., 123 or leave blank for all">
+        </div>
+
+        <button onclick="recalculateTotals()">
+            🔄 Recalculate All Deliveries
+        </button>
+
+        <button onclick="recalculateSpecific()" class="danger">
+            🔄 Recalculate Specific Delivery
+        </button>
+
+        <div id="result"></div>
+
+        <div class="stats" style="display: none;" id="stats">
+            <h3>📊 Results</h3>
+            <p><strong>Items Updated:</strong> <span id="itemsUpdated">0</span></p>
+            <p><strong>Deliveries Affected:</strong> <span id="deliveriesAffected">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Get CSRF token from Laravel
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+        async function recalculateTotals() {
+            if (!confirm('Are you sure you want to recalculate totals for ALL deliveries?\n\nThis will update all incorrect total amounts in the database.')) {
+                return;
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = '';
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '⏳ Processing... Please wait...';
+
+            try {
+                const response = await fetch('/deliveries/recalculate-totals', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.className = 'success';
+                    resultDiv.textContent = '✅ ' + data.message;
+
+                    // Show stats
+                    document.getElementById('itemsUpdated').textContent = data.updated_count || 0;
+                    document.getElementById('deliveriesAffected').textContent = data.deliveries_affected || 0;
+                    document.getElementById('stats').style.display = 'block';
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.textContent = '❌ Error: ' + data.message;
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        async function recalculateSpecific() {
+            const deliveryId = document.getElementById('deliveryId').value;
+
+            if (!deliveryId || deliveryId.trim() === '') {
+                alert('Please enter a Delivery ID');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to recalculate totals for Delivery ID ${deliveryId}?`)) {
+                return;
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = '';
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '⏳ Processing... Please wait...';
+
+            try {
+                const response = await fetch('/deliveries/recalculate-totals', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        delivery_id: parseInt(deliveryId)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.className = 'success';
+                    resultDiv.textContent = '✅ ' + data.message;
+
+                    // Show stats
+                    document.getElementById('itemsUpdated').textContent = data.updated_count || 0;
+                    document.getElementById('deliveriesAffected').textContent = 1;
+                    document.getElementById('stats').style.display = 'block';
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.textContent = '❌ Error: ' + data.message;
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        function getCsrfToken() {
+            // Try to get from meta tag first
+            const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            if (metaToken) return metaToken;
+
+            // Try to get from cookie
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'XSRF-TOKEN') {
+                    return decodeURIComponent(value);
+                }
+            }
+
+            // Fallback - you may need to add this manually
+            alert('CSRF token not found. Please make sure you are logged in.');
+            return '';
+        }
+    </script>
+</body>
+</html>

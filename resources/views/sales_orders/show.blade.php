@@ -522,13 +522,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const dropdownBtn = document.getElementById('printDropdownBtn');
     const dropdown = document.getElementById('printDropdown');
     
+    console.log('Dropdown button:', dropdownBtn);
+    console.log('Dropdown menu:', dropdown);
+    
     if (dropdownBtn && dropdown) {
         dropdownBtn.addEventListener('click', function(e) {
             e.stopPropagation();
+            console.log('Dropdown clicked, toggling visibility');
             dropdown.classList.toggle('hidden');
         });
         
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (!dropdownBtn.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.classList.add('hidden');
@@ -715,25 +718,25 @@ function confirmCloseSO() {
     });
 }
 
-// Dropdown toggle functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const dropdownBtn = document.getElementById('printDropdownBtn');
-    const dropdown = document.getElementById('printDropdown');
+// // Dropdown toggle functionality
+// document.addEventListener('DOMContentLoaded', function() {
+//     const dropdownBtn = document.getElementById('printDropdownBtn');
+//     const dropdown = document.getElementById('printDropdown');
     
-    if (dropdownBtn && dropdown) {
-        dropdownBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            dropdown.classList.toggle('hidden');
-        });
+//     if (dropdownBtn && dropdown) {
+//         dropdownBtn.addEventListener('click', function(e) {
+//             e.stopPropagation();
+//             dropdown.classList.toggle('hidden');
+//         });
         
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!dropdownBtn.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.add('hidden');
-            }
-        });
-    }
-});
+//         // Close dropdown when clicking outside
+//         document.addEventListener('click', function(e) {
+//             if (!dropdownBtn.contains(e.target) && !dropdown.contains(e.target)) {
+//                 dropdown.classList.add('hidden');
+//             }
+//         });
+//     }
+// });
 
 </script>
 @endsection

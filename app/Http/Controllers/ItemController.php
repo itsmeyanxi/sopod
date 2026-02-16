@@ -83,6 +83,7 @@ class ItemController extends Controller
         ]);
 
         // ✅ Send email notification with error handling
+        /*
         try {
             $emailSent = app(\App\Services\NotificationService::class)->notifyNewItem($item);
             \Log::info('🔥 ITEM EMAIL SENT', ['success' => $emailSent]);
@@ -92,7 +93,7 @@ class ItemController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
         }
-
+        */
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
             'action'    => 'Created',
@@ -218,7 +219,7 @@ public function export(Request $request)
             'rejection_reason' => null,
         ]);
 
-        app(\App\Services\NotificationService::class)->notifyItemStatusChange($item, 'approved');
+        // app(\App\Services\NotificationService::class)->notifyItemStatusChange($item, 'approved');
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
@@ -250,7 +251,7 @@ public function export(Request $request)
             'approved_at' => now(),
         ]);
 
-        app(\App\Services\NotificationService::class)->notifyItemStatusChange($item, 'rejected');
+       // app(\App\Services\NotificationService::class)->notifyItemStatusChange($item, 'rejected');
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
@@ -400,7 +401,7 @@ public function bulkReject(Request $request)
             // Refresh item to get updated data
             $item->fresh();
             $item->rejection_reason = $rejectionReason; // Ensure reason is set
-            app(\App\Services\NotificationService::class)->notifyItemStatusChange($item, 'rejected');
+            //app(\App\Services\NotificationService::class)->notifyItemStatusChange($item, 'rejected');
         }
 
         // Log activity

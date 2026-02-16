@@ -13,12 +13,14 @@ class DeliveryItem extends Model
     protected $fillable = [
         'delivery_id',
         'item_id',
-        'sales_order_item_id',  
+        'sales_order_item_id',
         'item_code',
         'item_description',
         'brand',
         'item_category',
         'quantity',
+        'original_quantity',
+        'remaining_quantity',
         'uom',
         'unit_price',
         'total_amount',
@@ -27,9 +29,11 @@ class DeliveryItem extends Model
     ];
 
     protected $casts = [
-        'quantity' => 'integer',
-        'unit_price' => 'decimal:2',
-        'total_amount' => 'decimal:2',
+        'quantity' => 'decimal:3',
+        'original_quantity' => 'decimal:3',
+        'remaining_quantity' => 'decimal:3',
+        'unit_price' => 'decimal:3',
+        'total_amount' => 'decimal:3',
     ];
 
     public function delivery()

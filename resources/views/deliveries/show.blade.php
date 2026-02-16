@@ -437,23 +437,24 @@
             $grandTotal = 0;
             $hasPartialItems = false;
             
-            // ✅ Create map of SO items for comparison
+            // ✅ Create map of SO items for comparison (keyed by ID to handle duplicate item_codes)
             $soItemsMap = collect();
             if ($so && $so->items) {
                 foreach ($so->items as $soItem) {
-                    $soItemsMap->put($soItem->item_code, $soItem);
+                    $soItemsMap->put($soItem->id, $soItem);
                 }
             }
             
             // ✅ FIXED: Calculate total delivered quantities across ALL batches INCLUDING this one
+            // Using sales_order_item_id to handle duplicate item_codes correctly
             $totalDeliveredMap = \App\Models\DeliveryItem::whereHas('delivery', function($q) use ($delivery) {
                     $q->where('sales_order_number', $delivery->sales_order_number)
                       ->where('status', 'Delivered'); // Only count delivered items
                 })
-                ->select('item_code', \DB::raw('SUM(quantity) as total_delivered'))
-                ->groupBy('item_code')
+                ->select('sales_order_item_id', \DB::raw('SUM(quantity) as total_delivered'))
+                ->groupBy('sales_order_item_id')
                 ->get()
-                ->keyBy('item_code');
+                ->keyBy('sales_order_item_id');
             
             foreach ($items as $item) {
                 $grandTotal += $item->total_amount ?? 0;
@@ -482,17 +483,18 @@
                 <tbody class="bg-gray-900">
                   @forelse($items as $item)
                     @php
-                        $soItem = $soItemsMap->get($item->item_code);
+                        // ✅ FIXED: Use sales_order_item_id for lookups to handle duplicate item_codes
+                        $soItem = $soItemsMap->get($item->sales_order_item_id);
                         $originalQty = $item->original_quantity ?? $soItem?->quantity ?? $item->quantity;
                         $thisBatchQty = $item->quantity ?? 0;
-                        
+
                         // ✅ SKIP items with zero quantity (removed items)
                         if ($thisBatchQty == 0) {
                             continue;
                         }
-                        
-                        // Get total delivered from ALL batches (including this one)
-                        $totalDelivered = $totalDeliveredMap->get($item->item_code)?->total_delivered ?? $thisBatchQty;
+
+                        // Get total delivered from ALL batches (including this one) - keyed by sales_order_item_id
+                        $totalDelivered = $totalDeliveredMap->get($item->sales_order_item_id)?->total_delivered ?? $thisBatchQty;
                         
                         // Calculate remaining
                         $remaining = $originalQty - $totalDelivered;

@@ -22,6 +22,13 @@ use App\Http\Controllers\{
     SuppliersController,
     PurchaseOrderRecordsController,
     SupplierImportController,
+    AgingReportController,
+    InvoiceController,
+    ExcelImportController,
+    PaymentController,
+    ReceivingReportsController,
+    ArAdjustmentController,
+    LockController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -40,6 +47,16 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     // ===================== AUTHENTICATED ROUTES =====================
     Route::middleware(['auth'])->group(function () {
 
+    // ===================== PAYMENTS ENTRY =====================
+    Route::prefix('payments')->name('payments.')->group(function () {
+    Route::get('/entry', [PaymentController::class, 'entry'])->name('entry');
+    Route::get('/search-customer', [PaymentController::class, 'searchCustomer'])->name('searchCustomer');
+    Route::get('/customer-history', [PaymentController::class, 'getCustomerHistory'])->name('customerHistory');
+    Route::post('/store', [PaymentController::class, 'store'])->name('store');
+    Route::get('/collection-report', [PaymentController::class, 'collectionReport'])->name('collectionReport');
+    Route::get('/export', [PaymentController::class, 'export'])->name('export');
+    Route::get('/duplicate-cr', [PaymentController::class, 'viewDuplicateCR'])->name('duplicateCR');
+});
     // ===================== CHANGE LOG & NOTIFICATIONS =====================
     Route::get('/changelog', [ChangeLogController::class, 'index'])->name('changelog.index');
     Route::get('/changelog/sales-order/{id}', [ChangeLogController::class, 'salesOrderChanges'])->name('changelog.sales_order');
@@ -50,33 +67,139 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     Route::post('/notifications/read-all', [ChangeLogController::class, 'markAllAsRead'])->name('notifications.read_all');
     Route::get('/notifications/unread-count', [ChangeLogController::class, 'unreadCount'])->name('notifications.unread_count');
 
+// ===================== AGING REPORTS =====================
+Route::prefix('aging-reports')->name('aging_reports.')->group(function () {
+    // Main aging reports view
+    Route::get('/', [AgingReportController::class, 'view'])->name('view');
+    
+    // Search aging reports
+    Route::get('/search', [AgingReportController::class, 'search'])->name('search');
+    
+    // AR Aging summary (pivot table)
+    Route::get('/summary', [AgingReportController::class, 'summary'])->name('summary');
+    
+    // AR Aging data (for AJAX)
+    Route::get('/ar-aging', [AgingReportController::class, 'arAging'])->name('ar_aging');
+    
+    // Export aging reports list
+    Route::get('/export', [AgingReportController::class, 'export'])->name('export');
+    
+    // Export AR Aging summary
+    Route::get('/export-ar-aging', [AgingReportController::class, 'exportArAging'])->name('export_ar_aging');
+    
+    // ✅ AR PROFILE - View single customer profile
+    Route::get('/ar-profile/{id}', [AgingReportController::class, 'showARProfile'])->name('ar_profile');
+    
+    // ✅ AR PROFILE - Export single customer profile
+    Route::get('/ar-profile/export', [AgingReportController::class, 'exportARProfile'])->name('ar_profile.export');
+});
 
-    //===================== SALES ANALYTICS =====================
-    Route::get('/sales/dashboard', function () {
-        $user = auth()->user();
-        
-        if (!$user || !$user->canaccesssalesanalytics()) {
+// ===================== AR ADJUSTMENTS =====================
+Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
+    // Main view
+    Route::get('/', [ArAdjustmentController::class, 'index'])->name('index');
+
+    // Search AR Aging records
+    Route::get('/search-ar', [ArAdjustmentController::class, 'searchArAging'])->name('search_ar');
+
+    // Get adjustments data (for AJAX)
+    Route::get('/get', [ArAdjustmentController::class, 'getAdjustments'])->name('get');
+
+    // Store new adjustment
+    Route::post('/store', [ArAdjustmentController::class, 'store'])->name('store');
+
+    // Show single adjustment
+    Route::get('/{id}', [ArAdjustmentController::class, 'show'])->name('show');
+
+    // Update adjustment
+    Route::put('/{id}', [ArAdjustmentController::class, 'update'])->name('update');
+
+    // Delete adjustment
+    Route::delete('/{id}', [ArAdjustmentController::class, 'destroy'])->name('destroy');
+
+    // Export adjustments
+    Route::get('/export/csv', [ArAdjustmentController::class, 'export'])->name('export');
+});
+
+// ===================== RECEIVING REPORTS =====================
+Route::prefix('receiving-reports')->name('receiving-reports.')->group(function () {
+    Route::get('/', [ReceivingReportsController::class, 'index'])->name('index');
+    Route::get('/{id}', [ReceivingReportsController::class, 'show'])->name('show');
+    Route::get('/{id}/print', [ReceivingReportsController::class, 'print'])->name('print');
+    Route::get('/export/excel', [ReceivingReportsController::class, 'exportExcel'])->name('export');
+});
+
+// ===================== RECORD LOCK MANAGEMENT =====================
+// Only Admin and IT roles can access this module
+Route::prefix('lock')->name('lock.')->group(function () {
+    Route::get('/', function () {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
             return view('errors.noaccess');
         }
-        
-        // If authorized, call the controller
-        return app(\App\Http\Controllers\SalesDashboardController::class)->index(request());
-    })->name('sales.dashboard')->middleware('auth');
+        return app(LockController::class)->index(request());
+    })->name('index');
 
-        Route::get('/sales/metrics', function () {
-        $user = auth()->user();
-        
-        if (!$user || !$user->canaccesssalesanalytics()) {
+    Route::get('/details', function () {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
+        return app(LockController::class)->getMonthDetails(request());
+    })->name('details');
+
+    Route::post('/lock', function () {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        return app(LockController::class)->lock(request());
+    })->name('lock');
+
+    Route::post('/unlock', function () {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        return app(LockController::class)->unlock(request());
+    })->name('unlock');
+});
+
+    // =================== INVOICE ROUTES ===================
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/screen', [InvoiceController::class, 'screen'])->name('screen');
+    });
+
+    // =================== PAYMENT ROUTES ===================
+    Route::prefix('payments')->name('payments.')->group(function () {
+        Route::get('/entry', [PaymentController::class, 'entry'])->name('entry');
+    });
+Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
+    Route::get('/', [AgingReportController::class, 'adjustments'])->name('index');
+});
+
+    //===================== SALES ANALYTICS =====================
+        Route::get('/sales/dashboard', function () {
+            $user = auth()->user();
+            
+            if (!$user || !$user->canaccesssalesanalytics()) {
+                return view('errors.noaccess');
+            }
+            
+            // If authorized, call the controller
+            return app(\App\Http\Controllers\SalesDashboardController::class)->index(request());
+        })->name('sales.dashboard')->middleware('auth');
+
+            Route::get('/sales/metrics', function () {
+            $user = auth()->user();
+            
+            if (!$user || !$user->canaccesssalesanalytics()) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+            
+            return app(\App\Http\Controllers\SalesDashboardController::class)->getMetrics(request());
+        })->name('sales.metrics')->middleware('auth');
         
-        return app(\App\Http\Controllers\SalesDashboardController::class)->getMetrics(request());
-    })->name('sales.metrics')->middleware('auth');
-    
-    // Customer Export
-    Route::get('/customers/export', [CustomerController::class, 'export'])
-    ->name('customers.export')
-    ->middleware('auth');
+        // Customer Export
+        Route::get('/customers/export', [CustomerController::class, 'export'])
+        ->name('customers.export')
+        ->middleware('auth');
 
     // ===================== BATCH PRINT =====================
     Route::post('/records/sales-orders/batch-print',
@@ -84,32 +207,60 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     )->name('records.batchPrintSO');
 
     // ===================== IMPORTS =======================
-       Route::get('/excel-import', function () {
-            $user = auth()->user();
-            
-            if (!$user || !$user->canImportCustomers()) {
-                return view('errors.noaccess');
-            }
-            
-            return view('excel.excel-import'); 
-        })->name('excel.import');
+    Route::get('/excel-import', function () {
+        $user = auth()->user();
+        
+        if (!$user || !$user->canImportCustomers()) {
+            return view('errors.noaccess');
+        }
+        
+        return view('excel.excel-import'); 
+    })->name('excel.import');
+
+    Route::post('/excel/import/collections', [ExcelImportController::class, 'importCollections'])
+    ->name('excel.import.collections')
+    ->middleware(['auth']);
+
+// ✅ NEW: AR Adjustments Import Route
+Route::post('/excel/import/ar-adjustments', [ExcelImportController::class, 'importArAdjustments'])
+    ->name('excel.import.ar_adjustments')
+    ->middleware(['auth']);
 
     // IMPORT ITEMS — only Admin, IT + Accounting roles
     Route::post('/excel-import/items', function () {
         $user = auth()->user();
-        if (!$user || !$user->canImportItems()) { abort(403, 'Unauthorized');}
+        if (!$user || !$user->canImportItems()) { 
+            abort(403, 'Unauthorized');
+        }
         return app(App\Http\Controllers\ExcelImportController::class)->importItems(request());
     })->name('excel.import.items');
 
-// Add this route with your other import routes
-Route::post('/excel/import/monthly-sales', [ImportController::class, 'importMonthlySales'])->name('excel.import.monthly_sales');
+    // IMPORT MONTHLY SALES
+    Route::post('/excel-import/monthly-sales', function () {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            abort(403, 'Unauthorized');
+        }
+        return app(App\Http\Controllers\ExcelImportController::class)->importMonthlySales(request());
+    })->name('excel.import.monthly_sales');
 
     // IMPORT CUSTOMERS — all the listed roles
     Route::post('/excel-import/customers', function () {
         $user = auth()->user();
-        if (!$user || !$user->canImportCustomers()) { abort(403, 'Unauthorized'); }
+        if (!$user || !$user->canImportCustomers()) { 
+            abort(403, 'Unauthorized'); 
+        }
         return app(App\Http\Controllers\ExcelImportController::class)->importCustomers(request());
     })->name('excel.import.customers');
+
+    // IMPORT AR AGING — Admin, IT + Accounting roles
+    Route::post('/excel-import/ar-aging', function () {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            abort(403, 'Unauthorized');
+        }
+        return app(App\Http\Controllers\ExcelImportController::class)->importARAging(request());
+    })->name('excel.import.ar_aging');
 
     // ===================== DASHBOARD =====================
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -126,16 +277,97 @@ Route::post('/excel/import/monthly-sales', [ImportController::class, 'importMont
     
     // Sales Order Records
     Route::get('/records/sales-order/{id}', [App\Http\Controllers\RecordsController::class, 'so_show'])->name('records.so_show');
+// Add this to your routes/web.php temporarily for debugging
 
+Route::get('/debug-ar-adjustments/{customerCode}', function($customerCode) {
+    
+    // Get AR Aging record for this customer
+    $arRecord = DB::table('ar_aging')
+        ->where('customer_code', $customerCode)
+        ->first();
+    
+    if (!$arRecord) {
+        return response()->json([
+            'error' => 'Customer not found in ar_aging',
+            'customer_code_searched' => $customerCode
+        ]);
+    }
+    
+    // Get all adjustments
+    $allAdjustments = DB::table('ar_adjustments')
+        ->select('id', 'customer_code', 'customer_name', 'reference_number', 'amount', 'created_at', 'created_by')
+        ->orderBy('id', 'desc')
+        ->limit(20)
+        ->get();
+    
+    // Try exact match
+    $exactMatch = DB::table('ar_adjustments')
+        ->where('customer_code', $customerCode)
+        ->get();
+    
+    // Try trimmed match
+    $trimmedMatch = DB::table('ar_adjustments')
+        ->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
+        ->get();
+    
+    // Get invoice numbers for this customer
+    $invoiceNumbers = DB::table('ar_aging')
+        ->where('customer_code', $customerCode)
+        ->pluck('invoice_no')
+        ->filter()
+        ->toArray();
+    
+    // Try invoice match
+    $invoiceMatch = DB::table('ar_adjustments')
+        ->whereIn('invoice_number', $invoiceNumbers)
+        ->get();
+    
+    // Check if customer_code has special characters
+    $customerCodeHex = bin2hex($customerCode);
+    $customerCodeLength = strlen($customerCode);
+    
+    return response()->json([
+        'customer_info' => [
+            'code' => $customerCode,
+            'code_hex' => $customerCodeHex,
+            'code_length' => $customerCodeLength,
+            'name' => $arRecord->client_name ?? 'N/A',
+            'invoice_count' => count($invoiceNumbers),
+            'sample_invoices' => array_slice($invoiceNumbers, 0, 5),
+        ],
+        'adjustments_found' => [
+            'exact_match' => [
+                'count' => $exactMatch->count(),
+                'data' => $exactMatch
+            ],
+            'trimmed_match' => [
+                'count' => $trimmedMatch->count(),
+                'data' => $trimmedMatch
+            ],
+            'invoice_match' => [
+                'count' => $invoiceMatch->count(),
+                'data' => $invoiceMatch
+            ],
+        ],
+        'recent_adjustments_all' => $allAdjustments,
+        'diagnosis' => [
+            'has_exact_match' => $exactMatch->count() > 0 ? '✅ YES' : '❌ NO',
+            'has_trimmed_match' => $trimmedMatch->count() > 0 ? '✅ YES' : '❌ NO',
+            'has_invoice_match' => $invoiceMatch->count() > 0 ? '✅ YES' : '❌ NO',
+        ]
+    ]);
+})->where('customerCode', '.*');
     // Delivery Records
     Route::get('/records/delivery/{id}', [App\Http\Controllers\RecordsController::class, 'dshow'])->name('records.dshow');
-
+// AR Adjustments Fix Routes
+Route::get('/diagnostic-adjustments', [CustomerController::class, 'diagnosticAdjustments']);
+Route::get('/diagnostic-ar-aging-match', [CustomerController::class, 'diagnosticArAgingMatch']);
+Route::get('/fix-adjustments-via-ar-aging', [CustomerController::class, 'fixAdjustmentsViaArAging']);
+Route::post('/bulk-assign-adjustments', [CustomerController::class, 'bulkAssignCustomer']);
      // ===================== SALES ORDERS =====================
 Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // =================== SPECIFIC ACTION ROUTES (MUST BE BEFORE {id} ROUTES) ===================
-    
-    // ✅ BULK ACTIONS - MUST BE BEFORE OTHER ROUTES
     Route::post('/bulk-approve', function () {
         $user = auth()->user();
         if (in_array($user->role, ['Admin', 'IT', 'CSR_Approver', 'CC_Approver', 'Accounting_Approver'])) {
@@ -753,7 +985,11 @@ Route::prefix('items')->name('items.')->group(function () {
 
         Route::post('/batch-approve', [DeliveriesController::class, 'batchApprove'])->name('batch-approve');
 Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name('batch-reject');
-                
+
+        // ✅ Repair routes for fixing duplicate item_code issues
+        Route::post('/repair-duplicate-items', [DeliveriesController::class, 'repairDuplicateItemCodes'])->name('repair-duplicate-items');
+        Route::post('/recalculate-so-deliveries', [DeliveriesController::class, 'recalculateSODeliveries'])->name('recalculate-so-deliveries');
+
        // ✅ FIXED: Request Edit 
         Route::post('/{id}/request-edit', function($id) {
             if (in_array(auth()->user()->role, ['Delivery_Creator'])) {
@@ -775,6 +1011,14 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         })->name('pullout');
+
+        // Recalculate totals (Admin/IT only) - can be for all deliveries or specific one
+        Route::post('/recalculate-totals', function() {
+            if (in_array(auth()->user()->role, ['Admin', 'IT'])) {
+                return app(DeliveriesController::class)->recalculateAllTotals(request());
+            }
+            return response()->json(['success' => false, 'message' => 'Unauthorized. Only Admin and IT users can recalculate totals.'], 403);
+        })->name('recalculateTotals');
 
         // SHOW (must be last because it catches any /{id})
         Route::get('/{id}', function($id) {
@@ -1354,6 +1598,35 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// In routes/web.php
+Route::get('/fix-sales-order-totals', [SalesOrderController::class, 'fixExistingSalesOrders']);
+
+// In routes/web.php
+Route::get('/fix-delivery-totals', [DeliveriesController::class, 'fixExistingTotals']);
+
+// ✅ Fix duplicate item codes for a specific SO (run once to repair data)
+Route::get('/fix-duplicate-items/{so_number?}', function($soNumber = null) {
+    if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $request = request();
+    $request->merge(['so_number' => $soNumber]);
+
+    return app(DeliveriesController::class)->repairDuplicateItemCodes($request);
+})->middleware('auth');
+
+Route::get('/recalculate-deliveries/{so_number}', function($soNumber) {
+    if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $request = request();
+    $request->merge(['so_number' => $soNumber]);
+
+    return app(DeliveriesController::class)->recalculateSODeliveries($request);
+})->middleware('auth');
+
 Route::get('/debug-delivery', function() {
     $delivery = \App\Models\Deliveries::with(['salesOrder.customer'])->first();
     
@@ -1404,4 +1677,78 @@ Route::get('/debug-delivery-specific', function() {
         'customer_data' => ($delivery->salesOrder && $delivery->salesOrder->customer) ? $delivery->salesOrder->customer : null,
     ];
 });
+
+// Add this to your web.php routes file temporarily for testing
+
+Route::get('/test-ar-data/{customerCode}', function($customerCode) {
+    
+    // Get customer info from ar_aging
+    $arRecord = DB::table('ar_aging')
+        ->where('customer_code', $customerCode)
+        ->first();
+    
+    if (!$arRecord) {
+        return response()->json([
+            'error' => 'Customer not found in ar_aging',
+            'customer_code' => $customerCode
+        ]);
+    }
+
+    // Test payments
+    $paymentsExact = DB::table('payments')
+        ->where('customer_code', $customerCode)
+        ->get();
+
+    $paymentsTrimmed = DB::table('payments')
+        ->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
+        ->get();
+
+    $paymentsAll = DB::table('payments')
+        ->select('customer_code')
+        ->distinct()
+        ->get();
+
+    // Test adjustments
+    $adjustmentsExact = DB::table('ar_adjustments')
+        ->where('customer_code', $customerCode)
+        ->get();
+
+    $adjustmentsTrimmed = DB::table('ar_adjustments')
+        ->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
+        ->get();
+
+    $adjustmentsAll = DB::table('ar_adjustments')
+        ->select('customer_code')
+        ->distinct()
+        ->get();
+
+    return response()->json([
+        'customer_code_searched' => $customerCode,
+        'customer_code_length' => strlen($customerCode),
+        'customer_code_trimmed' => trim($customerCode),
+        
+        'ar_aging' => [
+            'found' => true,
+            'customer_code' => $arRecord->customer_code,
+            'customer_name' => $arRecord->client_name ?? 'N/A'
+        ],
+        
+        'payments' => [
+            'total_in_db' => DB::table('payments')->count(),
+            'found_exact_match' => $paymentsExact->count(),
+            'found_trimmed_match' => $paymentsTrimmed->count(),
+            'sample_customer_codes' => $paymentsAll->take(10),
+            'data' => $paymentsExact->take(5)
+        ],
+        
+        'adjustments' => [
+            'total_in_db' => DB::table('ar_adjustments')->count(),
+            'found_exact_match' => $adjustmentsExact->count(),
+            'found_trimmed_match' => $adjustmentsTrimmed->count(),
+            'sample_customer_codes' => $adjustmentsAll->take(10),
+            'data' => $adjustmentsExact->take(5)
+        ]
+    ]);
+});
+
 

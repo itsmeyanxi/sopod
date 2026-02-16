@@ -307,9 +307,9 @@
             $hasItems = $delivery->items && $delivery->items->count() > 0;
             $totalAmount = 0;
             
-            // Get SO items for comparison
+            // Get SO items for comparison (keyed by ID to handle duplicate item_codes)
             $soItems = $delivery->salesOrder?->items ?? collect();
-            $soItemsMap = $soItems->keyBy('item_code');
+            $soItemsMap = $soItems->keyBy('id');
         @endphp
 
         @if($hasItems)
@@ -317,9 +317,9 @@
                 @php
                     $itemTotal = $item->total_amount ?? ($item->quantity * $item->unit_price);
                     $totalAmount += $itemTotal;
-                    
-                    // Get corresponding SO item for quantity comparison
-                    $soItem = $soItemsMap->get($item->item_code);
+
+                    // Get corresponding SO item for quantity comparison (using sales_order_item_id)
+                    $soItem = $soItemsMap->get($item->sales_order_item_id);
                     $soQty = $soItem ? $soItem->quantity : 0;
                     $drQty = $item->quantity ?? 0;
                     $variance = $drQty - $soQty;

@@ -492,7 +492,7 @@
     </div>
 </div>
 
-{{-- ✅ Edit Delivery Modal - WITH PO IMAGE --}}
+{{-- ✅ Edit Delivery Modal - WITH DR NUMBER VALIDATION --}}
 <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
     <div class="bg-gray-800 rounded-lg p-6 max-w-5xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
@@ -548,9 +548,18 @@
                 <h4 class="text-sm font-semibold text-green-400 mb-3">✎ Editable Fields</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">DR No. <span class="text-red-500">*</span></label>
-                        <input type="text" id="edit_dr_no" required
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            DR No. <span class="text-red-500">*</span>
+                            <span class="text-xs text-gray-400 ml-2">(Numbers, hyphens, and slashes only)</span>
+                        </label>
+                        <input type="text" 
+                               id="edit_dr_no" 
+                               required
+                               pattern="[0-9\-\/]+"
+                               title="Only numbers, hyphens (-), and forward slashes (/) are allowed"
+                               oninput="validateDRNumber(this)"
                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500">
+                        <p id="dr_no_error" class="text-red-400 text-xs mt-1 hidden">Only numbers, hyphens (-), and forward slashes (/) are allowed</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">SI Invoice No.</label>
@@ -566,6 +575,15 @@
                         <label class="block text-sm font-medium text-gray-300 mb-2">Plate No.</label>
                         <input type="text" id="edit_plate_no"
                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500">
+                    </div>
+                    {{-- ✅ NEW: Request Delivery Date Field --}}
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-calendar-alt text-blue-400 mr-1"></i>
+                            Request Delivery Date <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" id="edit_request_delivery_date" required
+                               class="w-full px-3 py-2 bg-gray-700 border border-blue-600 rounded text-white focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
             </div>
@@ -621,12 +639,7 @@
 </div>
 
 {{-- ============================================ --}}
-{{-- COMPLETE SCRIPT SECTION - Replace entire <script> section in deliveries/index.blade.php --}}
-{{-- Place this BEFORE @endsection --}}
-{{-- ============================================ --}}
 
-{{-- ✅ ADD REJECT EDIT MODAL (if not already added) --}}
-{{-- Place this after pulloutModal --}}
 <div id="rejectEditModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
         <h3 class="text-xl font-bold mb-4 text-white">Reject Edit Request</h3>
@@ -655,7 +668,63 @@
     </div>
 </div>
 
+<div id="batchRejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold mb-4 text-white">Batch Reject Deliveries</h3>
+        <div class="mb-4">
+            <p class="text-gray-300 mb-3">
+                You are about to reject <strong id="batchRejectCount" class="text-red-400">0</strong> delivery(ies):
+            </p>
+            <ul id="batchRejectList" class="bg-gray-900/50 border border-gray-700 rounded p-3 mb-4 max-h-40 overflow-y-auto">
+                <!-- List will be populated dynamically -->
+            </ul>
+        </div>
+        <form id="batchRejectForm">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Rejection Reason <span class="text-red-400">*</span></label>
+                <textarea id="batchRejectionReason" 
+                          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                          rows="4" 
+                          required
+                          placeholder="Please provide a reason for batch rejection..."></textarea>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" 
+                        onclick="closeBatchRejectModal()"
+                        class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded">
+                    Confirm Batch Reject
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+// ========================================
+// ✅ DR NUMBER VALIDATION FUNCTION (NEW)
+// ========================================
+function validateDRNumber(input) {
+    // Remove any characters that are not numbers, hyphens, or forward slashes
+    const cleanValue = input.value.replace(/[^0-9\-\/]/g, '');
+    
+    // If the value changed, update the input and show error
+    if (cleanValue !== input.value) {
+        input.value = cleanValue;
+        document.getElementById('dr_no_error').classList.remove('hidden');
+        input.classList.add('border-red-500');
+        
+        // Hide error message after 3 seconds
+        setTimeout(() => {
+            document.getElementById('dr_no_error').classList.add('hidden');
+            input.classList.remove('border-red-500');
+        }, 3000);
+    }
+}
+
 // ========================================
 // GLOBAL VARIABLES
 // ========================================
@@ -1033,6 +1102,8 @@ function openEditModal(id) {
     })
     .then(data => {
         console.log('✅ Edit data received:', data);
+        console.log('📅 Request Delivery Date from API:', data.request_delivery_date);
+        
         if (data.success) {
             editDeliveryData = data;
             populateEditModal(data);
@@ -1060,6 +1131,15 @@ function populateEditModal(data) {
     const poImageSection = document.getElementById('poImageSection');
     const poImagePreview = document.getElementById('poImagePreview');
     const poImageFileName = document.getElementById('poImageFileName');
+
+    if (data.request_delivery_date) {
+        const dateObj = new Date(data.request_delivery_date);
+        const formattedDate = dateObj.toISOString().split('T')[0];
+        document.getElementById('edit_request_delivery_date').value = formattedDate;
+        console.log('✅ Request Delivery Date loaded:', formattedDate);
+    } else {
+        document.getElementById('edit_request_delivery_date').value = '';
+    }
     
     if (data.po_image_url && data.po_image_name) {
         poImageSection.style.display = 'block';
@@ -1088,11 +1168,13 @@ function populateEditModal(data) {
             <td class="px-3 py-2">${parseFloat(item.original_quantity || 0).toFixed(2)}</td>
             <td class="px-3 py-2 text-gray-400">${parseFloat(item.already_delivered || 0).toFixed(2)}</td>
             <td class="px-3 py-2">
-                <input type="number" 
-                       step="0.01" 
+                <input type="number"
+                       step="0.01"
                        min="0"
                        value="${parseFloat(item.quantity || 0).toFixed(2)}"
                        data-index="${index}"
+                       data-delivery-item-id="${item.delivery_item_id || ''}"
+                       data-sales-order-item-id="${item.sales_order_item_id || ''}"
                        data-item-code="${item.item_code}"
                        data-unit-price="${item.unit_price || 0}"
                        data-original-qty="${item.original_quantity || 0}"
@@ -1180,7 +1262,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ========================================
-// EDIT FORM SUBMIT
+// EDIT FORM SUBMIT - FIXED VERSION
 // ========================================
 
 document.getElementById('editForm').addEventListener('submit', function(e) {
@@ -1194,12 +1276,40 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
         return;
     }
     
+    // ✅ Validate DR Number
+    const drNo = document.getElementById('edit_dr_no').value;
+    const drNoPattern = /^[0-9\-\/]+$/;
+    
+    if (!drNoPattern.test(drNo)) {
+        alert('DR Number can only contain numbers, hyphens (-), and forward slashes (/)');
+        document.getElementById('edit_dr_no').focus();
+        return;
+    }
+    
+    // ✅ Validate Request Delivery Date
+    const requestDeliveryDate = document.getElementById('edit_request_delivery_date').value;
+    if (!requestDeliveryDate) {
+        alert('Please select a Request Delivery Date');
+        document.getElementById('edit_request_delivery_date').focus();
+        return;
+    }
+    
+    // ✅ CRITICAL FIX: Build items array correctly
     const items = [];
     document.querySelectorAll('.edit-item-qty').forEach(input => {
         const index = input.dataset.index;
         const originalItem = editDeliveryData.items[index];
-        
+
+        console.log(`📋 Item ${index}:`, {
+            delivery_item_id: input.dataset.deliveryItemId,
+            sales_order_item_id: input.dataset.salesOrderItemId,
+            item_code: input.dataset.itemCode,
+            quantity: input.value
+        });
+
         items.push({
+            delivery_item_id: input.dataset.deliveryItemId ? parseInt(input.dataset.deliveryItemId) : null,
+            sales_order_item_id: input.dataset.salesOrderItemId ? parseInt(input.dataset.salesOrderItemId) : null,
             item_code: input.dataset.itemCode,
             item_description: originalItem.item_description,
             quantity: parseFloat(input.value || 0),
@@ -1207,18 +1317,39 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
             already_delivered: parseFloat(input.dataset.alreadyDelivered || 0),
             uom: originalItem.uom,
             unit_price: parseFloat(input.dataset.unitPrice || 0),
-            total_amount: parseFloat(input.value || 0) * parseFloat(input.dataset.unitPrice || 0),
+            // Don't send total_amount - let server calculate it
             notes: originalItem.notes
         });
     });
     
+    // ✅ Build update data - ALWAYS include items
     const updateData = {
-        dr_no: document.getElementById('edit_dr_no').value,
-        sales_invoice_no: document.getElementById('edit_si_no').value || null,
-        po_number: document.getElementById('edit_po_number').value || null,
-        plate_no: document.getElementById('edit_plate_no').value || null,
-        items: items
+        request_delivery_date: requestDeliveryDate,
+        items: items // ✅ ALWAYS send items
     };
+    
+    // Add optional fields only if they have values
+    if (drNo && drNo.trim() !== '') {
+        updateData.dr_no = drNo;
+    }
+    
+    const siNo = document.getElementById('edit_si_no').value;
+    if (siNo && siNo.trim() !== '') {
+        updateData.sales_invoice_no = siNo;
+    }
+    
+    const poNumber = document.getElementById('edit_po_number').value;
+    if (poNumber && poNumber.trim() !== '') {
+        updateData.po_number = poNumber;
+    }
+    
+    const plateNo = document.getElementById('edit_plate_no').value;
+    if (plateNo && plateNo.trim() !== '') {
+        updateData.plate_no = plateNo;
+    }
+    
+    console.log('📤 Sending update data:', updateData);
+    console.log('📦 Items count:', items.length);
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -1235,25 +1366,38 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
         body: JSON.stringify(updateData)
     })
     .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
+        return response.text().then(text => {
+            console.log('📥 Raw Response:', text);
+            console.log('📊 Response Status:', response.status);
+            
+            try {
+                const data = JSON.parse(text);
+                return { ok: response.ok, status: response.status, data: data };
+            } catch (e) {
+                console.error('❌ Failed to parse JSON:', e);
+                console.error('📄 Response text:', text);
+                throw new Error(`Invalid JSON response: ${text.substring(0, 200)}...`);
+            }
+        });
     })
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
+    .then(result => {
+        console.log('✅ Update response:', result);
+        
+        if (result.ok && result.data.success) {
+            alert(result.data.message);
             closeEditModal();
             location.reload();
         } else {
-            alert(data.message || 'Failed to update delivery');
+            console.error('❌ Error Details:', result.data);
+            alert('Error: ' + (result.data.message || 'Failed to update delivery') + 
+                  '\n\nCheck browser console (F12) for full details');
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while updating: ' + error.message);
+        console.error('❌ Full Error:', error);
+        alert('An error occurred while updating.\n\nCheck browser console (F12) for full details:\n' + error.message);
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     });
@@ -1516,5 +1660,6 @@ function exportExcel() {
     
     window.location.href = `/deliveries/export-excel?${params.toString()}`;
 }
+
 </script>
 @endsection

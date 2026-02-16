@@ -116,10 +116,5 @@ setInterval(function() {
     }).catch(err => console.log('Token refresh failed'));
 }, 30 * 60 * 1000); // 30 minutes
 
-// 🔥 Clear session storage when user closes tab
-window.addEventListener('beforeunload', function() {
-    // Send logout request when tab/browser closes
-    navigator.sendBeacon('{{ route("logout") }}', new FormData());
-});
 </script>
 @endsection

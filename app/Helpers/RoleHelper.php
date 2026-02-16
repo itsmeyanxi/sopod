@@ -11,7 +11,7 @@ class RoleHelper
     }
 
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CSR_Approver','CSR_Creator']);
+        return in_array($role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator', 'CC_Approver', 'CC_Creator', 'Accounting_Approver', 'Delivery_Approver', 'Delivery_Creator']);
     }
 
     public static function canCreateSalesOrders()
@@ -31,7 +31,7 @@ class RoleHelper
     }
 
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CSR_Approver']);
+        return in_array($role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Approver']);
     }
 
     public static function canManageItems()
@@ -125,7 +125,6 @@ class RoleHelper
         }
         
         $role = auth()->user()->role ?? null;
-        // Only CC_Approver can initially see and use edit button
         return in_array($role, ['Admin', 'IT', 'CC_Approver']);
     }
 
@@ -136,7 +135,6 @@ class RoleHelper
         }
         
         $role = auth()->user()->role ?? null;
-        // CSR roles can edit after CC approval
         return in_array($role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
     }
 

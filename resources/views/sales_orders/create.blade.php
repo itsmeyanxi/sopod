@@ -140,7 +140,7 @@
                     <label class="block text-sm">PO Reference No</label>
                     <input type="text" id="po_reference_no" name="po_reference_no"
                         class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
-                    <p class="text-xs text-gray-400 mt-1">If no PO Number, please upload proof below</p>
+                    <p class="text-xs text-gray-400 mt-1">Required: Provide either PO Number OR upload proof below</p>
                 </div>
 
                 <div>
@@ -155,18 +155,21 @@
                         class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500">
                 </div>
 
-                {{-- ✅ NEW: PO Image Upload (shows when no PO number) --}}
+                {{-- ✅ PO Image Upload (shows when no PO number) --}}
                 <div class="col-span-2" id="po_image_container" style="display: none;">
                     <div class="bg-yellow-900/20 border-2 border-yellow-700 rounded-lg p-4">
                         <label class="block text-sm font-medium text-yellow-300 mb-2">
                             📸 PO Proof / Order Evidence <span class="text-red-500">*</span>
                         </label>
                         <input type="file" id="po_image" name="po_image" accept="image/*,application/pdf"
-                            class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2 
-                                file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 
+                            class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2
+                                file:mr-4 file:py-1 file:px-3 file:rounded file:border-0
                                 file:bg-yellow-600 file:text-white hover:file:bg-yellow-500">
                         <p class="text-xs text-gray-400 mt-2">
-                            Since no PO Number is provided, please upload proof of customer order (JPG, PNG, or PDF, max 4MB)
+                            Required: Upload proof of customer order (JPG, PNG, or PDF, max 4MB)
+                        </p>
+                        <p class="text-xs text-orange-400 mt-1">
+                            ⚠️ Once uploaded, the image cannot be removed
                         </p>
                         <div id="po_image_preview" class="mt-3 hidden">
                             <img id="po_image_preview_img" src="" alt="PO Preview" class="max-w-xs rounded border border-gray-700">
@@ -350,22 +353,64 @@
 const poReferenceInput = document.getElementById('po_reference_no');
 const poImageContainer = document.getElementById('po_image_container');
 const poImageInput = document.getElementById('po_image');
+let poNumberEntered = false;
+let poImageUploaded = false;
 
 // Show/hide PO image upload based on PO number
 function togglePoImageRequirement() {
-    if (poReferenceInput.value.trim() === '') {
+    const currentPoValue = poReferenceInput.value.trim();
+
+    // Don't set poNumberEntered here anymore
+    
+    if (currentPoValue === '') {
         poImageContainer.style.display = 'block';
         poImageInput.setAttribute('required', 'required');
     } else {
         poImageContainer.style.display = 'none';
         poImageInput.removeAttribute('required');
-        poImageInput.value = ''; // Clear file input
-        document.getElementById('po_image_preview').classList.add('hidden');
     }
 }
 
+// Prevent clearing PO number once entered
+poReferenceInput.addEventListener('keydown', function(e) {
+    if (poNumberEntered && this.value.trim() !== '') {
+        // Prevent clearing with backspace/delete if it would empty the field
+        if ((e.key === 'Backspace' || e.key === 'Delete') && this.value.length === 1) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cannot Remove PO Number',
+                text: 'Once a PO Number is entered, it cannot be removed. You can only modify it.',
+                showConfirmButton: true
+            });
+        }
+    }
+});
+
+// Prevent clearing via cut/clear
+poReferenceInput.addEventListener('input', function(e) {
+    if (poNumberEntered && this.value.trim() === '') {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Cannot Remove PO Number',
+            text: 'Once a PO Number is entered, it cannot be removed. You can only modify it.',
+            showConfirmButton: true
+        });
+        // Restore a minimal value to prevent complete deletion
+        this.value = 'PO-';
+    }
+    togglePoImageRequirement();
+});
+
 // Listen for changes on PO number field
-poReferenceInput.addEventListener('input', togglePoImageRequirement);
+poReferenceInput.addEventListener('blur', function() {
+    togglePoImageRequirement();
+    // Lock the PO number after user leaves the field with a value
+    if (this.value.trim() !== '') {
+        poNumberEntered = true;
+    }
+});
 
 // Initial check on page load
 togglePoImageRequirement();
@@ -375,7 +420,7 @@ poImageInput.addEventListener('change', function(e) {
     const file = e.target.files[0];
     const previewContainer = document.getElementById('po_image_preview');
     const previewImg = document.getElementById('po_image_preview_img');
-    
+
     if (file) {
         // Check file size (max 4MB)
         if (file.size > 4 * 1024 * 1024) {
@@ -389,7 +434,7 @@ poImageInput.addEventListener('change', function(e) {
             previewContainer.classList.add('hidden');
             return;
         }
-        
+
         // Check file type
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
         if (!allowedTypes.includes(file.type)) {
@@ -403,7 +448,10 @@ poImageInput.addEventListener('change', function(e) {
             previewContainer.classList.add('hidden');
             return;
         }
-        
+
+        // Mark that image has been uploaded
+        poImageUploaded = true;
+
         // Show preview for images only
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
@@ -413,9 +461,26 @@ poImageInput.addEventListener('change', function(e) {
             };
             reader.readAsDataURL(file);
         } else {
-            // For PDF, just show a message
+            // For PDF, show indication
             previewContainer.classList.add('hidden');
+            Swal.fire({
+                icon: 'success',
+                title: 'PDF Uploaded',
+                text: 'PDF file selected successfully. It cannot be removed once uploaded.',
+                timer: 2000,
+                showConfirmButton: false
+            });
         }
+    } else if (poImageUploaded) {
+        // Prevent clearing uploaded image
+        Swal.fire({
+            icon: 'warning',
+            title: 'Cannot Remove PO Image',
+            text: 'Once uploaded, the PO proof cannot be removed.',
+            showConfirmButton: true
+        });
+        // Restore the file (browser limitation - we can't actually restore it, but we prevent further action)
+        return false;
     } else {
         previewContainer.classList.add('hidden');
     }
@@ -583,33 +648,38 @@ window.validateForm = function() {
         function initializeItemSearch(row) {
             const searchInput = row.querySelector('.item-search');
             const dropdown = row.querySelector('.item-dropdown');
-            let originalDropdownHTML = dropdown.innerHTML;
+            // Store original HTML once and never overwrite it
+            const originalDropdownHTML = dropdown.innerHTML;
 
             searchInput.addEventListener('focus', function() {
+                // Always restore original dropdown first, then filter
+                dropdown.innerHTML = originalDropdownHTML;
+                rebindOptionClicks();
+                filterOptions(this.value.toLowerCase());
                 dropdown.classList.remove('hidden');
-                if (this.value === '') {
-                    filterOptions('');
-                }
             });
 
             searchInput.addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase();
-                
-                if (searchTerm === '') {
-                    dropdown.innerHTML = originalDropdownHTML;
-                    rebindOptionClicks();
-                    dropdown.classList.remove('hidden');
-                    return;
-                }
-                
+
+                // Always restore original HTML first, then filter
+                dropdown.innerHTML = originalDropdownHTML;
+                rebindOptionClicks();
                 filterOptions(searchTerm);
                 dropdown.classList.remove('hidden');
             });
 
             function filterOptions(searchTerm) {
+                if (searchTerm === '') {
+                    // Show all options
+                    const options = dropdown.querySelectorAll('.item-option');
+                    options.forEach(option => option.style.display = 'block');
+                    return;
+                }
+
                 let visibleCount = 0;
                 const options = dropdown.querySelectorAll('.item-option');
-                
+
                 options.forEach(option => {
                     const searchText = option.getAttribute('data-search');
                     if (searchText.includes(searchTerm)) {
@@ -620,8 +690,13 @@ window.validateForm = function() {
                     }
                 });
 
+                // Show "no results" message if nothing matches
                 if (visibleCount === 0) {
-                    dropdown.innerHTML = '<div class="px-4 py-8 text-center text-gray-400"><svg class="w-12 h-12 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><div class="font-medium">No items found</div><div class="text-sm mt-1">Try a different search term</div></div>';
+                    // Append the no-results message instead of replacing everything
+                    const noResultsDiv = document.createElement('div');
+                    noResultsDiv.className = 'no-results-message px-4 py-8 text-center text-gray-400';
+                    noResultsDiv.innerHTML = '<svg class="w-12 h-12 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><div class="font-medium">No items found</div><div class="text-sm mt-1">Try a different search term</div>';
+                    dropdown.appendChild(noResultsDiv);
                 }
             }
 

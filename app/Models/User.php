@@ -103,7 +103,7 @@ class User extends Authenticatable
     
     public function canManageSalesOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
+        return $this->hasRole(['Admin', 'IT', 'CSR_Approver', 'CSR_Creator', 'CC_Approver', 'CC_Creator', 'Accounting_Approver', 'Delivery_Approver', 'Delivery_Creator']);
     }
 
     public function canCreateSalesOrders()
@@ -113,7 +113,7 @@ class User extends Authenticatable
 
     public function canApproveSalesOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Approver']);
     }
 
     // ==================== ITEM PERMISSIONS ====================
@@ -266,21 +266,6 @@ class User extends Authenticatable
 
     // ==================== OTHER PERMISSIONS ====================
 
-    public static function canaccessexcelimport()
-    {
-        if (!auth()->check()) {
-            return false;
-        }
-        
-        $user = auth()->user();
-        return $user->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
-    }
-
-    public function canaccesssalesanalytics()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
-    }
-
     public function canInitiateEdit()
     {
         return $this->hasRole(['Admin', 'IT', 'CC_Approver']);
@@ -302,4 +287,74 @@ class User extends Authenticatable
     {
         return $this->is_locked;
     }
+
+    // =================== MODULE ACCESS METHODS ===================
+
+    /**
+     * Check if user can access Payments/Collections module
+     */
+    public function canAccessPayments()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Approver']);
+    }
+
+    /**
+     * Check if user can access Aging Reports module
+     * Only Accounting, IT, and Admin can access
+     */
+    public function canAccessAgingReports()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+    }
+
+    /**
+     * Check if user can access AR Dashboard module
+     * Only Accounting, IT, and Admin can access
+     */
+    public function canAccessARDashboard()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+    }
+
+    /**
+     * Check if user can access Receiving Reports module
+     * Only Delivery, IT, and Admin can access
+     */
+    public function canAccessReceivingReports()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver']);
+    }
+
+    /**
+     * Check if user can access Change Log module
+     */
+    public function canAccessChangelog()
+    {
+        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator']);
+    }
+
+    /**
+     * Check if user can access Sales Analytics module
+     */
+    public function canAccessSalesAnalytics()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+    }
+
+    /**
+     * Check if user can access Records module
+     */
+    public function canAccessRecords()
+    {
+        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
+    }
+
+    /**
+     * Check if user can access Excel Import module
+     */
+    public function canAccessExcelImport()
+    {
+        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
+    }
+
 }

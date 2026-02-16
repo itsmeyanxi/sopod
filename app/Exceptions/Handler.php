@@ -3,6 +3,11 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Session\TokenMismatchException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -13,21 +18,6 @@ class Handler extends ExceptionHandler
         'current_password',
         'password',
         'password_confirmation',
-    ];
-
-    /**
-     * Roles that should NOT see detailed error messages
-     */
-    protected $protectedRoles = [
-        'admin',
-        'cc_approver',
-        'cc_creator',
-        'accounting_creator',
-        'accounting_approver',
-        'delivery_creator',
-        'delivery_approver',
-        'csr_approver',
-        'csr_creator',
     ];
 
     public function register(): void
@@ -42,33 +32,33 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $e)
     {
-        // Get the authenticated user
-        $user = auth()->user();
-        
-        // Always handle HTML requests with custom pages
-        if ($request->expectsHtml()) {
-            
-            // Check if user has a protected role
-            if ($user && in_array(strtolower($user->role), $this->protectedRoles)) {
-                // Show friendly error page
-                return response()->view('errors.500', [
-                    'timestamp' => now()->format('M d, Y H:i'),
-                    'errorId' => \Illuminate\Support\Str::random(8),
-                    'userRole' => $user->role, // For debugging
-                ], 500);
-            }
-            
-            // Guest users also see friendly page
-            if (!$user) {
-                return response()->view('errors.500', [
-                    'timestamp' => now()->format('M d, Y H:i'),
-                    'errorId' => \Illuminate\Support\Str::random(8),
-                    'userRole' => 'Guest', // For debugging
-                ], 500);
-            }
-            
-            // IT and other roles see detailed error
+        // Let Laravel handle these natively (redirects, validation, 404, CSRF, auth)
+        if ($e instanceof TokenMismatchException
+            || $e instanceof AuthenticationException
+            || $e instanceof ValidationException
+            || $e instanceof NotFoundHttpException
+            || ($e instanceof HttpException && $e->getStatusCode() < 500)
+        ) {
             return parent::render($request, $e);
+        }
+
+        // Only customize 500-level errors for HTML requests
+        if ($request->expectsHtml()) {
+            $user = auth()->user();
+
+            // IT/Admin users see detailed debug page
+            if ($user && in_array(strtoupper($user->role), ['IT', 'ADMIN'])) {
+                return response()->view('errors.it-debug', [
+                    'exception' => $e,
+                ], 500);
+            }
+
+            // Everyone else sees friendly error page
+            return response()->view('errors.500', [
+                'timestamp' => now()->format('M d, Y H:i'),
+                'errorId' => \Illuminate\Support\Str::random(8),
+                'userRole' => $user?->role ?? 'Guest',
+            ], 500);
         }
 
         return parent::render($request, $e);

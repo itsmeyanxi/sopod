@@ -112,8 +112,6 @@ class UserManagementController extends Controller
         }
 
         $user = User::with('lockedBy')->findOrFail($id);
-        
-        // 🔧 FIX: Changed variable name to match blade file
         $roles = [
             'Admin',
             'IT',
@@ -132,7 +130,7 @@ class UserManagementController extends Controller
             'RFP_Creator',
             'RFP_Approver',
         ];
-        
+
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
