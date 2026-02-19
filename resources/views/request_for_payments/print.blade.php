@@ -236,6 +236,14 @@
         }
 
         .e-signature {
+            font-size: 8px;
+            color: #333;
+            margin-top: 4px;
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        .e-signature-detail {
             font-size: 7px;
             color: #666;
             margin-top: 2px;
@@ -288,6 +296,14 @@
         }
 
         .approval-e-signature {
+            font-size: 8px;
+            color: #333;
+            margin-top: 4px;
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        .approval-e-signature-detail {
             font-size: 7px;
             color: #666;
             margin-top: 2px;
@@ -461,7 +477,10 @@
                 <div class="sig-label">Checked By:</div>
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $rfp->checked_by ?? '' }}</div>
-                <div class="e-signature">{{ $rfp->checked_by ? $rfp->checked_by . ' is acknowledged as e-signature' : '' }}</div>
+                @if($rfp->checked_by)
+                    <div class="e-signature">Digitally Approved</div>
+                    <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                @endif
             </div>
             <div class="sig-block">
                 <div class="sig-label">Checked By:</div>
@@ -478,13 +497,15 @@
                     <div class="approval-label">Approved By:</div>
                     <div class="approval-line"></div>
                     <div class="approval-name"></div>
-                    <div class="approval-e-signature">&nbsp;</div>
+                    <div class="approval-e-signature">Digitally Approved</div>
+                    <div class="approval-e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                 </div>
                 <div class="approval-block">
                     <div class="approval-label">Approved By:</div>
                     <div class="approval-line"></div>
                     <div class="approval-name"></div>
-                    <div class="approval-e-signature">&nbsp;</div>
+                    <div class="approval-e-signature">Digitally Approved</div>
+                    <div class="approval-e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                 </div>
             </div>
         </div>

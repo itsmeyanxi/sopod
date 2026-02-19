@@ -83,7 +83,8 @@
             font-weight: bold;
         }
         .sig-label { font-weight: bold; font-size: 9px; text-transform: uppercase; }
-        .e-signature { font-size: 7px; color: #666; font-style: italic; margin-top: 2px; }
+        .e-signature { font-size: 8px; color: #333; margin-top: 4px; font-style: normal; font-weight: 500; }
+        .e-signature-detail { font-size: 7px; color: #666; margin-top: 2px; font-style: italic; }
 
         /* Print controls */
         .print-controls { text-align: center; margin-bottom: 15px; }
@@ -216,17 +217,26 @@
             <div class="sig-block">
                 <div class="sig-line">{{ $purchaseRequest->requisitioner }}</div>
                 <div class="sig-label">Requested By</div>
-                <div class="e-signature">{{ $purchaseRequest->requisitioner ? $purchaseRequest->requisitioner . ' is acknowledged as e-signature' : '' }}</div>
+                @if($purchaseRequest->requisitioner)
+                    <div class="e-signature">Digitally Approved</div>
+                    <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                @endif
             </div>
             <div class="sig-block">
                 <div class="sig-line">{{ $purchaseRequest->creator->name ?? '' }}</div>
                 <div class="sig-label">Reviewed and Endorsed By</div>
-                <div class="e-signature">{{ $purchaseRequest->creator->name ? $purchaseRequest->creator->name . ' is acknowledged as e-signature' : '' }}</div>
+                @if($purchaseRequest->creator->name)
+                    <div class="e-signature">Digitally Approved</div>
+                    <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                @endif
             </div>
             <div class="sig-block">
                 <div class="sig-line">{{ $purchaseRequest->approver->name ?? '' }}</div>
                 <div class="sig-label">Approved By</div>
-                <div class="e-signature">{{ $purchaseRequest->approver->name ? $purchaseRequest->approver->name . ' is acknowledged as e-signature' : '' }}</div>
+                @if($purchaseRequest->approver->name)
+                    <div class="e-signature">Digitally Approved</div>
+                    <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                @endif
             </div>
         </div>
 

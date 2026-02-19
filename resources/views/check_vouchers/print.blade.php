@@ -39,7 +39,8 @@
         .detail-label { font-weight: bold; width: 120px; }
         .detail-value { flex: 1; }
 
-        .e-signature { font-size: 7px; color: #666; font-style: italic; margin-top: 2px; }
+        .e-signature { font-size: 8px; color: #333; margin-top: 4px; font-style: normal; font-weight: 500; }
+        .e-signature-detail { font-size: 7px; color: #666; margin-top: 2px; font-style: italic; }
 
         .print-controls { text-align: center; margin-bottom: 15px; padding: 10px; }
         .print-btn, .back-btn { padding: 10px 25px; font-size: 13px; cursor: pointer; border-radius: 4px; margin: 0 5px; border: none; }
@@ -175,15 +176,24 @@
                 <tr>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->prepared_by ?? '' }}</div>
-                        <div class="e-signature">{{ $checkVoucher->prepared_by ? $checkVoucher->prepared_by . ' is acknowledged as e-signature' : '' }}</div>
+                        @if($checkVoucher->prepared_by)
+                            <div class="e-signature">Digitally Approved</div>
+                            <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                        @endif
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->reviewed_by ?? '' }}</div>
-                        <div class="e-signature">{{ $checkVoucher->reviewed_by ? $checkVoucher->reviewed_by . ' is acknowledged as e-signature' : '' }}</div>
+                        @if($checkVoucher->reviewed_by)
+                            <div class="e-signature">Digitally Approved</div>
+                            <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                        @endif
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->approved_by ?? '' }}</div>
-                        <div class="e-signature">{{ $checkVoucher->approved_by ? $checkVoucher->approved_by . ' is acknowledged as e-signature' : '' }}</div>
+                        @if($checkVoucher->approved_by)
+                            <div class="e-signature">Digitally Approved</div>
+                            <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                        @endif
                     </td>
                 </tr>
             </table>
