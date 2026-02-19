@@ -40,6 +40,7 @@
         .totals-table .grand { background: #f0f0f0; font-weight: bold; }
 
         .section-title { font-weight: bold; font-size: 9px; margin: 8px 0 4px 0; }
+        .e-signature { font-size: 7px; color: #666; font-style: italic; margin-top: 2px; }
         .print-controls { text-align: center; margin-bottom: 15px; padding: 10px; }
         .print-btn, .back-btn { padding: 10px 25px; font-size: 13px; cursor: pointer; border-radius: 4px; margin: 0 5px; border: none; }
         .print-btn { background: #6b21a8; color: white; }
@@ -168,12 +169,15 @@
                 <tr>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $apv->prepared_by ?? '' }}</div>
+                        <div class="e-signature">{{ $apv->prepared_by ? $apv->prepared_by . ' is acknowledged as e-signature' : '' }}</div>
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $apv->reviewed_by ?? '' }}</div>
+                        <div class="e-signature">{{ $apv->reviewed_by ? $apv->reviewed_by . ' is acknowledged as e-signature' : '' }}</div>
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $apv->approved_by ?? '' }}</div>
+                        <div class="e-signature">{{ $apv->approved_by ? $apv->approved_by . ' is acknowledged as e-signature' : '' }}</div>
                     </td>
                 </tr>
             </table>

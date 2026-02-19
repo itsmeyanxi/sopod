@@ -235,6 +235,13 @@
             font-weight: 500;
         }
 
+        .e-signature {
+            font-size: 7px;
+            color: #666;
+            margin-top: 2px;
+            font-style: italic;
+        }
+
         /* Finance Section */
         .finance-section {
             margin-top: 20px;
@@ -278,6 +285,13 @@
         .approval-name {
             font-size: 8px;
             font-weight: 500;
+        }
+
+        .approval-e-signature {
+            font-size: 7px;
+            color: #666;
+            margin-top: 2px;
+            font-style: italic;
         }
 
         /* Footer */
@@ -447,6 +461,7 @@
                 <div class="sig-label">Checked By:</div>
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $rfp->checked_by ?? '' }}</div>
+                <div class="e-signature">{{ $rfp->checked_by ? $rfp->checked_by . ' is acknowledged as e-signature' : '' }}</div>
             </div>
             <div class="sig-block">
                 <div class="sig-label">Checked By:</div>
@@ -463,11 +478,13 @@
                     <div class="approval-label">Approved By:</div>
                     <div class="approval-line"></div>
                     <div class="approval-name"></div>
+                    <div class="approval-e-signature">&nbsp;</div>
                 </div>
                 <div class="approval-block">
                     <div class="approval-label">Approved By:</div>
                     <div class="approval-line"></div>
                     <div class="approval-name"></div>
+                    <div class="approval-e-signature">&nbsp;</div>
                 </div>
             </div>
         </div>

@@ -87,6 +87,7 @@
         .sig-block { }
         .sig-line { border-bottom: 1px solid #000; min-height: 30px; padding-bottom: 3px; font-size: 10px; font-weight: bold; }
         .sig-label { font-weight: bold; font-size: 9px; text-transform: uppercase; margin-top: 2px; }
+        .e-signature { font-size: 8px; color: #666; margin-top: 2px; font-style: italic; text-align: center; }
 
         /* Contact */
         .contact-row { margin-top: 8px; font-size: 10px; }
@@ -276,10 +277,12 @@
                 <div class="sig-block">
                     <div class="sig-label">Prepared By:</div>
                     <div class="sig-line" style="min-height:28px;">{{ $purchaseOrder->creator->name ?? '' }}</div>
+                    <div class="e-signature">{{ $purchaseOrder->creator->name ? $purchaseOrder->creator->name . ' is acknowledged as e-signature' : '' }}</div>
                 </div>
                 <div class="sig-block">
                     <div class="sig-label">Approved By:</div>
                     <div class="sig-line" style="min-height:28px;">{{ $purchaseOrder->approver->name ?? '' }}</div>
+                    <div class="e-signature">{{ $purchaseOrder->approver->name ? $purchaseOrder->approver->name . ' is acknowledged as e-signature' : '' }}</div>
                 </div>
                 <div class="sig-block" style="margin-top:8px;">
                     <div class="sig-label">Supplier's Conforme:</div>

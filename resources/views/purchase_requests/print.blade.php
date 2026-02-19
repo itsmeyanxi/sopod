@@ -83,6 +83,7 @@
             font-weight: bold;
         }
         .sig-label { font-weight: bold; font-size: 9px; text-transform: uppercase; }
+        .e-signature { font-size: 7px; color: #666; font-style: italic; margin-top: 2px; }
 
         /* Print controls */
         .print-controls { text-align: center; margin-bottom: 15px; }
@@ -215,14 +216,17 @@
             <div class="sig-block">
                 <div class="sig-line">{{ $purchaseRequest->requisitioner }}</div>
                 <div class="sig-label">Requested By</div>
+                <div class="e-signature">{{ $purchaseRequest->requisitioner ? $purchaseRequest->requisitioner . ' is acknowledged as e-signature' : '' }}</div>
             </div>
             <div class="sig-block">
                 <div class="sig-line">{{ $purchaseRequest->creator->name ?? '' }}</div>
                 <div class="sig-label">Reviewed and Endorsed By</div>
+                <div class="e-signature">{{ $purchaseRequest->creator->name ? $purchaseRequest->creator->name . ' is acknowledged as e-signature' : '' }}</div>
             </div>
             <div class="sig-block">
                 <div class="sig-line">{{ $purchaseRequest->approver->name ?? '' }}</div>
                 <div class="sig-label">Approved By</div>
+                <div class="e-signature">{{ $purchaseRequest->approver->name ? $purchaseRequest->approver->name . ' is acknowledged as e-signature' : '' }}</div>
             </div>
         </div>
 
