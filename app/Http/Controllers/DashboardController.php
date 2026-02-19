@@ -8,6 +8,7 @@ use App\Models\Item;
 use App\Models\SalesOrder;
 use App\Models\Activity;
 use App\Models\Deliveries;
+use App\Models\PurchaseOrder;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -27,6 +28,11 @@ class DashboardController extends Controller
         $totalDelivered = Deliveries::where('status', 'Delivered')->count();
         $totalPending = SalesOrder::where('status', 'Pending')->count();
         $totalDeclined = SalesOrder::where('status', 'Declined')->count();
+
+        // 📦 Approved & Pending Purchase Orders
+        $approvedPendingPOs = PurchaseOrder::where('status', 'approved')
+                                          ->whereNull('rejection_reason')
+                                          ->count();
 
         // 💰 Month-to-Date Total Sales (ONLY DELIVERED ORDERS)
         $totalSalesThisMonth = SalesOrder::whereMonth('created_at', now()->month)
@@ -48,7 +54,8 @@ class DashboardController extends Controller
             'totalDelivered',
             'totalPending',
             'totalDeclined',
-            'totalSalesThisMonth'
+            'totalSalesThisMonth',
+            'approvedPendingPOs'
         ));
     }
 

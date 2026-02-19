@@ -33,6 +33,14 @@
             <p class="text-3xl text-white font-bold mt-2">{{ $totalDeclined }}</p>
         </div>
 
+        <div class="bg-blue-700 p-6 rounded shadow">
+            <a href="{{ route('purchase_orders.index') }}" class="text-white text-lg font-semibold hover:underline">
+                Approved PO
+            </a>
+            <p class="text-3xl text-white font-bold mt-2">{{ $approvedPendingPOs }}</p>
+            <p class="text-gray-200 text-xs mt-2">Pending delivery</p>
+        </div>
+
     </div>
 
     {{-- ========================================================= --}}
