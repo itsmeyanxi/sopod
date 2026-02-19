@@ -103,6 +103,12 @@ class PurchaseOrderController extends Controller
             // Generate PO number
             $poNo = 'PO-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
+            // Handle quotation file upload
+            $quotationPath = null;
+            if ($request->hasFile('quotation')) {
+                $quotationPath = $request->file('quotation')->store('quotations', 'public');
+            }
+
             // Create purchase order
             $purchaseOrder = PurchaseOrder::create([
                 'po_no' => $poNo,
@@ -122,6 +128,7 @@ class PurchaseOrderController extends Controller
                 'pr_no' => $request->pr_no,
                 'lc_price' => $request->lc_price,
                 'remarks' => $request->remarks,
+                'quotation' => $quotationPath,
                 'currency' => $request->currency ?? 'PHP',
                 'exchange_rate' => $request->exchange_rate ?? 1,
                 'status' => 'pending',
@@ -229,8 +236,8 @@ class PurchaseOrderController extends Controller
         try {
             $purchaseOrder = PurchaseOrder::findOrFail($id);
 
-            // Update purchase order
-            $purchaseOrder->update([
+            // Handle quotation file upload
+            $updateData = [
                 'purchase_request_id' => $request->purchase_request_id,
                 'company' => $request->company,
                 'supplier_id' => $request->supplier_id,
@@ -249,7 +256,18 @@ class PurchaseOrderController extends Controller
                 'remarks' => $request->remarks,
                 'currency' => $request->currency ?? 'PHP',
                 'exchange_rate' => $request->exchange_rate ?? 1,
-            ]);
+            ];
+
+            if ($request->hasFile('quotation')) {
+                // Delete old file if exists
+                if ($purchaseOrder->quotation && \Storage::disk('public')->exists($purchaseOrder->quotation)) {
+                    \Storage::disk('public')->delete($purchaseOrder->quotation);
+                }
+                $updateData['quotation'] = $request->file('quotation')->store('quotations', 'public');
+            }
+
+            // Update purchase order
+            $purchaseOrder->update($updateData);
 
             // Delete existing items
             $purchaseOrder->items()->delete();

@@ -200,6 +200,23 @@
             </div>
         </div>
 
+        <!-- Quotation -->
+        <div class="mb-6">
+            <label class="block font-semibold text-white mb-2">QUOTATION:</label>
+            @if($purchaseOrder->quotation)
+                <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded">
+                    <a href="{{ asset('storage/' . $purchaseOrder->quotation) }}" target="_blank" class="text-blue-400 hover:text-blue-300 flex items-center gap-2">
+                        <i class="fas fa-file-download"></i>
+                        {{ basename($purchaseOrder->quotation) }}
+                    </a>
+                </div>
+            @else
+                <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-gray-400">
+                    No quotation file uploaded
+                </div>
+            @endif
+        </div>
+
         <!-- Signature Section -->
         <div class="mb-6">
             <div class="border border-gray-700 rounded">

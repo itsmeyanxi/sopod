@@ -29,6 +29,7 @@ class PurchaseOrder extends Model
         'currency',
         'exchange_rate',
         'remarks',
+        'quotation',
         'status',
         'approved_by',
         'approved_at',

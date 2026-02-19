@@ -24,7 +24,7 @@
             </div>
         @endif
 
-        <form action="{{ route('purchase_orders.store') }}" method="POST" id="poForm">
+        <form action="{{ route('purchase_orders.store') }}" method="POST" id="poForm" enctype="multipart/form-data">
             @csrf
 
             <!-- Search PR Section -->
@@ -258,6 +258,15 @@
             <div class="mb-6">
                 <label class="block font-semibold text-white mb-2">REMARKS:</label>
                 <textarea name="remarks" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter remarks...">{{ old('remarks') }}</textarea>
+            </div>
+
+            <!-- Quotation File Upload -->
+            <div class="mb-6">
+                <label class="block font-semibold text-white mb-2">QUOTATION:</label>
+                <div class="flex items-center gap-4">
+                    <input type="file" name="quotation" id="quotation" class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                    <span class="text-gray-400 text-sm">(PDF, Word, Excel, Image)</span>
+                </div>
             </div>
 
             <!-- Signature Section -->

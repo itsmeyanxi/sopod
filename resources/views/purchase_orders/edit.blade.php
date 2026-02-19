@@ -24,7 +24,7 @@
             </div>
         @endif
 
-        <form action="{{ route('purchase_orders.update', $purchaseOrder->id) }}" method="POST" id="poForm">
+        <form action="{{ route('purchase_orders.update', $purchaseOrder->id) }}" method="POST" id="poForm" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -217,6 +217,25 @@
             <div class="mb-6">
                 <label class="block font-semibold text-white mb-2">REMARKS:</label>
                 <textarea name="remarks" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter remarks...">{{ old('remarks', $purchaseOrder->remarks) }}</textarea>
+            </div>
+
+            <!-- Quotation File Upload -->
+            <div class="mb-6">
+                <label class="block font-semibold text-white mb-2">QUOTATION:</label>
+                @if($purchaseOrder->quotation)
+                    <div class="mb-3 p-3 bg-green-900/20 border border-green-700 rounded">
+                        <p class="text-green-400 text-sm">
+                            <i class="fas fa-file-check mr-2"></i>
+                            <a href="{{ asset('storage/' . $purchaseOrder->quotation) }}" target="_blank" class="hover:underline">
+                                Current file: {{ basename($purchaseOrder->quotation) }}
+                            </a>
+                        </p>
+                    </div>
+                @endif
+                <div class="flex items-center gap-4">
+                    <input type="file" name="quotation" id="quotation" class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                    <span class="text-gray-400 text-sm">(PDF, Word, Excel, Image)</span>
+                </div>
             </div>
 
             <!-- Signature Section -->
