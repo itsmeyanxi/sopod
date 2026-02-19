@@ -16,9 +16,9 @@
                         <i class="fas fa-edit mr-1"></i> Edit
                     </a>
                 @endif
-                <button onclick="window.print()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">
+                <a href="{{ route('check_vouchers.print', $voucher->id) }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition inline-block">
                     <i class="fas fa-print mr-1"></i> Print
-                </button>
+                </a>
             </div>
         </div>
 

@@ -60,7 +60,18 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">SUPPLIER:</label>
-                        <input type="text" name="supplier" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('supplier', $purchaseOrder->supplier) }}">
+                        <select name="supplier_id" id="supplier_id" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="populateSupplierText()">
+                            <option value="">-- Select Supplier --</option>
+                            @foreach($suppliers as $supplier)
+                                <option value="{{ $supplier->id }}"
+                                        data-name="{{ $supplier->supplier_name }}"
+                                        data-address="{{ $supplier->address }}"
+                                        {{ old('supplier_id', $purchaseOrder->supplier_id) == $supplier->id ? 'selected' : '' }}>
+                                    {{ $supplier->supplier_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <input type="hidden" name="supplier" id="supplier_text" value="{{ old('supplier', $purchaseOrder->supplier) }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">SUPPLIER ADDRESS:</label>
@@ -110,6 +121,28 @@
                         <label class="block font-semibold text-gray-300 mb-1">LC PRICE:</label>
                         <input type="number" step="0.01" name="lc_price" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('lc_price', $purchaseOrder->lc_price) }}">
                     </div>
+                    <div>
+                        <label class="block font-semibold text-gray-300 mb-1">CURRENCY:</label>
+                        <select name="currency" id="currency_select" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="onCurrencyChange()">
+                            @foreach($currencies as $cur)
+                                <option value="{{ $cur->code }}"
+                                        data-rate="{{ $cur->rate_to_php }}"
+                                        data-symbol="{{ $cur->symbol }}"
+                                        {{ old('currency', $purchaseOrder->currency ?? 'PHP') === $cur->code ? 'selected' : '' }}>
+                                    {{ $cur->code }} — {{ $cur->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @php $editCurrency = old('currency', $purchaseOrder->currency ?? 'PHP'); @endphp
+                    <div id="exchange_rate_row" class="{{ $editCurrency === 'PHP' ? 'hidden' : '' }}">
+                        <label class="block font-semibold text-gray-300 mb-1">EXCHANGE RATE <span class="text-gray-400 text-xs" id="rate_label">(1 {{ $editCurrency }} = ? PHP)</span>:</label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-400">₱</span>
+                            <input type="number" step="0.0001" name="exchange_rate" id="exchange_rate" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('exchange_rate', $purchaseOrder->exchange_rate ?? 1) }}">
+                        </div>
+                        <p class="text-gray-500 text-xs mt-1">Rate used when PO was created. You may update.</p>
+                    </div>
                 </div>
             </div>
 
@@ -143,7 +176,7 @@
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->item_code }}"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" value="{{ $item->qty }}" required></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->uom }}" required></td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->description }}" required></td>
+                                <td class="border border-gray-700 px-2 py-2"><div class="relative"><input type="text" name="items[{{ $index }}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" value="{{ $item->description }}" required autocomplete="off"><div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div></div></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" value="{{ $item->unit_price }}"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="{{ $item->tax }}"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" value="{{ $item->total }}" readonly></td>
@@ -156,6 +189,27 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Currency Totals Summary -->
+            <div id="currency_summary" class="mb-4 {{ ($purchaseOrder->currency ?? 'PHP') === 'PHP' ? 'hidden' : '' }}">
+                <div class="bg-gray-900 border border-purple-700 rounded p-4">
+                    <h3 class="font-semibold text-purple-300 mb-2">PHP Equivalent Summary</h3>
+                    <div class="flex flex-wrap gap-6 text-sm">
+                        <div>
+                            <span class="text-gray-400">Total (<span id="summary_currency">{{ $purchaseOrder->currency ?? 'USD' }}</span>):</span>
+                            <span class="text-white font-bold ml-2" id="summary_foreign_total">0.00</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Exchange Rate:</span>
+                            <span class="text-white ml-2">1 <span id="summary_code">{{ $purchaseOrder->currency ?? 'USD' }}</span> = ₱<span id="summary_rate">{{ number_format($purchaseOrder->exchange_rate ?? 1, 4) }}</span></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Total (PHP):</span>
+                            <span class="text-green-400 font-bold ml-2">₱<span id="summary_php_total">0.00</span></span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -216,7 +270,7 @@ function addRow() {
         <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required></td>
         <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
-        <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
+        <td class="border border-gray-700 px-2 py-2"><div class="relative"><input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off"><div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div></div></td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price"></td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="0"></td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly></td>
@@ -228,6 +282,8 @@ function addRow() {
     `;
     rowCount++;
     attachCalculationListeners();
+    const newDesc = newRow.querySelector('.desc-input');
+    if (newDesc) attachDescAutocomplete(newDesc);
 }
 
 function removeRow(btn) {
@@ -264,11 +320,120 @@ function calculateTotal(e) {
     const tax = parseFloat(row.querySelector('.item-tax').value) || 0;
     const total = (qty * price) + tax;
     row.querySelector('.item-total').value = total.toFixed(2);
+    updateCurrencySummary();
 }
 
-// Initialize calculation listeners
+// Currency handling
+function onCurrencyChange() {
+    const select = document.getElementById('currency_select');
+    const code = select.value;
+    const rate = parseFloat(select.selectedOptions[0].getAttribute('data-rate')) || 1;
+    const rateRow = document.getElementById('exchange_rate_row');
+    const rateInput = document.getElementById('exchange_rate');
+    const rateLabel = document.getElementById('rate_label');
+    if (code === 'PHP') {
+        rateRow.classList.add('hidden');
+        rateInput.value = 1;
+    } else {
+        rateRow.classList.remove('hidden');
+        rateInput.value = rate.toFixed(4);
+        rateLabel.textContent = `(1 ${code} = ? PHP)`;
+    }
+    updateCurrencySummary();
+}
+
+function updateCurrencySummary() {
+    const code = document.getElementById('currency_select').value;
+    const rate = parseFloat(document.getElementById('exchange_rate').value) || 1;
+    const summary = document.getElementById('currency_summary');
+    if (code === 'PHP') {
+        summary.classList.add('hidden');
+        return;
+    }
+    let foreignTotal = 0;
+    document.querySelectorAll('.item-total').forEach(inp => {
+        foreignTotal += parseFloat(inp.value) || 0;
+    });
+    summary.classList.remove('hidden');
+    document.getElementById('summary_currency').textContent = code;
+    document.getElementById('summary_code').textContent = code;
+    document.getElementById('summary_rate').textContent = rate.toFixed(4);
+    document.getElementById('summary_foreign_total').textContent = code + ' ' + foreignTotal.toFixed(2);
+    document.getElementById('summary_php_total').textContent = (foreignTotal * rate).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+document.getElementById('exchange_rate').addEventListener('input', updateCurrencySummary);
+
+document.addEventListener('DOMContentLoaded', function() { updateCurrencySummary(); });
+
+function populateSupplierText() {
+    const select = document.getElementById('supplier_id');
+    const selectedOption = select.options[select.selectedIndex];
+    if (selectedOption.value) {
+        document.getElementById('supplier_text').value = selectedOption.getAttribute('data-name') || '';
+        const address = selectedOption.getAttribute('data-address');
+        if (address) {
+            const addressField = document.querySelector('textarea[name="supplier_address"]');
+            if (addressField) addressField.value = address;
+        }
+    }
+}
+
+// Description autocomplete
+const SEARCH_URL = '{{ route("non_trade_items.search") }}';
+let descTimeout;
+
+function attachDescAutocomplete(input) {
+    const dropdown = input.nextElementSibling;
+
+    function positionDropdown() {
+        const rect = input.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = rect.bottom + 'px';
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.width = rect.width + 'px';
+        dropdown.style.zIndex = '9999';
+        dropdown.style.maxHeight = '160px';
+        dropdown.style.overflowY = 'auto';
+    }
+
+    function fetchSuggestions() {
+        const q = input.value.trim();
+        const supplierId = document.getElementById('supplier_id').value;
+        clearTimeout(descTimeout);
+        if (!supplierId && q.length < 2) { dropdown.classList.add('hidden'); return; }
+        descTimeout = setTimeout(async () => {
+            try {
+                const params = new URLSearchParams({ q });
+                if (supplierId) params.append('supplier_id', supplierId);
+                const res = await fetch(`${SEARCH_URL}?${params}`);
+                const items = await res.json();
+                if (!items.length) { dropdown.classList.add('hidden'); return; }
+                dropdown.innerHTML = items.map(name =>
+                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 desc-option">${name}</div>`
+                ).join('');
+                positionDropdown();
+                dropdown.classList.remove('hidden');
+                dropdown.querySelectorAll('.desc-option').forEach(opt => {
+                    opt.addEventListener('mousedown', function (e) {
+                        e.preventDefault();
+                        input.value = this.textContent;
+                        dropdown.classList.add('hidden');
+                    });
+                });
+            } catch (e) { dropdown.classList.add('hidden'); }
+        }, 250);
+    }
+
+    input.addEventListener('input', fetchSuggestions);
+    input.addEventListener('focus', fetchSuggestions);
+    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 150));
+    window.addEventListener('scroll', () => dropdown.classList.add('hidden'), true);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     attachCalculationListeners();
+    document.querySelectorAll('.desc-input').forEach(attachDescAutocomplete);
 });
 </script>
 @endsection

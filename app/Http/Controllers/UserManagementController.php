@@ -35,22 +35,20 @@ class UserManagementController extends Controller
         $availableRoles = [
             'Admin',
             'IT',
-            'CSR_Approver',
-            'CSR_Creator',
+            'CSR',
+            'SCM',
             'Delivery_Creator',
             'Delivery_Approver',
             'CC_Creator',
             'CC_Approver',
             'Accounting_Creator',
             'Accounting_Approver',
-            'PR_Creator',
+            'Requisitioner',
             'PR_Approver',
-            'PO_Creator',
-            'PO_Approver',
-            'RFP_Creator',
-            'RFP_Approver',
+            'Purchasing',
+            'Procurement_Approver',
         ];
-        
+
         return view('admin.users.create', compact('availableRoles'));
     }
 
@@ -69,7 +67,7 @@ class UserManagementController extends Controller
                 'email' => 'required|email|unique:users',
                 'password' => 'required|min:6',
                 'roles' => 'required|array|min:1',
-                'roles.*' => 'required|in:Admin,IT,CSR_Approver,CSR_Creator,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,PR_Creator,PR_Approver,PO_Creator,PO_Approver,RFP_Creator,RFP_Approver',
+                'roles.*' => 'required|in:Admin,IT,CSR,SCM,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,Requisitioner,PR_Approver,Purchasing,Procurement_Approver',
             ]);
 
             $user = User::create([
@@ -115,20 +113,18 @@ class UserManagementController extends Controller
         $roles = [
             'Admin',
             'IT',
-            'CSR_Approver',
-            'CSR_Creator',
+            'CSR',
+            'SCM',
             'Delivery_Creator',
             'Delivery_Approver',
             'CC_Creator',
             'CC_Approver',
             'Accounting_Creator',
             'Accounting_Approver',
-            'PR_Creator',
+            'Requisitioner',
             'PR_Approver',
-            'PO_Creator',
-            'PO_Approver',
-            'RFP_Creator',
-            'RFP_Approver',
+            'Purchasing',
+            'Procurement_Approver',
         ];
 
         return view('admin.users.edit', compact('user', 'roles'));
@@ -174,7 +170,7 @@ class UserManagementController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $id,
                 'roles' => 'required|array|min:1',
-                'roles.*' => 'required|in:Admin,IT,CSR_Approver,CSR_Creator,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,PR_Creator,PR_Approver,PO_Creator,PO_Approver,RFP_Creator,RFP_Approver',
+                'roles.*' => 'required|in:Admin,IT,CSR,SCM,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,Requisitioner,PR_Approver,Purchasing,Procurement_Approver',
                 'password' => 'nullable|min:6',
             ]);
 

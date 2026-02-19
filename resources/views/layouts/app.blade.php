@@ -194,6 +194,9 @@
                 <div class="submenu ml-8 space-y-1 hidden">
                     <a href="{{ route('suppliers.create') }}" class="block hover:underline">Add Supplier</a>
                     <a href="{{ route('suppliers.index') }}" class="block hover:underline">Supplier List</a>
+                    @if(auth()->user()->canManageSupplierReceivingReports())
+                        <a href="{{ route('supplier_receiving_reports.index') }}" class="block hover:underline">Receiving Reports</a>
+                    @endif
                 </div>
             </div>
         @endif
@@ -271,6 +274,10 @@
                         <a href="{{ route('purchase_orders.index') }}" class="block hover:underline">Purchase Order (PO)</a>
                     @endif
 
+                    @if(auth()->user()->hasRole(['Admin', 'IT', 'Purchasing', 'SCM']))
+                        <a href="{{ route('non_trade_items.index') }}" class="block hover:underline">Items Library</a>
+                    @endif
+
                     @if(auth()->user()->canManageRequestForPayments())
                         <a href="{{ route('request_for_payments.index') }}" class="block hover:underline">Request For Payment (RFP)</a>
                     @endif
@@ -281,6 +288,10 @@
                     @endif
 
                     <a href="{{ route('po_records.index') }}" class="block hover:underline">PO Records</a>
+
+                    @if(auth()->user()->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']))
+                        <a href="{{ route('currencies.index') }}" class="block hover:underline">Currency Rates</a>
+                    @endif
                 </div>
             </div>
         @endif

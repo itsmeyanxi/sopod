@@ -159,7 +159,12 @@
                                 <td class="border border-gray-700 px-2 py-2 text-center">1</td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <div class="relative">
+                                        <input type="text" name="items[0][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off">
+                                        <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                                    </div>
+                                </td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][amount]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-amount" readonly></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][remarks]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
@@ -236,7 +241,7 @@ function addRow() {
         <td class="border border-gray-700 px-2 py-2 text-center">${rowCount + 1}</td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required></td>
         <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
-        <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
+        <td class="border border-gray-700 px-2 py-2"><div class="relative"><input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off"><div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div></div></td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price"></td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][amount]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-amount" readonly></td>
         <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][remarks]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
@@ -248,6 +253,8 @@ function addRow() {
     `;
     rowCount++;
     attachCalculationListeners();
+    const newDesc = newRow.querySelector('.desc-input');
+    if (newDesc) attachDescAutocomplete(newDesc);
 }
 
 function removeRow(btn) {
@@ -316,6 +323,63 @@ function populateSupplierDetails() {
 // Initialize calculation listeners
 document.addEventListener('DOMContentLoaded', function() {
     attachCalculationListeners();
+    initDescAutocomplete();
 });
+
+// Description autocomplete
+const SEARCH_URL = '{{ route("non_trade_items.search") }}';
+let descTimeout;
+
+function initDescAutocomplete() {
+    document.querySelectorAll('.desc-input').forEach(attachDescAutocomplete);
+}
+
+function attachDescAutocomplete(input) {
+    const dropdown = input.nextElementSibling;
+
+    function positionDropdown() {
+        const rect = input.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = rect.bottom + 'px';
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.width = rect.width + 'px';
+        dropdown.style.zIndex = '9999';
+        dropdown.style.maxHeight = '160px';
+        dropdown.style.overflowY = 'auto';
+    }
+
+    function fetchSuggestions() {
+        const q = input.value.trim();
+        const supplierId = document.getElementById('supplier_id').value;
+        clearTimeout(descTimeout);
+        if (!supplierId && q.length < 2) { dropdown.classList.add('hidden'); return; }
+        descTimeout = setTimeout(async () => {
+            try {
+                const params = new URLSearchParams({ q });
+                if (supplierId) params.append('supplier_id', supplierId);
+                const res = await fetch(`${SEARCH_URL}?${params}`);
+                const items = await res.json();
+                if (!items.length) { dropdown.classList.add('hidden'); return; }
+                dropdown.innerHTML = items.map(name =>
+                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 desc-option">${name}</div>`
+                ).join('');
+                positionDropdown();
+                dropdown.classList.remove('hidden');
+                dropdown.querySelectorAll('.desc-option').forEach(opt => {
+                    opt.addEventListener('mousedown', function (e) {
+                        e.preventDefault();
+                        input.value = this.textContent;
+                        dropdown.classList.add('hidden');
+                    });
+                });
+            } catch (e) { dropdown.classList.add('hidden'); }
+        }, 250);
+    }
+
+    input.addEventListener('input', fetchSuggestions);
+    input.addEventListener('focus', fetchSuggestions);
+    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 150));
+    window.addEventListener('scroll', () => dropdown.classList.add('hidden'), true);
+}
 </script>
 @endsection

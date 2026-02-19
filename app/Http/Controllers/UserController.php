@@ -70,20 +70,18 @@ class UserController extends Controller
         $roles = [
             'Admin',
             'IT',
-            'CSR_Approver',
-            'CSR_Creator',
+            'CSR',
+            'SCM',
             'Delivery_Creator',
             'Delivery_Approver',
             'CC_Creator',
             'CC_Approver',
             'Accounting_Creator',
             'Accounting_Approver',
-            'PR_Creator',
+            'Requisitioner',
             'PR_Approver',
-            'PO_Creator',
-            'PO_Approver',
-            'RFP_Creator',
-            'RFP_Approver',
+            'Purchasing',
+            'Procurement_Approver',
         ];
         return view('users.edit', compact('user', 'roles'));
     }
@@ -100,7 +98,7 @@ class UserController extends Controller
         $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'unique:users,email,' . $user->id],
-            'role' => ['required', 'string', 'in:Admin,IT,CSR_Approver,CSR_Creator,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,PR_creator,PR_approver,PO_creator,PO_approver,RFP_creator,RFP_approver'],            'password' => ['nullable', 'min:6'],
+            'role' => ['required', 'string', 'in:Admin,IT,CSR,SCM,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,Requisitioner,PR_Approver,Purchasing,Procurement_Approver'],            'password' => ['nullable', 'min:6'],
         ]);
 
         $user->name = $request->name;

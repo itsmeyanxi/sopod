@@ -100,15 +100,15 @@ class User extends Authenticatable
     }
 
     // ==================== SALES ORDER PERMISSIONS ====================
-    
+
     public function canManageSalesOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'CSR_Approver', 'CSR_Creator', 'CC_Approver', 'CC_Creator', 'Accounting_Approver', 'Delivery_Approver', 'Delivery_Creator']);
+        return $this->hasRole(['Admin', 'IT', 'CSR', 'CC_Approver', 'CC_Creator', 'Accounting_Approver', 'Delivery_Approver', 'Delivery_Creator']);
     }
 
     public function canCreateSalesOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
+        return $this->hasRole(['Admin', 'IT', 'CSR']);
     }
 
     public function canApproveSalesOrders()
@@ -205,7 +205,7 @@ class User extends Authenticatable
 
     public function canManageSuppliers()
     {
-        return $this->hasRole(['Admin', 'IT', 'PO_Creator', 'RFP_Creator', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Accounting_Creator', 'Accounting_Approver']);
     }
 
     public function canDeleteSuppliers()
@@ -213,55 +213,67 @@ class User extends Authenticatable
         return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
     }
 
+    // ==================== SUPPLIER RECEIVING REPORTS ====================
+
+    public function canManageSupplierReceivingReports()
+    {
+        return $this->hasRole(['Admin', 'IT', 'SCM']);
+    }
+
+    public function canApproveSupplierReceivingReports()
+    {
+        return $this->hasRole(['Admin', 'IT', 'SCM']);
+    }
+
     // ==================== PURCHASE REQUEST ROLES ====================
 
     public function canManagePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'PR_Creator', 'PR_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver']);
     }
 
     public function canCreatePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'PR_Creator', 'PR_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver']);
     }
 
     public function canApprovePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'PR_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'PR_Approver', 'Procurement_Approver']);
     }
 
     // ==================== PURCHASE ORDER ROLES ====================
 
     public function canManagePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'PO_Creator', 'PO_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']);
     }
 
     public function canCreatePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'PO_Creator', 'PO_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']);
     }
 
     public function canApprovePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'PO_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver']);
     }
 
     // ==================== REQUEST FOR PAYMENT ROLES ====================
 
     public function canManageRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'RFP_Creator', 'RFP_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']);
     }
 
     public function canCreateRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'RFP_Creator', 'RFP_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']);
     }
 
     public function canApproveRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'RFP_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver']);
     }
 
     // ==================== OTHER PERMISSIONS ====================
@@ -273,7 +285,7 @@ class User extends Authenticatable
 
     public function canEditAfterCCApproval()
     {
-        return $this->hasRole(['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
+        return $this->hasRole(['Admin', 'IT', 'CSR']);
     }
 
     // ==================== RELATIONSHIPS ====================

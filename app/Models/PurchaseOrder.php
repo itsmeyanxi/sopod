@@ -26,6 +26,8 @@ class PurchaseOrder extends Model
         'house',
         'pr_no',
         'lc_price',
+        'currency',
+        'exchange_rate',
         'remarks',
         'status',
         'approved_by',
@@ -38,6 +40,7 @@ class PurchaseOrder extends Model
         'order_date' => 'datetime',
         'expected_delivery_date' => 'datetime',
         'lc_price' => 'decimal:2',
+        'exchange_rate' => 'decimal:4',
         'approved_at' => 'datetime',
     ];
 

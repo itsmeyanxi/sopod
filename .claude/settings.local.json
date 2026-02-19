@@ -8,7 +8,14 @@
       "Bash(where:*)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(C:\\\\xampp\\\\php\\\\php.exe artisan migrate:*)"
+      "Bash(C:\\\\xampp\\\\php\\\\php.exe artisan migrate:*)",
+      "Bash(git add:*)",
+      "Bash(find:*)",
+      "Bash(php artisan migrate:status:*)",
+      "Bash(php artisan:*)",
+      "Bash(Get-Command php)",
+      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.3.30-Win32-vs16-x64\\\\php.exe\" artisan migrate --path=database/migrations/2026_02_18_400000_create_currencies_table.php)",
+      "Bash(\"C:\\\\laragon\\\\bin\\\\php\\\\php-8.3.30-Win32-vs16-x64\\\\php.exe\" artisan migrate:*)"
     ]
   }
 }

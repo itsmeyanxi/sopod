@@ -6,6 +6,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseRequest;
 use App\Models\Supplier;
+use App\Models\Currency;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -57,7 +58,9 @@ class PurchaseOrderController extends Controller
             $selectedPR = PurchaseRequest::with(['items', 'supplier'])->find($request->pr_id);
         }
 
-        return view('purchase_orders.create', compact('poNo', 'companies', 'purchaseRequests', 'selectedPR', 'suppliers'));
+        $currencies = Currency::orderByRaw("FIELD(code,'PHP','USD','AUD','GBP','EUR')")->get();
+
+        return view('purchase_orders.create', compact('poNo', 'companies', 'purchaseRequests', 'selectedPR', 'suppliers', 'currencies'));
     }
 
     /**
@@ -119,6 +122,8 @@ class PurchaseOrderController extends Controller
                 'pr_no' => $request->pr_no,
                 'lc_price' => $request->lc_price,
                 'remarks' => $request->remarks,
+                'currency' => $request->currency ?? 'PHP',
+                'exchange_rate' => $request->exchange_rate ?? 1,
                 'status' => 'pending',
                 'created_by' => Auth::id(),
             ]);
@@ -163,6 +168,20 @@ class PurchaseOrderController extends Controller
         return view('purchase_orders.show', compact('purchaseOrder'));
     }
 
+    public function print($id)
+    {
+        $purchaseOrder = PurchaseOrder::with(['items', 'creator', 'purchaseRequest', 'approver'])
+            ->findOrFail($id);
+
+        if ($purchaseOrder->status !== 'approved') {
+            return redirect()
+                ->route('purchase_orders.show', $id)
+                ->with('error', 'Purchase Order must be approved before printing.');
+        }
+
+        return view('purchase_orders.print', compact('purchaseOrder'));
+    }
+
     /**
      * Show the form for editing the specified purchase order
      */
@@ -186,7 +205,9 @@ class PurchaseOrderController extends Controller
             ->orderBy('supplier_name')
             ->get();
 
-        return view('purchase_orders.edit', compact('purchaseOrder', 'companies', 'purchaseRequests', 'suppliers'));
+        $currencies = Currency::orderByRaw("FIELD(code,'PHP','USD','AUD','GBP','EUR')")->get();
+
+        return view('purchase_orders.edit', compact('purchaseOrder', 'companies', 'purchaseRequests', 'suppliers', 'currencies'));
     }
 
     /**
@@ -226,6 +247,8 @@ class PurchaseOrderController extends Controller
                 'pr_no' => $request->pr_no,
                 'lc_price' => $request->lc_price,
                 'remarks' => $request->remarks,
+                'currency' => $request->currency ?? 'PHP',
+                'exchange_rate' => $request->exchange_rate ?? 1,
             ]);
 
             // Delete existing items
@@ -333,5 +356,39 @@ class PurchaseOrderController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Purchase Order rejected!');
+    }
+
+    /**
+     * Bulk approve multiple purchase orders
+     */
+    public function bulkApprove(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->canApprovePurchaseOrders()) {
+            return redirect()->route('purchase_orders.index')
+                ->with('error', 'Unauthorized to approve purchase orders.');
+        }
+
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return redirect()->route('purchase_orders.index')
+                ->with('error', 'No purchase orders selected.');
+        }
+
+        $approved = PurchaseOrder::whereIn('id', $ids)
+            ->where('status', 'pending')
+            ->update([
+                'status' => 'approved',
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'rejection_reason' => null,
+            ]);
+
+        $total = count($ids);
+
+        return redirect()->route('purchase_orders.index')
+            ->with('success', "{$approved} of {$total} Purchase Order(s) approved successfully.");
     }
 }

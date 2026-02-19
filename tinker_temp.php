@@ -1,0 +1,1 @@
+App\Models\User::all(['id','name','email','role','roles'])->each(function($u){ echo $u->id . ' | ' . $u->name . ' | ' . $u->email . ' | role:' . $u->role . ' | roles:' . json_encode($u->roles) . PHP_EOL; });

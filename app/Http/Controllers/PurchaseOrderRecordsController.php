@@ -151,13 +151,13 @@ class PurchaseOrderRecordsController extends Controller
         $tabs = [];
         $role = $user->role ?? '';
 
-        if (in_array($role, ['Admin', 'IT', 'PR_Creator', 'PR_Approver'])) {
+        if (in_array($role, ['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver']) || $user->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver'])) {
             $tabs[] = 'purchase_requests';
         }
-        if (in_array($role, ['Admin', 'IT', 'PO_Creator', 'PO_Approver'])) {
+        if (in_array($role, ['Admin', 'IT', 'Purchasing', 'Procurement_Approver']) || $user->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver'])) {
             $tabs[] = 'purchase_orders';
         }
-        if (in_array($role, ['Admin', 'IT', 'RFP_Creator', 'RFP_Approver'])) {
+        if (in_array($role, ['Admin', 'IT', 'Purchasing', 'Procurement_Approver']) || $user->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver'])) {
             $tabs[] = 'rfp';
         }
         if (in_array($role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {

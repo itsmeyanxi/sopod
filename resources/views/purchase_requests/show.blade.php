@@ -233,9 +233,15 @@
                 <a href="{{ route('purchase_requests.edit', $purchaseRequest->id) }}" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     <i class="fas fa-edit mr-1"></i> Edit
                 </a>
-                <button onclick="window.print()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
-                    <i class="fas fa-print mr-1"></i> Print
-                </button>
+                @if($purchaseRequest->status === 'approved')
+                    <a href="{{ route('purchase_requests.print', $purchaseRequest->id) }}" target="_blank" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
+                        <i class="fas fa-print mr-1"></i> Print
+                    </a>
+                @else
+                    <span class="bg-gray-600 text-gray-400 px-6 py-2 rounded cursor-not-allowed" title="Must be approved before printing">
+                        <i class="fas fa-print mr-1"></i> Print
+                    </span>
+                @endif
             </div>
         </div>
     </div>

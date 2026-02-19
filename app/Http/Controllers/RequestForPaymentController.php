@@ -273,4 +273,13 @@ class RequestForPaymentController extends Controller
             ->back()
             ->with('success', 'Request for Payment rejected!');
     }
+
+    /**
+     * Print request for payment
+     */
+    public function print($id)
+    {
+        $rfp = RequestForPayment::with(['creator', 'purchaseOrder'])->findOrFail($id);
+        return view('request_for_payments.print', ['rfp' => $rfp]);
+    }
 }

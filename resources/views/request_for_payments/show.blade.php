@@ -230,9 +230,9 @@
                 <a href="{{ route('request_for_payments.edit', $rfp->id) }}" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     Edit
                 </a>
-                <button onclick="window.print()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
+                <a href="{{ route('request_for_payments.print', $rfp->id) }}" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition inline-block">
                     Print
-                </button>
+                </a>
             </div>
         </div>
     </div>

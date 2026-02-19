@@ -175,7 +175,11 @@
                                 <td class="px-4 py-2 border-b border-gray-700 text-center">
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('purchase_requests.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
-                                        <button onclick="window.open('{{ route('purchase_requests.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
+                                        @if($record->status === 'approved')
+                                            <a href="{{ route('purchase_requests.print', $record->id) }}" target="_blank" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</a>
+                                        @else
+                                            <span class="bg-gray-700 text-gray-500 px-3 py-1 rounded text-xs cursor-not-allowed" title="Must be approved to print"><i class="fas fa-print"></i> Print</span>
+                                        @endif
                                     </div>
                                 </td>
                             @elseif($type === 'purchase_orders')
@@ -191,7 +195,11 @@
                                 <td class="px-4 py-2 border-b border-gray-700 text-center">
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('purchase_orders.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
-                                        <button onclick="window.open('{{ route('purchase_orders.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
+                                        @if($record->status === 'approved')
+                                            <a href="{{ route('purchase_orders.print', $record->id) }}" target="_blank" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</a>
+                                        @else
+                                            <span class="bg-gray-700 text-gray-500 px-3 py-1 rounded text-xs cursor-not-allowed" title="Must be approved to print"><i class="fas fa-print"></i> Print</span>
+                                        @endif
                                     </div>
                                 </td>
                             @elseif($type === 'rfp')

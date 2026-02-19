@@ -33,6 +33,11 @@ class Supplier extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function nonTradeItems()
+    {
+        return $this->hasMany(NonTradeItem::class);
+    }
+
     /**
      * Purchase Requests using this supplier
      */
@@ -47,6 +52,14 @@ class Supplier extends Model
     public function purchaseOrders()
     {
         return $this->hasMany(PurchaseOrder::class, 'supplier_id');
+    }
+
+    /**
+     * Supplier Receiving Reports
+     */
+    public function supplierReceivingReports()
+    {
+        return $this->hasMany(SupplierReceivingReport::class, 'supplier_id');
     }
 
     /**

@@ -287,4 +287,13 @@ class CheckVoucherController extends Controller
             ->back()
             ->with('success', 'Check Voucher rejected.');
     }
+
+    /**
+     * Print check voucher
+     */
+    public function print($id)
+    {
+        $checkVoucher = CheckVoucher::findOrFail($id);
+        return view('check_vouchers.print', ['checkVoucher' => $checkVoucher]);
+    }
 }

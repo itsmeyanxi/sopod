@@ -7,44 +7,48 @@ class RoleHelper
     public static function canManageSalesOrders()
     {
         if (!auth()->check()) {
-        return false;
-    }
+            return false;
+        }
 
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator', 'CC_Approver', 'CC_Creator', 'Accounting_Approver', 'Delivery_Approver', 'Delivery_Creator']);
+        return in_array($role, ['Admin', 'IT', 'CSR', 'CC_Approver', 'CC_Creator', 'Accounting_Approver', 'Delivery_Approver', 'Delivery_Creator'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'CSR', 'CC_Approver', 'CC_Creator', 'Accounting_Approver', 'Delivery_Approver', 'Delivery_Creator']);
     }
 
     public static function canCreateSalesOrders()
     {
         if (!auth()->check()) {
-        return false;
-    }
+            return false;
+        }
 
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CSR_Approver','CSR_Creator',]);
+        return in_array($role, ['Admin', 'IT', 'CSR'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'CSR']);
     }
 
     public static function canApproveSalesOrders()
     {
         if (!auth()->check()) {
-        return false;
-    }
+            return false;
+        }
 
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Approver']);
+        return in_array($role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Approver'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Approver']);
     }
 
     public static function canManageItems()
     {
         if (!auth()->check()) {
-        return false;
-    }
+            return false;
+        }
 
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver','CC_Creator', 'CC_Approver']);
+        return in_array($role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Creator', 'CC_Approver'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Creator', 'CC_Approver']);
     }
 
-        public static function canApproveItems()
+    public static function canApproveItems()
     {
         return auth()->check() && auth()->user()->canApproveItems();
     }
@@ -52,41 +56,45 @@ class RoleHelper
     public static function canManageCustomers()
     {
         if (!auth()->check()) {
-        return false;
-    }
+            return false;
+        }
 
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CC_Approver','CC_Creator','Accounting_Creator', 'Accounting_Approver']);
+        return in_array($role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
     }
 
     public static function canManageDeliveries()
     {
         if (!auth()->check()) {
-        return false;
-    }
+            return false;
+        }
 
         $role = auth()->user()->role ?? null;
-        return in_array($role, [ 'Delivery_Creator', 'Delivery_Approver', 'Admin', 'IT', 'CC_Approver']);
+        return in_array($role, ['Delivery_Creator', 'Delivery_Approver', 'Admin', 'IT', 'CC_Approver'])
+            || auth()->user()->hasRole(['Delivery_Creator', 'Delivery_Approver', 'Admin', 'IT', 'CC_Approver']);
     }
 
     public static function canManageUsers()
     {
         if (!auth()->check()) {
-        return false;
-    }
+            return false;
+        }
 
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT']);
+        return in_array($role, ['Admin', 'IT'])
+            || auth()->user()->hasRole(['Admin', 'IT']);
     }
 
     public static function isAdminOrIT()
     {
         if (!auth()->check()) {
-        return false;
-    }
-    
+            return false;
+        }
+
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT']);
+        return in_array($role, ['Admin', 'IT'])
+            || auth()->user()->hasRole(['Admin', 'IT']);
     }
 
     public static function unauthorized()
@@ -94,38 +102,37 @@ class RoleHelper
         return response()->view('errors.noaccess', [], 403);
     }
 
-        public static function canUpdateSalesOrderStatus()
+    public static function canUpdateSalesOrderStatus()
     {
-
         if (!auth()->check()) {
             return false;
         }
-        
+
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CC_Approver','Accounting_Approver']);
+        return in_array($role, ['Admin', 'IT', 'CC_Approver', 'Accounting_Approver'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'CC_Approver', 'Accounting_Approver']);
     }
 
-     public static function canaccessexcelimport()
+    public static function canaccessexcelimport()
     {
-
         if (!auth()->check()) {
             return false;
         }
-        
-        $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator','Accounting_Creator', 'Accounting_Approver']);
-    }
 
-    // Add to App/Helpers/RoleHelper.php
+        $role = auth()->user()->role ?? null;
+        return in_array($role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
+    }
 
     public static function canInitiateEdit()
     {
         if (!auth()->check()) {
             return false;
         }
-        
+
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CC_Approver']);
+        return in_array($role, ['Admin', 'IT', 'CC_Approver'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'CC_Approver']);
     }
 
     public static function canEditAfterCCApproval()
@@ -133,19 +140,21 @@ class RoleHelper
         if (!auth()->check()) {
             return false;
         }
-        
+
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CSR_Approver', 'CSR_Creator']);
+        return in_array($role, ['Admin', 'IT', 'CSR'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'CSR']);
     }
 
-        public static function canCreateDeliveries()
+    public static function canCreateDeliveries()
     {
         if (!auth()->check()) {
             return false;
         }
-        
+
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver']);
+        return in_array($role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver']);
     }
 
     public static function canApproveDeliveries()
@@ -153,9 +162,10 @@ class RoleHelper
         if (!auth()->check()) {
             return false;
         }
-        
+
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'Delivery_Approver']);
+        return in_array($role, ['Admin', 'IT', 'Delivery_Approver'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'Delivery_Approver']);
     }
 
     public static function canViewChangelog()
@@ -163,9 +173,9 @@ class RoleHelper
         if (!auth()->check()) {
             return false;
         }
-        
+
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator']);
+        return in_array($role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])
+            || auth()->user()->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator']);
     }
-        
 }

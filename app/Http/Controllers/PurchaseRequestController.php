@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
 use App\Models\PurchaseRequestItem;
+use App\Models\NonTradeItem;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -102,6 +103,14 @@ class PurchaseRequestController extends Controller
                     'amount' => $item['amount'] ?? null,
                     'remarks' => $item['remarks'] ?? null,
                 ]);
+
+                // Auto-save item description to non-trade items library
+                if (!empty($item['description'])) {
+                    NonTradeItem::firstOrCreate(
+                        ['name' => trim($item['description'])],
+                        ['unit' => $item['uom'] ?? null]
+                    );
+                }
             }
 
             DB::commit();
@@ -129,6 +138,20 @@ class PurchaseRequestController extends Controller
         return view('purchase_requests.show', compact('purchaseRequest'));
     }
 
+    public function print($id)
+    {
+        $purchaseRequest = PurchaseRequest::with(['items', 'creator', 'approver'])
+            ->findOrFail($id);
+
+        if ($purchaseRequest->status !== 'approved') {
+            return redirect()
+                ->route('purchase_requests.show', $id)
+                ->with('error', 'Purchase Request must be approved before printing.');
+        }
+
+        return view('purchase_requests.print', compact('purchaseRequest'));
+    }
+
     /**
      * Show the form for editing the specified purchase request
      */
@@ -143,7 +166,11 @@ class PurchaseRequestController extends Controller
             'Pacific Agrisolutions Enterprises Inc.',
         ];
 
-        return view('purchase_requests.edit', compact('purchaseRequest', 'companies'));
+        $suppliers = Supplier::where('status', 'active')
+            ->orderBy('supplier_name')
+            ->get();
+
+        return view('purchase_requests.edit', compact('purchaseRequest', 'companies', 'suppliers'));
     }
 
     /**
@@ -201,6 +228,14 @@ class PurchaseRequestController extends Controller
                     'amount' => $item['amount'] ?? null,
                     'remarks' => $item['remarks'] ?? null,
                 ]);
+
+                // Auto-save item description to non-trade items library
+                if (!empty($item['description'])) {
+                    NonTradeItem::firstOrCreate(
+                        ['name' => trim($item['description'])],
+                        ['unit' => $item['uom'] ?? null]
+                    );
+                }
             }
 
             DB::commit();
@@ -290,5 +325,39 @@ class PurchaseRequestController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Purchase Request rejected.');
+    }
+
+    /**
+     * Bulk approve multiple purchase requests
+     */
+    public function bulkApprove(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->canApprovePurchaseRequests()) {
+            return redirect()->route('purchase_requests.index')
+                ->with('error', 'Unauthorized to approve purchase requests.');
+        }
+
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return redirect()->route('purchase_requests.index')
+                ->with('error', 'No purchase requests selected.');
+        }
+
+        $approved = PurchaseRequest::whereIn('id', $ids)
+            ->where('status', 'pending')
+            ->update([
+                'status' => 'approved',
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'rejection_reason' => null,
+            ]);
+
+        $total = count($ids);
+
+        return redirect()->route('purchase_requests.index')
+            ->with('success', "{$approved} of {$total} Purchase Request(s) approved successfully.");
     }
 }

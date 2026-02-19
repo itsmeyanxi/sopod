@@ -8,21 +8,33 @@
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-white">Purchase Requests</h1>
-            <a href="{{ route('purchase_requests.create') }}" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition">
-                <i class="fas fa-plus mr-2"></i>Create New PR
-            </a>
+            <div class="flex items-center gap-3">
+                @if(auth()->user()->canApprovePurchaseRequests())
+                    <button type="button" id="bulkApproveBtn"
+                        onclick="submitBulkApprove()"
+                        class="hidden bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition text-sm">
+                        <i class="fas fa-check-double mr-1"></i> Approve Selected (<span id="selectedCount">0</span>)
+                    </button>
+                @endif
+                <a href="{{ route('purchase_requests.create') }}" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition">
+                    <i class="fas fa-plus mr-2"></i>Create New PR
+                </a>
+            </div>
         </div>
 
         @if(session('success'))
-            <div class="bg-green-600 text-white px-4 py-3 rounded mb-4">
-                {{ session('success') }}
-            </div>
+            <div class="bg-green-600 text-white px-4 py-3 rounded mb-4">{{ session('success') }}</div>
         @endif
 
         @if(session('error'))
-            <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">
-                {{ session('error') }}
-            </div>
+            <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">{{ session('error') }}</div>
+        @endif
+
+        <!-- Bulk Approve Form (hidden) -->
+        @if(auth()->user()->canApprovePurchaseRequests())
+        <form id="bulkApproveForm" action="{{ route('purchase_requests.bulk_approve') }}" method="POST" class="hidden">
+            @csrf
+        </form>
         @endif
 
         <!-- Table -->
@@ -30,6 +42,11 @@
             <table class="w-full border-collapse border border-gray-700">
                 <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                     <tr>
+                        @if(auth()->user()->canApprovePurchaseRequests())
+                        <th class="border border-gray-700 px-3 py-3 w-10">
+                            <input type="checkbox" id="selectAll" class="cursor-pointer" title="Select all pending">
+                        </th>
+                        @endif
                         <th class="border border-gray-700 px-4 py-3 text-left">PR No</th>
                         <th class="border border-gray-700 px-4 py-3 text-left">Company</th>
                         <th class="border border-gray-700 px-4 py-3 text-left">Requisitioner</th>
@@ -42,6 +59,14 @@
                 <tbody class="text-gray-300 divide-y divide-gray-700">
                     @forelse($purchaseRequests as $pr)
                         <tr class="hover:bg-gray-700/40 transition">
+                            @if(auth()->user()->canApprovePurchaseRequests())
+                            <td class="border border-gray-700 px-3 py-3 text-center">
+                                @if($pr->status === 'pending')
+                                    <input type="checkbox" name="ids[]" value="{{ $pr->id }}"
+                                        class="pr-checkbox cursor-pointer" form="bulkApproveForm">
+                                @endif
+                            </td>
+                            @endif
                             <td class="border border-gray-700 px-4 py-3">{{ $pr->pr_no }}</td>
                             <td class="border border-gray-700 px-4 py-3">{{ $pr->company }}</td>
                             <td class="border border-gray-700 px-4 py-3">{{ $pr->requisitioner }}</td>
@@ -59,25 +84,19 @@
                             <td class="border border-gray-700 px-4 py-3">{{ $pr->creator->name ?? 'N/A' }}</td>
                             <td class="border border-gray-700 px-4 py-3">
                                 <div class="flex gap-2 justify-center">
-                                    <a href="{{ route('purchase_requests.show', $pr->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">
-                                        View
-                                    </a>
-                                    <a href="{{ route('purchase_requests.edit', $pr->id) }}" class="bg-yellow-600 text-white px-3 py-1 rounded text-xs hover:bg-yellow-700 transition">
-                                        Edit
-                                    </a>
+                                    <a href="{{ route('purchase_requests.show', $pr->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
+                                    <a href="{{ route('purchase_requests.edit', $pr->id) }}" class="bg-yellow-600 text-white px-3 py-1 rounded text-xs hover:bg-yellow-700 transition">Edit</a>
                                     <form action="{{ route('purchase_requests.destroy', $pr->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this PR?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition">
-                                            Delete
-                                        </button>
+                                        <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition">Delete</button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
+                            <td colspan="{{ auth()->user()->canApprovePurchaseRequests() ? 8 : 7 }}" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No purchase requests found. <a href="{{ route('purchase_requests.create') }}" class="text-blue-400 hover:underline">Create one now</a>
                             </td>
                         </tr>
@@ -92,4 +111,38 @@
         </div>
     </div>
 </div>
+
+@if(auth()->user()->canApprovePurchaseRequests())
+<script>
+const selectAll = document.getElementById('selectAll');
+const bulkApproveBtn = document.getElementById('bulkApproveBtn');
+const selectedCount = document.getElementById('selectedCount');
+
+function updateBulkBtn() {
+    const checked = document.querySelectorAll('.pr-checkbox:checked').length;
+    selectedCount.textContent = checked;
+    if (checked > 0) {
+        bulkApproveBtn.classList.remove('hidden');
+    } else {
+        bulkApproveBtn.classList.add('hidden');
+    }
+}
+
+selectAll.addEventListener('change', function () {
+    document.querySelectorAll('.pr-checkbox').forEach(cb => cb.checked = this.checked);
+    updateBulkBtn();
+});
+
+document.querySelectorAll('.pr-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateBulkBtn);
+});
+
+function submitBulkApprove() {
+    const count = document.querySelectorAll('.pr-checkbox:checked').length;
+    if (confirm(`Approve ${count} selected Purchase Request(s)?`)) {
+        document.getElementById('bulkApproveForm').submit();
+    }
+}
+</script>
+@endif
 @endsection

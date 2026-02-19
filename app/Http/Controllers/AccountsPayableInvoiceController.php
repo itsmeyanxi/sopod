@@ -297,4 +297,13 @@ class AccountsPayableInvoiceController extends Controller
             ->back()
             ->with('success', 'Invoice rejected.');
     }
+
+    /**
+     * Print accounts payable invoice
+     */
+    public function print($id)
+    {
+        $apv = AccountsPayableInvoice::findOrFail($id);
+        return view('apv.print', ['apv' => $apv]);
+    }
 }

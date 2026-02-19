@@ -7,21 +7,33 @@
     <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-white">PURCHASE ORDERS</h1>
-            <a href="{{ route('purchase_orders.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
-                <i class="fas fa-plus mr-1"></i> Create New PO
-            </a>
+            <div class="flex items-center gap-3">
+                @if(auth()->user()->canApprovePurchaseOrders())
+                    <button type="button" id="bulkApproveBtn"
+                        onclick="submitBulkApprove()"
+                        class="hidden bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition text-sm">
+                        <i class="fas fa-check-double mr-1"></i> Approve Selected (<span id="selectedCount">0</span>)
+                    </button>
+                @endif
+                <a href="{{ route('purchase_orders.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
+                    <i class="fas fa-plus mr-1"></i> Create New PO
+                </a>
+            </div>
         </div>
 
         @if(session('success'))
-            <div class="bg-green-600 text-white px-4 py-3 rounded mb-4">
-                {{ session('success') }}
-            </div>
+            <div class="bg-green-600 text-white px-4 py-3 rounded mb-4">{{ session('success') }}</div>
         @endif
 
         @if(session('error'))
-            <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">
-                {{ session('error') }}
-            </div>
+            <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">{{ session('error') }}</div>
+        @endif
+
+        <!-- Bulk Approve Form (hidden) -->
+        @if(auth()->user()->canApprovePurchaseOrders())
+        <form id="bulkApproveForm" action="{{ route('purchase_orders.bulk_approve') }}" method="POST" class="hidden">
+            @csrf
+        </form>
         @endif
 
         <!-- Search PR Section -->
@@ -54,6 +66,11 @@
             <table class="w-full border-collapse border border-gray-700">
                 <thead class="bg-gray-700 text-gray-300 uppercase text-sm">
                     <tr>
+                        @if(auth()->user()->canApprovePurchaseOrders())
+                        <th class="border border-gray-700 px-3 py-3 w-10">
+                            <input type="checkbox" id="selectAll" class="cursor-pointer" title="Select all pending">
+                        </th>
+                        @endif
                         <th class="border border-gray-700 px-4 py-3">PO NO</th>
                         <th class="border border-gray-700 px-4 py-3">PR NO</th>
                         <th class="border border-gray-700 px-4 py-3">COMPANY</th>
@@ -67,6 +84,14 @@
                 <tbody class="text-gray-300">
                     @forelse($purchaseOrders as $po)
                         <tr class="hover:bg-gray-700/40">
+                            @if(auth()->user()->canApprovePurchaseOrders())
+                            <td class="border border-gray-700 px-3 py-3 text-center">
+                                @if($po->status === 'pending')
+                                    <input type="checkbox" name="ids[]" value="{{ $po->id }}"
+                                        class="po-checkbox cursor-pointer" form="bulkApproveForm">
+                                @endif
+                            </td>
+                            @endif
                             <td class="border border-gray-700 px-4 py-3">{{ $po->po_no }}</td>
                             <td class="border border-gray-700 px-4 py-3">{{ $po->pr_no ?? 'N/A' }}</td>
                             <td class="border border-gray-700 px-4 py-3">{{ $po->company }}</td>
@@ -103,7 +128,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
+                            <td colspan="{{ auth()->user()->canApprovePurchaseOrders() ? 9 : 8 }}" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No purchase orders found. <a href="{{ route('purchase_orders.create') }}" class="text-purple-400 hover:text-purple-300">Create one now</a>
                             </td>
                         </tr>
@@ -210,5 +235,37 @@ prSearchInput.addEventListener('focus', function() {
         prSearchResults.classList.remove('hidden');
     }
 });
+
+@if(auth()->user()->canApprovePurchaseOrders())
+const selectAll = document.getElementById('selectAll');
+const bulkApproveBtn = document.getElementById('bulkApproveBtn');
+const selectedCount = document.getElementById('selectedCount');
+
+function updateBulkBtn() {
+    const checked = document.querySelectorAll('.po-checkbox:checked').length;
+    selectedCount.textContent = checked;
+    if (checked > 0) {
+        bulkApproveBtn.classList.remove('hidden');
+    } else {
+        bulkApproveBtn.classList.add('hidden');
+    }
+}
+
+selectAll.addEventListener('change', function () {
+    document.querySelectorAll('.po-checkbox').forEach(cb => cb.checked = this.checked);
+    updateBulkBtn();
+});
+
+document.querySelectorAll('.po-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateBulkBtn);
+});
+
+function submitBulkApprove() {
+    const count = document.querySelectorAll('.po-checkbox:checked').length;
+    if (confirm(`Approve ${count} selected Purchase Order(s)?`)) {
+        document.getElementById('bulkApproveForm').submit();
+    }
+}
+@endif
 </script>
 @endsection
