@@ -38,7 +38,6 @@
                 Approved PO
             </h3>
             <p class="text-3xl text-white font-bold mt-2">{{ $approvedPendingPOs }}</p>
-            <p class="text-gray-200 text-xs mt-2">Pending delivery</p>
         </button>
 
     </div>
