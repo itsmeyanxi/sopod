@@ -30,12 +30,6 @@
             </div>
         @endif
 
-        @if(session('error'))
-            <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">
-                {{ session('error') }}
-            </div>
-        @endif
-
         <!-- Company -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-300 mb-2">COMPANY:</label>
