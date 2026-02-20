@@ -230,9 +230,15 @@
                 <a href="{{ route('request_for_payments.edit', $rfp->id) }}" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     Edit
                 </a>
-                <a href="{{ route('request_for_payments.print', $rfp->id) }}" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition inline-block">
-                    Print
-                </a>
+                @if($rfp->status === 'approved')
+                    <a href="{{ route('request_for_payments.print', $rfp->id) }}" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition inline-block">
+                        <i class="fas fa-print mr-1"></i> Print
+                    </a>
+                @else
+                    <span class="bg-gray-600 text-gray-400 px-6 py-2 rounded cursor-not-allowed" title="Must be approved before printing">
+                        <i class="fas fa-print mr-1"></i> Print
+                    </span>
+                @endif
             </div>
         </div>
     </div>

@@ -280,6 +280,13 @@ class RequestForPaymentController extends Controller
     public function print($id)
     {
         $rfp = RequestForPayment::with(['creator', 'purchaseOrder'])->findOrFail($id);
+
+        if ($rfp->status !== 'approved') {
+            return redirect()
+                ->route('request_for_payments.show', $id)
+                ->with('error', 'Request for Payment must be approved before printing.');
+        }
+
         return view('request_for_payments.print', ['rfp' => $rfp]);
     }
 }
