@@ -1247,6 +1247,15 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return response()->json([]);
         })->name('search_prs');
 
+        // Generate Item Code (AJAX)
+        Route::get('/generate-item-code', function () {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->generateItemCode(request());
+            }
+            return response()->json(['error' => 'Unauthorized'], 403);
+        })->name('generate_item_code');
+
         // Index
         Route::get('/', function () {
             $user = auth()->user();

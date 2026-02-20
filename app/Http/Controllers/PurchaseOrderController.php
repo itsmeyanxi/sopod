@@ -403,4 +403,50 @@ class PurchaseOrderController extends Controller
         return redirect()->route('purchase_orders.index')
             ->with('success', "{$approved} of {$total} Purchase Order(s) approved successfully.");
     }
+
+    /**
+     * Generate item code based on description and supplier
+     */
+    public function generateItemCode(Request $request)
+    {
+        $description = $request->input('description', '');
+        $supplierId = $request->input('supplier_id');
+
+        // Abbreviate item name
+        $words = preg_split('/\s+/', trim($description));
+        if (count($words) === 1) {
+            // Single word: take first 2 characters
+            $abbr = strtoupper(substr($words[0], 0, 2));
+        } else {
+            // Multiple words: take first letter of each word
+            $abbr = strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), $words)));
+        }
+
+        // Get supplier code
+        $supplierCode = 'GEN';
+        if ($supplierId) {
+            $supplier = Supplier::find($supplierId);
+            if ($supplier && $supplier->supplier_code) {
+                $supplierCode = strtoupper($supplier->supplier_code);
+            }
+        }
+
+        // Get next global sequence by scanning existing item codes
+        $pattern = '/^[A-Z]+-(\d+)-[A-Z]+$/';
+        $poItems = PurchaseOrderItem::whereNotNull('item_code')->pluck('item_code')->toArray();
+        $prItems = \App\Models\PurchaseRequestItem::whereNotNull('item_code')->pluck('item_code')->toArray();
+        $allCodes = array_merge($poItems, $prItems);
+
+        $maxSeq = 0;
+        foreach ($allCodes as $code) {
+            if (preg_match($pattern, $code, $matches)) {
+                $seq = (int) $matches[1];
+                $maxSeq = max($maxSeq, $seq);
+            }
+        }
+
+        $seq = str_pad($maxSeq + 1, 3, '0', STR_PAD_LEFT);
+
+        return response()->json(['item_code' => "{$abbr}-{$seq}-{$supplierCode}"]);
+    }
 }

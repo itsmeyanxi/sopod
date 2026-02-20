@@ -96,6 +96,7 @@ class PurchaseRequestController extends Controller
                 PurchaseRequestItem::create([
                     'purchase_request_id' => $purchaseRequest->id,
                     'item_no' => $index + 1,
+                    'item_code' => $item['item_code'] ?? null,
                     'qty' => $item['qty'],
                     'uom' => $item['uom'],
                     'description' => $item['description'],
@@ -215,6 +216,7 @@ class PurchaseRequestController extends Controller
                 PurchaseRequestItem::create([
                     'purchase_request_id' => $purchaseRequest->id,
                     'item_no' => $index + 1,
+                    'item_code' => $item['item_code'] ?? null,
                     'qty' => $item['qty'],
                     'uom' => $item['uom'],
                     'description' => $item['description'],
