@@ -9,6 +9,48 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class NonTradeItemController extends Controller
 {
+    private function generateItemCode($description, $supplierId = null)
+    {
+        // Abbreviate item name: single word takes first 2 chars, multi-word takes first letter of each word
+        $words = preg_split('/\s+/', trim($description));
+        if (count($words) === 1) {
+            $abbr = strtoupper(substr($words[0], 0, 2));
+        } else {
+            $abbr = strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), $words)));
+        }
+
+        // Get supplier code
+        $supplierCode = 'GEN';
+        if ($supplierId) {
+            $supplier = Supplier::find($supplierId);
+            if ($supplier && $supplier->supplier_code) {
+                $supplierCode = strtoupper($supplier->supplier_code);
+            }
+        }
+
+        // Get next global sequence number
+        $pattern = '/^[A-Z]+-(\d+)-[A-Z]+$/';
+        $poMax = \App\Models\PurchaseOrderItem::whereNotNull('item_code')
+            ->pluck('item_code')
+            ->filter(fn($c) => preg_match($pattern, $c, $m))
+            ->map(fn($c) => (int) explode('-', $c)[1])
+            ->max() ?? 0;
+        $prMax = \App\Models\PurchaseRequestItem::whereNotNull('item_code')
+            ->pluck('item_code')
+            ->filter(fn($c) => preg_match($pattern, $c, $m))
+            ->map(fn($c) => (int) explode('-', $c)[1])
+            ->max() ?? 0;
+        $ntiMax = NonTradeItem::whereNotNull('item_code')
+            ->pluck('item_code')
+            ->filter(fn($c) => preg_match($pattern, $c, $m))
+            ->map(fn($c) => (int) explode('-', $c)[1])
+            ->max() ?? 0;
+
+        $seq = str_pad(max($poMax, $prMax, $ntiMax) + 1, 3, '0', STR_PAD_LEFT);
+
+        return "{$abbr}-{$seq}-{$supplierCode}";
+    }
+
     public function index(Request $request)
     {
         $query = NonTradeItem::with('supplier')->orderBy('name');
@@ -146,10 +188,17 @@ class NonTradeItemController extends Controller
                 $skipped++;
             } else {
                 // New item, or same item name but different supplier → create new record
-                NonTradeItem::create([
+                $newItem = NonTradeItem::create([
                     'name' => $itemName,
                     'supplier_id' => $supplierId,
                 ]);
+
+                // Auto-generate item code if supplier is set and item doesn't have a code
+                if ($supplierId && !$newItem->item_code) {
+                    $itemCode = $this->generateItemCode($itemName, $supplierId);
+                    $newItem->update(['item_code' => $itemCode]);
+                }
+
                 $imported++;
             }
         }

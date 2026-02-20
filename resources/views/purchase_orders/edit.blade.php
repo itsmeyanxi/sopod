@@ -438,6 +438,8 @@ function attachDescAutocomplete(input) {
                         e.preventDefault();
                         input.value = this.textContent;
                         dropdown.classList.add('hidden');
+                        const row = input.closest('tr');
+                        if (row) autoGenerateItemCode(row);
                     });
                 });
             } catch (e) { dropdown.classList.add('hidden'); }
@@ -446,8 +448,39 @@ function attachDescAutocomplete(input) {
 
     input.addEventListener('input', fetchSuggestions);
     input.addEventListener('focus', fetchSuggestions);
-    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 150));
+    input.addEventListener('blur', () => {
+        setTimeout(() => dropdown.classList.add('hidden'), 150);
+        const row = input.closest('tr');
+        if (row) {
+            const itemCodeInput = row.querySelector('input[name*="[item_code]"]');
+            if (itemCodeInput && !itemCodeInput.value.trim()) {
+                autoGenerateItemCode(row);
+            }
+        }
+    });
     window.addEventListener('scroll', () => dropdown.classList.add('hidden'), true);
+}
+
+async function autoGenerateItemCode(row) {
+    const descInput = row.querySelector('.desc-input');
+    const itemCodeInput = row.querySelector('input[name*="[item_code]"]');
+    if (!descInput || !itemCodeInput) return;
+
+    const description = descInput.value.trim();
+    const supplierId = document.getElementById('supplier_id').value;
+    if (!description) return;
+
+    try {
+        const params = new URLSearchParams({ description });
+        if (supplierId) params.append('supplier_id', supplierId);
+        const res = await fetch(`{{ route('generate_item_code') }}?${params}`);
+        const data = await res.json();
+        if (data.item_code && !itemCodeInput.value) {
+            itemCodeInput.value = data.item_code;
+        }
+    } catch (e) {
+        console.error('Error generating item code:', e);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {

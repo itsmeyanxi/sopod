@@ -145,6 +145,7 @@
                         <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                             <tr>
                                 <th class="border px-2 py-2 w-12">NO.</th>
+                                <th class="border px-2 py-2 w-32">ITEM CODE</th>
                                 <th class="border px-2 py-2 w-20">QTY</th>
                                 <th class="border px-2 py-2 w-24">UOM</th>
                                 <th class="border px-2 py-2">DESCRIPTION</th>
@@ -157,6 +158,7 @@
                         <tbody id="itemsBody" class="bg-gray-800 text-gray-300 divide-y divide-gray-700">
                             <tr class="hover:bg-gray-700/40">
                                 <td class="border border-gray-700 px-2 py-2 text-center">1</td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
                                 <td class="border border-gray-700 px-2 py-2">
@@ -239,6 +241,7 @@ function addRow() {
     newRow.className = 'hover:bg-gray-700/40';
     newRow.innerHTML = `
         <td class="border border-gray-700 px-2 py-2 text-center">${rowCount + 1}</td>
+        <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required></td>
         <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
         <td class="border border-gray-700 px-2 py-2"><div class="relative"><input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off"><div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div></div></td>
@@ -370,6 +373,8 @@ function attachDescAutocomplete(input) {
                         e.preventDefault();
                         input.value = this.textContent;
                         dropdown.classList.add('hidden');
+                        const row = input.closest('tr');
+                        if (row) autoGenerateItemCode(row);
                     });
                 });
             } catch (e) { dropdown.classList.add('hidden'); }
@@ -378,8 +383,39 @@ function attachDescAutocomplete(input) {
 
     input.addEventListener('input', fetchSuggestions);
     input.addEventListener('focus', fetchSuggestions);
-    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 150));
+    input.addEventListener('blur', () => {
+        setTimeout(() => dropdown.classList.add('hidden'), 150);
+        const row = input.closest('tr');
+        if (row) {
+            const itemCodeInput = row.querySelector('input[name*="[item_code]"]');
+            if (itemCodeInput && !itemCodeInput.value.trim()) {
+                autoGenerateItemCode(row);
+            }
+        }
+    });
     window.addEventListener('scroll', () => dropdown.classList.add('hidden'), true);
+}
+
+async function autoGenerateItemCode(row) {
+    const descInput = row.querySelector('.desc-input');
+    const itemCodeInput = row.querySelector('input[name*="[item_code]"]');
+    if (!descInput || !itemCodeInput) return;
+
+    const description = descInput.value.trim();
+    const supplierId = document.getElementById('supplier_id').value;
+    if (!description) return;
+
+    try {
+        const params = new URLSearchParams({ description });
+        if (supplierId) params.append('supplier_id', supplierId);
+        const res = await fetch(`{{ route('generate_item_code') }}?${params}`);
+        const data = await res.json();
+        if (data.item_code && !itemCodeInput.value) {
+            itemCodeInput.value = data.item_code;
+        }
+    } catch (e) {
+        console.error('Error generating item code:', e);
+    }
 }
 </script>
 @endsection

@@ -555,6 +555,9 @@ function attachDescAutocomplete(input) {
                         e.preventDefault();
                         input.value = this.textContent;
                         dropdown.classList.add('hidden');
+                        // Auto-generate item code after selecting from dropdown
+                        const row = input.closest('tr');
+                        if (row) autoGenerateItemCode(row);
                     });
                 });
             } catch (e) { dropdown.classList.add('hidden'); }
@@ -563,8 +566,50 @@ function attachDescAutocomplete(input) {
 
     input.addEventListener('input', fetchSuggestions);
     input.addEventListener('focus', fetchSuggestions);
-    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 150));
+    input.addEventListener('blur', function() {
+        setTimeout(() => dropdown.classList.add('hidden'), 150);
+        // Auto-generate item code on blur if it's empty
+        const row = input.closest('tr');
+        if (row) {
+            const itemCodeInput = row.querySelector('input[name*="[item_code]"]');
+            if (itemCodeInput && !itemCodeInput.value.trim()) {
+                autoGenerateItemCode(row);
+            }
+        }
+    });
     window.addEventListener('scroll', () => dropdown.classList.add('hidden'), true);
+}
+
+// Auto-generate item code
+async function autoGenerateItemCode(row) {
+    const descInput = row.querySelector('input[name*="[description]"]');
+    const itemCodeInput = row.querySelector('input[name*="[item_code]"]');
+    const supplierId = document.getElementById('supplier_id').value;
+
+    if (!descInput || !itemCodeInput || !descInput.value.trim()) {
+        return;
+    }
+
+    try {
+        const response = await fetch('{{ route("purchase_orders.generate_item_code") }}', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        // Rebuild URL with proper params
+        const url = new URL('{{ route("purchase_orders.generate_item_code") }}', window.location.origin);
+        url.searchParams.append('description', descInput.value.trim());
+        if (supplierId) url.searchParams.append('supplier_id', supplierId);
+
+        const res = await fetch(url.toString());
+        const data = await res.json();
+
+        if (data.item_code && !itemCodeInput.value.trim()) {
+            itemCodeInput.value = data.item_code;
+        }
+    } catch (error) {
+        console.error('Error generating item code:', error);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
