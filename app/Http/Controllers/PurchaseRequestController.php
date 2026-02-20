@@ -122,9 +122,11 @@ class PurchaseRequestController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('PR Creation Error: ' . $e->getMessage(), ['exception' => $e]);
             return back()
                 ->withInput()
-                ->with('error', 'Error creating Purchase Request: ' . $e->getMessage());
+                ->with('error', 'Error creating Purchase Request: ' . $e->getMessage())
+                ->with('debug', true);
         }
     }
 
