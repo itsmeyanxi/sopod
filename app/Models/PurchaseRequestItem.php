@@ -28,4 +28,12 @@ class PurchaseRequestItem extends Model
     {
         return $this->belongsTo(PurchaseRequest::class, 'purchase_request_id', 'id');
     }
+
+    /**
+     * Relationship with PurchaseOrderItems
+     */
+    public function purchaseOrderItems()
+    {
+        return $this->hasMany(PurchaseOrderItem::class, 'purchase_request_item_id', 'id');
+    }
 }

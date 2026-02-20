@@ -52,15 +52,9 @@ class PurchaseOrderController extends Controller
             ->orderBy('supplier_name')
             ->get();
 
-        // Check if a PR was selected
-        $selectedPR = null;
-        if ($request->has('pr_id')) {
-            $selectedPR = PurchaseRequest::with(['items', 'supplier'])->find($request->pr_id);
-        }
-
         $currencies = Currency::orderByRaw("FIELD(code,'PHP','USD','AUD','GBP','EUR')")->get();
 
-        return view('purchase_orders.create', compact('poNo', 'companies', 'purchaseRequests', 'selectedPR', 'suppliers', 'currencies'));
+        return view('purchase_orders.create', compact('poNo', 'companies', 'purchaseRequests', 'suppliers', 'currencies'));
     }
 
     /**
@@ -81,6 +75,46 @@ class PurchaseOrderController extends Controller
             ->get();
 
         return response()->json($prs);
+    }
+
+    /**
+     * Get PR details with all items (allow reuse across multiple POs)
+     */
+    public function getPRDetails(Request $request)
+    {
+        $prId = $request->input('pr_id');
+
+        if (!$prId) {
+            return response()->json(['error' => 'PR ID is required'], 400);
+        }
+
+        $pr = PurchaseRequest::with(['items', 'supplier'])
+            ->where('status', 'approved')
+            ->findOrFail($prId);
+
+        return response()->json([
+            'id' => $pr->id,
+            'pr_no' => $pr->pr_no,
+            'company' => $pr->company,
+            'requisitioner' => $pr->requisitioner,
+            'supplier' => $pr->supplier,
+            'supplier_id' => $pr->supplier_id,
+            'address' => $pr->address,
+            'delivery_address' => $pr->delivery_address,
+            'terms' => $pr->terms,
+            'date_needed' => $pr->date_needed,
+            'items' => $pr->items->map(fn($item) => [
+                'id' => $item->id,
+                'item_no' => $item->item_no,
+                'item_code' => $item->item_code,
+                'description' => $item->description,
+                'qty' => $item->qty,
+                'uom' => $item->uom,
+                'unit_price' => $item->unit_price,
+                'amount' => $item->amount,
+                'remarks' => $item->remarks,
+            ])->values(),
+        ]);
     }
 
     /**
@@ -139,6 +173,7 @@ class PurchaseOrderController extends Controller
             foreach ($request->items as $index => $item) {
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $purchaseOrder->id,
+                    'purchase_request_item_id' => $item['purchase_request_item_id'] ?? null,
                     'item_no' => $index + 1,
                     'item_code' => $item['item_code'] ?? null,
                     'qty' => $item['qty'],

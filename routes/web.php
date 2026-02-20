@@ -31,6 +31,7 @@ use App\Http\Controllers\{
     LockController,
     SupplierReceivingReportController,
     NonTradeItemController,
+    TradeItemController,
     CurrencyController
 };
 
@@ -1247,6 +1248,15 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return response()->json([]);
         })->name('search_prs');
 
+        // Get PR Details (AJAX) - Allow reuse across multiple POs
+        Route::get('/get-pr-details', function () {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->getPRDetails(request());
+            }
+            return response()->json(['error' => 'Unauthorized'], 403);
+        })->name('get_pr_details');
+
         // Index
         Route::get('/', function () {
             $user = auth()->user();
@@ -1391,6 +1401,45 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             $user = auth()->user();
             if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
                 return app(NonTradeItemController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+    });
+
+    // ===================== TRADE ITEMS LIBRARY =====================
+    Route::prefix('trade-items')->name('trade_items.')->middleware('auth')->group(function () {
+        Route::get('/', function () {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+                return app(TradeItemController::class)->index(request());
+            }
+            return view('errors.noaccess');
+        })->name('index');
+
+        Route::get('/search', function () {
+            return app(TradeItemController::class)->search(request());
+        })->name('search');
+
+        Route::post('/store', function () {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+                return app(TradeItemController::class)->store(request());
+            }
+            return view('errors.noaccess');
+        })->name('store');
+
+        Route::post('/import', function () {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+                return app(TradeItemController::class)->import(request());
+            }
+            return view('errors.noaccess');
+        })->name('import');
+
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+                return app(TradeItemController::class)->destroy($id);
             }
             return view('errors.noaccess');
         })->name('destroy');

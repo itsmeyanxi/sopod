@@ -62,7 +62,7 @@
                     </div>
                 </div>
 
-                <input type="hidden" name="purchase_request_id" id="selectedPRId" value="{{ old('purchase_request_id', $selectedPR->id ?? '') }}">
+                <input type="hidden" name="purchase_request_id" id="selectedPRId" value="{{ old('purchase_request_id', '') }}">
             </div>
 
             <!-- Company Selection -->
@@ -71,7 +71,7 @@
                 <select name="company" id="company" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                     <option value="">-- Select Company --</option>
                     @foreach($companies as $company)
-                        <option value="{{ $company }}" {{ old('company', $selectedPR->company ?? '') == $company ? 'selected' : '' }}>
+                        <option value="{{ $company }}" {{ old('company') == $company ? 'selected' : '' }}>
                             {{ $company }}
                         </option>
                     @endforeach
@@ -95,15 +95,15 @@
                                 </option>
                             @endforeach
                         </select>
-                        <input type="hidden" name="supplier" id="supplier_text" value="{{ old('supplier', $selectedPR->supplier ?? '') }}">
+                        <input type="hidden" name="supplier" id="supplier_text" value="{{ old('supplier') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">SUPPLIER ADDRESS:</label>
-                        <textarea name="supplier_address" id="supplier_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('supplier_address', $selectedPR->address ?? '') }}</textarea>
+                        <textarea name="supplier_address" id="supplier_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('supplier_address') }}</textarea>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE:</label>
-                        <input type="text" name="consignee" id="consignee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('consignee', $selectedPR->requisitioner ?? '') }}">
+                        <input type="text" name="consignee" id="consignee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('consignee') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE ADDRESS:</label>
@@ -111,7 +111,7 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">DELIVERY ADDRESS:</label>
-                        <textarea name="delivery_address" id="delivery_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('delivery_address', $selectedPR->delivery_address ?? '') }}</textarea>
+                        <textarea name="delivery_address" id="delivery_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('delivery_address') }}</textarea>
                     </div>
                 </div>
 
@@ -123,11 +123,11 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">EXPECTED DELIVERY DATE:</label>
-                        <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('expected_delivery_date', $selectedPR->date_needed ?? '') }}">
+                        <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('expected_delivery_date') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">PAYMENT TERMS:</label>
-                        <input type="text" name="payment_terms" id="payment_terms" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms', $selectedPR->terms ?? '') }}">
+                        <input type="text" name="payment_terms" id="payment_terms" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">LOCATION:</label>
@@ -139,7 +139,7 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">PR#:</label>
-                        <input type="text" name="pr_no" id="pr_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('pr_no', $selectedPR->pr_no ?? '') }}">
+                        <input type="text" name="pr_no" id="pr_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('pr_no') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">LC PRICE:</label>
