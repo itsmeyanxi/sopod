@@ -279,7 +279,7 @@
                     <div class="sig-label">Prepared By:</div>
                     <div class="sig-line" style="min-height:28px;">{{ $purchaseOrder->creator->name ?? '' }}</div>
                     @if($purchaseOrder->creator->name)
-                        <div class="e-signature">Digitally Approved</div>
+                        <div class="e-signature">Digitally Signed</div>
                         <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                     @endif
                 </div>
@@ -287,7 +287,7 @@
                     <div class="sig-label">Approved By:</div>
                     <div class="sig-line" style="min-height:28px;">{{ $purchaseOrder->approver->name ?? '' }}</div>
                     @if($purchaseOrder->approver->name)
-                        <div class="e-signature">Digitally Approved</div>
+                        <div class="e-signature">Digitally Signed</div>
                         <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                     @endif
                 </div>

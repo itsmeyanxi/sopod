@@ -478,7 +478,7 @@
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $rfp->checked_by ?? '' }}</div>
                 @if($rfp->checked_by)
-                    <div class="e-signature">Digitally Approved</div>
+                    <div class="e-signature">Digitally Signed</div>
                     <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                 @endif
             </div>
@@ -497,14 +497,14 @@
                     <div class="approval-label">Approved By:</div>
                     <div class="approval-line"></div>
                     <div class="approval-name"></div>
-                    <div class="approval-e-signature">Digitally Approved</div>
+                    <div class="approval-e-signature">Digitally Signed</div>
                     <div class="approval-e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                 </div>
                 <div class="approval-block">
                     <div class="approval-label">Approved By:</div>
                     <div class="approval-line"></div>
                     <div class="approval-name"></div>
-                    <div class="approval-e-signature">Digitally Approved</div>
+                    <div class="approval-e-signature">Digitally Signed</div>
                     <div class="approval-e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                 </div>
             </div>

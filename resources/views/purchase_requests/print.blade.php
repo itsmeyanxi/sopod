@@ -218,7 +218,7 @@
                 <div class="sig-line">{{ $purchaseRequest->requisitioner }}</div>
                 <div class="sig-label">Requested By</div>
                 @if($purchaseRequest->requisitioner)
-                    <div class="e-signature">Digitally Approved</div>
+                    <div class="e-signature">Digitally Signed</div>
                     <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                 @endif
             </div>
@@ -226,7 +226,7 @@
                 <div class="sig-line">{{ $purchaseRequest->creator->name ?? '' }}</div>
                 <div class="sig-label">Reviewed and Endorsed By</div>
                 @if($purchaseRequest->creator->name)
-                    <div class="e-signature">Digitally Approved</div>
+                    <div class="e-signature">Digitally Signed</div>
                     <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                 @endif
             </div>
@@ -234,7 +234,7 @@
                 <div class="sig-line">{{ $purchaseRequest->approver->name ?? '' }}</div>
                 <div class="sig-label">Approved By</div>
                 @if($purchaseRequest->approver->name)
-                    <div class="e-signature">Digitally Approved</div>
+                    <div class="e-signature">Digitally Signed</div>
                     <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                 @endif
             </div>
