@@ -82,15 +82,24 @@ class TradeItemController extends Controller
         $term = $request->input('q', '');
         $supplierId = $request->input('supplier_id');
 
-        $query = TradeItem::where('name', 'LIKE', "%{$term}%");
+        $query = TradeItem::with('supplier')->where('name', 'LIKE', "%{$term}%");
 
         if ($supplierId) {
             $query->where('supplier_id', $supplierId);
         }
 
-        $items = $query->orderBy('name')->limit(50)->pluck('name');
+        $items = $query->orderBy('name')->limit(50)->get();
 
-        return response()->json($items);
+        // Return items with supplier name in parenthesis
+        $results = $items->map(function($item) {
+            $displayName = $item->name;
+            if ($item->supplier) {
+                $displayName .= ' (' . $item->supplier->supplier_name . ')';
+            }
+            return $displayName;
+        })->values();
+
+        return response()->json($results);
     }
 
     public function store(Request $request)
