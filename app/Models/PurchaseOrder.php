@@ -33,6 +33,9 @@ class PurchaseOrder extends Model
         'status',
         'approved_by',
         'approved_at',
+        'approved_latitude',
+        'approved_longitude',
+        'approved_location',
         'rejection_reason',
         'created_by',
     ];

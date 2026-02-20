@@ -22,6 +22,19 @@ class PurchaseOrderObserver
                 $purchaseOrder->approved_by = $purchaseOrder->getOriginal('approved_by');
             }
 
+            // Lock the approval coordinates (immutable signature location)
+            if ($purchaseOrder->isDirty('approved_latitude')) {
+                $purchaseOrder->approved_latitude = $purchaseOrder->getOriginal('approved_latitude');
+            }
+
+            if ($purchaseOrder->isDirty('approved_longitude')) {
+                $purchaseOrder->approved_longitude = $purchaseOrder->getOriginal('approved_longitude');
+            }
+
+            if ($purchaseOrder->isDirty('approved_location')) {
+                $purchaseOrder->approved_location = $purchaseOrder->getOriginal('approved_location');
+            }
+
             // Prevent status change from approved back to pending/other
             if ($purchaseOrder->isDirty('status')) {
                 $originalStatus = $purchaseOrder->getOriginal('status');
