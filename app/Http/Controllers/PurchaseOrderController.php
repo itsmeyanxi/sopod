@@ -180,12 +180,6 @@ class PurchaseOrderController extends Controller
         $purchaseOrder = PurchaseOrder::with(['items', 'creator', 'purchaseRequest', 'approver'])
             ->findOrFail($id);
 
-        if ($purchaseOrder->status !== 'approved') {
-            return redirect()
-                ->route('purchase_orders.show', $id)
-                ->with('error', 'Purchase Order must be approved before printing.');
-        }
-
         return view('purchase_orders.print', compact('purchaseOrder'));
     }
 

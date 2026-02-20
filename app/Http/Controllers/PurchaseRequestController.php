@@ -143,12 +143,6 @@ class PurchaseRequestController extends Controller
         $purchaseRequest = PurchaseRequest::with(['items', 'creator', 'approver'])
             ->findOrFail($id);
 
-        if ($purchaseRequest->status !== 'approved') {
-            return redirect()
-                ->route('purchase_requests.show', $id)
-                ->with('error', 'Purchase Request must be approved before printing.');
-        }
-
         return view('purchase_requests.print', compact('purchaseRequest'));
     }
 
