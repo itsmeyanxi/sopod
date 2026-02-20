@@ -275,7 +275,8 @@
                     @endif
 
                     @if(auth()->user()->hasRole(['Admin', 'IT', 'Purchasing', 'SCM']))
-                        <a href="{{ route('non_trade_items.index') }}" class="block hover:underline">Items Library</a>
+                        <a href="{{ route('non_trade_items.index') }}" class="block hover:underline">Non-Trade Items Library</a>
+                        <a href="{{ route('trade_items.index') }}" class="block hover:underline">Trade Items Library</a>
                     @endif
 
                     @if(auth()->user()->canManageRequestForPayments())
