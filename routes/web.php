@@ -1247,15 +1247,6 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return response()->json([]);
         })->name('search_prs');
 
-        // Generate Item Code (AJAX)
-        Route::get('/generate-item-code', function () {
-            $user = auth()->user();
-            if ($user->canManagePurchaseOrders()) {
-                return app(PurchaseOrderController::class)->generateItemCode(request());
-            }
-            return response()->json(['error' => 'Unauthorized'], 403);
-        })->name('generate_item_code');
-
         // Index
         Route::get('/', function () {
             $user = auth()->user();
@@ -1355,6 +1346,16 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return view('errors.noaccess');
         })->name('show');
     });
+
+    // ===================== GENERATE ITEM CODE (Global) =====================
+    Route::get('/generate-item-code', function () {
+        $user = auth()->user();
+        // Allow both PO and PR users to generate item codes
+        if ($user->canManagePurchaseOrders() || $user->canManagePurchaseRequests()) {
+            return app(\App\Http\Controllers\PurchaseOrderController::class)->generateItemCode(request());
+        }
+        return response()->json(['error' => 'Unauthorized'], 403);
+    })->name('generate_item_code');
 
     // ===================== NON-TRADE ITEMS LIBRARY =====================
     Route::prefix('non-trade-items')->name('non_trade_items.')->middleware('auth')->group(function () {

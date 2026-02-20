@@ -29,7 +29,9 @@ class DashboardController extends Controller
         $totalPending = SalesOrder::where('status', 'Pending')->count();
         $totalDeclined = SalesOrder::where('status', 'Declined')->count();
 
-        // 📦 Approved & Pending Purchase Orders
+        // 📦 Pending & Approved Purchase Orders
+        $pendingPOs = PurchaseOrder::where('status', 'pending')->count();
+
         $approvedPendingPOsList = PurchaseOrder::where('status', 'approved')
                                                ->whereNull('rejection_reason')
                                                ->orderBy('created_at', 'desc')
@@ -57,6 +59,7 @@ class DashboardController extends Controller
             'totalPending',
             'totalDeclined',
             'totalSalesThisMonth',
+            'pendingPOs',
             'approvedPendingPOs',
             'approvedPendingPOsList'
         ));
