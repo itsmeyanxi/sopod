@@ -1201,7 +1201,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Delete
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if ($user->canApprovePurchaseRequests()) {
+            if ($user->canManagePurchaseRequests()) {
                 return app(PurchaseRequestController::class)->destroy($id);
             }
             return view('errors.noaccess');

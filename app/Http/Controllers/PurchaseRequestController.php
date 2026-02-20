@@ -255,6 +255,19 @@ class PurchaseRequestController extends Controller
     {
         try {
             $purchaseRequest = PurchaseRequest::findOrFail($id);
+
+            // Only allow the creator (requisitioner) to delete their own PR
+            if ($purchaseRequest->created_by !== Auth::id()) {
+                return back()
+                    ->with('error', 'You can only delete your own Purchase Requests.');
+            }
+
+            // Only allow deletion of pending PRs
+            if ($purchaseRequest->status !== 'pending') {
+                return back()
+                    ->with('error', 'You can only delete Purchase Requests that are pending.');
+            }
+
             $purchaseRequest->delete();
 
             return redirect()

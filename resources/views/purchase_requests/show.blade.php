@@ -111,6 +111,7 @@
                     <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                         <tr>
                             <th class="border border-gray-700 px-4 py-3">NO.</th>
+                            <th class="border border-gray-700 px-4 py-3">ITEM CODE</th>
                             <th class="border border-gray-700 px-4 py-3">QTY</th>
                             <th class="border border-gray-700 px-4 py-3">UOM</th>
                             <th class="border border-gray-700 px-4 py-3">DESCRIPTION</th>
@@ -123,6 +124,7 @@
                         @foreach($purchaseRequest->items as $item)
                             <tr class="hover:bg-gray-700/40">
                                 <td class="border border-gray-700 px-4 py-3 text-center">{{ $item->item_no }}</td>
+                                <td class="border border-gray-700 px-4 py-3">{{ $item->item_code ?? 'N/A' }}</td>
                                 <td class="border border-gray-700 px-4 py-3">{{ number_format($item->qty, 2) }}</td>
                                 <td class="border border-gray-700 px-4 py-3">{{ $item->uom }}</td>
                                 <td class="border border-gray-700 px-4 py-3">{{ $item->description }}</td>
@@ -236,6 +238,11 @@
                 <a href="{{ route('purchase_requests.print', $purchaseRequest->id) }}" target="_blank" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
                     <i class="fas fa-print mr-1"></i> Print
                 </a>
+                @if(auth()->id() === $purchaseRequest->created_by && $purchaseRequest->status === 'pending')
+                    <button type="button" onclick="confirmDelete()" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition">
+                        <i class="fas fa-trash mr-1"></i> Delete
+                    </button>
+                @endif
             </div>
         </div>
     </div>
@@ -263,12 +270,38 @@
     </div>
 </div>
 
+<!-- Delete Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-white mb-4">Delete Purchase Request</h3>
+        <p class="text-gray-300 mb-6">Are you sure you want to delete this Purchase Request? This action cannot be undone.</p>
+        <form action="{{ route('purchase_requests.destroy', $purchaseRequest->id) }}" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeDeleteModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    Confirm Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function showRejectModal() {
     document.getElementById('rejectModal').classList.remove('hidden');
 }
 function closeRejectModal() {
     document.getElementById('rejectModal').classList.add('hidden');
+}
+function confirmDelete() {
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
 }
 </script>
 
