@@ -16,11 +16,19 @@
 
         @if($errors->any())
             <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">
+                <p class="font-bold mb-2">❌ Form Validation Errors:</p>
                 <ul class="list-disc list-inside">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">
+                <p class="font-bold mb-2">❌ Error:</p>
+                <p>{{ session('error') }}</p>
             </div>
         @endif
 
