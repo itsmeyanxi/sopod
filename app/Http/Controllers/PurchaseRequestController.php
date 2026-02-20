@@ -154,6 +154,13 @@ class PurchaseRequestController extends Controller
     {
         $purchaseRequest = PurchaseRequest::with('items')->findOrFail($id);
 
+        // Prevent editing of approved/rejected PRs - signature date is immutable
+        if (in_array($purchaseRequest->status, ['approved', 'rejected']) && $purchaseRequest->approved_at !== null) {
+            return redirect()
+                ->route('purchase_requests.show', $purchaseRequest->id)
+                ->with('error', 'Cannot edit an approved or rejected Purchase Request. The signature date and approval are permanent.');
+        }
+
         $companies = [
             'North Breeders Corporation',
             'Pacific Agro Resources Inc.',

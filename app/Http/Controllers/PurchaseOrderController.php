@@ -225,6 +225,13 @@ class PurchaseOrderController extends Controller
     {
         $purchaseOrder = PurchaseOrder::with('items')->findOrFail($id);
 
+        // Prevent editing of approved POs - signature date is immutable
+        if ($purchaseOrder->status === 'approved' && $purchaseOrder->approved_at !== null) {
+            return redirect()
+                ->route('purchase_orders.show', $purchaseOrder->id)
+                ->with('error', 'Cannot edit an approved Purchase Order. The signature date and approval are permanent.');
+        }
+
         $companies = [
             'North Breeders Corporation',
             'Pacific Agro Resources Inc.',
