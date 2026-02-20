@@ -262,12 +262,6 @@ class PurchaseRequestController extends Controller
                     ->with('error', 'You can only delete your own Purchase Requests.');
             }
 
-            // Only allow deletion of pending PRs
-            if ($purchaseRequest->status !== 'pending') {
-                return back()
-                    ->with('error', 'You can only delete Purchase Requests that are pending.');
-            }
-
             $purchaseRequest->delete();
 
             return redirect()

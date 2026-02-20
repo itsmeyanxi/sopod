@@ -238,7 +238,7 @@
                 <a href="{{ route('purchase_requests.print', $purchaseRequest->id) }}" target="_blank" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
                     <i class="fas fa-print mr-1"></i> Print
                 </a>
-                @if(auth()->id() === $purchaseRequest->created_by && $purchaseRequest->status === 'pending')
+                @if(auth()->id() === $purchaseRequest->created_by)
                     <button type="button" onclick="confirmDelete()" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition">
                         <i class="fas fa-trash mr-1"></i> Delete
                     </button>
