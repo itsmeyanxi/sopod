@@ -24,8 +24,25 @@
             </div>
         @endif
 
+        <!-- Search PO Section -->
+        @if(!$selectedPO)
+        <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+            <h3 class="font-semibold text-white mb-2"><i class="fas fa-search mr-2"></i>Search Approved Purchase Order</h3>
+            <div class="relative">
+                <input
+                    type="text"
+                    id="poSearchInput"
+                    class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Search by PO No, Supplier, or Company..."
+                />
+                <div id="poSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+            </div>
+        </div>
+        @endif
+
         <form action="{{ route('request_for_payments.store') }}" method="POST" id="rfpForm">
             @csrf
+            <input type="hidden" id="maxRfpAmount" value="{{ $poAmount ? number_format($poAmount, 2, '.', '') : '' }}">
 
             <!-- Company Selection -->
             <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
@@ -97,16 +114,19 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">LINKED PO:</label>
-                        <input type="hidden" name="purchase_order_id" value="{{ old('purchase_order_id', $selectedPO->id ?? '') }}">
-                        @if($selectedPO)
-                            <div class="p-3 bg-green-900/20 border border-green-700 rounded text-green-300">
-                                <i class="fas fa-link mr-2"></i>{{ $selectedPO->po_no }}
-                            </div>
-                        @else
-                            <div class="p-3 bg-gray-900 border border-gray-700 rounded text-gray-400">
-                                No PO linked
-                            </div>
-                        @endif
+                        <input type="hidden" name="purchase_order_id" id="purchase_order_id" value="{{ old('purchase_order_id', $selectedPO->id ?? '') }}">
+                        <div id="linkedPODisplay">
+                            @if($selectedPO)
+                                <div class="p-3 bg-green-900/20 border border-green-700 rounded text-green-300 flex justify-between items-center">
+                                    <span><i class="fas fa-link mr-2"></i>{{ $selectedPO->po_no }}</span>
+                                    <button type="button" id="unlinkPO" class="text-red-400 hover:text-red-300 text-sm"><i class="fas fa-times"></i></button>
+                                </div>
+                            @else
+                                <div class="p-3 bg-gray-900 border border-gray-700 rounded text-gray-400">
+                                    No PO linked — use search above
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -114,14 +134,17 @@
             <!-- Main Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">PAYEE: <span class="text-red-400">*</span></label>
-                    <input type="text" name="payee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee', $selectedPO->supplier ?? '') }}" required>
+                    <label class="block font-semibold text-gray-300 mb-2">PAYEE (Vendor/Supplier): <span class="text-red-400">*</span></label>
+                    <input type="text" name="payee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee', $selectedPO ? (
+    $selectedPO->items->map(fn($item) => $item->supplierModel->supplier_name ?? $item->supplier_name ?? null)->filter()->unique()->implode(' / ')
+    ?: ($selectedPO->supplierModel->supplier_name ?? $selectedPO->supplier ?? '')
+) : '') }}" required>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-300 mb-2">AMOUNT: <span class="text-red-400">*</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-2.5 text-gray-400">₱</span>
-                        <input type="number" step="0.01" name="amount" class="w-full bg-gray-900 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount') }}" required>
+                        <input type="number" step="0.01" name="amount" class="w-full bg-gray-900 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount', $poAmount ? number_format($poAmount, 2, '.', '') : '') }}" required>
                     </div>
                 </div>
             </div>
@@ -201,4 +224,195 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // PO Search & Auto-fill
+    const poSearchInput = document.getElementById('poSearchInput');
+    const poSearchResults = document.getElementById('poSearchResults');
+
+    if (poSearchInput) {
+        let debounceTimer;
+
+        poSearchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const searchTerm = this.value.trim();
+
+            if (searchTerm.length < 2) {
+                poSearchResults.classList.add('hidden');
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                fetch(`{{ route('request_for_payments.search_pos') }}?search=${encodeURIComponent(searchTerm)}`)
+                    .then(response => response.json())
+                    .then(pos => {
+                        if (pos.length === 0) {
+                            poSearchResults.innerHTML = '<div class="p-4 text-gray-400">No approved POs found</div>';
+                            poSearchResults.classList.remove('hidden');
+                            return;
+                        }
+
+                        let html = '<div class="divide-y divide-gray-700">';
+                        pos.forEach(po => {
+                            html += `
+                                <div class="po-result-item block p-3 hover:bg-gray-700 transition cursor-pointer"
+                                     data-id="${po.id}"
+                                     data-po-no="${(po.po_no || '').replace(/"/g, '&quot;')}"
+                                     data-supplier="${(po.supplier || '').replace(/"/g, '&quot;')}"
+                                     data-company="${(po.company || '').replace(/"/g, '&quot;')}"
+                                     data-amount="${po.amount || 0}"
+                                     data-currency="${po.currency || 'PHP'}">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <div class="font-semibold text-purple-400">${po.po_no}</div>
+                                            <div class="text-sm text-gray-300">${po.supplier}</div>
+                                            <div class="text-xs text-gray-400">${po.company}</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm text-gray-300">${po.order_date || ''}</div>
+                                            <div class="text-sm text-green-400">${po.currency || 'PHP'} ${parseFloat(po.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        poSearchResults.innerHTML = html;
+                        poSearchResults.classList.remove('hidden');
+
+                        // Attach click handlers for inline auto-fill
+                        poSearchResults.querySelectorAll('.po-result-item').forEach(item => {
+                            item.addEventListener('click', function() {
+                                const poId = this.dataset.id;
+                                const poNo = this.dataset.poNo;
+                                const supplier = this.dataset.supplier;
+                                const company = this.dataset.company;
+                                const amount = this.dataset.amount;
+
+                                // Fill hidden PO ID
+                                document.getElementById('purchase_order_id').value = poId;
+
+                                // Fill linked PO display
+                                document.getElementById('linkedPODisplay').innerHTML = `
+                                    <div class="p-3 bg-green-900/20 border border-green-700 rounded text-green-300 flex justify-between items-center">
+                                        <span><i class="fas fa-link mr-2"></i>${poNo}</span>
+                                        <button type="button" id="unlinkPO" class="text-red-400 hover:text-red-300 text-sm"><i class="fas fa-times"></i></button>
+                                    </div>
+                                `;
+                                attachUnlinkHandler();
+
+                                // Fill payee from supplier
+                                const payeeInput = document.querySelector('input[name="payee"]');
+                                if (payeeInput) payeeInput.value = supplier;
+
+                                // Fill amount and set max limit
+                                const amountInput = document.querySelector('input[name="amount"]');
+                                const maxAmt = parseFloat(amount).toFixed(2);
+                                if (amountInput) { amountInput.value = maxAmt; amountInput.max = maxAmt; }
+                                document.getElementById('maxRfpAmount').value = maxAmt;
+
+                                // Fill company radio
+                                if (company) {
+                                    const radios = document.querySelectorAll('input[name="company"]');
+                                    radios.forEach(radio => {
+                                        if (radio.value === company) {
+                                            radio.checked = true;
+                                        }
+                                    });
+                                }
+
+                                // Fill particulars with PO reference
+                                const particularsInput = document.querySelector('textarea[name="particulars"]');
+                                if (particularsInput && !particularsInput.value.trim()) {
+                                    particularsInput.value = 'Payment for ' + poNo + ' - ' + supplier;
+                                }
+
+                                // Hide search
+                                poSearchResults.classList.add('hidden');
+                                poSearchInput.value = poNo;
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Search error:', error);
+                        poSearchResults.innerHTML = '<div class="p-4 text-red-400">Error searching POs</div>';
+                        poSearchResults.classList.remove('hidden');
+                    });
+            }, 300);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (poSearchInput && !poSearchInput.contains(e.target) && !poSearchResults.contains(e.target)) {
+                poSearchResults.classList.add('hidden');
+            }
+        });
+    }
+
+    // Unlink PO handler
+    function attachUnlinkHandler() {
+        const unlinkBtn = document.getElementById('unlinkPO');
+        if (unlinkBtn) {
+            unlinkBtn.addEventListener('click', function() {
+                document.getElementById('purchase_order_id').value = '';
+                document.getElementById('maxRfpAmount').value = '';
+                document.getElementById('linkedPODisplay').innerHTML = `
+                    <div class="p-3 bg-gray-900 border border-gray-700 rounded text-gray-400">
+                        No PO linked — use search above
+                    </div>
+                `;
+                const searchInput = document.getElementById('poSearchInput');
+                if (searchInput) searchInput.value = '';
+                // Remove max and warning from amount input
+                const amountInput = document.querySelector('input[name="amount"]');
+                if (amountInput) {
+                    amountInput.removeAttribute('max');
+                    amountInput.classList.remove('border-red-500');
+                    const w = amountInput.parentElement.querySelector('.amount-warning');
+                    if (w) w.remove();
+                }
+            });
+        }
+    }
+    attachUnlinkHandler();
+
+    // Amount limit validation
+    function validateRfpAmount() {
+        const maxEl = document.getElementById('maxRfpAmount');
+        const maxVal = parseFloat(maxEl ? maxEl.value : '');
+        const amountInput = document.querySelector('input[name="amount"]');
+        if (!amountInput || isNaN(maxVal) || maxVal <= 0) return true;
+
+        const val = parseFloat(amountInput.value) || 0;
+        const warning = amountInput.parentElement.querySelector('.amount-warning');
+        if (val > maxVal) {
+            if (!warning) {
+                const w = document.createElement('div');
+                w.className = 'amount-warning text-red-400 text-xs mt-1';
+                w.textContent = 'Amount cannot exceed PO total: ₱' + maxVal.toLocaleString('en-US', {minimumFractionDigits: 2});
+                amountInput.parentElement.appendChild(w);
+            }
+            amountInput.classList.add('border-red-500');
+            return false;
+        } else {
+            if (warning) warning.remove();
+            amountInput.classList.remove('border-red-500');
+            return true;
+        }
+    }
+
+    const rfpAmountInput = document.querySelector('input[name="amount"]');
+    if (rfpAmountInput) {
+        rfpAmountInput.addEventListener('input', validateRfpAmount);
+    }
+
+    // Prevent form submission if amount exceeds limit
+    document.getElementById('rfpForm').addEventListener('submit', function(e) {
+        if (!validateRfpAmount()) {
+            e.preventDefault();
+            alert('Amount cannot exceed the linked PO total. Please correct the amount.');
+        }
+    });
+});
+</script>
 @endsection

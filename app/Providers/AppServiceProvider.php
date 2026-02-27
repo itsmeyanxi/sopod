@@ -3,10 +3,15 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 use App\Models\SalesOrder;
 use App\Observers\SalesOrderObserver;
 use App\Models\Customer;
 use App\Observers\CustomerObserver;
+use App\Models\PurchaseOrder;
+use App\Observers\PurchaseOrderObserver;
+use App\Models\PurchaseRequest;
+use App\Observers\PurchaseRequestObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        URL::forceScheme('https');
+
         SalesOrder::observe(SalesOrderObserver::class);
+        PurchaseOrder::observe(PurchaseOrderObserver::class);
+        PurchaseRequest::observe(PurchaseRequestObserver::class);
     }
 }

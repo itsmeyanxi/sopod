@@ -10,7 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- ✅ Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-sV1Q1vHbItg4pTo8x4i1Lr3b6eC5ayvJe7f9kM3qFms0tYgM1zMyxSm+kWjqT7wn3C1HrN6S3iX3UnyFwX9bOg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -140,6 +140,21 @@
             <span class="sidebar-text">Dashboard</span>
         </a>
 
+        <!-- PO Dashboard -->
+        @if(auth()->user()->canManagePurchaseRequests() || auth()->user()->canManagePurchaseOrders() || auth()->user()->canManageRequestForPayments() || auth()->user()->hasRole(['Accounting_Creator', 'Accounting_Approver']))
+        <a href="{{ route('po_dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+            <span>💰</span>
+            <span class="sidebar-text">PO Dashboard</span>
+        </a>
+        @endif
+
+        @if(auth()->user()->canManagePurchaseRequests() || auth()->user()->canManagePurchaseOrders() || auth()->user()->canManageRequestForPayments() || auth()->user()->hasRole(['Accounting_Creator', 'Accounting_Approver']))
+        <a href="{{ route('po_summary') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+            <span>📋</span>
+            <span class="sidebar-text">PO Summary</span>
+        </a>
+        @endif
+
         <!-- =================== SALES ORDERS =================== -->
         @if(auth()->user()->canManageSalesOrders())
             <div>
@@ -187,7 +202,7 @@
                 <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
                     <span class="flex items-center space-x-2">
                         <span>🏢</span>
-                        <span class="sidebar-text">Suppliers</span>
+                        <span class="sidebar-text">Supply Chain</span>
                     </span>
                     <span class="chevron">▼</span>
                 </button>
@@ -196,6 +211,9 @@
                     <a href="{{ route('suppliers.index') }}" class="block hover:underline">Supplier List</a>
                     @if(auth()->user()->canManageSupplierReceivingReports())
                         <a href="{{ route('supplier_receiving_reports.index') }}" class="block hover:underline">Receiving Reports</a>
+                    @endif
+                    @if(auth()->user()->canManageIssueSlips())
+                        <a href="{{ route('issue_slips.index') }}" class="block hover:underline">Issue Slips</a>
                     @endif
                 </div>
             </div>
@@ -275,7 +293,8 @@
                     @endif
 
                     @if(auth()->user()->hasRole(['Admin', 'IT', 'Purchasing', 'SCM']))
-                        <a href="{{ route('non_trade_items.index') }}" class="block hover:underline">Items Library</a>
+                        <a href="{{ route('non_trade_items.index') }}" class="block hover:underline">Non-Trade Items Library</a>
+                        <a href="{{ route('trade_items.index') }}" class="block hover:underline">Trade Items Library</a>
                     @endif
 
                     @if(auth()->user()->canManageRequestForPayments())

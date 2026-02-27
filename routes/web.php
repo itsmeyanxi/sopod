@@ -31,7 +31,9 @@ use App\Http\Controllers\{
     LockController,
     SupplierReceivingReportController,
     NonTradeItemController,
-    CurrencyController
+    TradeItemController,
+    CurrencyController,
+    POSummaryController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -49,6 +51,10 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
 
     // ===================== AUTHENTICATED ROUTES =====================
     Route::middleware(['auth'])->group(function () {
+
+    // ===================== PO SUMMARY ROUTES =====================
+    Route::get('/po-summary', [POSummaryController::class, 'index'])->name('po_summary');
+    Route::get('/po-summary/api-data', [POSummaryController::class, 'apiData'])->name('po_summary.api_data');
 
     // ===================== PAYMENTS ENTRY =====================
     Route::prefix('payments')->name('payments.')->group(function () {
@@ -266,7 +272,8 @@ Route::post('/excel/import/ar-adjustments', [ExcelImportController::class, 'impo
     })->name('excel.import.ar_aging');
 
     // ===================== DASHBOARD =====================
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::match(['get', 'post'], '/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/po-dashboard', [DashboardController::class, 'poDashboard'])->name('po_dashboard');
     Route::get('/recent-activities', [DashboardController::class, 'viewAllActivities'])->name('recent_activities.index');
 
     // In routes/web.php
@@ -962,6 +969,91 @@ Route::prefix('items')->name('items.')->group(function () {
         })->name('show');
     });
 
+    // ===================== ISSUE SLIPS =====================
+    Route::prefix('issue-slips')->name('issue_slips.')->group(function () {
+
+        Route::get('/', function () {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->index(request());
+            }
+            return view('errors.noaccess');
+        })->name('index');
+
+        Route::get('/create', function () {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->create();
+            }
+            return view('errors.noaccess');
+        })->name('create');
+
+        Route::post('/', function () {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->store(request());
+            }
+            return view('errors.noaccess');
+        })->name('store');
+
+        // Search Sales Orders (AJAX)
+        Route::get('/search-sales-orders', function () {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->searchSalesOrders(request());
+            }
+            return response()->json([]);
+        })->name('search_sales_orders');
+
+        // Search Customers (AJAX for destination)
+        Route::get('/search-customers', function () {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->searchCustomers(request());
+            }
+            return response()->json([]);
+        })->name('search_customers');
+
+        // Get SO items (AJAX)
+        Route::get('/sales-order-items/{soId}', function ($soId) {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->getSalesOrderItems($soId);
+            }
+            return response()->json([]);
+        })->name('get_so_items');
+
+        Route::get('/{id}/print', function ($id) {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->print($id);
+            }
+            return view('errors.noaccess');
+        })->name('print');
+
+        Route::get('/{id}/edit', function ($id) {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->edit($id);
+            }
+            return view('errors.noaccess');
+        })->name('edit');
+
+        Route::put('/{id}', function ($id) {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->update(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update');
+
+        Route::delete('/{id}', function ($id) {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+
+        // Show (must be last)
+        Route::get('/{id}', function ($id) {
+            if (auth()->user()->canManageIssueSlips()) {
+                return app(\App\Http\Controllers\IssueSlipController::class)->show($id);
+            }
+            return view('errors.noaccess');
+        })->name('show');
+    });
+
     // ===================== DELIVERIES =====================
     Route::prefix('deliveries')->name('deliveries.')->group(function () {
         
@@ -1135,6 +1227,24 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
     // ===================== PURCHASE REQUESTS =====================
     Route::prefix('purchase_requests')->name('purchase_requests.')->group(function () {
 
+        // Search Suppliers (AJAX) for per-item supplier
+        Route::get('/search-suppliers', function () {
+            $user = auth()->user();
+            if ($user->canManagePurchaseRequests()) {
+                $search = request()->input('q', '');
+                return \App\Models\Supplier::where('status', 'active')
+                    ->where(function ($query) use ($search) {
+                        $query->where('supplier_name', 'LIKE', "%{$search}%")
+                              ->orWhere('supplier_code', 'LIKE', "%{$search}%");
+                    })
+                    ->select('id', 'supplier_code', 'supplier_name', 'address')
+                    ->orderBy('supplier_name')
+                    ->limit(10)
+                    ->get();
+            }
+            return response()->json([]);
+        })->name('search_suppliers');
+
         // Index
         Route::get('/', function () {
             $user = auth()->user();
@@ -1162,11 +1272,29 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return view('errors.noaccess');
         })->name('store');
 
-        // Approve
+        // Approve as Department Head
+        Route::post('/{id}/approve-dh', function ($id) {
+            $user = auth()->user();
+            if ($user->canApprovePurchaseRequestsAsDH()) {
+                return app(PurchaseRequestController::class)->approveDH(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_dh');
+
+        // Approve as Management
+        Route::post('/{id}/approve-management', function ($id) {
+            $user = auth()->user();
+            if ($user->canApprovePurchaseRequestsAsManagement()) {
+                return app(PurchaseRequestController::class)->approveManagement(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_management');
+
+        // Approve as Executive
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if ($user->canApprovePurchaseRequests()) {
-                return app(PurchaseRequestController::class)->approve($id);
+            if ($user->canApprovePurchaseRequestsAsExecutive()) {
+                return app(PurchaseRequestController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
         })->name('approve');
@@ -1198,10 +1326,19 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return view('errors.noaccess');
         })->name('update');
 
+        // Update Notes (for approved PRs)
+        Route::put('/{id}/update-notes', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->updateNotes(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update_notes');
+
         // Delete
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if ($user->canApprovePurchaseRequests()) {
+            if ($user->canManagePurchaseRequests()) {
                 return app(PurchaseRequestController::class)->destroy($id);
             }
             return view('errors.noaccess');
@@ -1247,6 +1384,52 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return response()->json([]);
         })->name('search_prs');
 
+            // ===================== GENERATE ITEM CODE (Global) =====================
+    Route::get('/generate-item-code', function () {
+        $user = auth()->user();
+        // Allow both PO and PR users to generate item codes
+        if ($user->canManagePurchaseOrders() || $user->canManagePurchaseRequests()) {
+            return app(\App\Http\Controllers\PurchaseOrderController::class)->generateItemCode(request());
+        }
+        return response()->json(['error' => 'Unauthorized'], 403);
+    })->name('generate_item_code');
+
+    // ===================== SEARCH BY ITEM CODE (Global) =====================
+    Route::get('/search-by-item-code', function () {
+        $user = auth()->user();
+        if ($user->canManagePurchaseOrders() || $user->canManagePurchaseRequests()) {
+            return app(\App\Http\Controllers\PurchaseOrderController::class)->searchByItemCode(request());
+        }
+        return response()->json(['error' => 'Unauthorized'], 403);
+    })->name('search_by_item_code');
+
+        // Search Suppliers (AJAX)
+        Route::get('/search-suppliers', function () {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                $search = request()->input('q', '');
+                return \App\Models\Supplier::where('status', 'active')
+                    ->where(function ($query) use ($search) {
+                        $query->where('supplier_name', 'LIKE', "%{$search}%")
+                              ->orWhere('supplier_code', 'LIKE', "%{$search}%");
+                    })
+                    ->select('id', 'supplier_code', 'supplier_name', 'address')
+                    ->orderBy('supplier_name')
+                    ->limit(10)
+                    ->get();
+            }
+            return response()->json([]);
+        })->name('search_suppliers');
+
+        // Get PR Details (AJAX) - Allow reuse across multiple POs
+        Route::get('/get-pr-details', function () {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->getPRDetails(request());
+            }
+            return response()->json(['error' => 'Unauthorized'], 403);
+        })->name('get_pr_details');
+
         // Index
         Route::get('/', function () {
             $user = auth()->user();
@@ -1274,11 +1457,29 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return view('errors.noaccess');
         })->name('store');
 
-        // Approve
+        // Approve as Department Head
+        Route::post('/{id}/approve-dh', function ($id) {
+            $user = auth()->user();
+            if ($user->canApprovePurchaseOrdersAsDH()) {
+                return app(PurchaseOrderController::class)->approveDH(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_dh');
+
+        // Approve as Management
+        Route::post('/{id}/approve-management', function ($id) {
+            $user = auth()->user();
+            if ($user->canApprovePurchaseOrdersAsManagement()) {
+                return app(PurchaseOrderController::class)->approveManagement(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_management');
+
+        // Approve as Executive
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if ($user->canApprovePurchaseOrders()) {
-                return app(PurchaseOrderController::class)->approve($id);
+            if ($user->canApprovePurchaseOrdersAsExecutive()) {
+                return app(PurchaseOrderController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
         })->name('approve');
@@ -1337,6 +1538,15 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return view('errors.noaccess');
         })->name('print');
 
+        // Update Notes (works on approved POs too)
+        Route::put('/{id}/update-notes', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->updateNotes(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update_notes');
+
         // Show (must be last)
         Route::get('/{id}', function ($id) {
             $user = auth()->user();
@@ -1377,10 +1587,65 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return view('errors.noaccess');
         })->name('import');
 
+        Route::put('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+                return app(NonTradeItemController::class)->update(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update');
+
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
             if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
                 return app(NonTradeItemController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+    });
+
+    // ===================== TRADE ITEMS LIBRARY =====================
+    Route::prefix('trade-items')->name('trade_items.')->middleware('auth')->group(function () {
+        Route::get('/', function () {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+                return app(TradeItemController::class)->index(request());
+            }
+            return view('errors.noaccess');
+        })->name('index');
+
+        Route::get('/search', function () {
+            return app(TradeItemController::class)->search(request());
+        })->name('search');
+
+        Route::post('/store', function () {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+                return app(TradeItemController::class)->store(request());
+            }
+            return view('errors.noaccess');
+        })->name('store');
+
+        Route::post('/import', function () {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+                return app(TradeItemController::class)->import(request());
+            }
+            return view('errors.noaccess');
+        })->name('import');
+
+        Route::put('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+                return app(TradeItemController::class)->update(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('update');
+
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+                return app(TradeItemController::class)->destroy($id);
             }
             return view('errors.noaccess');
         })->name('destroy');
@@ -1425,11 +1690,29 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return view('errors.noaccess');
         })->name('store');
 
-        // Approve
+        // Approve DH (Level 1)
+        Route::post('/{id}/approve-dh', function ($id) {
+            $user = auth()->user();
+            if ($user->canApproveRFPAsDH()) {
+                return app(RequestForPaymentController::class)->approveDH(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_dh');
+
+        // Approve Accounting (Level 2)
+        Route::post('/{id}/approve-accounting', function ($id) {
+            $user = auth()->user();
+            if ($user->canApproveRFPAsAccounting()) {
+                return app(RequestForPaymentController::class)->approveAccounting(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_accounting');
+
+        // Approve Executive (Level 3 - Final)
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if ($user->canApproveRequestForPayments()) {
-                return app(RequestForPaymentController::class)->approve($id);
+            if ($user->canApproveRFPAsExecutive()) {
+                return app(RequestForPaymentController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
         })->name('approve');
@@ -1528,11 +1811,20 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return view('errors.noaccess');
         })->name('store');
 
-        // Approve
+        // Approve DH (Level 1)
+        Route::post('/{id}/approve-dh', function ($id) {
+            $user = auth()->user();
+            if ($user->canApproveAPVAsDH()) {
+                return app(AccountsPayableInvoiceController::class)->approveDH(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_dh');
+
+        // Approve (Level 2 - Final)
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
-                return app(AccountsPayableInvoiceController::class)->approve($id);
+            if ($user->canApproveAPV()) {
+                return app(AccountsPayableInvoiceController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
         })->name('approve');
@@ -1540,7 +1832,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Reject
         Route::post('/{id}/reject', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver', 'Department_Head'])) {
                 return app(AccountsPayableInvoiceController::class)->reject(request(), $id);
             }
             return view('errors.noaccess');
@@ -1567,7 +1859,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Delete
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
+            if (in_array($user->role, ['Admin', 'IT', 'Department_Head'])) {
                 return app(AccountsPayableInvoiceController::class)->destroy($id);
             }
             return view('errors.noaccess');
@@ -1631,11 +1923,20 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return view('errors.noaccess');
         })->name('store');
 
-        // Approve
+        // Approve Accounting (Level 1)
+        Route::post('/{id}/approve-accounting', function ($id) {
+            $user = auth()->user();
+            if ($user->canApproveCVAsAccounting()) {
+                return app(CheckVoucherController::class)->approveAccounting(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_accounting');
+
+        // Approve ODM/FDM (Level 2 - Final)
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
-                return app(CheckVoucherController::class)->approve($id);
+            if ($user->canApproveCV()) {
+                return app(CheckVoucherController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
         })->name('approve');
@@ -1670,7 +1971,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Delete
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
+            if (in_array($user->role, ['Admin', 'IT', 'Department_Head'])) {
                 return app(CheckVoucherController::class)->destroy($id);
             }
             return view('errors.noaccess');
@@ -1704,6 +2005,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             }
             return view('errors.noaccess');
         })->name('index');
+        
 
         Route::get('/export', function () {
             $user = auth()->user();

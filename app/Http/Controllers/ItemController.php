@@ -465,10 +465,10 @@ public function bulkApprove(Request $request)
             'rejection_reason' => null,
         ]);
 
-        // ✅ Send notifications for each item
-        foreach ($items as $item) {
-            app(\App\Services\NotificationService::class)->notifyItemStatusChange($item->fresh(), 'approved');
-        }
+        // Send notifications for each item (disabled — method not implemented yet)
+        // foreach ($items as $item) {
+        //     app(\App\Services\NotificationService::class)->notifyItemStatusChange($item->fresh(), 'approved');
+        // }
 
         // Log activity
         Activity::create([

@@ -47,6 +47,11 @@ class UserManagementController extends Controller
             'PR_Approver',
             'Purchasing',
             'Procurement_Approver',
+            'Department_Head',
+            'General_Manager',
+            'CFO',
+            'President',
+            'Vice_President',
         ];
 
         return view('admin.users.create', compact('availableRoles'));
@@ -67,7 +72,7 @@ class UserManagementController extends Controller
                 'email' => 'required|email|unique:users',
                 'password' => 'required|min:6',
                 'roles' => 'required|array|min:1',
-                'roles.*' => 'required|in:Admin,IT,CSR,SCM,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,Requisitioner,PR_Approver,Purchasing,Procurement_Approver',
+                'roles.*' => 'required|in:Admin,IT,CSR,SCM,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,Requisitioner,PR_Approver,Purchasing,Procurement_Approver,Department_Head,General_Manager,CFO,President,Vice_President',
             ]);
 
             $user = User::create([
@@ -125,6 +130,11 @@ class UserManagementController extends Controller
             'PR_Approver',
             'Purchasing',
             'Procurement_Approver',
+            'Department_Head',
+            'General_Manager',
+            'CFO',
+            'President',
+            'Vice_President',
         ];
 
         return view('admin.users.edit', compact('user', 'roles'));
@@ -170,7 +180,7 @@ class UserManagementController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $id,
                 'roles' => 'required|array|min:1',
-                'roles.*' => 'required|in:Admin,IT,CSR,SCM,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,Requisitioner,PR_Approver,Purchasing,Procurement_Approver',
+                'roles.*' => 'required|in:Admin,IT,CSR,SCM,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,Requisitioner,PR_Approver,Purchasing,Procurement_Approver,Department_Head,General_Manager,CFO,President,Vice_President',
                 'password' => 'nullable|min:6',
             ]);
 

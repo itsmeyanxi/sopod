@@ -66,6 +66,25 @@
                 <input type="text" name="tin" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('tin') }}">
             </div>
 
+            <!-- Storage / Warehouse -->
+            <div class="mb-6">
+                <label class="block font-semibold text-gray-300 mb-2">STORAGE / WAREHOUSE:</label>
+                <select name="storage" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="">-- Select Warehouse / Storage --</option>
+                    @foreach([
+                        'Crystal Cold Chain Corp.',
+                        'Glacier South Refrigeration Services Corp.',
+                        'Icy Point Storage and Processing Corp.',
+                        'One Stop Warehousing Solutions, Inc.',
+                        'Benson Industrial Cold Storage, Inc.',
+                        'Apex Cold Storage Inc.',
+                        'Titan Transnational Corporation',
+                    ] as $warehouse)
+                        <option value="{{ $warehouse }}" {{ old('storage') == $warehouse ? 'selected' : '' }}>{{ $warehouse }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             <!-- Bank Information -->
             <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
                 <h3 class="font-semibold text-white mb-4">BANK INFORMATION</h3>

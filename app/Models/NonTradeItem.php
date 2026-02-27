@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class NonTradeItem extends Model
 {
-    protected $fillable = ['name', 'unit', 'supplier_id'];
+    protected $fillable = ['name', 'unit', 'supplier_id', 'item_code'];
 
     public function supplier()
     {

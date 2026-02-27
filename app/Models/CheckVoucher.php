@@ -35,8 +35,17 @@ class CheckVoucher extends Model
         'received_by',
         'date_received',
         'status',
+        'approval_stage',
+        'accounting_reviewed_by',
+        'accounting_reviewed_at',
+        'accounting_reviewed_latitude',
+        'accounting_reviewed_longitude',
+        'accounting_reviewed_location',
         'approval_user_id',
         'approval_date',
+        'approved_latitude',
+        'approved_longitude',
+        'approved_location',
         'rejection_reason',
         'created_by',
     ];
@@ -49,30 +58,27 @@ class CheckVoucher extends Model
         'check_amount' => 'decimal:2',
         'paid_amount' => 'decimal:2',
         'journal_entries' => 'array',
+        'accounting_reviewed_at' => 'datetime',
         'approval_date' => 'datetime',
     ];
 
-    /**
-     * Relationship with User (creator)
-     */
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * Relationship with AccountsPayableInvoice
-     */
     public function accountsPayableInvoice()
     {
         return $this->belongsTo(AccountsPayableInvoice::class, 'accounts_payable_invoice_id');
     }
 
-    /**
-     * Relationship with User who approved (system approval)
-     */
     public function approvalUser()
     {
         return $this->belongsTo(User::class, 'approval_user_id');
+    }
+
+    public function accountingReviewer()
+    {
+        return $this->belongsTo(User::class, 'accounting_reviewed_by');
     }
 }

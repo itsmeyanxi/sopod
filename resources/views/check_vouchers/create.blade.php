@@ -44,6 +44,7 @@
             @csrf
 
             <input type="hidden" name="accounts_payable_invoice_id" value="{{ old('accounts_payable_invoice_id', $selectedAPV->id ?? '') }}">
+            <input type="hidden" id="maxPayableAmount" value="{{ $selectedAPV->grand_total ?? '' }}">
 
             @if($selectedAPV)
             <div class="mb-6 p-4 bg-green-900/20 border border-green-700 rounded">
@@ -112,7 +113,7 @@
                         <label class="block font-semibold text-gray-300 mb-2">CHECK AMOUNT: <span class="text-red-400">*</span></label>
                         <div class="relative">
                             <span class="absolute left-3 top-2.5 text-gray-400">₱</span>
-                            <input type="number" step="0.01" name="check_amount" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('check_amount', $selectedAPV->grand_total ?? '') }}" required>
+                            <input type="number" step="0.01" name="check_amount" id="checkAmountInput" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('check_amount', $selectedAPV->grand_total ?? '') }}" {{ $selectedAPV ? 'max=' . $selectedAPV->grand_total : '' }} required>
                         </div>
                     </div>
                 </div>
@@ -147,7 +148,7 @@
                                     <input type="text" name="apv_no" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm" value="{{ old('apv_no', $selectedAPV->apv_no ?? '') }}">
                                 </td>
                                 <td class="px-4 py-2 border border-gray-700">
-                                    <input type="number" step="0.01" name="paid_amount" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm" value="{{ old('paid_amount', $selectedAPV->grand_total ?? '') }}" required>
+                                    <input type="number" step="0.01" name="paid_amount" id="paidAmountInput" class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm" value="{{ old('paid_amount', $selectedAPV->grand_total ?? '') }}" {{ $selectedAPV ? 'max=' . $selectedAPV->grand_total : '' }} required>
                                 </td>
                             </tr>
                         </tbody>
@@ -266,8 +267,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         let html = '<div class="divide-y divide-gray-700">';
                         invoices.forEach(invoice => {
                             html += `
-                                <a href="{{ route('check_vouchers.create') }}?apv_id=${invoice.id}"
-                                   class="block p-3 hover:bg-gray-700 transition">
+                                <div class="apv-result-item block p-3 hover:bg-gray-700 transition cursor-pointer"
+                                     data-id="${invoice.id}"
+                                     data-apv-no="${(invoice.apv_no || '').replace(/"/g, '&quot;')}"
+                                     data-vendor-name="${(invoice.vendor_name || '').replace(/"/g, '&quot;')}"
+                                     data-vendor-code="${(invoice.vendor_code || '').replace(/"/g, '&quot;')}"
+                                     data-vendor-address="${(invoice.vendor_address || '').replace(/"/g, '&quot;')}"
+                                     data-vendor-tin="${(invoice.vendor_tin || '').replace(/"/g, '&quot;')}"
+                                     data-currency="${(invoice.currency || 'PHP')}"
+                                     data-grand-total="${invoice.grand_total || 0}"
+                                     data-reference-no="${(invoice.reference_no || '').replace(/"/g, '&quot;')}"
+                                     data-particulars="${(invoice.particulars || '').replace(/"/g, '&quot;')}">
                                     <div class="flex justify-between items-center">
                                         <div>
                                             <div class="font-semibold text-purple-400">${invoice.apv_no}</div>
@@ -278,12 +288,70 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <div class="text-sm text-green-400">${invoice.currency} ${parseFloat(invoice.grand_total).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
                                         </div>
                                     </div>
-                                </a>
+                                </div>
                             `;
                         });
                         html += '</div>';
                         apvSearchResults.innerHTML = html;
                         apvSearchResults.classList.remove('hidden');
+
+                        // Attach click handlers for inline auto-fill
+                        apvSearchResults.querySelectorAll('.apv-result-item').forEach(item => {
+                            item.addEventListener('click', function() {
+                                // Fill hidden APV ID
+                                document.querySelector('input[name="accounts_payable_invoice_id"]').value = this.dataset.id;
+
+                                // Fill supplier info
+                                const supplierCode = document.querySelector('input[name="supplier_code"]');
+                                const supplierName = document.querySelector('input[name="supplier_name"]');
+                                const supplierAddress = document.querySelector('textarea[name="supplier_address"]');
+                                const supplierTin = document.querySelector('input[name="supplier_tin"]');
+                                if (supplierCode) supplierCode.value = this.dataset.vendorCode;
+                                if (supplierName) supplierName.value = this.dataset.vendorName;
+                                if (supplierAddress) supplierAddress.value = this.dataset.vendorAddress;
+                                if (supplierTin) supplierTin.value = this.dataset.vendorTin;
+
+                                // Fill check amount and paid amount (with max limit)
+                                const checkAmount = document.querySelector('input[name="check_amount"]');
+                                const paidAmount = document.querySelector('input[name="paid_amount"]');
+                                const grandTotal = parseFloat(this.dataset.grandTotal).toFixed(2);
+                                if (checkAmount) { checkAmount.value = grandTotal; checkAmount.max = grandTotal; }
+                                if (paidAmount) { paidAmount.value = grandTotal; paidAmount.max = grandTotal; }
+                                document.getElementById('maxPayableAmount').value = grandTotal;
+
+                                // Fill reference and APV no
+                                const refNo = document.querySelector('input[name="reference_no"]');
+                                const apvNo = document.querySelector('input[name="apv_no"]');
+                                if (refNo) refNo.value = this.dataset.referenceNo;
+                                if (apvNo) apvNo.value = this.dataset.apvNo;
+
+                                // Fill particulars
+                                const particulars = document.querySelector('textarea[name="particulars"]');
+                                if (particulars && !particulars.value.trim()) {
+                                    particulars.value = this.dataset.particulars;
+                                }
+
+                                // Show linked APV badge
+                                const searchSection = apvSearchInput.closest('.mb-6');
+                                if (searchSection) {
+                                    const badge = document.createElement('div');
+                                    badge.className = 'mt-2 p-3 bg-green-900/20 border border-green-700 rounded';
+                                    badge.innerHTML = `
+                                        <div class="flex items-center justify-between text-green-300">
+                                            <span><i class="fas fa-link mr-2"></i>Linked to APV: ${this.dataset.apvNo}</span>
+                                            <span class="text-sm text-gray-300">${this.dataset.vendorName} | ${this.dataset.currency} ${parseFloat(this.dataset.grandTotal).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                                        </div>
+                                    `;
+                                    const existingBadge = searchSection.querySelector('.bg-green-900\\/20');
+                                    if (existingBadge) existingBadge.remove();
+                                    searchSection.appendChild(badge);
+                                }
+
+                                // Hide search
+                                apvSearchResults.classList.add('hidden');
+                                apvSearchInput.value = this.dataset.apvNo;
+                            });
+                        });
                     })
                     .catch(error => {
                         console.error('Search error:', error);
@@ -338,6 +406,51 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 alert('At least one journal entry row is required.');
             }
+        }
+    });
+
+    // Amount limit validation
+    function validateAmountLimit(input, label) {
+        const maxEl = document.getElementById('maxPayableAmount');
+        const maxVal = parseFloat(maxEl ? maxEl.value : '');
+        if (isNaN(maxVal) || maxVal <= 0) return true;
+
+        const val = parseFloat(input.value) || 0;
+        const warning = input.parentElement.querySelector('.amount-warning');
+        if (val > maxVal) {
+            if (!warning) {
+                const w = document.createElement('div');
+                w.className = 'amount-warning text-red-400 text-xs mt-1';
+                w.textContent = label + ' cannot exceed ₱' + maxVal.toLocaleString('en-US', {minimumFractionDigits: 2});
+                input.parentElement.appendChild(w);
+            }
+            input.classList.add('border-red-500');
+            return false;
+        } else {
+            if (warning) warning.remove();
+            input.classList.remove('border-red-500');
+            return true;
+        }
+    }
+
+    const checkAmountInput = document.getElementById('checkAmountInput');
+    const paidAmountInput = document.getElementById('paidAmountInput');
+
+    if (checkAmountInput) {
+        checkAmountInput.addEventListener('input', () => validateAmountLimit(checkAmountInput, 'Check amount'));
+    }
+    if (paidAmountInput) {
+        paidAmountInput.addEventListener('input', () => validateAmountLimit(paidAmountInput, 'Paid amount'));
+    }
+
+    // Prevent form submission if amounts exceed limit
+    document.getElementById('cvForm').addEventListener('submit', function(e) {
+        let valid = true;
+        if (checkAmountInput && !validateAmountLimit(checkAmountInput, 'Check amount')) valid = false;
+        if (paidAmountInput && !validateAmountLimit(paidAmountInput, 'Paid amount')) valid = false;
+        if (!valid) {
+            e.preventDefault();
+            alert('Amount cannot exceed the APV grand total. Please correct the amounts.');
         }
     });
 });

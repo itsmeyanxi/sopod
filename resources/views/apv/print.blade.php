@@ -171,21 +171,21 @@
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $apv->prepared_by ?? '' }}</div>
                         @if($apv->prepared_by)
-                            <div class="e-signature">Digitally Approved</div>
+                            <div class="e-signature">Digitally Signed</div>
                             <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                         @endif
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $apv->reviewed_by ?? '' }}</div>
                         @if($apv->reviewed_by)
-                            <div class="e-signature">Digitally Approved</div>
+                            <div class="e-signature">Digitally Signed</div>
                             <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                         @endif
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $apv->approved_by ?? '' }}</div>
                         @if($apv->approved_by)
-                            <div class="e-signature">Digitally Approved</div>
+                            <div class="e-signature">Digitally Signed</div>
                             <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
                         @endif
                     </td>

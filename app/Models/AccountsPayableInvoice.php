@@ -41,8 +41,17 @@ class AccountsPayableInvoice extends Model
         'reviewed_by',
         'remarks',
         'status',
+        'approval_stage',
+        'department_head_approved_by',
+        'department_head_approved_at',
+        'department_head_approved_latitude',
+        'department_head_approved_longitude',
+        'department_head_approved_location',
         'approved_by',
         'approved_at',
+        'approved_latitude',
+        'approved_longitude',
+        'approved_location',
         'rejection_reason',
         'created_by',
     ];
@@ -59,30 +68,27 @@ class AccountsPayableInvoice extends Model
         'w_tax_amount' => 'decimal:2',
         'grand_total' => 'decimal:2',
         'forex_rate' => 'decimal:4',
+        'department_head_approved_at' => 'datetime',
         'approved_at' => 'datetime',
     ];
 
-    /**
-     * Relationship with User (creator)
-     */
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * Relationship with RequestForPayment
-     */
     public function requestForPayment()
     {
         return $this->belongsTo(RequestForPayment::class, 'request_for_payment_id');
     }
 
-    /**
-     * Relationship with User who approved
-     */
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function departmentHeadApprover()
+    {
+        return $this->belongsTo(User::class, 'department_head_approved_by');
     }
 }

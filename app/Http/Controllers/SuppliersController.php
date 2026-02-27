@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use App\Models\SupplierDocument;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +47,7 @@ class SuppliersController extends Controller
             'bank' => 'nullable|string',
             'account_name' => 'nullable|string',
             'account_number' => 'nullable|string',
+            'storage' => 'nullable|string',
             'documents.*' => 'nullable|file|max:10240',
             'document_names.*' => 'nullable|string|max:255',
         ]);
@@ -62,6 +64,7 @@ class SuppliersController extends Controller
                 'bank' => $request->bank,
                 'account_name' => $request->account_name,
                 'account_number' => $request->account_number,
+                'storage' => $request->storage,
                 'status' => 'active',
                 'created_by' => Auth::id(),
             ]);
@@ -86,6 +89,15 @@ class SuppliersController extends Controller
             }
 
             DB::commit();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Created',
+                'item' => $supplier->supplier_code . ' - ' . $supplier->supplier_name,
+                'target' => $supplier->address ?? 'N/A',
+                'type' => 'Supplier',
+                'message' => 'Added new supplier: ' . $supplier->supplier_name . ' (' . $supplier->supplier_code . ')',
+            ]);
 
             return redirect()
                 ->route('suppliers.show', $supplier->id)
@@ -134,6 +146,7 @@ class SuppliersController extends Controller
             'bank' => 'nullable|string',
             'account_name' => 'nullable|string',
             'account_number' => 'nullable|string',
+            'storage' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
@@ -150,9 +163,19 @@ class SuppliersController extends Controller
                 'bank' => $request->bank,
                 'account_name' => $request->account_name,
                 'account_number' => $request->account_number,
+                'storage' => $request->storage,
             ]);
 
             DB::commit();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Updated',
+                'item' => $supplier->supplier_code . ' - ' . $supplier->supplier_name,
+                'target' => $supplier->address ?? 'N/A',
+                'type' => 'Supplier',
+                'message' => 'Updated supplier: ' . $supplier->supplier_name . ' (' . $supplier->supplier_code . ')',
+            ]);
 
             return redirect()
                 ->route('suppliers.show', $supplier->id)
@@ -173,8 +196,18 @@ class SuppliersController extends Controller
     {
         try {
             $supplier = Supplier::findOrFail($id);
-            $supplier->status = $supplier->status === 'active' ? 'inactive' : 'active';
+            $newStatus = $supplier->status === 'active' ? 'inactive' : 'active';
+            $supplier->status = $newStatus;
             $supplier->save();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Status Changed',
+                'item' => $supplier->supplier_code . ' - ' . $supplier->supplier_name,
+                'target' => $newStatus,
+                'type' => 'Supplier',
+                'message' => 'Supplier ' . $supplier->supplier_name . ' status changed to ' . $newStatus,
+            ]);
 
             return back()->with('success', 'Supplier status updated successfully!');
 
@@ -190,7 +223,17 @@ class SuppliersController extends Controller
     {
         try {
             $supplier = Supplier::findOrFail($id);
+            $supplierName = $supplier->supplier_code . ' - ' . $supplier->supplier_name;
             $supplier->delete();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Deleted',
+                'item' => $supplierName,
+                'target' => 'N/A',
+                'type' => 'Supplier',
+                'message' => 'Deleted supplier: ' . $supplierName,
+            ]);
 
             return redirect()
                 ->route('suppliers.index')

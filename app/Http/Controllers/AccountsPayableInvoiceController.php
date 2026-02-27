@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AccountsPayableInvoice;
 use App\Models\RequestForPayment;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -32,11 +33,20 @@ class AccountsPayableInvoiceController extends Controller
 
         // Check if an RFP was selected
         $selectedRFP = null;
+        $supplierInfo = null;
         if ($request->has('rfp_id')) {
-            $selectedRFP = RequestForPayment::with('purchaseOrder')->find($request->rfp_id);
+            $selectedRFP = RequestForPayment::with(['purchaseOrder.supplierModel'])->find($request->rfp_id);
+            if ($selectedRFP && $selectedRFP->purchaseOrder) {
+                $supplier = $selectedRFP->purchaseOrder->supplierModel;
+                $supplierInfo = [
+                    'address' => $supplier->address ?? $selectedRFP->purchaseOrder->supplier_address ?? '',
+                    'tin' => $supplier->tin ?? '',
+                    'code' => $supplier->supplier_code ?? '',
+                ];
+            }
         }
 
-        return view('accounts_payable_invoices.create', compact('apvNo', 'selectedRFP'));
+        return view('accounts_payable_invoices.create', compact('apvNo', 'selectedRFP', 'supplierInfo'));
     }
 
     /**
@@ -46,15 +56,31 @@ class AccountsPayableInvoiceController extends Controller
     {
         $searchTerm = $request->input('search', '');
 
-        $rfps = RequestForPayment::where('status', 'approved')
+        $rfps = RequestForPayment::with(['purchaseOrder.supplierModel'])
+            ->where('status', 'approved')
             ->where(function ($query) use ($searchTerm) {
                 $query->where('rfp_no', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('payee', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('company', 'LIKE', "%{$searchTerm}%");
             })
-            ->select('id', 'rfp_no', 'payee', 'company', 'date', 'amount')
             ->limit(10)
-            ->get();
+            ->get()
+            ->map(function ($rfp) {
+                $supplier = $rfp->purchaseOrder->supplierModel ?? null;
+                return [
+                    'id' => $rfp->id,
+                    'rfp_no' => $rfp->rfp_no,
+                    'payee' => $rfp->payee,
+                    'company' => $rfp->company,
+                    'date' => $rfp->date,
+                    'amount' => (float) $rfp->amount,
+                    'particulars' => $rfp->particulars,
+                    'purchase_order_no' => $rfp->purchaseOrder->po_no ?? '',
+                    'vendor_address' => $supplier->address ?? $rfp->purchaseOrder->supplier_address ?? '',
+                    'vendor_tin' => $supplier->tin ?? '',
+                    'vendor_code' => $supplier->supplier_code ?? '',
+                ];
+            });
 
         return response()->json($rfps);
     }
@@ -73,6 +99,14 @@ class AccountsPayableInvoiceController extends Controller
             'total' => 'required|numeric|min:0',
             'currency' => 'required|string',
         ]);
+
+        // Validate total does not exceed linked RFP amount
+        if ($request->request_for_payment_id) {
+            $rfp = RequestForPayment::find($request->request_for_payment_id);
+            if ($rfp && (float) $request->total > (float) $rfp->amount) {
+                return back()->withInput()->with('error', 'Total amount (₱' . number_format($request->total, 2) . ') exceeds RFP amount (₱' . number_format($rfp->amount, 2) . ').');
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -128,6 +162,15 @@ class AccountsPayableInvoiceController extends Controller
 
             DB::commit();
 
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Created',
+                'item' => $invoice->apv_no,
+                'target' => $invoice->vendor_name,
+                'type' => 'Accounts Payable Invoice',
+                'message' => 'Created Accounts Payable Invoice ' . $invoice->apv_no . ' for ' . $invoice->vendor_name,
+            ]);
+
             return redirect()
                 ->route('accounts_payable_invoices.show', $invoice->id)
                 ->with('success', 'Accounts Payable Invoice created successfully!');
@@ -145,7 +188,7 @@ class AccountsPayableInvoiceController extends Controller
      */
     public function show($id)
     {
-        $invoice = AccountsPayableInvoice::with(['creator', 'requestForPayment', 'approver'])
+        $invoice = AccountsPayableInvoice::with(['creator', 'requestForPayment', 'approver', 'departmentHeadApprover'])
             ->findOrFail($id);
 
         return view('accounts_payable_invoices.show', compact('invoice'));
@@ -176,10 +219,18 @@ class AccountsPayableInvoiceController extends Controller
             'currency' => 'required|string',
         ]);
 
+        // Validate total does not exceed linked RFP amount
+        $invoice = AccountsPayableInvoice::findOrFail($id);
+        $rfpId = $request->request_for_payment_id ?: $invoice->request_for_payment_id;
+        if ($rfpId) {
+            $rfp = RequestForPayment::find($rfpId);
+            if ($rfp && (float) $request->total > (float) $rfp->amount) {
+                return back()->withInput()->with('error', 'Total amount (₱' . number_format($request->total, 2) . ') exceeds RFP amount (₱' . number_format($rfp->amount, 2) . ').');
+            }
+        }
+
         DB::beginTransaction();
         try {
-            $invoice = AccountsPayableInvoice::findOrFail($id);
-
             // Calculate totals
             $total = $request->total;
             $downpaymentAmount = $request->downpayment_amount ?? 0;
@@ -225,6 +276,15 @@ class AccountsPayableInvoiceController extends Controller
 
             DB::commit();
 
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Updated',
+                'item' => $invoice->apv_no,
+                'target' => $invoice->vendor_name,
+                'type' => 'Accounts Payable Invoice',
+                'message' => 'Updated Accounts Payable Invoice ' . $invoice->apv_no,
+            ]);
+
             return redirect()
                 ->route('accounts_payable_invoices.show', $invoice->id)
                 ->with('success', 'Invoice updated successfully!');
@@ -244,7 +304,17 @@ class AccountsPayableInvoiceController extends Controller
     {
         try {
             $invoice = AccountsPayableInvoice::findOrFail($id);
+            $apvNo = $invoice->apv_no;
             $invoice->delete();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Deleted',
+                'item' => $apvNo,
+                'target' => 'N/A',
+                'type' => 'Accounts Payable Invoice',
+                'message' => 'Deleted Accounts Payable Invoice ' . $apvNo,
+            ]);
 
             return redirect()
                 ->route('accounts_payable_invoices.index')
@@ -257,45 +327,96 @@ class AccountsPayableInvoiceController extends Controller
     }
 
     /**
-     * Approve an invoice
+     * Approve as Department Head (Level 1 - Review)
      */
-    public function approve($id)
+    public function approveDH(Request $request, $id)
     {
-        $invoice = AccountsPayableInvoice::findOrFail($id);
+        $user = Auth::user();
+        if (!$user->canApproveAPVAsDH()) {
+            return redirect()->route('accounts_payable_invoices.index')->with('error', 'Unauthorized.');
+        }
 
+        $invoice = AccountsPayableInvoice::where('approval_stage', 'pending_dh')->findOrFail($id);
         $invoice->update([
-            'status' => 'approved',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
+            'approval_stage' => 'pending_accounting',
+            'department_head_approved_by' => Auth::id(),
+            'department_head_approved_at' => now(),
+            'department_head_approved_latitude' => $request->input('latitude'),
+            'department_head_approved_longitude' => $request->input('longitude'),
+            'department_head_approved_location' => $request->input('location'),
             'rejection_reason' => null,
         ]);
 
-        return redirect()
-            ->back()
-            ->with('success', 'Invoice approved successfully!');
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Reviewed (DH)',
+            'item' => $invoice->apv_no,
+            'target' => $invoice->vendor_name,
+            'type' => 'Accounts Payable Invoice',
+            'message' => 'Department Head reviewed Accounts Payable Invoice ' . $invoice->apv_no,
+        ]);
+
+        return redirect()->back()->with('success', 'APV reviewed by Department Head. Forwarded to Accounting Manager.');
     }
 
     /**
-     * Reject an invoice
+     * Approve as Accounting Manager (Level 2 - Final)
+     */
+    public function approve(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user->canApproveAPV()) {
+            return redirect()->route('accounts_payable_invoices.index')->with('error', 'Unauthorized.');
+        }
+
+        $invoice = AccountsPayableInvoice::where('approval_stage', 'pending_accounting')->findOrFail($id);
+        $invoice->update([
+            'status' => 'approved',
+            'approval_stage' => 'approved',
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+            'approved_latitude' => $request->input('latitude'),
+            'approved_longitude' => $request->input('longitude'),
+            'approved_location' => $request->input('location'),
+            'rejection_reason' => null,
+        ]);
+
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Approved',
+            'item' => $invoice->apv_no,
+            'target' => $invoice->vendor_name,
+            'type' => 'Accounts Payable Invoice',
+            'message' => 'Approved Accounts Payable Invoice ' . $invoice->apv_no,
+        ]);
+
+        return redirect()->back()->with('success', 'Invoice approved!');
+    }
+
+    /**
+     * Reject an invoice (any stage)
      */
     public function reject(Request $request, $id)
     {
-        $request->validate([
-            'rejection_reason' => 'nullable|string|max:500',
-        ]);
-
+        $request->validate(['rejection_reason' => 'nullable|string|max:500']);
         $invoice = AccountsPayableInvoice::findOrFail($id);
 
         $invoice->update([
             'status' => 'rejected',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
+            'approval_stage' => 'rejected',
             'rejection_reason' => $request->rejection_reason,
         ]);
 
-        return redirect()
-            ->back()
-            ->with('success', 'Invoice rejected.');
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Rejected',
+            'item' => $invoice->apv_no,
+            'target' => $invoice->vendor_name,
+            'type' => 'Accounts Payable Invoice',
+            'message' => 'Rejected Accounts Payable Invoice ' . $invoice->apv_no,
+        ]);
+
+        return redirect()->back()->with('success', 'Invoice rejected.');
     }
 
     /**
@@ -303,7 +424,7 @@ class AccountsPayableInvoiceController extends Controller
      */
     public function print($id)
     {
-        $apv = AccountsPayableInvoice::findOrFail($id);
-        return view('apv.print', ['apv' => $apv]);
+        $apv = AccountsPayableInvoice::with(['creator', 'approver', 'departmentHeadApprover'])->findOrFail($id);
+        return view('accounts_payable_invoices.print', ['apv' => $apv]);
     }
 }

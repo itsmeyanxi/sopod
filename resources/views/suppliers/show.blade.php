@@ -65,6 +65,11 @@
                         <label class="text-gray-400 text-sm">TIN</label>
                         <p class="text-white">{{ $supplier->tin ?? 'N/A' }}</p>
                     </div>
+
+                    <div>
+                        <label class="text-gray-400 text-sm">Storage / Warehouse</label>
+                        <p class="text-white">{{ $supplier->storage ?? 'N/A' }}</p>
+                    </div>
                 </div>
 
                 <!-- Contact & Bank Information -->

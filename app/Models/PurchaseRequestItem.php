@@ -11,13 +11,18 @@ class PurchaseRequestItem extends Model
 
     protected $fillable = [
         'purchase_request_id',
+        'supplier_id',
+        'supplier_name',
         'item_no',
+        'item_code',
+        'date_needed',
         'qty',
         'uom',
         'description',
         'unit_price',
         'amount',
         'remarks',
+        'note',
     ];
 
     /**
@@ -26,5 +31,21 @@ class PurchaseRequestItem extends Model
     public function purchaseRequest()
     {
         return $this->belongsTo(PurchaseRequest::class, 'purchase_request_id', 'id');
+    }
+
+    /**
+     * Relationship with Supplier
+     */
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
+
+    /**
+     * Relationship with PurchaseOrderItems
+     */
+    public function purchaseOrderItems()
+    {
+        return $this->hasMany(PurchaseOrderItem::class, 'purchase_request_item_id', 'id');
     }
 }

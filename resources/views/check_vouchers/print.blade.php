@@ -60,7 +60,7 @@
             <div class="logo-section">
                 <img src="{{ asset('images/sopod-logo.png') }}" class="logo" alt="Logo">
                 <div class="company-info">
-                    <div class="company-name">{{ $checkVoucher->company ?? 'Meatplus Trading Corp' }}</div>
+                    <div class="company-name">{{ $checkVoucher->company ?? 'Pacific Magalang Agriventures Inc.' }}</div>
                     <div class="company-address">
                         12F Victoria Building, United Nations Avenue, Ermita, Manila, Philippines, 1004<br>
                         VAT Reg. TIN 006-873-989-000
@@ -155,7 +155,32 @@
                 @endforelse
             </tbody>
         </table>
-
+<!-- Journal Entry -->
+@if(is_array($checkVoucher->journal_entries) && count($checkVoucher->journal_entries) > 0)
+<div class="section-header" style="margin-top: 10px;">JOURNAL ENTRY:</div>
+<table style="margin-bottom: 10px;">
+    <thead>
+        <tr>
+            <th style="width: 5%;">No.</th>
+            <th style="width: 30%;">Account Code</th>
+            <th style="width: 40%;">Account Name</th>
+            <th style="width: 12.5%;">Debit (PHP)</th>
+            <th style="width: 12.5%;">Credit (PHP)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($checkVoucher->journal_entries as $index => $entry)
+        <tr>
+            <td class="text-center">{{ $index + 1 }}</td>
+            <td class="text-left">{{ $entry['account_code'] ?? '' }}</td>
+            <td class="text-left">{{ $entry['account_name'] ?? '' }}</td>
+            <td class="text-right">{{ isset($entry['debit']) && $entry['debit'] ? number_format($entry['debit'], 2) : '' }}</td>
+            <td class="text-right">{{ isset($entry['credit']) && $entry['credit'] ? number_format($entry['credit'], 2) : '' }}</td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+@endif
         <!-- Remarks -->
         @if($checkVoucher->remarks)
             <div class="detail-box">
@@ -175,26 +200,37 @@
                 </tr>
                 <tr>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
-                        <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->prepared_by ?? '' }}</div>
-                        @if($checkVoucher->prepared_by)
-                            <div class="e-signature">Digitally Approved</div>
-                            <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                        <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->creator->name ?? ($checkVoucher->prepared_by ?? '') }}</div>
+                        @if($checkVoucher->creator && $checkVoucher->created_at)
+                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature-detail">Date/Time: {{ $checkVoucher->created_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                         @endif
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
-                        <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->reviewed_by ?? '' }}</div>
-                        @if($checkVoucher->reviewed_by)
-                            <div class="e-signature">Digitally Approved</div>
-                            <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                        <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->accountingReviewer->name ?? ($checkVoucher->reviewed_by ?? '') }}</div>
+                        @if($checkVoucher->accountingReviewer && $checkVoucher->accounting_reviewed_at)
+                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature-detail">Date/Time: {{ $checkVoucher->accounting_reviewed_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                            @if($checkVoucher->accounting_reviewed_latitude && $checkVoucher->accounting_reviewed_longitude)
+                                <div class="e-signature-detail">Coords: {{ $checkVoucher->accounting_reviewed_latitude }}, {{ $checkVoucher->accounting_reviewed_longitude }}@if($checkVoucher->accounting_reviewed_location) ({{ $checkVoucher->accounting_reviewed_location }})@endif</div>
+                            @endif
                         @endif
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
-                        <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->approved_by ?? '' }}</div>
-                        @if($checkVoucher->approved_by)
-                            <div class="e-signature">Digitally Approved</div>
-                            <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                        <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->approvalUser->name ?? ($checkVoucher->approved_by ?? '') }}</div>
+                        @if($checkVoucher->approvalUser && $checkVoucher->approval_date)
+                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature-detail">Date/Time: {{ $checkVoucher->approval_date->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                            @if($checkVoucher->approved_latitude && $checkVoucher->approved_longitude)
+                                <div class="e-signature-detail">Coords: {{ $checkVoucher->approved_latitude }}, {{ $checkVoucher->approved_longitude }}@if($checkVoucher->approved_location) ({{ $checkVoucher->approved_location }})@endif</div>
+                            @endif
                         @endif
                     </td>
+                </tr>
+                <tr>
+                    <td class="text-center" style="font-size: 8px; font-style: italic; background: #f0f0f0;">Creator</td>
+                    <td class="text-center" style="font-size: 8px; font-style: italic; background: #f0f0f0;">Accounting Manager</td>
+                    <td class="text-center" style="font-size: 8px; font-style: italic; background: #f0f0f0;">ODM / FDM</td>
                 </tr>
             </table>
         </div>
