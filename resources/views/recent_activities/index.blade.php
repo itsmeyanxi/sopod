@@ -1,10 +1,10 @@
 @extends('layouts.app')
-@section('title', 'All Recent Activities')
+@section('title', $pageTitle ?? 'All Recent Activities')
 @section('content')
 <div class="max-w-7xl mx-auto bg-gray-800 p-8 rounded-lg shadow-md mt-8">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-white">All Recent Activities</h1>
-        <a href="{{ route('dashboard') }}" 
+        <h1 class="text-2xl font-bold text-white">{{ $pageTitle ?? 'All Recent Activities' }}</h1>
+        <a href="{{ $backRoute ?? route('dashboard') }}"
            class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded-lg">
             ← Back to Dashboard
         </a>
@@ -32,11 +32,17 @@
                             <td class="px-4 py-2">{{ $activity->message ?? '—' }}</td>
                             <td class="px-4 py-2">
                                 <span class="inline-block px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap
-                                    {{ $activity->type === 'Customer' ? 'bg-blue-100 text-blue-700' : 
+                                    {{ $activity->type === 'Customer' ? 'bg-blue-100 text-blue-700' :
                                        ($activity->type === 'Item' ? 'bg-green-100 text-green-700' :
                                        ($activity->type === 'Sales Order' ? 'bg-yellow-100 text-yellow-700' :
-                                       ($activity->type === 'Delivery' ? 'bg-purple-100 text-purple-700' : 
-                                       'bg-red-100 text-red-700'))) }}">
+                                       ($activity->type === 'Delivery' ? 'bg-purple-100 text-purple-700' :
+                                       ($activity->type === 'Purchase Order' ? 'bg-orange-100 text-orange-700' :
+                                       ($activity->type === 'Supplier' ? 'bg-teal-100 text-teal-700' :
+                                       ($activity->type === 'Purchase Request' ? 'bg-blue-100 text-blue-700' :
+                                       ($activity->type === 'Request For Payment' ? 'bg-purple-100 text-purple-700' :
+                                       ($activity->type === 'Accounts Payable Invoice' ? 'bg-orange-100 text-orange-700' :
+                                       ($activity->type === 'Check Voucher' ? 'bg-green-100 text-green-700' :
+                                       'bg-red-100 text-red-700'))))))))) }}">
                                     {{ $activity->type ?? '—' }}
                                 </span>
                             </td>

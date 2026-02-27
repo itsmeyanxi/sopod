@@ -23,6 +23,7 @@ class Supplier extends Model
         'created_by',
         'contact_person',  // ✅ ADD THIS - for storing contact person from Excel
         'terms',           // ✅ ADD THIS - for storing payment/delivery terms from Excel
+        'storage',
     ];
 
     /**

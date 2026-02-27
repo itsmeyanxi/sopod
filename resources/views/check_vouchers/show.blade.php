@@ -19,6 +19,11 @@
                 <a href="{{ route('check_vouchers.print', $voucher->id) }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition inline-block">
                     <i class="fas fa-print mr-1"></i> Print
                 </a>
+                @if(auth()->user()->hasRole(['Admin', 'IT', 'Department_Head']))
+                    <button type="button" onclick="confirmDelete()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
+                        <i class="fas fa-trash mr-1"></i> Delete
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -34,51 +39,13 @@
             </div>
         @endif
 
-        <!-- Approval Actions -->
-        @if(in_array(auth()->user()->role, ['Admin', 'IT', 'Accounting_Approver']) && $voucher->status === 'pending')
-            <div class="flex gap-3 mb-4">
-                <form action="{{ route('check_vouchers.approve', $voucher->id) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
-                        Approve
-                    </button>
-                </form>
-                <button type="button" onclick="showRejectModal()" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition">
-                    Reject
-                </button>
-            </div>
-        @endif
-
-        @if($voucher->status === 'approved' && $voucher->approvalUser)
-            <div class="p-4 bg-green-900/20 border border-green-700 rounded mb-4">
-                <p class="text-green-400">
-                    Approved by {{ $voucher->approvalUser->name }}
-                    on {{ $voucher->approval_date->format('M d, Y h:i A') }}
-                </p>
-            </div>
-        @endif
-
-        @if($voucher->status === 'rejected' && $voucher->approvalUser)
-            <div class="p-4 bg-red-900/20 border border-red-700 rounded mb-4">
-                <p class="text-red-400">
-                    Rejected by {{ $voucher->approvalUser->name }}
-                    on {{ $voucher->approval_date->format('M d, Y h:i A') }}
-                </p>
-                @if($voucher->rejection_reason)
-                    <p class="text-gray-300 mt-2">
-                        <strong>Reason:</strong> {{ $voucher->rejection_reason }}
-                    </p>
-                @endif
-            </div>
-        @endif
-
-        <!-- Check Voucher Content (Print-friendly) -->
+        <!-- Check Voucher Content -->
         <div id="printableVoucher" class="bg-white text-black p-8 rounded">
             <!-- Header -->
             <div class="text-center mb-6">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-bold">Meatplus Trading Corp</h2>
+                        <h2 class="text-2xl font-bold">Pacific Magalang Agriventures Inc.</h2>
                         <p class="text-xs">12F Victoria Building</p>
                         <p class="text-xs">United Nations Avenue, Ermita, Manila, Philippines, 1004</p>
                         <p class="text-xs">VAT Reg. TIN 006-873-989-000</p>
@@ -172,7 +139,7 @@
             </div>
 
             <!-- Journal Entry -->
-            @if($voucher->journal_entries && count($voucher->journal_entries) > 0)
+            @if(is_array($voucher->journal_entries) && count($voucher->journal_entries) > 0)
             <div class="mb-6">
                 <p class="font-semibold mb-2">Journal Entry</p>
                 <table class="w-full border-collapse border border-black text-sm">
@@ -224,15 +191,41 @@
             <div class="grid grid-cols-3 gap-8 mb-6 text-sm">
                 <div class="text-center">
                     <p class="mb-8">Prepared by:</p>
-                    <p class="font-bold border-t border-black pt-1">{{ $voucher->prepared_by ?? '___________________' }}</p>
+                    <p class="font-bold border-t border-black pt-1">{{ $voucher->creator->name ?? ($voucher->prepared_by ?? '___________________') }}</p>
+                    @if($voucher->creator && $voucher->created_at)
+                        <p class="text-xs text-gray-500 italic mt-1">
+                            Digitally Signed<br>
+                            {{ $voucher->created_at->format('d M Y | H:i') }}
+                        </p>
+                    @endif
                 </div>
                 <div class="text-center">
                     <p class="mb-8">Reviewed by:</p>
-                    <p class="font-bold border-t border-black pt-1">{{ $voucher->reviewed_by ?? '___________________' }}</p>
+                    <p class="font-bold border-t border-black pt-1">{{ $voucher->accountingReviewer->name ?? ($voucher->reviewed_by ?? '___________________') }}</p>
+                    @if($voucher->accountingReviewer && $voucher->accounting_reviewed_at)
+                        <p class="text-xs text-gray-500 italic mt-1">
+                            Digitally Signed<br>
+                            {{ $voucher->accounting_reviewed_at->format('d M Y | H:i') }}
+                            @if($voucher->accounting_reviewed_latitude && $voucher->accounting_reviewed_longitude)
+                                <br>Coords: {{ $voucher->accounting_reviewed_latitude }}, {{ $voucher->accounting_reviewed_longitude }}
+                                @if($voucher->accounting_reviewed_location) ({{ $voucher->accounting_reviewed_location }}) @endif
+                            @endif
+                        </p>
+                    @endif
                 </div>
                 <div class="text-center">
                     <p class="mb-8">Approved by:</p>
-                    <p class="font-bold border-t border-black pt-1">{{ $voucher->approved_by ?? 'ODM / FDM' }}</p>
+                    <p class="font-bold border-t border-black pt-1">{{ $voucher->approvalUser->name ?? ($voucher->approved_by ?? 'ODM / FDM') }}</p>
+                    @if($voucher->approvalUser && $voucher->approval_date)
+                        <p class="text-xs text-gray-500 italic mt-1">
+                            Digitally Signed<br>
+                            {{ $voucher->approval_date->format('d M Y | H:i') }}
+                            @if($voucher->approved_latitude && $voucher->approved_longitude)
+                                <br>Coords: {{ $voucher->approved_latitude }}, {{ $voucher->approved_longitude }}
+                                @if($voucher->approved_location) ({{ $voucher->approved_location }}) @endif
+                            @endif
+                        </p>
+                    @endif
                 </div>
             </div>
 
@@ -259,27 +252,173 @@
                     <p>Page 1 of 1</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Status Footer (Not printed) -->
-            <div class="mt-6 pt-4 border-t border-gray-300 text-xs text-gray-500 no-print">
-                <div class="flex justify-between">
-                    <div>
-                        <p>Status:
-                            <span class="font-semibold {{ $voucher->status === 'approved' ? 'text-green-600' : ($voucher->status === 'rejected' ? 'text-red-600' : 'text-yellow-600') }}">
-                                {{ strtoupper($voucher->status) }}
-                            </span>
-                        </p>
-                        <p>Created by: {{ $voucher->creator->name ?? 'N/A' }} on {{ $voucher->created_at->format('F d, Y h:i A') }}</p>
-                    </div>
-                    <div class="text-right">
-                        @if($voucher->updated_by)
-                            <p>Last updated by: {{ $voucher->updater->name ?? 'N/A' }}</p>
-                            <p>on {{ $voucher->updated_at->format('F d, Y h:i A') }}</p>
+        <!-- Approval Trail -->
+        <div class="mb-6 mt-6 p-4 bg-gray-900 border border-gray-700 rounded">
+            <h3 class="text-lg font-semibold text-white mb-4">Approval Trail</h3>
+            <div class="space-y-3">
+                <!-- Accounting Manager Review -->
+                <div class="flex items-start gap-4 p-3 bg-gray-800 rounded">
+                    <div class="flex-shrink-0">
+                        @if($voucher->accounting_reviewed_by)
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-600">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                        @else
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                                <i class="fas fa-clock text-gray-300"></i>
+                            </div>
                         @endif
                     </div>
+                    <div class="flex-1">
+                        <p class="text-gray-300">
+                            <span class="font-semibold">Accounting Manager Review</span>
+                            @if($voucher->accounting_reviewed_by && $voucher->accountingReviewer)
+                                <span class="text-green-400">✓ Reviewed</span>
+                                <br>
+                                <small class="text-gray-400">
+                                    {{ $voucher->accountingReviewer->name }}
+                                    on {{ $voucher->accounting_reviewed_at->format('M d, Y h:i A') }}
+                                </small>
+                            @else
+                                <span class="text-yellow-400">Pending</span>
+                            @endif
+                        </p>
+                    </div>
                 </div>
+
+                <!-- ODM/FDM Final Approval -->
+                <div class="flex items-start gap-4 p-3 bg-gray-800 rounded">
+                    <div class="flex-shrink-0">
+                        @if($voucher->status === 'approved' && $voucher->approvalUser)
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-600">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                        @elseif($voucher->accounting_reviewed_by)
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                                <i class="fas fa-clock text-gray-300"></i>
+                            </div>
+                        @else
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-gray-300">
+                            <span class="font-semibold">ODM/FDM Approval</span>
+                            @if($voucher->status === 'approved' && $voucher->approvalUser)
+                                <span class="text-green-400">✓ Approved</span>
+                                <br>
+                                <small class="text-gray-400">
+                                    {{ $voucher->approvalUser->name }}
+                                    on {{ $voucher->approval_date->format('M d, Y h:i A') }}
+                                </small>
+                            @elseif($voucher->accounting_reviewed_by)
+                                <span class="text-yellow-400">Pending</span>
+                            @else
+                                <span class="text-gray-400">Locked</span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Rejection Status -->
+                @if($voucher->status === 'rejected')
+                    <div class="flex items-start gap-4 p-3 bg-red-900/20 border border-red-700 rounded">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-red-600">
+                                <i class="fas fa-times text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-red-400">
+                                <span class="font-semibold">Rejected</span>
+                            </p>
+                            @if($voucher->rejection_reason)
+                                <p class="text-gray-300 mt-2">
+                                    <strong>Reason:</strong> {{ $voucher->rejection_reason }}
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
+
+        <!-- Approval Buttons -->
+        @if($voucher->status === 'pending' && $voucher->approval_stage !== 'rejected')
+            <div class="flex gap-3 mb-4">
+                @if($voucher->approval_stage === 'pending_accounting' && auth()->user()->canApproveCVAsAccounting())
+                    <button type="button" onclick="showApproveAccountingModal()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
+                        <i class="fas fa-check mr-1"></i> Approve as Accounting Manager
+                    </button>
+                @endif
+
+                @if($voucher->approval_stage === 'pending_odm' && auth()->user()->canApproveCV())
+                    <button type="button" onclick="showApproveODMModal()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
+                        <i class="fas fa-check mr-1"></i> Approve as ODM/FDM
+                    </button>
+                @endif
+
+                @if(in_array(auth()->user()->role, ['Admin', 'IT', 'Accounting_Approver']))
+                    <button type="button" onclick="showRejectModal()" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition">
+                        <i class="fas fa-times mr-1"></i> Reject
+                    </button>
+                @endif
+            </div>
+        @endif
+    </div>
+</div>
+
+<!-- Accounting Manager Approval Modal -->
+<div id="approveAccountingModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-white mb-4">Approve as Accounting Manager</h3>
+        <form action="{{ route('check_vouchers.approve_accounting', $voucher->id) }}" method="POST">
+            @csrf
+            <input type="hidden" name="latitude" id="acct_latitude">
+            <input type="hidden" name="longitude" id="acct_longitude">
+            <input type="hidden" name="location" id="acct_location">
+            <div class="mb-4">
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="acct_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeApproveAccountingModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                    Cancel
+                </button>
+                <button type="submit" id="acct_submit_btn" class="bg-gray-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
+                    <i class="fas fa-spinner fa-spin mr-1"></i> Waiting for location...
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ODM/FDM Approval Modal -->
+<div id="approveODMModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-white mb-4">Approve as ODM/FDM</h3>
+        <form action="{{ route('check_vouchers.approve', $voucher->id) }}" method="POST">
+            @csrf
+            <input type="hidden" name="latitude" id="odm_latitude">
+            <input type="hidden" name="longitude" id="odm_longitude">
+            <input type="hidden" name="location" id="odm_location">
+            <div class="mb-4">
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="odm_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeApproveODMModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                    Cancel
+                </button>
+                <button type="submit" id="odm_submit_btn" class="bg-gray-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
+                    <i class="fas fa-spinner fa-spin mr-1"></i> Waiting for location...
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -306,11 +445,110 @@
 </div>
 
 <script>
+// Accounting Manager Approval
+function showApproveAccountingModal() {
+    document.getElementById('approveAccountingModal').classList.remove('hidden');
+    captureGeolocation('acct');
+}
+function closeApproveAccountingModal() {
+    document.getElementById('approveAccountingModal').classList.add('hidden');
+}
+
+// ODM/FDM Approval
+function showApproveODMModal() {
+    document.getElementById('approveODMModal').classList.remove('hidden');
+    captureGeolocation('odm');
+}
+function closeApproveODMModal() {
+    document.getElementById('approveODMModal').classList.add('hidden');
+}
+
+// Reject
 function showRejectModal() {
     document.getElementById('rejectModal').classList.remove('hidden');
 }
 function closeRejectModal() {
     document.getElementById('rejectModal').classList.add('hidden');
+}
+
+// Geolocation Capture
+function enableSubmitButton(submitBtn, withLocation) {
+    if (!submitBtn) return;
+    submitBtn.disabled = false;
+    if (withLocation) {
+        submitBtn.className = 'bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700';
+        submitBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Confirm Approval';
+    } else {
+        submitBtn.className = 'bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700';
+        submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Approve Without Location';
+    }
+}
+
+function captureGeolocationByIP(prefix, statusEl, submitBtn) {
+    statusEl.textContent = 'Using IP-based location as fallback...';
+    statusEl.className = 'text-sm text-blue-400';
+    fetch('https://ipapi.co/json/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.latitude && data.longitude) {
+                document.getElementById(prefix + '_latitude').value = data.latitude;
+                document.getElementById(prefix + '_longitude').value = data.longitude;
+                document.getElementById(prefix + '_location').value = data.city || data.region || 'Unknown';
+                statusEl.textContent = 'Location captured (IP-based): ' + data.latitude + ', ' + data.longitude + ' (' + (data.city || 'Unknown') + ')';
+                statusEl.className = 'text-sm text-green-400';
+                enableSubmitButton(submitBtn, true);
+            } else {
+                statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
+                statusEl.className = 'text-sm text-yellow-400';
+                enableSubmitButton(submitBtn, false);
+            }
+        })
+        .catch(() => {
+            statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
+            statusEl.className = 'text-sm text-yellow-400';
+            enableSubmitButton(submitBtn, false);
+        });
+}
+
+function captureGeolocation(prefix) {
+    const statusEl = document.getElementById(prefix + '_geolocation_status');
+    const submitBtn = document.getElementById(prefix + '_submit_btn');
+    if (!navigator.geolocation) {
+        captureGeolocationByIP(prefix, statusEl, submitBtn);
+        return;
+    }
+    statusEl.textContent = 'Capturing location...';
+    statusEl.className = 'text-sm text-blue-400';
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            document.getElementById(prefix + '_latitude').value = lat;
+            document.getElementById(prefix + '_longitude').value = lng;
+            getLocationName(lat, lng, prefix);
+            statusEl.textContent = 'Location captured: ' + lat.toFixed(6) + ', ' + lng.toFixed(6);
+            statusEl.className = 'text-sm text-green-400';
+            enableSubmitButton(submitBtn, true);
+        },
+        function(error) {
+            captureGeolocationByIP(prefix, statusEl, submitBtn);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+
+function getLocationName(lat, lng, prefix) {
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng)
+        .then(response => response.json())
+        .then(data => {
+            if (data.address) {
+                const locationName = data.address.city || data.address.town || data.address.village || 'Unknown';
+                document.getElementById(prefix + '_location').value = locationName;
+            }
+        })
+        .catch(() => {
+            document.getElementById(prefix + '_location').value = 'Location: ' + lat.toFixed(6) + ', ' + lng.toFixed(6);
+        });
 }
 </script>
 
@@ -337,4 +575,34 @@ function closeRejectModal() {
     }
 }
 </style>
+
+<!-- Delete Confirmation Modal -->
+@if(auth()->user()->hasRole(['Admin', 'IT', 'Department_Head']))
+<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-white mb-4">Delete Check Voucher</h3>
+        <p class="text-gray-300 mb-4">Are you sure you want to delete check voucher <strong>{{ $voucher->cv_no }}</strong>? This action cannot be undone.</p>
+        <form action="{{ route('check_vouchers.destroy', $voucher->id) }}" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeDeleteModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    <i class="fas fa-trash mr-1"></i> Confirm Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+function confirmDelete() {
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+</script>
+@endif
 @endsection

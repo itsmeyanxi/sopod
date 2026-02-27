@@ -25,8 +25,22 @@ class RequestForPayment extends Model
         'requested_by',
         'checked_by',
         'status',
+        'approval_stage',
+        'department_head_approved_by',
+        'department_head_approved_at',
+        'department_head_approved_latitude',
+        'department_head_approved_longitude',
+        'department_head_approved_location',
+        'accounting_approved_by',
+        'accounting_approved_at',
+        'accounting_approved_latitude',
+        'accounting_approved_longitude',
+        'accounting_approved_location',
         'approved_by',
         'approved_at',
+        'approved_latitude',
+        'approved_longitude',
+        'approved_location',
         'rejection_reason',
         'created_by',
     ];
@@ -36,31 +50,34 @@ class RequestForPayment extends Model
         'due_date' => 'datetime',
         'amount' => 'decimal:2',
         'payment_methods' => 'array',
+        'department_head_approved_at' => 'datetime',
+        'accounting_approved_at' => 'datetime',
         'approved_at' => 'datetime',
     ];
 
-    /**
-     * Relationship with User (creator)
-     */
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * Relationship with PurchaseOrder
-     */
     public function purchaseOrder()
     {
         return $this->belongsTo(PurchaseOrder::class, 'purchase_order_id');
     }
 
-    /**
-     * Relationship with User who approved
-     */
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function departmentHeadApprover()
+    {
+        return $this->belongsTo(User::class, 'department_head_approved_by');
+    }
+
+    public function accountingApprover()
+    {
+        return $this->belongsTo(User::class, 'accounting_approved_by');
     }
 
     /**

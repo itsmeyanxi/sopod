@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
 use App\Models\PurchaseRequestItem;
+use App\Models\PurchaseOrderItem;
 use App\Models\NonTradeItem;
 use App\Models\Supplier;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -17,9 +19,29 @@ class PurchaseRequestController extends Controller
      */
     public function index()
     {
-        $purchaseRequests = PurchaseRequest::with(['creator', 'items'])
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $user = Auth::user();
+        $query = PurchaseRequest::with(['creator', 'items']);
+
+        if ($user->hasRole(['Admin', 'IT'])) {
+            // Admin/IT see all — no filter
+        } elseif ($user->hasRole(['President', 'Vice_President'])) {
+            $query->where(function($q) use ($user) {
+                $q->whereIn('approval_stage', ['pending_dh', 'pending_management', 'pending_executive', 'approved'])
+                  ->orWhere('created_by', $user->id);
+            });
+        } elseif ($user->hasRole(['General_Manager', 'CFO'])) {
+            $query->where(function($q) use ($user) {
+                $q->whereIn('approval_stage', ['pending_management', 'pending_executive', 'approved'])
+                  ->orWhere('created_by', $user->id);
+            });
+        } elseif ($user->hasRole(['Department_Head'])) {
+            $query->where(function($q) use ($user) {
+                $q->where('approval_stage', 'pending_dh')
+                  ->orWhere('created_by', $user->id);
+            });
+        }
+
+        $purchaseRequests = $query->orderByDesc('created_at')->paginate(20);
 
         return view('purchase_requests.index', compact('purchaseRequests'));
     }
@@ -29,10 +51,8 @@ class PurchaseRequestController extends Controller
      */
     public function create()
     {
-        // Generate PR number
         $prNo = 'PR-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-        // Define companies
         $companies = [
             'North Breeders Corporation',
             'Pacific Agro Resources Inc.',
@@ -40,12 +60,100 @@ class PurchaseRequestController extends Controller
             'Pacific Agrisolutions Enterprises Inc.',
         ];
 
-        // Get active suppliers for dropdown
-        $suppliers = Supplier::where('status', 'active')
-            ->orderBy('supplier_name')
-            ->get();
+        return view('purchase_requests.create', compact('prNo', 'companies'));
+    }
 
-        return view('purchase_requests.create', compact('prNo', 'companies', 'suppliers'));
+    /**
+     * Search suppliers for autocomplete (AJAX)
+     *
+     * When a `description` is provided, only return suppliers who have previously
+     * supplied an item with that description. Falls back to all active suppliers if
+     * no description-matched suppliers exist.
+     */
+    public function searchSuppliers(Request $request)
+    {
+        $q                 = $request->input('q', '');
+        $description       = trim($request->input('description', ''));
+        $currentSupplierId = $request->input('current_supplier_id');
+
+        // Base query: active suppliers matching the typed name/code search
+        $baseQuery = Supplier::where('status', 'active')
+            ->where(function ($query) use ($q) {
+                $query->where('supplier_name', 'LIKE', "%{$q}%")
+                      ->orWhere('supplier_code', 'LIKE', "%{$q}%");
+            });
+
+        if ($description !== '') {
+            // Find supplier IDs confirmed in the library for this exact item
+            $confirmedIds = collect();
+
+            $confirmedIds = $confirmedIds->merge(
+                NonTradeItem::where('name', $description)
+                    ->whereNotNull('supplier_id')
+                    ->pluck('supplier_id')
+            );
+
+            $confirmedIds = $confirmedIds->merge(
+                \App\Models\TradeItem::where('name', $description)
+                    ->whereNotNull('supplier_id')
+                    ->pluck('supplier_id')
+            );
+
+            $confirmedIds = $confirmedIds->unique()->filter()->values();
+
+            if ($confirmedIds->isNotEmpty()) {
+                $suppliers = (clone $baseQuery)
+                    ->whereIn('id', $confirmedIds)
+                    ->orderBy('supplier_name')
+                    ->limit(15)
+                    ->get(['id', 'supplier_name', 'supplier_code', 'address']);
+
+                // If the current supplier is set but NOT in the confirmed list, prepend them
+                if ($currentSupplierId && !$confirmedIds->contains($currentSupplierId)) {
+                    $currentSupplier = Supplier::where('status', 'active')
+                        ->find($currentSupplierId, ['id', 'supplier_name', 'supplier_code', 'address']);
+
+                    if ($currentSupplier) {
+                        $currentSupplier->carries_item = false;
+                        $currentSupplier->is_current   = true;
+                        $suppliers = collect([$currentSupplier])->merge(
+                            $suppliers->map(function ($s) {
+                                $s->carries_item = true;
+                                return $s;
+                            })
+                        );
+                        return response()->json($suppliers->values());
+                    }
+                }
+
+                if ($suppliers->isNotEmpty()) {
+                    return response()->json($suppliers->map(function ($s) {
+                        $s->carries_item = true;
+                        return $s;
+                    }));
+                }
+            }
+
+            // Item not in library — show all suppliers; mark current supplier specially
+            $suppliers = $baseQuery->orderBy('supplier_name')->limit(15)
+                ->get(['id', 'supplier_name', 'supplier_code', 'address']);
+
+            return response()->json($suppliers->map(function ($s) use ($currentSupplierId) {
+                $s->carries_item = false;
+                $s->is_fallback  = true;
+                $s->is_current   = ($currentSupplierId && $s->id == $currentSupplierId);
+                return $s;
+            }));
+        }
+
+        // No description context — plain supplier search, no item filtering
+        $suppliers = $baseQuery->orderBy('supplier_name')->limit(15)
+            ->get(['id', 'supplier_name', 'supplier_code', 'address']);
+
+        return response()->json($suppliers->map(function ($s) use ($currentSupplierId) {
+            $s->is_current = ($currentSupplierId && $s->id == $currentSupplierId);
+            return $s;
+        }));
     }
 
     /**
@@ -60,16 +168,14 @@ class PurchaseRequestController extends Controller
             'date_of_request' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.qty' => 'required|numeric|min:0',
-            'items.*.uom' => 'required|string',
+            'items.*.uom' => 'nullable|string',
             'items.*.description' => 'required|string',
         ]);
 
         DB::beginTransaction();
         try {
-            // Generate PR number
             $prNo = 'PR-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-            // Create purchase request
             $purchaseRequest = PurchaseRequest::create([
                 'pr_no' => $prNo,
                 'company' => $request->company,
@@ -91,21 +197,23 @@ class PurchaseRequestController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
-            // Create items
             foreach ($request->items as $index => $item) {
                 PurchaseRequestItem::create([
                     'purchase_request_id' => $purchaseRequest->id,
+                    'supplier_id' => $item['supplier_id'] ?? null,
+                    'supplier_name' => $item['supplier_name'] ?? null,
                     'item_no' => $index + 1,
                     'item_code' => $item['item_code'] ?? null,
+                    'date_needed' => $item['date_needed'] ?? null,
                     'qty' => $item['qty'],
                     'uom' => $item['uom'],
                     'description' => $item['description'],
                     'unit_price' => $item['unit_price'] ?? null,
                     'amount' => $item['amount'] ?? null,
                     'remarks' => $item['remarks'] ?? null,
+                    'note' => $item['note'] ?? null,
                 ]);
 
-                // Auto-save item description to non-trade items library
                 if (!empty($item['description'])) {
                     NonTradeItem::firstOrCreate(
                         ['name' => trim($item['description'])],
@@ -115,6 +223,15 @@ class PurchaseRequestController extends Controller
             }
 
             DB::commit();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Created',
+                'item' => $purchaseRequest->pr_no,
+                'target' => $purchaseRequest->company,
+                'type' => 'Purchase Request',
+                'message' => 'Created Purchase Request ' . $purchaseRequest->pr_no . ' for ' . $purchaseRequest->company,
+            ]);
 
             return redirect()
                 ->route('purchase_requests.show', $purchaseRequest->id)
@@ -135,7 +252,7 @@ class PurchaseRequestController extends Controller
      */
     public function show($id)
     {
-        $purchaseRequest = PurchaseRequest::with(['items', 'creator', 'approver'])
+        $purchaseRequest = PurchaseRequest::with(['items', 'creator', 'approver', 'departmentHeadApprover'])
             ->findOrFail($id);
 
         return view('purchase_requests.show', compact('purchaseRequest'));
@@ -143,7 +260,7 @@ class PurchaseRequestController extends Controller
 
     public function print($id)
     {
-        $purchaseRequest = PurchaseRequest::with(['items', 'creator', 'approver'])
+        $purchaseRequest = PurchaseRequest::with(['items', 'creator', 'approver', 'departmentHeadApprover'])
             ->findOrFail($id);
 
         return view('purchase_requests.print', compact('purchaseRequest'));
@@ -156,11 +273,15 @@ class PurchaseRequestController extends Controller
     {
         $purchaseRequest = PurchaseRequest::with('items')->findOrFail($id);
 
-        // Prevent editing of approved/rejected PRs - signature date is immutable
-        if (in_array($purchaseRequest->status, ['approved', 'rejected']) && $purchaseRequest->approved_at !== null) {
+        $notesOnly = false;
+        if (in_array($purchaseRequest->status, ['approved']) && $purchaseRequest->approved_at !== null) {
+            $notesOnly = true;
+        }
+
+        if ($purchaseRequest->status === 'rejected' && $purchaseRequest->approved_at !== null) {
             return redirect()
                 ->route('purchase_requests.show', $purchaseRequest->id)
-                ->with('error', 'Cannot edit an approved or rejected Purchase Request. The signature date and approval are permanent.');
+                ->with('error', 'Cannot edit a rejected Purchase Request.');
         }
 
         $companies = [
@@ -170,11 +291,45 @@ class PurchaseRequestController extends Controller
             'Pacific Agrisolutions Enterprises Inc.',
         ];
 
-        $suppliers = Supplier::where('status', 'active')
-            ->orderBy('supplier_name')
-            ->get();
+        return view('purchase_requests.edit', compact('purchaseRequest', 'companies', 'notesOnly'));
+    }
 
-        return view('purchase_requests.edit', compact('purchaseRequest', 'companies', 'suppliers'));
+    /**
+     * Update only the notes on PR items (works for approved PRs)
+     */
+    public function updateNotes(Request $request, $id)
+    {
+        $purchaseRequest = PurchaseRequest::with('items')->findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            if ($request->has('item_notes')) {
+                foreach ($request->item_notes as $itemId => $note) {
+                    PurchaseRequestItem::where('id', $itemId)
+                        ->where('purchase_request_id', $purchaseRequest->id)
+                        ->update(['note' => $note]);
+                }
+            }
+
+            DB::commit();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Updated Notes',
+                'item' => $purchaseRequest->pr_no,
+                'target' => $purchaseRequest->company,
+                'type' => 'Purchase Request',
+                'message' => 'Updated notes on Purchase Request ' . $purchaseRequest->pr_no,
+            ]);
+
+            return redirect()
+                ->route('purchase_requests.show', $purchaseRequest->id)
+                ->with('success', 'Notes updated successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error updating notes: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -189,7 +344,7 @@ class PurchaseRequestController extends Controller
             'date_of_request' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.qty' => 'required|numeric|min:0',
-            'items.*.uom' => 'required|string',
+            'items.*.uom' => 'nullable|string',
             'items.*.description' => 'required|string',
         ]);
 
@@ -197,7 +352,6 @@ class PurchaseRequestController extends Controller
         try {
             $purchaseRequest = PurchaseRequest::findOrFail($id);
 
-            // Update purchase request
             $purchaseRequest->update([
                 'company' => $request->company,
                 'requisitioner' => $request->requisitioner,
@@ -217,24 +371,25 @@ class PurchaseRequestController extends Controller
                 'reason_for_requisition' => $request->reason_for_requisition,
             ]);
 
-            // Delete existing items
             $purchaseRequest->items()->delete();
 
-            // Create new items
             foreach ($request->items as $index => $item) {
                 PurchaseRequestItem::create([
                     'purchase_request_id' => $purchaseRequest->id,
+                    'supplier_id' => $item['supplier_id'] ?? null,
+                    'supplier_name' => $item['supplier_name'] ?? null,
                     'item_no' => $index + 1,
                     'item_code' => $item['item_code'] ?? null,
+                    'date_needed' => $item['date_needed'] ?? null,
                     'qty' => $item['qty'],
                     'uom' => $item['uom'],
                     'description' => $item['description'],
                     'unit_price' => $item['unit_price'] ?? null,
                     'amount' => $item['amount'] ?? null,
                     'remarks' => $item['remarks'] ?? null,
+                    'note' => $item['note'] ?? null,
                 ]);
 
-                // Auto-save item description to non-trade items library
                 if (!empty($item['description'])) {
                     NonTradeItem::firstOrCreate(
                         ['name' => trim($item['description'])],
@@ -244,6 +399,15 @@ class PurchaseRequestController extends Controller
             }
 
             DB::commit();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Updated',
+                'item' => $purchaseRequest->pr_no,
+                'target' => $purchaseRequest->company,
+                'type' => 'Purchase Request',
+                'message' => 'Updated Purchase Request ' . $purchaseRequest->pr_no,
+            ]);
 
             return redirect()
                 ->route('purchase_requests.show', $purchaseRequest->id)
@@ -265,48 +429,173 @@ class PurchaseRequestController extends Controller
         try {
             $purchaseRequest = PurchaseRequest::findOrFail($id);
 
-            // Only allow the creator (requisitioner) to delete their own PR
-            if ($purchaseRequest->created_by !== Auth::id()) {
-                return back()
-                    ->with('error', 'You can only delete your own Purchase Requests.');
+            if ($purchaseRequest->created_by !== Auth::id() && !Auth::user()->hasRole(['Admin', 'IT', 'Department_Head'])) {
+                return back()->with('error', 'You can only delete your own Purchase Requests.');
             }
 
+            $prNo = $purchaseRequest->pr_no;
             $purchaseRequest->delete();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Deleted',
+                'item' => $prNo,
+                'target' => 'N/A',
+                'type' => 'Purchase Request',
+                'message' => 'Deleted Purchase Request ' . $prNo,
+            ]);
 
             return redirect()
                 ->route('purchase_requests.index')
                 ->with('success', 'Purchase Request deleted successfully!');
 
         } catch (\Exception $e) {
-            return back()
-                ->with('error', 'Error deleting Purchase Request: ' . $e->getMessage());
+            return back()->with('error', 'Error deleting Purchase Request: ' . $e->getMessage());
         }
     }
 
     /**
-     * Approve a purchase request
+     * Approve as Department Head (Level 1)
      */
-    public function approve($id)
+    public function approveDH(Request $request, $id)
     {
         $user = Auth::user();
 
-        if (!$user->canApprovePurchaseRequests()) {
+        if (!$user->canApprovePurchaseRequestsAsDH()) {
             return redirect()->route('purchase_requests.index')
-                ->with('error', 'Unauthorized to approve purchase requests.');
+                ->with('error', 'Unauthorized to approve as Department Head.');
         }
 
-        $purchaseRequest = PurchaseRequest::findOrFail($id);
+        $purchaseRequest = PurchaseRequest::find($id);
+
+        if (!$purchaseRequest) {
+            return redirect()->route('purchase_requests.index')
+                ->with('error', 'Purchase Request not found.');
+        }
+
+        if ($purchaseRequest->approval_stage !== 'pending_dh') {
+            return redirect()->route('purchase_requests.show', $id)
+                ->with('error', 'This PR is not pending Department Head approval. Current stage: ' . $purchaseRequest->approval_stage);
+        }
 
         $purchaseRequest->update([
-            'status' => 'approved',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
+            'approval_stage' => 'pending_management',
+            'department_head_approved_by' => Auth::id(),
+            'department_head_approved_at' => now(),
+            'department_head_approved_latitude' => $request->input('latitude'),
+            'department_head_approved_longitude' => $request->input('longitude'),
+            'department_head_approved_location' => $request->input('location'),
             'rejection_reason' => null,
         ]);
 
-        return redirect()
-            ->back()
-            ->with('success', 'Purchase Request approved successfully!');
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Approved (DH)',
+            'item' => $purchaseRequest->pr_no,
+            'target' => $purchaseRequest->company,
+            'type' => 'Purchase Request',
+            'message' => 'Department Head noted Purchase Request ' . $purchaseRequest->pr_no,
+        ]);
+
+        return redirect()->back()->with('success', 'PR noted by Department Head. Forwarded to Management.');
+    }
+
+    /**
+     * Approve as Management (Level 2 - GM/CFO)
+     */
+    public function approveManagement(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if (!$user->canApprovePurchaseRequestsAsManagement()) {
+            return redirect()->route('purchase_requests.index')
+                ->with('error', 'Unauthorized to approve as Management.');
+        }
+
+        $purchaseRequest = PurchaseRequest::find($id);
+
+        if (!$purchaseRequest) {
+            return redirect()->route('purchase_requests.index')
+                ->with('error', 'Purchase Request not found.');
+        }
+
+        if ($purchaseRequest->approval_stage !== 'pending_management') {
+            return redirect()->route('purchase_requests.show', $id)
+                ->with('error', 'This PR is not pending Management approval. Current stage: ' . $purchaseRequest->approval_stage);
+        }
+
+        if ($this->isPMAI($purchaseRequest->company) && !$user->hasRole(['Admin', 'IT', 'CFO'])) {
+            return redirect()->route('purchase_requests.show', $id)
+                ->with('error', 'Only CFO can approve PRs for this company.');
+        }
+
+        $purchaseRequest->update([
+            'approval_stage' => 'pending_executive',
+            'management_approved_by' => Auth::id(),
+            'management_approved_at' => now(),
+            'management_approved_latitude' => $request->input('latitude'),
+            'management_approved_longitude' => $request->input('longitude'),
+            'management_approved_location' => $request->input('location'),
+            'rejection_reason' => null,
+        ]);
+
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Approved (Management)',
+            'item' => $purchaseRequest->pr_no,
+            'target' => $purchaseRequest->company,
+            'type' => 'Purchase Request',
+            'message' => 'Management approved Purchase Request ' . $purchaseRequest->pr_no,
+        ]);
+
+        return redirect()->back()->with('success', 'PR approved by Management. Forwarded to Executive.');
+    }
+
+    /**
+     * Approve as Executive (Level 3 - President/VP) - Final approval
+     */
+    public function approve(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if (!$user->canApprovePurchaseRequestsAsExecutive()) {
+            return redirect()->route('purchase_requests.index')
+                ->with('error', 'Unauthorized to approve as Executive.');
+        }
+
+        $purchaseRequest = PurchaseRequest::find($id);
+
+        if (!$purchaseRequest) {
+            return redirect()->route('purchase_requests.index')
+                ->with('error', 'Purchase Request not found.');
+        }
+
+        if ($purchaseRequest->approval_stage !== 'pending_executive') {
+            return redirect()->route('purchase_requests.show', $id)
+                ->with('error', 'This PR is not pending Executive approval. Current stage: ' . $purchaseRequest->approval_stage);
+        }
+
+        $purchaseRequest->update([
+            'approval_stage' => 'approved',
+            'status' => 'approved',
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+            'approved_latitude' => $request->input('latitude'),
+            'approved_longitude' => $request->input('longitude'),
+            'approved_location' => $request->input('location'),
+            'rejection_reason' => null,
+        ]);
+
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Approved',
+            'item' => $purchaseRequest->pr_no,
+            'target' => $purchaseRequest->company,
+            'type' => 'Purchase Request',
+            'message' => 'Approved Purchase Request ' . $purchaseRequest->pr_no,
+        ]);
+
+        return redirect()->back()->with('success', 'Purchase Request approved successfully!');
     }
 
     /**
@@ -321,9 +610,7 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'Unauthorized to reject purchase requests.');
         }
 
-        $request->validate([
-            'rejection_reason' => 'nullable|string|max:500',
-        ]);
+        $request->validate(['rejection_reason' => 'nullable|string|max:500']);
 
         $purchaseRequest = PurchaseRequest::findOrFail($id);
 
@@ -334,9 +621,16 @@ class PurchaseRequestController extends Controller
             'rejection_reason' => $request->rejection_reason,
         ]);
 
-        return redirect()
-            ->back()
-            ->with('success', 'Purchase Request rejected.');
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Rejected',
+            'item' => $purchaseRequest->pr_no,
+            'target' => $purchaseRequest->company,
+            'type' => 'Purchase Request',
+            'message' => 'Rejected Purchase Request ' . $purchaseRequest->pr_no,
+        ]);
+
+        return redirect()->back()->with('success', 'Purchase Request rejected.');
     }
 
     /**
@@ -371,5 +665,18 @@ class PurchaseRequestController extends Controller
 
         return redirect()->route('purchase_requests.index')
             ->with('success', "{$approved} of {$total} Purchase Request(s) approved successfully.");
+    }
+
+    private function isTwoLevelApproval(?string $company): bool
+    {
+        if (!$company) return false;
+        $c = strtolower($company);
+        return str_contains($c, 'magalang') || str_contains($c, 'agrisolutions');
+    }
+
+    private function isPMAI(?string $company): bool
+    {
+        if (!$company) return false;
+        return str_contains(strtolower($company), 'magalang');
     }
 }

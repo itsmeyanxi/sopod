@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CheckVoucher;
 use App\Models\AccountsPayableInvoice;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -52,7 +53,8 @@ class CheckVoucherController extends Controller
                     ->orWhere('vendor_name', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('reference_no', 'LIKE', "%{$searchTerm}%");
             })
-            ->select('id', 'apv_no', 'vendor_name', 'apv_date', 'currency', 'grand_total', 'reference_no')
+            ->select('id', 'apv_no', 'vendor_name', 'vendor_code', 'vendor_address', 'vendor_tin',
+                     'apv_date', 'currency', 'grand_total', 'reference_no', 'particulars')
             ->limit(10)
             ->get();
 
@@ -72,6 +74,20 @@ class CheckVoucherController extends Controller
             'paid_amount' => 'required|numeric|min:0',
             'particulars' => 'required|string',
         ]);
+
+        // Validate amounts do not exceed APV grand total
+        if ($request->accounts_payable_invoice_id) {
+            $apv = AccountsPayableInvoice::find($request->accounts_payable_invoice_id);
+            if ($apv) {
+                $maxAmount = (float) $apv->grand_total;
+                if ((float) $request->check_amount > $maxAmount) {
+                    return back()->withInput()->with('error', 'Check amount (₱' . number_format($request->check_amount, 2) . ') exceeds APV grand total (₱' . number_format($maxAmount, 2) . ').');
+                }
+                if ((float) $request->paid_amount > $maxAmount) {
+                    return back()->withInput()->with('error', 'Paid amount (₱' . number_format($request->paid_amount, 2) . ') exceeds APV grand total (₱' . number_format($maxAmount, 2) . ').');
+                }
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -113,7 +129,7 @@ class CheckVoucherController extends Controller
                 'apv_no' => $request->apv_no,
                 'paid_amount' => $request->paid_amount,
                 'particulars' => $request->particulars,
-                'journal_entries' => json_encode($journalEntries),
+                'journal_entries' => $journalEntries,
                 'prepared_by' => $request->prepared_by,
                 'reviewed_by' => $request->reviewed_by,
                 'approved_by' => $request->approved_by,
@@ -122,6 +138,15 @@ class CheckVoucherController extends Controller
             ]);
 
             DB::commit();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Created',
+                'item' => $voucher->cv_no,
+                'target' => $voucher->supplier_name,
+                'type' => 'Check Voucher',
+                'message' => 'Created Check Voucher ' . $voucher->cv_no . ' for ' . $voucher->supplier_name,
+            ]);
 
             return redirect()
                 ->route('check_vouchers.show', $voucher->id)
@@ -174,6 +199,21 @@ class CheckVoucherController extends Controller
         try {
             $voucher = CheckVoucher::findOrFail($id);
 
+            // Validate amounts do not exceed APV grand total
+            $apvId = $request->accounts_payable_invoice_id ?: $voucher->accounts_payable_invoice_id;
+            if ($apvId) {
+                $apv = AccountsPayableInvoice::find($apvId);
+                if ($apv) {
+                    $maxAmount = (float) $apv->grand_total;
+                    if ((float) $request->check_amount > $maxAmount) {
+                        return back()->withInput()->with('error', 'Check amount (₱' . number_format($request->check_amount, 2) . ') exceeds APV grand total (₱' . number_format($maxAmount, 2) . ').');
+                    }
+                    if ((float) $request->paid_amount > $maxAmount) {
+                        return back()->withInput()->with('error', 'Paid amount (₱' . number_format($request->paid_amount, 2) . ') exceeds APV grand total (₱' . number_format($maxAmount, 2) . ').');
+                    }
+                }
+            }
+
             // Process journal entries
             $journalEntries = [];
             if ($request->has('journal_entries')) {
@@ -207,13 +247,22 @@ class CheckVoucherController extends Controller
                 'apv_no' => $request->apv_no,
                 'paid_amount' => $request->paid_amount,
                 'particulars' => $request->particulars,
-                'journal_entries' => json_encode($journalEntries),
+                'journal_entries' => $journalEntries,
                 'prepared_by' => $request->prepared_by,
                 'reviewed_by' => $request->reviewed_by,
                 'approved_by' => $request->approved_by,
             ]);
 
             DB::commit();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Updated',
+                'item' => $voucher->cv_no,
+                'target' => $voucher->supplier_name,
+                'type' => 'Check Voucher',
+                'message' => 'Updated Check Voucher ' . $voucher->cv_no,
+            ]);
 
             return redirect()
                 ->route('check_vouchers.show', $voucher->id)
@@ -234,7 +283,17 @@ class CheckVoucherController extends Controller
     {
         try {
             $voucher = CheckVoucher::findOrFail($id);
+            $cvNo = $voucher->cv_no;
             $voucher->delete();
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Deleted',
+                'item' => $cvNo,
+                'target' => 'N/A',
+                'type' => 'Check Voucher',
+                'message' => 'Deleted Check Voucher ' . $cvNo,
+            ]);
 
             return redirect()
                 ->route('check_vouchers.index')
@@ -247,45 +306,96 @@ class CheckVoucherController extends Controller
     }
 
     /**
-     * Approve a check voucher
+     * Approve as Accounting Manager (Level 1 - Review)
      */
-    public function approve($id)
+    public function approveAccounting(Request $request, $id)
     {
-        $voucher = CheckVoucher::findOrFail($id);
+        $user = Auth::user();
+        if (!$user->canApproveCVAsAccounting()) {
+            return redirect()->route('check_vouchers.index')->with('error', 'Unauthorized.');
+        }
 
+        $voucher = CheckVoucher::where('approval_stage', 'pending_accounting')->findOrFail($id);
         $voucher->update([
-            'status' => 'approved',
-            'approval_user_id' => Auth::id(),
-            'approval_date' => now(),
+            'approval_stage' => 'pending_odm',
+            'accounting_reviewed_by' => Auth::id(),
+            'accounting_reviewed_at' => now(),
+            'accounting_reviewed_latitude' => $request->input('latitude'),
+            'accounting_reviewed_longitude' => $request->input('longitude'),
+            'accounting_reviewed_location' => $request->input('location'),
             'rejection_reason' => null,
         ]);
 
-        return redirect()
-            ->back()
-            ->with('success', 'Check Voucher approved successfully!');
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Reviewed (Accounting)',
+            'item' => $voucher->cv_no,
+            'target' => $voucher->supplier_name,
+            'type' => 'Check Voucher',
+            'message' => 'Accounting Manager reviewed Check Voucher ' . $voucher->cv_no,
+        ]);
+
+        return redirect()->back()->with('success', 'CV reviewed by Accounting Manager. Forwarded to ODM/FDM.');
     }
 
     /**
-     * Reject a check voucher
+     * Approve as ODM/FDM (Level 2 - Final)
+     */
+    public function approve(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user->canApproveCV()) {
+            return redirect()->route('check_vouchers.index')->with('error', 'Unauthorized.');
+        }
+
+        $voucher = CheckVoucher::where('approval_stage', 'pending_odm')->findOrFail($id);
+        $voucher->update([
+            'status' => 'approved',
+            'approval_stage' => 'approved',
+            'approval_user_id' => Auth::id(),
+            'approval_date' => now(),
+            'approved_latitude' => $request->input('latitude'),
+            'approved_longitude' => $request->input('longitude'),
+            'approved_location' => $request->input('location'),
+            'rejection_reason' => null,
+        ]);
+
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Approved',
+            'item' => $voucher->cv_no,
+            'target' => $voucher->supplier_name,
+            'type' => 'Check Voucher',
+            'message' => 'Approved Check Voucher ' . $voucher->cv_no,
+        ]);
+
+        return redirect()->back()->with('success', 'Check Voucher approved!');
+    }
+
+    /**
+     * Reject a check voucher (any stage)
      */
     public function reject(Request $request, $id)
     {
-        $request->validate([
-            'rejection_reason' => 'nullable|string|max:500',
-        ]);
-
+        $request->validate(['rejection_reason' => 'nullable|string|max:500']);
         $voucher = CheckVoucher::findOrFail($id);
 
         $voucher->update([
             'status' => 'rejected',
-            'approval_user_id' => Auth::id(),
-            'approval_date' => now(),
+            'approval_stage' => 'rejected',
             'rejection_reason' => $request->rejection_reason,
         ]);
 
-        return redirect()
-            ->back()
-            ->with('success', 'Check Voucher rejected.');
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action' => 'Rejected',
+            'item' => $voucher->cv_no,
+            'target' => $voucher->supplier_name,
+            'type' => 'Check Voucher',
+            'message' => 'Rejected Check Voucher ' . $voucher->cv_no,
+        ]);
+
+        return redirect()->back()->with('success', 'Check Voucher rejected.');
     }
 
     /**
@@ -293,7 +403,7 @@ class CheckVoucherController extends Controller
      */
     public function print($id)
     {
-        $checkVoucher = CheckVoucher::findOrFail($id);
+        $checkVoucher = CheckVoucher::with(['creator', 'approvalUser', 'accountingReviewer'])->findOrFail($id);
         return view('check_vouchers.print', ['checkVoucher' => $checkVoucher]);
     }
 }

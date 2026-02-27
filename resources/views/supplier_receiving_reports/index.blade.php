@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Supplier Receiving Reports')
+@section('title', 'Supply Receiving Reports')
 
 @section('content')
 <div class="container mx-auto">
     <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-white">SUPPLIER RECEIVING REPORTS</h1>
+            <h1 class="text-2xl font-bold text-white">SUPPLY RECEIVING REPORTS</h1>
             <div class="flex gap-2">
                 <a href="{{ route('supplier_receiving_reports.exportExcel', request()->query()) }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
                     <i class="fas fa-file-excel mr-1"></i> Export CSV
@@ -34,7 +34,7 @@
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                     <label class="block text-gray-400 text-sm mb-1">Search</label>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="SRR code, supplier, PO#, CV#..."
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="SRR code, supply, PO#, CV#..."
                         class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
@@ -74,7 +74,7 @@
                     <tr>
                         <th class="border border-gray-700 px-4 py-3">SRR CODE</th>
                         <th class="border border-gray-700 px-4 py-3">DATE</th>
-                        <th class="border border-gray-700 px-4 py-3">SUPPLIER</th>
+                        <th class="border border-gray-700 px-4 py-3">SUPPLY</th>
                         <th class="border border-gray-700 px-4 py-3">PO NO</th>
                         <th class="border border-gray-700 px-4 py-3">TYPE</th>
                         <th class="border border-gray-700 px-4 py-3">TOTAL BOXES</th>
@@ -135,7 +135,7 @@
                     @empty
                         <tr>
                             <td colspan="10" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
-                                No supplier receiving reports found. <a href="{{ route('supplier_receiving_reports.create') }}" class="text-purple-400 hover:text-purple-300">Create one now</a>
+                                No supply receiving reports found. <a href="{{ route('supplier_receiving_reports.create') }}" class="text-purple-400 hover:text-purple-300">Create one now</a>
                             </td>
                         </tr>
                     @endforelse

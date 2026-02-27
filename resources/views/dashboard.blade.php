@@ -11,7 +11,7 @@
     {{-- ========================================================= --}}
     {{--    SALES ORDER STATS + MONTH-TO-DATE SALES               --}}
     {{-- ========================================================= --}}
-    <div class="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
 
         <div class="bg-gray-700 p-6 rounded shadow">
             <h3 class="text-white text-lg font-semibold">Sales Order</h3>
@@ -32,16 +32,6 @@
             <h3 class="text-white text-lg font-semibold">Declined SO</h3>
             <p class="text-3xl text-white font-bold mt-2">{{ $totalDeclined }}</p>
         </div>
-
-        <a href="{{ route('purchase_orders.index') }}" class="bg-yellow-700 p-6 rounded shadow hover:bg-yellow-600 transition w-full text-left block">
-            <h3 class="text-white text-lg font-semibold">Pending PO</h3>
-            <p class="text-3xl text-white font-bold mt-2">{{ $pendingPOs }}</p>
-        </a>
-
-        <a href="{{ route('purchase_orders.index') }}" class="bg-green-700 p-6 rounded shadow hover:bg-green-600 transition w-full text-left block">
-            <h3 class="text-white text-lg font-semibold">Approved PO</h3>
-            <p class="text-3xl text-white font-bold mt-2">{{ $approvedPendingPOs }}</p>
-        </a>
 
     </div>
 
@@ -92,7 +82,7 @@
         $recentActivities = $recentActivities ?? collect();
     @endphp
 
-    <div class="bg-gray-800 shadow rounded p-6">
+    <div class="bg-gray-700 shadow rounded p-6 border border-gray-600">
         <h2 class="text-white font-semibold mb-4">Recent Activity</h2>
 
         @if($recentActivities->isEmpty())
@@ -100,7 +90,7 @@
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm text-left text-white">
-                    <thead class="text-xs uppercase bg-gray-800 text-white">
+                    <thead class="text-xs uppercase bg-gray-600 text-white">
                         <tr>
                             <th class="px-4 py-2">Date</th>
                             <th class="px-4 py-2">Activity</th>
@@ -117,7 +107,9 @@
                                         {{ $activity->type === 'Customer' ? 'bg-blue-100 text-blue-600' :
                                            ($activity->type === 'Item' ? 'bg-green-100 text-green-600' :
                                            ($activity->type === 'Sales Order' ? 'bg-yellow-100 text-yellow-600' :
-                                           ($activity->type === 'Delivery' ? 'bg-purple-100 text-purple-600' : 'bg-red-100 text-red-600'))) }}">
+                                           ($activity->type === 'Delivery' ? 'bg-purple-100 text-purple-600' :
+                                           ($activity->type === 'Purchase Order' ? 'bg-orange-100 text-orange-600' :
+                                           ($activity->type === 'Supplier' ? 'bg-teal-100 text-teal-600' : 'bg-red-100 text-red-600'))))) }}">
                                         {{ $activity->type }}
                                     </span>
                                 </td>
@@ -129,7 +121,7 @@
         @endif
 
         <div class="text-center mt-4">
-            <a href="{{ route('recent_activities.index') }}" 
+            <a href="{{ route('recent_activities.index', ['module' => 'sales']) }}"
                class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
                 View All
             </a>

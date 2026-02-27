@@ -11,42 +11,42 @@ class NonTradeItemController extends Controller
 {
     private function generateItemCode($description, $supplierId = null)
     {
-        // Abbreviate item name: single word takes first 2 chars, multi-word takes first letter of each word
-        $words = preg_split('/\s+/', trim($description));
+        // Abbreviate item name: first letter of each word (letters only)
+        $cleanDesc = preg_replace('/[^a-zA-Z\s]/', '', $description);
+        $words = preg_split('/\s+/', trim($cleanDesc));
+        $words = array_filter($words, fn($w) => strlen($w) > 0);
         if (count($words) === 1) {
-            $abbr = strtoupper(substr($words[0], 0, 2));
+            $abbr = strtoupper(substr(reset($words), 0, 2));
         } else {
             $abbr = strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), $words)));
         }
 
-        // Get supplier code
+        // Get supplier abbreviation from supplier name (first letter of each word)
         $supplierCode = 'GEN';
         if ($supplierId) {
             $supplier = Supplier::find($supplierId);
-            if ($supplier && $supplier->supplier_code) {
-                $supplierCode = strtoupper($supplier->supplier_code);
+            if ($supplier && $supplier->supplier_name) {
+                $sWords = preg_split('/\s+/', trim($supplier->supplier_name));
+                $supplierCode = strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), $sWords)));
             }
         }
 
         // Get next global sequence number
         $pattern = '/^[A-Z]+-(\d+)-[A-Z]+$/';
-        $poMax = \App\Models\PurchaseOrderItem::whereNotNull('item_code')
-            ->pluck('item_code')
-            ->filter(fn($c) => preg_match($pattern, $c, $m))
-            ->map(fn($c) => (int) explode('-', $c)[1])
-            ->max() ?? 0;
-        $prMax = \App\Models\PurchaseRequestItem::whereNotNull('item_code')
-            ->pluck('item_code')
-            ->filter(fn($c) => preg_match($pattern, $c, $m))
-            ->map(fn($c) => (int) explode('-', $c)[1])
-            ->max() ?? 0;
-        $ntiMax = NonTradeItem::whereNotNull('item_code')
-            ->pluck('item_code')
-            ->filter(fn($c) => preg_match($pattern, $c, $m))
-            ->map(fn($c) => (int) explode('-', $c)[1])
-            ->max() ?? 0;
+        $allCodes = array_merge(
+            \App\Models\PurchaseOrderItem::whereNotNull('item_code')->pluck('item_code')->toArray(),
+            \App\Models\PurchaseRequestItem::whereNotNull('item_code')->pluck('item_code')->toArray(),
+            NonTradeItem::whereNotNull('item_code')->pluck('item_code')->toArray(),
+            \App\Models\TradeItem::whereNotNull('item_code')->pluck('item_code')->toArray()
+        );
+        $maxSeq = 0;
+        foreach ($allCodes as $code) {
+            if (preg_match($pattern, $code, $matches)) {
+                $maxSeq = max($maxSeq, (int) $matches[1]);
+            }
+        }
 
-        $seq = str_pad(max($poMax, $prMax, $ntiMax) + 1, 3, '0', STR_PAD_LEFT);
+        $seq = str_pad($maxSeq + 1, 3, '0', STR_PAD_LEFT);
 
         return "{$abbr}-{$seq}-{$supplierCode}";
     }
@@ -78,13 +78,18 @@ class NonTradeItemController extends Controller
 
         $items = $query->orderBy('name')->limit(50)->get();
 
-        // Return items with supplier name in parenthesis
         $results = $items->map(function($item) {
             $displayName = $item->name;
             if ($item->supplier) {
                 $displayName .= ' (' . $item->supplier->supplier_name . ')';
             }
-            return $displayName;
+            return [
+                'display_name' => $displayName,
+                'name' => $item->name,
+                'item_code' => $item->item_code,
+                'supplier_id' => $item->supplier_id,
+                'supplier_name' => $item->supplier->supplier_name ?? null,
+            ];
         })->values();
 
         return response()->json($results);
@@ -96,6 +101,7 @@ class NonTradeItemController extends Controller
             'name' => 'required|string|max:500',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'unit' => 'nullable|string|max:100',
+            'item_code' => 'nullable|string|max:100',
         ]);
 
         $exists = NonTradeItem::where('name', $request->name)
@@ -107,14 +113,30 @@ class NonTradeItemController extends Controller
                 ->with('error', 'This item already exists for the selected supplier.');
         }
 
+        $itemCode = $request->item_code ?: $this->generateItemCode($request->name, $request->supplier_id ?: null);
+
         NonTradeItem::create([
             'name' => $request->name,
             'supplier_id' => $request->supplier_id ?: null,
             'unit' => $request->unit ?: null,
+            'item_code' => $itemCode,
         ]);
 
         return redirect()->route('non_trade_items.index')
             ->with('success', 'Item added successfully.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'item_code' => 'nullable|string|max:100',
+        ]);
+
+        $item = NonTradeItem::findOrFail($id);
+        $item->update(['item_code' => $request->item_code ?: null]);
+
+        return redirect()->route('non_trade_items.index')
+            ->with('success', 'Item code updated successfully.');
     }
 
     public function destroy($id)
@@ -165,87 +187,76 @@ class NonTradeItemController extends Controller
         }
 
         $imported = 0;
+        $updated = 0;
         $skipped = 0;
         $supplierCache = [];
 
         foreach ($rows as $row) {
             $supplierName = trim($row[0] ?? '');
             $itemName = trim($row[1] ?? '');
-            $account = trim($row[2] ?? '');
-            $vendorCode = trim($row[3] ?? '');
 
             if (empty($itemName)) {
                 $skipped++;
                 continue;
             }
 
-            // Resolve supplier_id by name
+            // Resolve supplier_id by name — auto-create if not found
             $supplierId = null;
             if (!empty($supplierName)) {
                 if (!isset($supplierCache[$supplierName])) {
-                    $supplier = Supplier::where('supplier_name', $supplierName)->first();
-                    $supplierCache[$supplierName] = $supplier ? $supplier->id : null;
+                    $supplier = Supplier::whereRaw('LOWER(supplier_name) = ?', [strtolower($supplierName)])->first();
+                    if (!$supplier) {
+                        $initials = strtoupper(collect(explode(' ', $supplierName))
+                            ->map(fn($w) => substr($w, 0, 1))
+                            ->take(3)->implode(''));
+                        $code = $initials . '-' . str_pad(Supplier::count() + 1, 3, '0', STR_PAD_LEFT);
+                        while (Supplier::where('supplier_code', $code)->exists()) {
+                            $code = $initials . '-' . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+                        }
+                        $supplier = Supplier::create([
+                            'supplier_name' => $supplierName,
+                            'supplier_code' => $code,
+                            'status'        => 'active',
+                            'created_by'    => auth()->id(),
+                        ]);
+                    }
+                    $supplierCache[$supplierName] = $supplier->id;
                 }
                 $supplierId = $supplierCache[$supplierName];
             }
 
-            // Check if this is a nontrade item based on account field
-            $isNontrade = stripos($account, 'nontrade') !== false;
+            // Check if item already exists (same name + supplier)
+            $existing = NonTradeItem::where('name', $itemName)
+                ->where('supplier_id', $supplierId)
+                ->first();
 
-            if ($isNontrade) {
-                // Import to NonTradeItem
-                $existing = NonTradeItem::where('name', $itemName)
-                    ->where('supplier_id', $supplierId)
-                    ->exists();
-
-                if ($existing) {
-                    $skipped++;
-                } else {
-                    $newItem = NonTradeItem::create([
-                        'name' => $itemName,
-                        'supplier_id' => $supplierId,
-                        'account' => $account ?: null,
-                        'vendor_code' => $vendorCode ?: null,
-                    ]);
-
-                    // Auto-generate item code if supplier is set and item doesn't have a code
-                    if ($supplierId && !$newItem->item_code) {
-                        $itemCode = $this->generateItemCode($itemName, $supplierId);
-                        $newItem->update(['item_code' => $itemCode]);
-                    }
-
-                    $imported++;
+            if ($existing) {
+                // Update existing record — refresh supplier and generate item_code if missing
+                $updateData = ['supplier_id' => $supplierId];
+                if (!$existing->item_code) {
+                    $updateData['item_code'] = $this->generateItemCode($itemName, $supplierId);
                 }
+                $existing->update($updateData);
+                $updated++;
             } else {
-                // Import to TradeItem
-                $existing = \App\Models\TradeItem::where('name', $itemName)
-                    ->where('supplier_id', $supplierId)
-                    ->exists();
+                $newItem = NonTradeItem::create([
+                    'name' => $itemName,
+                    'supplier_id' => $supplierId,
+                ]);
 
-                if ($existing) {
-                    $skipped++;
-                } else {
-                    $newItem = \App\Models\TradeItem::create([
-                        'name' => $itemName,
-                        'account' => $account ?: null,
-                        'vendor_code' => $vendorCode ?: null,
-                        'local_or_import' => (stripos($account, 'import') !== false) ? 'Import' : 'Local',
-                        'supplier_id' => $supplierId,
-                    ]);
-
-                    // Auto-generate item code if supplier is set and item doesn't have a code
-                    if ($supplierId && !$newItem->item_code) {
-                        $itemCode = $this->generateItemCode($itemName, $supplierId);
-                        $newItem->update(['item_code' => $itemCode]);
-                    }
-
-                    $imported++;
+                // Auto-generate item code
+                if (!$newItem->item_code) {
+                    $itemCode = $this->generateItemCode($itemName, $supplierId);
+                    $newItem->update(['item_code' => $itemCode]);
                 }
+
+                $imported++;
             }
         }
 
         $message = "{$imported} item(s) imported";
-        if ($skipped > 0) $message .= ", {$skipped} already existed (same item + supplier)";
+        if ($updated > 0) $message .= ", {$updated} updated";
+        if ($skipped > 0) $message .= ", {$skipped} skipped (empty)";
 
         return redirect()->route('non_trade_items.index')
             ->with('success', $message . '.');

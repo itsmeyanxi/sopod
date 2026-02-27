@@ -16,7 +16,7 @@
 
         @if($errors->any())
             <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">
-                <p class="font-bold mb-2">❌ Form Validation Errors:</p>
+                <p class="font-bold mb-2">Form Validation Errors:</p>
                 <ul class="list-disc list-inside">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -27,7 +27,7 @@
 
         @if(session('error'))
             <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">
-                <p class="font-bold mb-2">❌ Error:</p>
+                <p class="font-bold mb-2">Error:</p>
                 <p>{{ session('error') }}</p>
             </div>
         @endif
@@ -61,21 +61,6 @@
                         <input type="text" name="department" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('department') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">SUPPLIER:</label>
-                        <select name="supplier_id" id="supplier_id" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="populateSupplierDetails()">
-                            <option value="">-- Select Supplier --</option>
-                            @foreach($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}"
-                                        data-address="{{ $supplier->address }}"
-                                        data-contact="{{ $supplier->contact_number }}"
-                                        {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                    {{ $supplier->supplier_name }} ({{ $supplier->supplier_code }})
-                                </option>
-                            @endforeach
-                        </select>
-                        <input type="hidden" name="supplier" id="supplier_text" value="{{ old('supplier') }}">
-                    </div>
-                    <div>
                         <label class="block font-semibold text-gray-300 mb-1">TERMS:</label>
                         <input type="text" name="terms" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('terms') }}">
                     </div>
@@ -107,11 +92,11 @@
                         <label class="block font-semibold text-gray-300 mb-1">TYPE OF REQUEST:</label>
                         <div class="flex gap-4">
                             <label class="inline-flex items-center text-gray-300">
-                                <input type="radio" name="type_of_request" value="urgent" class="form-radio text-purple-500">
+                                <input type="radio" name="type_of_request" value="urgent" class="form-radio text-purple-500" {{ old('type_of_request') == 'urgent' ? 'checked' : '' }}>
                                 <span class="ml-2">Urgent</span>
                             </label>
                             <label class="inline-flex items-center text-gray-300">
-                                <input type="radio" name="type_of_request" value="regular" class="form-radio text-purple-500">
+                                <input type="radio" name="type_of_request" value="regular" class="form-radio text-purple-500" {{ old('type_of_request') == 'regular' ? 'checked' : '' }}>
                                 <span class="ml-2">Regular</span>
                             </label>
                         </div>
@@ -120,11 +105,11 @@
                         <label class="block font-semibold text-gray-300 mb-1">WITH BUDGET:</label>
                         <div class="flex gap-4">
                             <label class="inline-flex items-center text-gray-300">
-                                <input type="radio" name="with_budget" value="yes" class="form-radio text-purple-500">
+                                <input type="radio" name="with_budget" value="yes" class="form-radio text-purple-500" {{ old('with_budget') == 'yes' ? 'checked' : '' }}>
                                 <span class="ml-2">Yes</span>
                             </label>
                             <label class="inline-flex items-center text-gray-300">
-                                <input type="radio" name="with_budget" value="no" class="form-radio text-purple-500">
+                                <input type="radio" name="with_budget" value="no" class="form-radio text-purple-500" {{ old('with_budget') == 'no' ? 'checked' : '' }}>
                                 <span class="ml-2">No</span>
                             </label>
                         </div>
@@ -149,40 +134,53 @@
                     </button>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full border-collapse border border-gray-700" id="itemsTable">
-                        <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
+                    <table class="border-collapse border border-gray-700" id="itemsTable" style="min-width:1400px; width:100%;">
+                        <thead class="bg-red-700 text-white uppercase text-xs">
                             <tr>
-                                <th class="border px-2 py-2 w-12">NO.</th>
-                                <th class="border px-2 py-2 w-32">ITEM CODE</th>
-                                <th class="border px-2 py-2 w-20">QTY</th>
-                                <th class="border px-2 py-2 w-24">UOM</th>
-                                <th class="border px-2 py-2">DESCRIPTION</th>
-                                <th class="border px-2 py-2 w-32">UNIT PRICE</th>
-                                <th class="border px-2 py-2 w-32">AMOUNT</th>
-                                <th class="border px-2 py-2">REMARKS/SPECIFICATIONS</th>
-                                <th class="border px-2 py-2 w-16">ACTION</th>
+                                <th class="border px-2 py-2" style="width:70px">ACTION</th>
+                                <th class="border px-2 py-2" style="width:40px">NO.</th>
+                                <th class="border px-2 py-2" style="width:130px">ITEM CODE</th>
+                                <th class="border px-2 py-2" style="width:130px">DATE NEEDED</th>
+                                <th class="border px-2 py-2" style="width:70px">QTY</th>
+                                <th class="border px-2 py-2" style="width:80px">UOM</th>
+                                <th class="border px-2 py-2" style="width:280px">DESCRIPTION</th>
+                                <th class="border px-2 py-2" style="width:200px">SUPPLIER</th>
+                                <th class="border px-2 py-2" style="width:110px">UNIT PRICE</th>
+                                <th class="border px-2 py-2" style="width:100px">AMOUNT</th>
+                                <th class="border px-2 py-2" style="width:160px">REMARKS/SPECIFICATIONS</th>
+                                <th class="border px-2 py-2" style="width:140px">NOTE</th>
                             </tr>
                         </thead>
                         <tbody id="itemsBody" class="bg-gray-800 text-gray-300 divide-y divide-gray-700">
                             <tr class="hover:bg-gray-700/40">
+                                <td class="border border-gray-700 px-2 py-2 text-center">
+                                    <button type="button" onclick="removeRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition">
+                                        <i class="fas fa-trash mr-1"></i>Delete
+                                    </button>
+                                </td>
                                 <td class="border border-gray-700 px-2 py-2 text-center">1</td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off"></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="date" name="items[0][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required></td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" ></td>
                                 <td class="border border-gray-700 px-2 py-2">
                                     <div class="relative">
                                         <input type="text" name="items[0][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off">
                                         <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
                                     </div>
                                 </td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <div class="relative">
+                                        <input type="text" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-search" placeholder="Search supplier..." autocomplete="off">
+                                        <input type="hidden" name="items[0][supplier_id]" class="supplier-id-input">
+                                        <input type="hidden" name="items[0][supplier_name]" class="supplier-name-input">
+                                        <div class="supplier-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                                    </div>
+                                </td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][amount]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-amount" readonly></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][remarks]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
-                                <td class="border border-gray-700 px-2 py-2 text-center">
-                                    <button type="button" onclick="removeRow(this)" class="text-red-400 hover:text-red-300">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -208,7 +206,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="border border-gray-700 px-4 py-16 text-center"></td>
+                                <td class="border border-gray-700 px-4 py-4 text-center text-gray-300 text-sm">{{ auth()->user()->name }}</td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
@@ -220,7 +218,7 @@
                                 <td class="border border-gray-700 px-4 py-2 text-center">Department Head</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">General Manager</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">CFO</td>
-                                <td class="border border-gray-700 px-4 py-2 text-center" colspan="2">President</td>
+                                <td class="border border-gray-700 px-4 py-2 text-center" colspan="2">Vice-President/President</td>
                             </tr>
                         </tbody>
                     </table>
@@ -243,51 +241,90 @@
 <script>
 let rowCount = 1;
 
+// ── Route URLs ──────────────────────────────────────────────────────────────
+const SUPPLIER_SEARCH_URL    = '{{ route("purchase_requests.search_suppliers") }}';
+const SEARCH_URL             = '{{ route("non_trade_items.search") }}';
+const ITEM_CODE_SEARCH_URL   = '{{ route("purchase_orders.search_by_item_code") }}';
+const GENERATE_ITEM_CODE_URL = '{{ route("purchase_orders.generate_item_code") }}';
+
+// ======================== ROW MANAGEMENT ========================
 function addRow() {
-    const tbody = document.getElementById('itemsBody');
+    const tbody  = document.getElementById('itemsBody');
     const newRow = tbody.insertRow();
     newRow.className = 'hover:bg-gray-700/40';
     newRow.innerHTML = `
-        <td class="border border-gray-700 px-2 py-2 text-center">${rowCount + 1}</td>
-        <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
-        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required></td>
-        <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
-        <td class="border border-gray-700 px-2 py-2"><div class="relative"><input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off"><div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div></div></td>
-        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price"></td>
-        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][amount]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-amount" readonly></td>
-        <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][remarks]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
         <td class="border border-gray-700 px-2 py-2 text-center">
-            <button type="button" onclick="removeRow(this)" class="text-red-400 hover:text-red-300">
-                <i class="fas fa-trash"></i>
+            <button type="button" onclick="removeRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition">
+                <i class="fas fa-trash mr-1"></i>Delete
             </button>
+        </td>
+        <td class="border border-gray-700 px-2 py-2 text-center">${rowCount + 1}</td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off">
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="date" name="items[${rowCount}][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required>
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" >
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <div class="relative">
+                <input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off">
+                <div class="desc-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto"></div>
+            </div>
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <div class="relative">
+                <input type="text" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-search" placeholder="Search supplier..." autocomplete="off">
+                <input type="hidden" name="items[${rowCount}][supplier_id]" class="supplier-id-input">
+                <input type="hidden" name="items[${rowCount}][supplier_name]" class="supplier-name-input">
+                <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto"></div>
+            </div>
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price">
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="number" step="0.01" name="items[${rowCount}][amount]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-amount" readonly>
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="text" name="items[${rowCount}][remarks]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="text" name="items[${rowCount}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
         </td>
     `;
     rowCount++;
     attachCalculationListeners();
-    const newDesc = newRow.querySelector('.desc-input');
-    if (newDesc) attachDescAutocomplete(newDesc);
+    attachItemCodeListeners();
+    const newDesc     = newRow.querySelector('.desc-input');
+    const newSupplier = newRow.querySelector('.supplier-search');
+    if (newDesc)     attachDescAutocomplete(newDesc);
+    if (newSupplier) attachSupplierAutocomplete(newSupplier);
 }
 
 function removeRow(btn) {
-    const row = btn.closest('tr');
-    row.remove();
+    btn.closest('tr').remove();
     reorderRows();
 }
 
 function reorderRows() {
-    const rows = document.querySelectorAll('#itemsBody tr');
-    rows.forEach((row, index) => {
-        row.cells[0].textContent = index + 1;
+    document.querySelectorAll('#itemsBody tr').forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        if (cells[1]) cells[1].textContent = index + 1;
         row.querySelectorAll('input').forEach(input => {
             const name = input.getAttribute('name');
-            if (name) {
-                input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
-            }
+            if (name) input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
         });
     });
-    rowCount = rows.length;
+    rowCount = document.querySelectorAll('#itemsBody tr').length;
 }
 
+// ======================== AMOUNT CALCULATION ========================
 function attachCalculationListeners() {
     document.querySelectorAll('.item-qty, .item-price').forEach(input => {
         input.removeEventListener('input', calculateAmount);
@@ -296,49 +333,131 @@ function attachCalculationListeners() {
 }
 
 function calculateAmount(e) {
-    const row = e.target.closest('tr');
-    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+    const row   = e.target.closest('tr');
+    const qty   = parseFloat(row.querySelector('.item-qty').value)   || 0;
     const price = parseFloat(row.querySelector('.item-price').value) || 0;
-    const amount = qty * price;
-    row.querySelector('.item-amount').value = amount.toFixed(2);
+    row.querySelector('.item-amount').value = (qty * price).toFixed(2);
 }
 
-// Populate supplier details when supplier is selected
-function populateSupplierDetails() {
-    const select = document.getElementById('supplier_id');
-    const selectedOption = select.options[select.selectedIndex];
+// ======================== DROPDOWN POSITIONING ========================
+function positionFixedDropdown(inputEl, dropdownEl) {
+    const rect = inputEl.getBoundingClientRect();
+    dropdownEl.style.position  = 'fixed';
+    dropdownEl.style.top       = rect.bottom + 'px';
+    dropdownEl.style.left      = rect.left + 'px';
+    dropdownEl.style.width     = rect.width + 'px';
+    dropdownEl.style.zIndex    = '9999';
+    dropdownEl.style.maxHeight = '200px';
+    dropdownEl.style.overflowY = 'auto';
+}
 
-    if (selectedOption.value) {
-        const address = selectedOption.getAttribute('data-address');
-        if (address) {
-            const addressField = document.querySelector('textarea[name="address"]');
-            if (addressField) {
-                addressField.value = address;
-            }
-        }
-
-        const contact = selectedOption.getAttribute('data-contact');
-        if (contact) {
-            const contactField = document.querySelector('input[name="contact_number"]');
-            if (contactField) {
-                contactField.value = contact;
-            }
-        }
-
-        // Store supplier name in hidden field for backwards compatibility
-        const supplierName = selectedOption.text.split(' (')[0];
-        document.getElementById('supplier_text').value = supplierName;
+let scrollTicking = false;
+window.addEventListener('scroll', function () {
+    if (!scrollTicking) {
+        requestAnimationFrame(() => {
+            document.querySelectorAll('.desc-dropdown:not(.hidden), .supplier-dropdown:not(.hidden)').forEach(dd => {
+                const input = dd.closest('.relative')?.querySelector('input:first-child') || dd.previousElementSibling;
+                if (input) positionFixedDropdown(input, dd);
+            });
+            scrollTicking = false;
+        });
+        scrollTicking = true;
     }
+}, true);
+
+// ======================== SUPPLIER AUTOCOMPLETE ========================
+// KEY CHANGE: reads the description from the same row and passes it to the
+// backend so only suppliers who have sold that item are returned.
+let supplierTimeout;
+
+function attachSupplierAutocomplete(input) {
+    const container = input.closest('.relative');
+    const dropdown  = container.querySelector('.supplier-dropdown');
+    const idInput   = container.querySelector('.supplier-id-input');
+    const nameInput = container.querySelector('.supplier-name-input');
+
+    function getRowDescription() {
+        const row = input.closest('tr');
+        return row ? (row.querySelector('.desc-input')?.value.trim() || '') : '';
+    }
+
+    async function fetchSuppliers() {
+        const q    = input.value.trim();
+        const desc = getRowDescription();
+        clearTimeout(supplierTimeout);
+        if (q.length < 1 && !desc) { dropdown.classList.add('hidden'); return; }
+
+        supplierTimeout = setTimeout(async () => {
+            try {
+                const params = new URLSearchParams({ q });
+                if (desc) params.append('description', desc);
+                // Always send current supplier ID so backend can guarantee it appears
+                if (idInput.value) params.append('current_supplier_id', idInput.value);
+
+                const res       = await fetch(`${SUPPLIER_SEARCH_URL}?${params}`);
+                const suppliers = await res.json();
+
+                if (!suppliers.length) { dropdown.classList.add('hidden'); return; }
+
+                const isFallback = suppliers.some(s => s.is_fallback);
+
+                // Header
+                let headerHtml = '';
+                if (desc && !isFallback) {
+                    headerHtml = `<div class="px-3 py-1.5 text-xs text-green-400 bg-gray-900 border-b border-gray-700 font-semibold">
+                        ✓ Showing suppliers confirmed to carry this item
+                    </div>`;
+                } else if (desc && isFallback) {
+                    headerHtml = `<div class="px-3 py-1.5 text-xs text-yellow-400 bg-gray-900 border-b border-gray-700 font-semibold">
+                        ⚠ This item has no confirmed suppliers in the library — showing all active suppliers
+                    </div>`;
+                }
+
+                // Supplier rows
+                const rowsHtml = suppliers.map(s => {
+                    let badge = '';
+                    if (s.is_current && s.carries_item === false) {
+                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-blue-700 text-blue-100 rounded">← Current (unconfirmed)</span>`;
+                    } else if (s.carries_item === true) {
+                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-green-700 text-green-100 rounded">✓ Carries item</span>`;
+                    } else if (desc) {
+                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-600 text-gray-300 rounded">? Unconfirmed</span>`;
+                    }
+                    return `
+                    <div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 supplier-option"
+                         data-id="${s.id}" data-name="${s.supplier_name}"
+                         data-code="${s.supplier_code}" data-address="${s.address || ''}">
+                        <div class="flex items-center gap-1 font-semibold text-white flex-wrap">
+                            ${s.supplier_name} ${badge}
+                        </div>
+                        <div class="text-xs text-gray-400">${s.supplier_code || ''}</div>
+                    </div>`;
+                }).join('');
+
+                dropdown.innerHTML = headerHtml + rowsHtml;
+                positionFixedDropdown(input, dropdown);
+                dropdown.classList.remove('hidden');
+
+                dropdown.querySelectorAll('.supplier-option').forEach(opt => {
+                    opt.addEventListener('mousedown', function (e) {
+                        e.preventDefault();
+                        input.value     = this.dataset.name;
+                        idInput.value   = this.dataset.id;
+                        nameInput.value = this.dataset.name;
+                        dropdown.classList.add('hidden');
+                    });
+                });
+            } catch (e) { dropdown.classList.add('hidden'); }
+        }, 250);
+    }
+
+    input.addEventListener('input', () => { idInput.value = ''; nameInput.value = ''; fetchSuppliers(); });
+    // Also re-fetch when user clicks into the supplier field (description may have changed)
+    input.addEventListener('focus', fetchSuppliers);
+    input.addEventListener('blur',  () => setTimeout(() => dropdown.classList.add('hidden'), 200));
 }
 
-// Initialize calculation listeners
-document.addEventListener('DOMContentLoaded', function() {
-    attachCalculationListeners();
-    initDescAutocomplete();
-});
-
-// Description autocomplete
-const SEARCH_URL = '{{ route("non_trade_items.search") }}';
+// ======================== DESCRIPTION AUTOCOMPLETE ========================
 let descTimeout;
 
 function initDescAutocomplete() {
@@ -348,82 +467,169 @@ function initDescAutocomplete() {
 function attachDescAutocomplete(input) {
     const dropdown = input.nextElementSibling;
 
-    function positionDropdown() {
-        const rect = input.getBoundingClientRect();
-        dropdown.style.position = 'fixed';
-        dropdown.style.top = rect.bottom + 'px';
-        dropdown.style.left = rect.left + 'px';
-        dropdown.style.width = rect.width + 'px';
-        dropdown.style.zIndex = '9999';
-        dropdown.style.maxHeight = '160px';
-        dropdown.style.overflowY = 'auto';
-    }
-
-    function fetchSuggestions() {
-        const q = input.value.trim();
-        const supplierId = document.getElementById('supplier_id').value;
+    async function fetchSuggestions() {
+        const q          = input.value.trim();
+        const row        = input.closest('tr');
+        const supplierId = row?.querySelector('.supplier-id-input')?.value || '';
         clearTimeout(descTimeout);
         if (!supplierId && q.length < 2) { dropdown.classList.add('hidden'); return; }
         descTimeout = setTimeout(async () => {
             try {
                 const params = new URLSearchParams({ q });
                 if (supplierId) params.append('supplier_id', supplierId);
-                const res = await fetch(`${SEARCH_URL}?${params}`);
+                const res   = await fetch(`${SEARCH_URL}?${params}`);
                 const items = await res.json();
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
-                dropdown.innerHTML = items.map(name =>
-                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 desc-option">${name}</div>`
+                dropdown.innerHTML = items.map(item =>
+                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 desc-option"
+                          data-name="${(item.name || item).toString().replace(/"/g, '&quot;')}"
+                          data-item-code="${(item.item_code || '').toString().replace(/"/g, '&quot;')}"
+                          data-supplier-id="${item.supplier_id || ''}"
+                          data-supplier-name="${(item.supplier_name || '').toString().replace(/"/g, '&quot;')}">${typeof item === 'string' ? item : item.display_name}</div>`
                 ).join('');
-                positionDropdown();
+                positionFixedDropdown(input, dropdown);
                 dropdown.classList.remove('hidden');
                 dropdown.querySelectorAll('.desc-option').forEach(opt => {
                     opt.addEventListener('mousedown', function (e) {
                         e.preventDefault();
-                        input.value = this.textContent;
+                        input.value = this.dataset.name || this.textContent.trim();
                         dropdown.classList.add('hidden');
                         const row = input.closest('tr');
-                        if (row) autoGenerateItemCode(row);
+                        if (!row) return;
+                        const itemCodeInput = row.querySelector('.item-code-input');
+                        if (this.dataset.itemCode && itemCodeInput) {
+                            itemCodeInput.value = this.dataset.itemCode;
+                        } else if (itemCodeInput) {
+                            itemCodeInput.value = '';
+                            autoGenerateItemCode(row);
+                        }
+                        if (this.dataset.supplierId) {
+                            const ss = row.querySelector('.supplier-search');
+                            const si = row.querySelector('.supplier-id-input');
+                            const sn = row.querySelector('.supplier-name-input');
+                            if (ss) ss.value = this.dataset.supplierName || '';
+                            if (si) si.value = this.dataset.supplierId;
+                            if (sn) sn.value = this.dataset.supplierName || '';
+                        }
                     });
                 });
             } catch (e) { dropdown.classList.add('hidden'); }
         }, 250);
     }
 
-    input.addEventListener('input', fetchSuggestions);
+    input.addEventListener('input', function() {
+        const row = input.closest('tr');
+        if (row && !input.value.trim()) {
+            const ic = row.querySelector('.item-code-input');
+            const ss = row.querySelector('.supplier-search');
+            const si = row.querySelector('.supplier-id-input');
+            const sn = row.querySelector('.supplier-name-input');
+            if (ic) ic.value = '';
+            if (ss) ss.value = '';
+            if (si) si.value = '';
+            if (sn) sn.value = '';
+        }
+        fetchSuggestions();
+    });
     input.addEventListener('focus', fetchSuggestions);
     input.addEventListener('blur', () => {
-        setTimeout(() => dropdown.classList.add('hidden'), 150);
-        const row = input.closest('tr');
-        if (row) {
-            const itemCodeInput = row.querySelector('input[name*="[item_code]"]');
-            if (itemCodeInput && !itemCodeInput.value.trim()) {
-                autoGenerateItemCode(row);
-            }
+        setTimeout(() => dropdown.classList.add('hidden'), 200);
+        const row           = input.closest('tr');
+        const itemCodeInput = row?.querySelector('.item-code-input');
+        if (row && itemCodeInput && !itemCodeInput.value.trim()) {
+            autoGenerateItemCode(row);
         }
     });
-    window.addEventListener('scroll', () => dropdown.classList.add('hidden'), true);
 }
 
+// ======================== ITEM CODE AUTO-FILL ========================
+let itemCodeTimeout;
+
+function attachItemCodeListeners() {
+    document.querySelectorAll('.item-code-input').forEach(input => {
+        if (input.dataset.itemCodeBound) return;
+        input.dataset.itemCodeBound = '1';
+
+        input.addEventListener('input', function () {
+            clearTimeout(itemCodeTimeout);
+            const code = this.value.trim();
+            if (!code) return;
+            const row = this.closest('tr');
+            itemCodeTimeout = setTimeout(() => fetchAndFillByItemCode(code, row), 400);
+        });
+
+        input.addEventListener('blur', function () {
+            clearTimeout(itemCodeTimeout);
+            const code = this.value.trim();
+            if (!code) return;
+            fetchAndFillByItemCode(code, this.closest('tr'));
+        });
+    });
+}
+
+async function fetchAndFillByItemCode(itemCode, row) {
+    if (!row) return;
+    try {
+        const res  = await fetch(`${ITEM_CODE_SEARCH_URL}?item_code=${encodeURIComponent(itemCode)}`);
+        const data = await res.json();
+        if (!data || !data.description) return;
+
+        const descInput = row.querySelector('.desc-input');
+        if (descInput) descInput.value = data.description;
+
+        if (data.supplier_id) {
+            const supplierSearch = row.querySelector('.supplier-search');
+            const supplierId     = row.querySelector('.supplier-id-input');
+            const supplierName   = row.querySelector('.supplier-name-input');
+            if (supplierSearch) supplierSearch.value = data.supplier_name || '';
+            if (supplierId)     supplierId.value     = data.supplier_id;
+            if (supplierName)   supplierName.value   = data.supplier_name || '';
+        }
+        if (data.uom) {
+            const uomInput = row.querySelector('input[name*="[uom]"]');
+            if (uomInput) uomInput.value = data.uom;
+        }
+        if (data.unit_price) {
+            const priceInput = row.querySelector('.item-price');
+            if (priceInput) {
+                priceInput.value = data.unit_price;
+                priceInput.dispatchEvent(new Event('input'));
+            }
+        }
+    } catch (e) {
+        console.error('Error fetching item by code:', e);
+    }
+}
+
+// ======================== ITEM CODE AUTO-GENERATE ========================
 async function autoGenerateItemCode(row) {
-    const descInput = row.querySelector('.desc-input');
-    const itemCodeInput = row.querySelector('input[name*="[item_code]"]');
+    const descInput     = row.querySelector('.desc-input');
+    const itemCodeInput = row.querySelector('.item-code-input');
     if (!descInput || !itemCodeInput) return;
 
     const description = descInput.value.trim();
-    const supplierId = document.getElementById('supplier_id').value;
+    const supplierId  = row.querySelector('.supplier-id-input')?.value || '';
     if (!description) return;
 
     try {
         const params = new URLSearchParams({ description });
         if (supplierId) params.append('supplier_id', supplierId);
-        const res = await fetch(`{{ route('generate_item_code') }}?${params}`);
+        const res  = await fetch(`${GENERATE_ITEM_CODE_URL}?${params}`);
         const data = await res.json();
-        if (data.item_code && !itemCodeInput.value) {
+        if (data.item_code) {
             itemCodeInput.value = data.item_code;
         }
     } catch (e) {
         console.error('Error generating item code:', e);
     }
 }
+
+// ======================== INIT ========================
+document.addEventListener('DOMContentLoaded', function () {
+    attachCalculationListeners();
+    attachItemCodeListeners();
+    initDescAutocomplete();
+    document.querySelectorAll('.supplier-search').forEach(attachSupplierAutocomplete);
+});
 </script>
 @endsection

@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Create Supplier Receiving Report')
+@section('title', 'Create Supply Receiving Report')
 
 @section('content')
 <div class="container mx-auto">
     <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold text-white">CREATE SUPPLIER RECEIVING REPORT</h1>
+            <h1 class="text-2xl font-bold text-white">CREATE SUPPLY RECEIVING REPORT</h1>
             <div class="text-right">
                 <label class="font-semibold text-gray-300">SRR CODE:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $srrCode }}</span>
@@ -37,10 +37,10 @@
                             class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">SUPPLIER: <span class="text-red-400">*</span></label>
-                        <select name="supplier_id" id="supplier_id" required
+                        <label class="block font-semibold text-gray-300 mb-1">SUPPLY:</label>
+                        <select name="supplier_id" id="supplier_id"
                             class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
-                            <option value="">-- Select Supplier --</option>
+                            <option value="">-- Select Supply --</option>
                             @foreach($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
                                     {{ $supplier->supplier_name }}
@@ -58,8 +58,20 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">STORAGE:</label>
-                        <input type="text" name="storage" value="{{ old('storage') }}" placeholder="Warehouse / Storage Location"
-                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <select name="storage" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="">-- Select Warehouse / Storage --</option>
+                            @foreach([
+                                'Crystal Cold Chain Corp.',
+                                'Glacier South Refrigeration Services Corp.',
+                                'Icy Point Storage and Processing Corp.',
+                                'One Stop Warehousing Solutions, Inc.',
+                                'Benson Industrial Cold Storage, Inc.',
+                                'Apex Cold Storage Inc.',
+                                'Titan Transnational Corporation',
+                            ] as $warehouse)
+                                <option value="{{ $warehouse }}" {{ old('storage') == $warehouse ? 'selected' : '' }}>{{ $warehouse }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">PO NO:</label>
@@ -116,8 +128,8 @@
                                 <th class="border border-gray-700 px-2 py-2">BRAND</th>
                                 <th class="border border-gray-700 px-2 py-2 w-28">NO. OF BOXES</th>
                                 <th class="border border-gray-700 px-2 py-2 w-32">NET WEIGHT</th>
-                                <th class="border border-gray-700 px-2 py-2 w-28">PD</th>
-                                <th class="border border-gray-700 px-2 py-2 w-36">ED (EXPIRY)</th>
+                                <th class="border border-gray-700 px-2 py-2 w-28">PRODUCTION DATE</th>
+                                <th class="border border-gray-700 px-2 py-2 w-36">EXPIRATION DATE</th>
                                 <th class="border border-gray-700 px-2 py-2">PALLET NO.</th>
                                 <th class="border border-gray-700 px-2 py-2">REMARKS</th>
                                 <th class="border border-gray-700 px-2 py-2 w-12"></th>

@@ -99,7 +99,7 @@
             <!-- Main Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">PAYEE: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">PAYEE (Vendor/Supplier): <span class="text-red-400">*</span></label>
                     <input type="text" name="payee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee', $rfp->payee) }}" required>
                 </div>
                 <div>

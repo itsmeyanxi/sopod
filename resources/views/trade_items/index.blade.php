@@ -55,6 +55,7 @@
                 <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-4 py-3 text-left">#</th>
+                        <th class="border border-gray-700 px-4 py-3 text-left">ITEM CODE</th>
                         <th class="border border-gray-700 px-4 py-3 text-left">ITEM DESCRIPTION</th>
                         <th class="border border-gray-700 px-4 py-3 text-left">SUPPLIER</th>
                         <th class="border border-gray-700 px-4 py-3 text-left">ACCOUNT</th>
@@ -68,6 +69,18 @@
                     @forelse($items as $item)
                         <tr class="hover:bg-gray-700/40">
                             <td class="border border-gray-700 px-4 py-3 text-gray-500">{{ $items->firstItem() + $loop->index }}</td>
+                            <td class="border border-gray-700 px-4 py-3">
+                                <form action="{{ route('trade_items.update', $item->id) }}" method="POST" class="flex items-center gap-1">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="text" name="item_code" value="{{ $item->item_code }}"
+                                        class="w-32 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        placeholder="—">
+                                    <button type="submit" class="text-green-400 hover:text-green-300 text-xs" title="Save">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                            </td>
                             <td class="border border-gray-700 px-4 py-3">{{ $item->name }}</td>
                             <td class="border border-gray-700 px-4 py-3">
                                 @if($item->supplier)
@@ -101,7 +114,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
+                            <td colspan="9" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No trade items in the library yet. Import a CSV or Excel file to populate.
                             </td>
                         </tr>
@@ -163,6 +176,12 @@
                 <input type="text" name="name" required maxlength="500"
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g. Electrical Materials">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-300 text-sm mb-1">Item Code <span class="text-gray-500">(auto-generated if blank)</span></label>
+                <input type="text" name="item_code" maxlength="100"
+                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Leave blank to auto-generate">
             </div>
             <div class="mb-4">
                 <label class="block text-gray-300 text-sm mb-1">Supplier</label>

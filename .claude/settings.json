@@ -2,7 +2,22 @@
   "permissions": {
     "allow": [
       "Bash(cmd /c:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(powershell -Command \"Add-Content -Path ''C:\\\\Windows\\\\System32\\\\drivers\\\\etc\\\\hosts'' -Value ''192.168.110.28  pmaisopod.pacificmeat.ph''\")",
+      "Read(//c/xampp/apache/conf/**)",
+      "Read(//c/xampp/apache/logs/**)",
+      "Bash(/c/xampp/apache/bin/httpd.exe:*)",
+      "Bash(openssl x509:*)",
+      "Bash(openssl req:*)",
+      "Bash(php /c/sopod/artisan tinker --execute=\"DB::statement\\(''SELECT sql FROM sqlite_master WHERE type=\"\"table\"\" AND name=\"\"sales_orders\"\"''\\)\")",
+      "Read(//c/Users/WIN11RESOLVEIT/.claude/projects/c--sopod/3b9b1853-5631-4adf-8217-ab071442cc6f/tool-results/**)",
+      "Bash(php /c/sopod/artisan tinker --execute=\"print_r\\(\\\\Schema::getColumnListing\\(''sales_orders''\\)\\)\")",
+      "Bash(php /c/sopod/artisan tinker --execute=\"print_r\\(\\\\Schema::getColumnListing\\(''sales_order_items''\\)\\)\")",
+      "Bash(php /c/sopod/artisan tinker --execute=\"print_r\\(\\\\DB::table\\(''sales_order_items''\\)->limit\\(1\\)->get\\(\\)\\)\")",
+      "Bash(php /c/sopod/artisan tinker --execute=\"$columns = \\\\Schema::getColumnListing\\(''sales_orders''\\); echo ''is_locked: '' . \\(in_array\\(''is_locked'', $columns\\) ? ''YES'' : ''NO''\\);\")"
+    ],
+    "additionalDirectories": [
+      "c:\\xampp\\apache\\conf\\extra"
     ]
   }
 }

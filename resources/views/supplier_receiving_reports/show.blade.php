@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'View Supplier Receiving Report')
+@section('title', 'View Supply Receiving Report')
 
 @section('content')
 <div class="container mx-auto">
     <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold text-white">SUPPLIER RECEIVING REPORT</h1>
+            <h1 class="text-2xl font-bold text-white">SUPPLY RECEIVING REPORT</h1>
             <div class="flex items-center gap-4">
                 <div class="text-right">
                     <label class="font-semibold text-gray-300">SRR CODE:</label>
@@ -70,7 +70,7 @@
                     <p class="text-gray-200">{{ $report->report_date->format('M d, Y') }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-400 text-sm">SUPPLIER:</label>
+                    <label class="block font-semibold text-gray-400 text-sm">SUPPLY:</label>
                     <p class="text-gray-200">{{ $report->supplier_name }}</p>
                 </div>
                 <div>
@@ -113,8 +113,8 @@
                             <th class="border border-gray-700 px-3 py-2">BRAND</th>
                             <th class="border border-gray-700 px-3 py-2">NO. OF BOXES</th>
                             <th class="border border-gray-700 px-3 py-2">NET WEIGHT</th>
-                            <th class="border border-gray-700 px-3 py-2">PD</th>
-                            <th class="border border-gray-700 px-3 py-2">ED (EXPIRY)</th>
+                            <th class="border border-gray-700 px-3 py-2">PRODUCTION DATE</th>
+                            <th class="border border-gray-700 px-3 py-2">EXPIRATION DATE</th>
                             <th class="border border-gray-700 px-3 py-2">PALLET NO.</th>
                             <th class="border border-gray-700 px-3 py-2">REMARKS</th>
                         </tr>

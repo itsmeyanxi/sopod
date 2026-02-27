@@ -44,6 +44,7 @@
             @csrf
 
             <input type="hidden" name="request_for_payment_id" value="{{ old('request_for_payment_id', $selectedRFP->id ?? '') }}">
+            <input type="hidden" id="maxInvoiceAmount" value="{{ $selectedRFP->amount ?? '' }}">
 
             <!-- APV Date and Payment Type -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -84,19 +85,19 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">VENDOR CODE:</label>
-                        <input type="text" name="vendor_code" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_code') }}">
+                        <input type="text" name="vendor_code" id="vendor_code" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_code', $supplierInfo['code'] ?? '') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">VENDOR NAME: <span class="text-red-400">*</span></label>
-                        <input type="text" name="vendor_name" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_name', $selectedRFP->payee ?? '') }}" required>
+                        <input type="text" name="vendor_name" id="vendor_name" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_name', $selectedRFP->payee ?? '') }}" required>
                     </div>
                     <div class="md:col-span-2">
                         <label class="block font-semibold text-gray-300 mb-2">VENDOR ADDRESS:</label>
-                        <textarea name="vendor_address" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('vendor_address') }}</textarea>
+                        <textarea name="vendor_address" id="vendor_address" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('vendor_address', $supplierInfo['address'] ?? '') }}</textarea>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">VENDOR TIN:</label>
-                        <input type="text" name="vendor_tin" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_tin') }}">
+                        <input type="text" name="vendor_tin" id="vendor_tin" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_tin', $supplierInfo['tin'] ?? '') }}">
                     </div>
                 </div>
             </div>
@@ -123,7 +124,7 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">PURCHASE ORDER NO:</label>
-                        <input type="text" name="purchase_order_no" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('purchase_order_no', $selectedRFP->purchaseOrder->po_no ?? '') }}">
+                        <input type="text" name="purchase_order_no" id="purchase_order_no" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('purchase_order_no', $selectedRFP->purchaseOrder->po_no ?? '') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">CURRENCY: <span class="text-red-400">*</span></label>
@@ -273,8 +274,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         let html = '<div class="divide-y divide-gray-700">';
                         rfps.forEach(rfp => {
                             html += `
-                                <a href="{{ route('accounts_payable_invoices.create') }}?rfp_id=${rfp.id}"
-                                   class="block p-3 hover:bg-gray-700 transition">
+                                <div class="rfp-result-item block p-3 hover:bg-gray-700 transition cursor-pointer"
+                                     data-id="${rfp.id}"
+                                     data-rfp-no="${(rfp.rfp_no || '').replace(/"/g, '&quot;')}"
+                                     data-payee="${(rfp.payee || '').replace(/"/g, '&quot;')}"
+                                     data-company="${(rfp.company || '').replace(/"/g, '&quot;')}"
+                                     data-amount="${rfp.amount || 0}"
+                                     data-particulars="${(rfp.particulars || '').replace(/"/g, '&quot;')}"
+                                     data-purchase-order-no="${(rfp.purchase_order_no || '').replace(/"/g, '&quot;')}"
+                                     data-vendor-address="${(rfp.vendor_address || '').replace(/"/g, '&quot;')}"
+                                     data-vendor-tin="${(rfp.vendor_tin || '').replace(/"/g, '&quot;')}"
+                                     data-vendor-code="${(rfp.vendor_code || '').replace(/"/g, '&quot;')}">
                                     <div class="flex justify-between items-center">
                                         <div>
                                             <div class="font-semibold text-purple-400">${rfp.rfp_no}</div>
@@ -286,12 +296,70 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <div class="text-sm text-green-400">₱${parseFloat(rfp.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
                                         </div>
                                     </div>
-                                </a>
+                                </div>
                             `;
                         });
                         html += '</div>';
                         rfpSearchResults.innerHTML = html;
                         rfpSearchResults.classList.remove('hidden');
+
+                        // Attach click handlers for inline auto-fill
+                        rfpSearchResults.querySelectorAll('.rfp-result-item').forEach(item => {
+                            item.addEventListener('click', function() {
+                                // Fill hidden RFP ID
+                                document.querySelector('input[name="request_for_payment_id"]').value = this.dataset.id;
+
+                                // Fill vendor info
+                                const vendorName = document.getElementById('vendor_name');
+                                const vendorCode = document.getElementById('vendor_code');
+                                const vendorAddress = document.getElementById('vendor_address');
+                                const vendorTin = document.getElementById('vendor_tin');
+                                if (vendorName) vendorName.value = this.dataset.payee;
+                                if (vendorCode) vendorCode.value = this.dataset.vendorCode;
+                                if (vendorAddress) vendorAddress.value = this.dataset.vendorAddress;
+                                if (vendorTin) vendorTin.value = this.dataset.vendorTin;
+
+                                // Fill PO number
+                                const poNo = document.getElementById('purchase_order_no');
+                                if (poNo) poNo.value = this.dataset.purchaseOrderNo;
+
+                                // Fill particulars
+                                const particulars = document.querySelector('textarea[name="particulars"]');
+                                if (particulars && !particulars.value.trim()) {
+                                    particulars.value = this.dataset.particulars;
+                                }
+
+                                // Fill total amount and set max limit
+                                const totalInput = document.getElementById('totalAmount');
+                                const maxAmount = parseFloat(this.dataset.amount).toFixed(2);
+                                if (totalInput) {
+                                    totalInput.value = maxAmount;
+                                    totalInput.max = maxAmount;
+                                    totalInput.dispatchEvent(new Event('input'));
+                                }
+                                document.getElementById('maxInvoiceAmount').value = maxAmount;
+
+                                // Show linked RFP badge
+                                const searchSection = rfpSearchInput.closest('.mb-6');
+                                if (searchSection) {
+                                    const badge = document.createElement('div');
+                                    badge.className = 'mt-2 p-3 bg-green-900/20 border border-green-700 rounded';
+                                    badge.innerHTML = `
+                                        <div class="flex items-center justify-between text-green-300">
+                                            <span><i class="fas fa-link mr-2"></i>Linked to RFP: ${this.dataset.rfpNo}</span>
+                                            <span class="text-sm text-gray-300">${this.dataset.payee} | ₱${parseFloat(this.dataset.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                                        </div>
+                                    `;
+                                    const existingBadge = searchSection.querySelector('.bg-green-900\\/20');
+                                    if (existingBadge) existingBadge.remove();
+                                    searchSection.appendChild(badge);
+                                }
+
+                                // Hide search
+                                rfpSearchResults.classList.add('hidden');
+                                rfpSearchInput.value = this.dataset.rfpNo;
+                            });
+                        });
                     })
                     .catch(error => {
                         console.error('Search error:', error);
@@ -307,6 +375,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Grand Total Calculation — declare inputs first so calculateGrandTotal() can reference them
+    const totalInput = document.getElementById('totalAmount');
+    const vatInput = document.getElementById('vatAmount');
+    const wTaxInput = document.getElementById('wTaxAmount');
+    const grandTotalDisplay = document.getElementById('grandTotalDisplay');
 
     // Payment Type Toggle
     const paymentTypeRadios = document.querySelectorAll('input[name="payment_type"]');
@@ -331,12 +405,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     toggleDownpaymentField();
-
-    // Grand Total Calculation
-    const totalInput = document.getElementById('totalAmount');
-    const vatInput = document.getElementById('vatAmount');
-    const wTaxInput = document.getElementById('wTaxAmount');
-    const grandTotalDisplay = document.getElementById('grandTotalDisplay');
 
     function calculateGrandTotal() {
         const paymentType = document.querySelector('input[name="payment_type"]:checked').value;
@@ -364,6 +432,40 @@ document.addEventListener('DOMContentLoaded', function() {
     wTaxInput.addEventListener('input', calculateGrandTotal);
 
     calculateGrandTotal();
+
+    // Amount limit validation
+    function validateTotalLimit() {
+        const maxEl = document.getElementById('maxInvoiceAmount');
+        const maxVal = parseFloat(maxEl ? maxEl.value : '');
+        if (isNaN(maxVal) || maxVal <= 0) return true;
+
+        const val = parseFloat(totalInput.value) || 0;
+        const warning = totalInput.parentElement.querySelector('.amount-warning');
+        if (val > maxVal) {
+            if (!warning) {
+                const w = document.createElement('div');
+                w.className = 'amount-warning text-red-400 text-xs mt-1';
+                w.textContent = 'Total amount cannot exceed RFP amount: ₱' + maxVal.toLocaleString('en-US', {minimumFractionDigits: 2});
+                totalInput.parentElement.appendChild(w);
+            }
+            totalInput.classList.add('border-red-500');
+            return false;
+        } else {
+            if (warning) warning.remove();
+            totalInput.classList.remove('border-red-500');
+            return true;
+        }
+    }
+
+    totalInput.addEventListener('input', validateTotalLimit);
+
+    // Prevent form submission if amount exceeds limit
+    document.getElementById('apvForm').addEventListener('submit', function(e) {
+        if (!validateTotalLimit()) {
+            e.preventDefault();
+            alert('Total amount cannot exceed the linked RFP amount. Please correct the amount.');
+        }
+    });
 });
 </script>
 @endsection

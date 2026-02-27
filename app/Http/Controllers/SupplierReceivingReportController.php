@@ -62,7 +62,7 @@ class SupplierReceivingReportController extends Controller
     {
         $request->validate([
             'report_date' => 'required|date',
-            'supplier_id' => 'required|exists:suppliers,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'report_type' => 'required|string|in:purchased,stock_transfer,backload,returned',
             'items' => 'required|array|min:1',
             'items.*.item_description' => 'required|string',
@@ -70,14 +70,14 @@ class SupplierReceivingReportController extends Controller
 
         DB::beginTransaction();
         try {
-            $supplier = Supplier::findOrFail($request->supplier_id);
+            $supplier = $request->supplier_id ? Supplier::find($request->supplier_id) : null;
             $srrCode = $this->generateSrrCode();
 
             $report = SupplierReceivingReport::create([
                 'srr_code' => $srrCode,
                 'report_date' => $request->report_date,
                 'supplier_id' => $request->supplier_id,
-                'supplier_name' => $supplier->supplier_name,
+                'supplier_name' => $supplier?->supplier_name,
                 'cv_no' => $request->cv_no,
                 'po_no' => $request->po_no,
                 'storage' => $request->storage,
@@ -148,7 +148,7 @@ class SupplierReceivingReportController extends Controller
     {
         $request->validate([
             'report_date' => 'required|date',
-            'supplier_id' => 'required|exists:suppliers,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'report_type' => 'required|string|in:purchased,stock_transfer,backload,returned',
             'items' => 'required|array|min:1',
             'items.*.item_description' => 'required|string',
@@ -162,12 +162,12 @@ class SupplierReceivingReportController extends Controller
                 return back()->with('error', 'Cannot edit an approved report.');
             }
 
-            $supplier = Supplier::findOrFail($request->supplier_id);
+            $supplier = $request->supplier_id ? Supplier::find($request->supplier_id) : null;
 
             $report->update([
                 'report_date' => $request->report_date,
                 'supplier_id' => $request->supplier_id,
-                'supplier_name' => $supplier->supplier_name,
+                'supplier_name' => $supplier?->supplier_name,
                 'cv_no' => $request->cv_no,
                 'po_no' => $request->po_no,
                 'storage' => $request->storage,

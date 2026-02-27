@@ -28,6 +28,7 @@ class PurchaseRequest extends Model
         'contact_number',
         'reason_for_requisition',
         'status',
+        'approval_stage',
         'approved_by',
         'approved_at',
         'approved_latitude',
@@ -35,12 +36,24 @@ class PurchaseRequest extends Model
         'approved_location',
         'rejection_reason',
         'created_by',
+        'department_head_approved_by',
+        'department_head_approved_at',
+        'department_head_approved_latitude',
+        'department_head_approved_longitude',
+        'department_head_approved_location',
+        'management_approved_by',
+        'management_approved_at',
+        'management_approved_latitude',
+        'management_approved_longitude',
+        'management_approved_location',
     ];
 
     protected $casts = [
         'date_of_request' => 'datetime',
         'date_needed' => 'datetime',
         'approved_at' => 'datetime',
+        'department_head_approved_at' => 'datetime',
+        'management_approved_at' => 'datetime',
     ];
 
     /**
@@ -73,6 +86,22 @@ class PurchaseRequest extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Relationship with User who department head approved
+     */
+    public function departmentHeadApprover()
+    {
+        return $this->belongsTo(User::class, 'department_head_approved_by');
+    }
+
+    /**
+     * Relationship with User who management (GM/CFO) approved
+     */
+    public function managementApprover()
+    {
+        return $this->belongsTo(User::class, 'management_approved_by');
     }
 
     /**

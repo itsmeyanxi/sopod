@@ -227,6 +227,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Grand Total Calculation — declare inputs first so calculateGrandTotal() can reference them
+    const totalInput = document.getElementById('totalAmount');
+    const vatInput = document.getElementById('vatAmount');
+    const wTaxInput = document.getElementById('wTaxAmount');
+    const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+
     // Payment Type Toggle
     const paymentTypeRadios = document.querySelectorAll('input[name="payment_type"]');
     const downpaymentField = document.getElementById('downpaymentField');
@@ -249,12 +255,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     toggleDownpaymentField();
-
-    // Grand Total Calculation
-    const totalInput = document.getElementById('totalAmount');
-    const vatInput = document.getElementById('vatAmount');
-    const wTaxInput = document.getElementById('wTaxAmount');
-    const grandTotalDisplay = document.getElementById('grandTotalDisplay');
 
     function calculateGrandTotal() {
         const paymentType = document.querySelector('input[name="payment_type"]:checked').value;

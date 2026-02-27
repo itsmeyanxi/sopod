@@ -225,11 +225,18 @@ class User extends Authenticatable
         return $this->hasRole(['Admin', 'IT', 'SCM']);
     }
 
+    // ==================== ISSUE SLIP ROLES ====================
+
+    public function canManageIssueSlips()
+    {
+        return $this->hasRole(['Admin', 'IT', 'SCM', 'CSR', 'CC_Approver', 'CC_Creator', 'Delivery_Creator', 'Delivery_Approver']);
+    }
+
     // ==================== PURCHASE REQUEST ROLES ====================
 
     public function canManagePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President']);
     }
 
     public function canCreatePurchaseRequests()
@@ -239,14 +246,29 @@ class User extends Authenticatable
 
     public function canApprovePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'PR_Approver', 'Procurement_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President']);
+    }
+
+    public function canApprovePurchaseRequestsAsDH()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Department_Head']);
+    }
+
+    public function canApprovePurchaseRequestsAsManagement()
+    {
+        return $this->hasRole(['Admin', 'IT', 'General_Manager', 'CFO']);
+    }
+
+    public function canApprovePurchaseRequestsAsExecutive()
+    {
+        return $this->hasRole(['Admin', 'IT', 'President', 'Vice_President']);
     }
 
     // ==================== PURCHASE ORDER ROLES ====================
 
     public function canManagePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President']);
     }
 
     public function canCreatePurchaseOrders()
@@ -256,7 +278,22 @@ class User extends Authenticatable
 
     public function canApprovePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President']);
+    }
+
+    public function canApprovePurchaseOrdersAsDH()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Department_Head']);
+    }
+
+    public function canApprovePurchaseOrdersAsManagement()
+    {
+        return $this->hasRole(['Admin', 'IT', 'General_Manager', 'CFO']);
+    }
+
+    public function canApprovePurchaseOrdersAsExecutive()
+    {
+        return $this->hasRole(['Admin', 'IT', 'President', 'Vice_President']);
     }
 
     // ==================== REQUEST FOR PAYMENT ROLES ====================
@@ -273,7 +310,44 @@ class User extends Authenticatable
 
     public function canApproveRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'Accounting_Approver', 'CFO', 'President', 'Vice_President']);
+    }
+
+    public function canApproveRFPAsDH()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Department_Head']);
+    }
+
+    public function canApproveRFPAsAccounting()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+    }
+
+    public function canApproveRFPAsExecutive()
+    {
+        return $this->hasRole(['Admin', 'IT', 'CFO', 'President', 'Vice_President']);
+    }
+
+    // APV permissions
+    public function canApproveAPVAsDH()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Department_Head']);
+    }
+
+    public function canApproveAPV()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+    }
+
+    // CV permissions
+    public function canApproveCVAsAccounting()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+    }
+
+    public function canApproveCV()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
     }
 
     // ==================== OTHER PERMISSIONS ====================

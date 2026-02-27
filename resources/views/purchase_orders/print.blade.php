@@ -185,6 +185,12 @@
             </tr>
         </table>
 
+        @if($purchaseOrder->purchaseRequest && $purchaseOrder->purchaseRequest->reason_for_requisition)
+        <div style="margin-bottom:6px; font-size:10px;">
+            <strong>Reason for Requisition:</strong> {{ $purchaseOrder->purchaseRequest->reason_for_requisition }}
+        </div>
+        @endif
+
         <!-- Instruction line -->
         <p style="font-size:10px; margin-bottom:6px; font-style:italic;">
             Please enter our order in accordance with prices, delivery and specifications given below:
@@ -197,6 +203,7 @@
                     <th style="width:30px">No.</th>
                     <th style="width:70px">Item Code</th>
                     <th>Description</th>
+                    <th style="width:90px">Supplier</th>
                     <th style="width:70px">Quantity</th>
                     <th style="width:50px">UoM</th>
                     <th style="width:85px">Unit Price</th>
@@ -208,7 +215,13 @@
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td class="text-left">{{ $item->item_code ?? '' }}</td>
-                        <td class="text-left">{{ $item->description }}</td>
+                        <td class="text-left">
+                            {{ $item->description }}
+                            @if($item->note)
+                                <div style="font-size:8px; color:#666; margin-top:2px;">Note: {{ $item->note }}</div>
+                            @endif
+                        </td>
+                        <td class="text-left" style="font-size:9px;">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? '' }}</td>
                         <td>{{ number_format($item->qty, 2) }}</td>
                         <td>{{ $item->uom }}</td>
                         <td class="text-right">{{ $item->unit_price ? number_format($item->unit_price, 2) : '' }}</td>
@@ -217,7 +230,7 @@
                 @endforeach
                 @for($i = $purchaseOrder->items->count(); $i < 8; $i++)
                     <tr>
-                        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+                        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
                         <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
                     </tr>
                 @endfor
@@ -226,15 +239,15 @@
 
         <!-- Totals -->
         @php
-            $subtotal = $purchaseOrder->items->sum('total');
-            $totalTax = $purchaseOrder->items->sum('tax');
-            $grandTotal = $subtotal;
+            $grandTotal = $purchaseOrder->items->sum('total');  // total per line already includes tax
+            $totalTax   = $purchaseOrder->items->sum('tax');
+            $netTotal   = $grandTotal - $totalTax;              // amount before VAT
         @endphp
         <div class="clearfix">
             <table class="totals-box">
                 <tr>
                     <td class="tlabel">Total Purchase Before VAT</td>
-                    <td class="tvalue">{{ number_format($subtotal, 2) }}</td>
+                    <td class="tvalue">{{ number_format($netTotal, 2) }}</td>
                 </tr>
                 <tr>
                     <td class="tlabel">Discount 0.00 %</td>
@@ -246,7 +259,7 @@
                 </tr>
                 <tr>
                     <td class="tlabel">Total Purchase After VAT</td>
-                    <td class="tvalue">{{ number_format($subtotal + $totalTax, 2) }}</td>
+                    <td class="tvalue">{{ number_format($grandTotal, 2) }}</td>
                 </tr>
                 <tr>
                     <td class="tlabel">Withholding Tax</td>
@@ -254,7 +267,7 @@
                 </tr>
                 <tr class="grand">
                     <td class="tlabel">Grand Total</td>
-                    <td class="tvalue">{{ number_format($subtotal + $totalTax, 2) }}</td>
+                    <td class="tvalue">{{ number_format($grandTotal, 2) }}</td>
                 </tr>
             </table>
         </div>
@@ -268,39 +281,113 @@
             <p>5. No account shall be paid unless sales invoices and or delivery receipts are accompanied by this purchase order.</p>
         </div>
 
-        <!-- Bottom: Remarks + Signatures -->
-        <div class="bottom-grid">
-            <div>
-                <div class="remarks-label">REMARKS</div>
-                <div class="remarks-box">{{ $purchaseOrder->remarks ?? '' }}</div>
-            </div>
-            <div class="sig-grid">
-                <div class="sig-block">
-                    <div class="sig-label">Prepared By:</div>
-                    <div class="sig-line" style="min-height:28px;">{{ $purchaseOrder->creator->name ?? '' }}</div>
-                    @if($purchaseOrder->creator && $purchaseOrder->creator->name)
-                        <div class="e-signature">Digitally Signed</div>
-                        <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
-                    @endif
-                </div>
-                <div class="sig-block">
-                    <div class="sig-label">Approved By:</div>
-                    <div class="sig-line" style="min-height:28px;">{{ $purchaseOrder->approver->name ?? '' }}</div>
-                    @if($purchaseOrder->approver && $purchaseOrder->approver->name)
-                        <div class="e-signature">Digitally Signed</div>
-                        <div class="e-signature-detail">Date/Time: {{ now()->format('d F Y | H:i') }} PHT (UTC+8)</div>
-                    @endif
-                </div>
-                <div class="sig-block" style="margin-top:8px;">
-                    <div class="sig-label">Supplier's Conforme:</div>
-                    <div class="sig-line" style="min-height:28px;"></div>
-                </div>
-                <div class="sig-block" style="margin-top:8px;">
-                    <div class="sig-label">Signature Over Printed Name &amp; Date</div>
-                    <div class="sig-line" style="min-height:28px;"></div>
-                </div>
-            </div>
+        <!-- Remarks -->
+        <div style="margin-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 10px; margin-bottom: 4px;">REMARKS</div>
+            <div style="border: 1px solid #000; padding: 5px; min-height: 40px; font-size: 10px;">{{ $purchaseOrder->remarks ?? '' }}</div>
         </div>
+
+        <!-- Signatures -->
+        <div style="margin-top: 15px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <colgroup>
+                    <col style="width: 20%;"><col style="width: 20%;"><col style="width: 20%;"><col style="width: 20%;"><col style="width: 20%;">
+                </colgroup>
+                <tr style="border: 1px solid #000;">
+                    <td style="border-right: 1px solid #000; padding: 6px 4px; font-size: 11px; font-weight: bold; text-align: center;">Prepared By:</td>
+                    <td style="border-right: 1px solid #000; padding: 6px 4px; font-size: 11px; font-weight: bold; text-align: center;">Noted By:</td>
+                    <td style="padding: 6px 4px; font-size: 11px; font-weight: bold; text-align: center;" colspan="3">Approved By:</td>
+                </tr>
+                <tr style="height: 70px; border: 1px solid #000;">
+                    <td style="border-right: 1px solid #000; padding: 4px; font-size: 9px; font-weight: bold; text-align: center; vertical-align: bottom;">
+                        {{ $purchaseOrder->creator->name ?? '' }}
+                        @if($purchaseOrder->creator && $purchaseOrder->created_at)
+                            <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
+                                Digitally Signed<br>
+                                {{ $purchaseOrder->created_at->format('d M Y | H:i') }}
+                            </div>
+                        @endif
+                    </td>
+                    <td style="border-right: 1px solid #000; padding: 4px; font-size: 9px; font-weight: bold; text-align: center; vertical-align: bottom;">
+                        {{ $purchaseOrder->departmentHeadApprover->name ?? '' }}
+                        @if($purchaseOrder->departmentHeadApprover && $purchaseOrder->department_head_approved_at)
+                            <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
+                                Digitally Signed<br>
+                                {{ $purchaseOrder->department_head_approved_at->format('d M Y | H:i') }}
+                                @if($purchaseOrder->department_head_approved_latitude && $purchaseOrder->department_head_approved_longitude)
+                                    <br>Coords: {{ $purchaseOrder->department_head_approved_latitude }}, {{ $purchaseOrder->department_head_approved_longitude }}
+                                    @if($purchaseOrder->department_head_approved_location) ({{ $purchaseOrder->department_head_approved_location }}) @endif
+                                @endif
+                            </div>
+                        @endif
+                    </td>
+                    <td style="border-right: 1px solid #000; padding: 4px; font-size: 9px; font-weight: bold; text-align: center; vertical-align: bottom;">
+                        {{ $purchaseOrder->managementApprover->name ?? '' }}
+                        @if($purchaseOrder->managementApprover && $purchaseOrder->management_approved_at)
+                            <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
+                                Digitally Signed<br>
+                                {{ $purchaseOrder->management_approved_at->format('d M Y | H:i') }}
+                                @if($purchaseOrder->management_approved_latitude && $purchaseOrder->management_approved_longitude)
+                                    <br>Coords: {{ $purchaseOrder->management_approved_latitude }}, {{ $purchaseOrder->management_approved_longitude }}
+                                    @if($purchaseOrder->management_approved_location) ({{ $purchaseOrder->management_approved_location }}) @endif
+                                @endif
+                            </div>
+                        @endif
+                    </td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="padding: 4px; font-size: 9px; font-weight: bold; text-align: center; vertical-align: bottom;">
+                        {{ $purchaseOrder->approver->name ?? '' }}
+                        @if($purchaseOrder->approver && $purchaseOrder->approved_at)
+                            <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
+                                Digitally Signed<br>
+                                {{ $purchaseOrder->approved_at->format('d M Y | H:i') }}
+                                @if($purchaseOrder->approved_latitude && $purchaseOrder->approved_longitude)
+                                    <br>Coords: {{ $purchaseOrder->approved_latitude }}, {{ $purchaseOrder->approved_longitude }}
+                                    @if($purchaseOrder->approved_location) ({{ $purchaseOrder->approved_location }}) @endif
+                                @endif
+                            </div>
+                        @endif
+                    </td>
+                </tr>
+                <tr style="border: 1px solid #000;">
+                    <td style="border-right: 1px solid #000; padding: 4px; font-size: 9px; font-weight: bold; text-align: center; font-style: italic;">Requisitioner</td>
+                    <td style="border-right: 1px solid #000; padding: 4px; font-size: 9px; font-weight: bold; text-align: center; font-style: italic;">Department Head</td>
+                    <td style="border-right: 1px solid #000; padding: 4px; font-size: 9px; font-weight: bold; text-align: center; font-style: italic;">GM</td>
+                    <td style="border-right: 1px solid #000; padding: 4px; font-size: 9px; font-weight: bold; text-align: center; font-style: italic;">CFO</td>
+                    <td style="padding: 4px; font-size: 9px; font-weight: bold; text-align: center; font-style: italic;">Vice-President/President</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Digital Signature Information - Highest Completed Approval Level -->
+        @if($purchaseOrder->approver && $purchaseOrder->approved_at)
+            <div style="text-align: center; margin-top: 15px; font-size: 8px; color: #666;">
+                <strong>Digital Signature Information:</strong><br>
+                Approved By: {{ $purchaseOrder->approver->name }} (Executive - Vice-President/President)<br>
+                Date/Time: {{ $purchaseOrder->approved_at->format('d F Y | H:i') }} PHT (UTC+8)
+                @if($purchaseOrder->approved_latitude && $purchaseOrder->approved_longitude)
+                    <br>Location: {{ $purchaseOrder->approved_location ?? "Coordinates: {$purchaseOrder->approved_latitude}, {$purchaseOrder->approved_longitude}" }}
+                @endif
+            </div>
+        @elseif($purchaseOrder->managementApprover && $purchaseOrder->management_approved_at)
+            <div style="text-align: center; margin-top: 15px; font-size: 8px; color: #666;">
+                <strong>Digital Signature Information:</strong><br>
+                Approved By: {{ $purchaseOrder->managementApprover->name }} (Management - GM)<br>
+                Date/Time: {{ $purchaseOrder->management_approved_at->format('d F Y | H:i') }} PHT (UTC+8)
+                @if($purchaseOrder->management_approved_latitude && $purchaseOrder->management_approved_longitude)
+                    <br>Location: {{ $purchaseOrder->management_approved_location ?? "Coordinates: {$purchaseOrder->management_approved_latitude}, {$purchaseOrder->management_approved_longitude}" }}
+                @endif
+            </div>
+        @elseif($purchaseOrder->departmentHeadApprover && $purchaseOrder->department_head_approved_at)
+            <div style="text-align: center; margin-top: 15px; font-size: 8px; color: #666;">
+                <strong>Digital Signature Information:</strong><br>
+                Approved By: {{ $purchaseOrder->departmentHeadApprover->name }} (Department Head)<br>
+                Date/Time: {{ $purchaseOrder->department_head_approved_at->format('d F Y | H:i') }} PHT (UTC+8)
+                @if($purchaseOrder->department_head_approved_latitude && $purchaseOrder->department_head_approved_longitude)
+                    <br>Location: {{ $purchaseOrder->department_head_approved_location ?? "Coordinates: {$purchaseOrder->department_head_approved_latitude}, {$purchaseOrder->department_head_approved_longitude}" }}
+                @endif
+            </div>
+        @endif
 
         <!-- Contact Person -->
         <div class="contact-row">

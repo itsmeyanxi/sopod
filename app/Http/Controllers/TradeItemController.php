@@ -11,47 +11,42 @@ class TradeItemController extends Controller
 {
     private function generateItemCode($description, $supplierId = null)
     {
-        // Abbreviate item name: single word takes first 2 chars, multi-word takes first letter of each word
-        $words = preg_split('/\s+/', trim($description));
+        // Abbreviate item name: first letter of each word (letters only)
+        $cleanDesc = preg_replace('/[^a-zA-Z\s]/', '', $description);
+        $words = preg_split('/\s+/', trim($cleanDesc));
+        $words = array_filter($words, fn($w) => strlen($w) > 0);
         if (count($words) === 1) {
-            $abbr = strtoupper(substr($words[0], 0, 2));
+            $abbr = strtoupper(substr(reset($words), 0, 2));
         } else {
             $abbr = strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), $words)));
         }
 
-        // Get supplier code
+        // Get supplier abbreviation from supplier name (first letter of each word)
         $supplierCode = 'GEN';
         if ($supplierId) {
             $supplier = Supplier::find($supplierId);
-            if ($supplier && $supplier->supplier_code) {
-                $supplierCode = strtoupper($supplier->supplier_code);
+            if ($supplier && $supplier->supplier_name) {
+                $sWords = preg_split('/\s+/', trim($supplier->supplier_name));
+                $supplierCode = strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), $sWords)));
             }
         }
 
         // Get next global sequence number
         $pattern = '/^[A-Z]+-(\d+)-[A-Z]+$/';
-        $poMax = \App\Models\PurchaseOrderItem::whereNotNull('item_code')
-            ->pluck('item_code')
-            ->filter(fn($c) => preg_match($pattern, $c, $m))
-            ->map(fn($c) => (int) explode('-', $c)[1])
-            ->max() ?? 0;
-        $prMax = \App\Models\PurchaseRequestItem::whereNotNull('item_code')
-            ->pluck('item_code')
-            ->filter(fn($c) => preg_match($pattern, $c, $m))
-            ->map(fn($c) => (int) explode('-', $c)[1])
-            ->max() ?? 0;
-        $ntiMax = \App\Models\NonTradeItem::whereNotNull('item_code')
-            ->pluck('item_code')
-            ->filter(fn($c) => preg_match($pattern, $c, $m))
-            ->map(fn($c) => (int) explode('-', $c)[1])
-            ->max() ?? 0;
-        $tiMax = TradeItem::whereNotNull('item_code')
-            ->pluck('item_code')
-            ->filter(fn($c) => preg_match($pattern, $c, $m))
-            ->map(fn($c) => (int) explode('-', $c)[1])
-            ->max() ?? 0;
+        $allCodes = array_merge(
+            \App\Models\PurchaseOrderItem::whereNotNull('item_code')->pluck('item_code')->toArray(),
+            \App\Models\PurchaseRequestItem::whereNotNull('item_code')->pluck('item_code')->toArray(),
+            \App\Models\NonTradeItem::whereNotNull('item_code')->pluck('item_code')->toArray(),
+            TradeItem::whereNotNull('item_code')->pluck('item_code')->toArray()
+        );
+        $maxSeq = 0;
+        foreach ($allCodes as $code) {
+            if (preg_match($pattern, $code, $matches)) {
+                $maxSeq = max($maxSeq, (int) $matches[1]);
+            }
+        }
 
-        $seq = str_pad(max($poMax, $prMax, $ntiMax, $tiMax) + 1, 3, '0', STR_PAD_LEFT);
+        $seq = str_pad($maxSeq + 1, 3, '0', STR_PAD_LEFT);
 
         return "{$abbr}-{$seq}-{$supplierCode}";
     }
@@ -90,13 +85,18 @@ class TradeItemController extends Controller
 
         $items = $query->orderBy('name')->limit(50)->get();
 
-        // Return items with supplier name in parenthesis
         $results = $items->map(function($item) {
             $displayName = $item->name;
             if ($item->supplier) {
                 $displayName .= ' (' . $item->supplier->supplier_name . ')';
             }
-            return $displayName;
+            return [
+                'display_name' => $displayName,
+                'name' => $item->name,
+                'item_code' => $item->item_code,
+                'supplier_id' => $item->supplier_id,
+                'supplier_name' => $item->supplier->supplier_name ?? null,
+            ];
         })->values();
 
         return response()->json($results);
@@ -110,6 +110,7 @@ class TradeItemController extends Controller
             'account' => 'nullable|string|max:100',
             'local_or_import' => 'nullable|in:Local,Import',
             'supplier_id' => 'nullable|exists:suppliers,id',
+            'item_code' => 'nullable|string|max:100',
         ]);
 
         $exists = TradeItem::where('name', $request->name)
@@ -121,16 +122,32 @@ class TradeItemController extends Controller
                 ->with('error', 'This item already exists for the selected supplier.');
         }
 
+        $itemCode = $request->item_code ?: $this->generateItemCode($request->name, $request->supplier_id ?: null);
+
         TradeItem::create([
             'name' => $request->name,
             'vendor_code' => $request->vendor_code ?: null,
             'account' => $request->account ?: null,
             'local_or_import' => $request->local_or_import ?: null,
             'supplier_id' => $request->supplier_id ?: null,
+            'item_code' => $itemCode,
         ]);
 
         return redirect()->route('trade_items.index')
             ->with('success', 'Trade item added successfully.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'item_code' => 'nullable|string|max:100',
+        ]);
+
+        $item = TradeItem::findOrFail($id);
+        $item->update(['item_code' => $request->item_code ?: null]);
+
+        return redirect()->route('trade_items.index')
+            ->with('success', 'Item code updated successfully.');
     }
 
     public function destroy($id)
@@ -181,6 +198,7 @@ class TradeItemController extends Controller
         }
 
         $imported = 0;
+        $updated = 0;
         $skipped = 0;
         $supplierCache = [];
 
@@ -196,12 +214,27 @@ class TradeItemController extends Controller
                 continue;
             }
 
-            // Resolve supplier_id by name
+            // Resolve supplier_id by name — auto-create if not found
             $supplierId = null;
             if (!empty($supplierName)) {
                 if (!isset($supplierCache[$supplierName])) {
-                    $supplier = Supplier::where('supplier_name', $supplierName)->first();
-                    $supplierCache[$supplierName] = $supplier ? $supplier->id : null;
+                    $supplier = Supplier::whereRaw('LOWER(supplier_name) = ?', [strtolower($supplierName)])->first();
+                    if (!$supplier) {
+                        $initials = strtoupper(collect(explode(' ', $supplierName))
+                            ->map(fn($w) => substr($w, 0, 1))
+                            ->take(3)->implode(''));
+                        $code = $initials . '-' . str_pad(Supplier::count() + 1, 3, '0', STR_PAD_LEFT);
+                        while (Supplier::where('supplier_code', $code)->exists()) {
+                            $code = $initials . '-' . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+                        }
+                        $supplier = Supplier::create([
+                            'supplier_name' => $supplierName,
+                            'supplier_code' => $code,
+                            'status'        => 'active',
+                            'created_by'    => auth()->id(),
+                        ]);
+                    }
+                    $supplierCache[$supplierName] = $supplier->id;
                 }
                 $supplierId = $supplierCache[$supplierName];
             }
@@ -209,13 +242,22 @@ class TradeItemController extends Controller
             // Check for exact match: same name AND same supplier
             $existing = TradeItem::where('name', $itemName)
                 ->where('supplier_id', $supplierId)
-                ->exists();
+                ->first();
 
             if ($existing) {
-                // Same item + same supplier already in DB → skip
-                $skipped++;
+                // Update existing record with new data
+                $updateData = [
+                    'supplier_id' => $supplierId,
+                ];
+                if (!empty($account)) $updateData['account'] = $account;
+                if (!empty($vendorCode)) $updateData['vendor_code'] = $vendorCode;
+                if (!empty($localOrImport)) $updateData['local_or_import'] = $localOrImport;
+                if (!$existing->item_code) {
+                    $updateData['item_code'] = $this->generateItemCode($itemName, $supplierId);
+                }
+                $existing->update($updateData);
+                $updated++;
             } else {
-                // New item, or same item name but different supplier → create new record
                 $newItem = TradeItem::create([
                     'name' => $itemName,
                     'account' => $account ?: null,
@@ -224,8 +266,7 @@ class TradeItemController extends Controller
                     'supplier_id' => $supplierId,
                 ]);
 
-                // Auto-generate item code if supplier is set and item doesn't have a code
-                if ($supplierId && !$newItem->item_code) {
+                if (!$newItem->item_code) {
                     $itemCode = $this->generateItemCode($itemName, $supplierId);
                     $newItem->update(['item_code' => $itemCode]);
                 }
@@ -235,7 +276,8 @@ class TradeItemController extends Controller
         }
 
         $message = "{$imported} item(s) imported";
-        if ($skipped > 0) $message .= ", {$skipped} already existed (same item + supplier)";
+        if ($updated > 0) $message .= ", {$updated} updated";
+        if ($skipped > 0) $message .= ", {$skipped} skipped (empty)";
 
         return redirect()->route('trade_items.index')
             ->with('success', $message . '.');

@@ -12,14 +12,18 @@ class PurchaseOrderItem extends Model
     protected $fillable = [
         'purchase_order_id',
         'purchase_request_item_id',
+        'supplier_id',
+        'supplier_name',
         'item_no',
         'item_code',
+        'date_needed',
         'qty',
         'uom',
         'description',
         'unit_price',
         'tax',
         'total',
+        'note',
     ];
 
     protected $casts = [
@@ -44,4 +48,17 @@ class PurchaseOrderItem extends Model
     {
         return $this->belongsTo(PurchaseRequestItem::class, 'purchase_request_item_id', 'id');
     }
+
+    /**
+     * Relationship with Supplier
+     */
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
+
+    public function supplierModel()
+{
+    return $this->belongsTo(\App\Models\Supplier::class, 'supplier_id');
+}
 }

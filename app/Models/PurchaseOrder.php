@@ -13,8 +13,8 @@ class PurchaseOrder extends Model
         'po_no',
         'purchase_request_id',
         'company',
-        'supplier',
-        'supplier_id',
+        'supplier',          // string column (supplier name text)
+        'supplier_id',       // FK to suppliers table
         'supplier_address',
         'consignee',
         'consignee_address',
@@ -31,6 +31,7 @@ class PurchaseOrder extends Model
         'remarks',
         'quotation',
         'status',
+        'approval_stage',
         'approved_by',
         'approved_at',
         'approved_latitude',
@@ -38,77 +39,76 @@ class PurchaseOrder extends Model
         'approved_location',
         'rejection_reason',
         'created_by',
+        'department_head_approved_by',
+        'department_head_approved_at',
+        'department_head_approved_latitude',
+        'department_head_approved_longitude',
+        'department_head_approved_location',
+        'management_approved_by',
+        'management_approved_at',
+        'management_approved_latitude',
+        'management_approved_longitude',
+        'management_approved_location',
     ];
 
     protected $casts = [
-        'order_date' => 'datetime',
-        'expected_delivery_date' => 'datetime',
-        'lc_price' => 'decimal:2',
-        'exchange_rate' => 'decimal:4',
-        'approved_at' => 'datetime',
+        'order_date'                  => 'datetime',
+        'expected_delivery_date'      => 'datetime',
+        'lc_price'                    => 'decimal:2',
+        'exchange_rate'               => 'decimal:4',
+        'approved_at'                 => 'datetime',
+        'department_head_approved_at' => 'datetime',
+        'management_approved_at'      => 'datetime',
     ];
 
-    /**
-     * Relationship with PurchaseOrderItems
-     */
+    // ── Relationships ────────────────────────────────────────────────────────
+
     public function items()
     {
         return $this->hasMany(PurchaseOrderItem::class, 'purchase_order_id', 'id');
     }
 
-    /**
-     * Relationship with User (creator)
-     */
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * Relationship with PurchaseRequest
-     */
     public function purchaseRequest()
     {
         return $this->belongsTo(PurchaseRequest::class, 'purchase_request_id');
     }
 
     /**
-     * Relationship with Supplier
+     * FIX: Renamed from supplier() → supplierModel() to avoid conflict with
+     * the 'supplier' string column. Calling ->supplier on an instance now
+     * returns the column value, not the relationship.
+     *
+     * Use $po->supplierModel to get the Supplier Eloquent object.
+     * Use $po->supplier   to get the plain text supplier name string.
      */
-    public function supplier()
+    public function supplierModel()
     {
         return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 
-    /**
-     * Relationship with User who approved
-     */
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    /**
-     * Check if PO is approved
-     */
-    public function isApproved()
+    public function departmentHeadApprover()
     {
-        return $this->status === 'approved';
+        return $this->belongsTo(User::class, 'department_head_approved_by');
     }
 
-    /**
-     * Check if PO is pending
-     */
-    public function isPending()
+    public function managementApprover()
     {
-        return $this->status === 'pending';
+        return $this->belongsTo(User::class, 'management_approved_by');
     }
 
-    /**
-     * Check if PO is rejected
-     */
-    public function isRejected()
-    {
-        return $this->status === 'rejected';
-    }
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    public function isApproved(): bool { return $this->status === 'approved'; }
+    public function isPending():  bool { return $this->status === 'pending';  }
+    public function isRejected(): bool { return $this->status === 'rejected'; }
 }

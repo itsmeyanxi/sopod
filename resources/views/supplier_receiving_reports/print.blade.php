@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $report->srr_code }} - Supplier Receiving Report</title>
+    <title>{{ $report->srr_code }} - Supply Receiving Report</title>
     <style>
         * {
             margin: 0;
@@ -218,7 +218,7 @@
     <div class="page">
         <!-- Header -->
         <div class="header">
-            <div class="company-name">MEATPLUS</div>
+            <div class="company-name">PACIFIC MAGALANG AGRIVENTURES INC</div>
             <div class="report-title">RECEIVING REPORT</div>
         </div>
 
@@ -241,7 +241,7 @@
                 <span class="info-value">{{ $report->po_no ?? '' }}</span>
             </div>
             <div class="info-row">
-                <span class="info-label">SUPPLIER:</span>
+                <span class="info-label">SUPPLY:</span>
                 <span class="info-value">{{ $report->supplier_name }}</span>
             </div>
             <div class="info-row">
@@ -281,8 +281,8 @@
                     <th style="width: 70px">BRAND</th>
                     <th style="width: 65px">NO. OF BOXES</th>
                     <th style="width: 60px">NET WEIGHT</th>
-                    <th style="width: 55px">PD</th>
-                    <th style="width: 70px">ED</th>
+                    <th style="width: 55px">PRODUCTION DATE</th>
+                    <th style="width: 70px">EXPIRATION DATE</th>
                     <th style="width: 60px">PALLET NO.</th>
                     <th style="width: 80px">REMARKS</th>
                 </tr>
