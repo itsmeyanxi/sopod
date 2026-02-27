@@ -186,6 +186,12 @@ class CustomerController extends Controller
         }
 
         $customer = Customer::findOrFail($id);
+
+        if ($customer->is_locked) {
+            return redirect()->route('customers.show', $id)
+                ->with('error', 'This Customer is locked and cannot be edited.');
+        }
+
         return view('customers.edit', compact('customer'));
     }
 
@@ -197,6 +203,11 @@ class CustomerController extends Controller
         }
 
         $customer = Customer::findOrFail($id);
+
+        if ($customer->is_locked) {
+            return redirect()->route('customers.show', $id)
+                ->with('error', 'This Customer is locked and cannot be edited.');
+        }
 
         $validated = $request->validate([
             'customer_code' => 'required|string|max:50|unique:customers,customer_code,' . $id,
@@ -248,6 +259,11 @@ class CustomerController extends Controller
 
         $customer = Customer::findOrFail($id);
 
+        if ($customer->is_locked) {
+            return redirect()->back()
+                ->with('error', 'This Customer is locked and cannot be deleted.');
+        }
+
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
             'action' => 'Deleted',
@@ -283,6 +299,11 @@ class CustomerController extends Controller
 
         $customer = Customer::findOrFail($id);
 
+        if ($customer->is_locked) {
+            return redirect()->back()
+                ->with('error', 'This Customer is locked and cannot be modified.');
+        }
+
         $customer->status = $customer->status === 'enabled' ? 'disabled' : 'enabled';
         $customer->save();
 
@@ -307,6 +328,11 @@ class CustomerController extends Controller
         }
 
         $customer = Customer::findOrFail($id);
+
+        if ($customer->is_locked) {
+            return redirect()->back()
+                ->with('error', 'This Customer is locked and cannot be modified.');
+        }
 
         $customer->is_flagged = !$customer->is_flagged;
         $customer->save();

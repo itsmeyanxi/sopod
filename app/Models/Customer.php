@@ -34,9 +34,15 @@ class Customer extends Model
         'tin_no', 
         'collection_terms',
         'sales_rep', 
-        'credit_limit', 
+        'credit_limit',
         'assigned_bank',
-        'is_flagged'
+        'is_flagged',
+        'is_locked',
+    ];
+
+    protected $casts = [
+        'is_locked' => 'boolean',
+        'is_flagged' => 'boolean',
     ];
 }
 

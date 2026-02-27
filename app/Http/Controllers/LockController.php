@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\SalesOrder;
 use App\Models\Deliveries;
+use App\Models\Customer;
+use App\Models\Item;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -31,6 +33,14 @@ class LockController extends Controller
         $deliveryLockedCount = Deliveries::whereBetween('request_delivery_date', [$startDate, $endDate])
             ->where('is_locked', true)->count();
 
+        $customerCount = Customer::whereBetween('created_at', [$startDate, $endDate])->count();
+        $customerLockedCount = Customer::whereBetween('created_at', [$startDate, $endDate])
+            ->where('is_locked', true)->count();
+
+        $itemCount = Item::whereBetween('created_at', [$startDate, $endDate])->count();
+        $itemLockedCount = Item::whereBetween('created_at', [$startDate, $endDate])
+            ->where('is_locked', true)->count();
+
         // Delivery status breakdown
         $deliveryStatusCounts = Deliveries::whereBetween('request_delivery_date', [$startDate, $endDate])
             ->selectRaw('status, COUNT(*) as count')
@@ -46,9 +56,15 @@ class LockController extends Controller
             'so_locked_count' => $soLockedCount,
             'delivery_count' => $deliveryCount,
             'delivery_locked_count' => $deliveryLockedCount,
+            'customer_count' => $customerCount,
+            'customer_locked_count' => $customerLockedCount,
+            'item_count' => $itemCount,
+            'item_locked_count' => $itemLockedCount,
             'delivery_status_counts' => $deliveryStatusCounts,
             'is_fully_locked' => ($soCount > 0 && $soCount === $soLockedCount) &&
-                                 ($deliveryCount > 0 && $deliveryCount === $deliveryLockedCount),
+                                 ($deliveryCount > 0 && $deliveryCount === $deliveryLockedCount) &&
+                                 ($customerCount === 0 || $customerCount === $customerLockedCount) &&
+                                 ($itemCount === 0 || $itemCount === $itemLockedCount),
         ]];
 
         return view('lock.index', compact('monthsData', 'filterYear', 'filterMonth'));
@@ -81,11 +97,19 @@ class LockController extends Controller
                 ->where('is_locked', false)
                 ->update(['is_locked' => true]);
 
+            $customerLocked = Customer::whereBetween('created_at', [$startDate, $endDate])
+                ->where('is_locked', false)
+                ->update(['is_locked' => true]);
+
+            $itemLocked = Item::whereBetween('created_at', [$startDate, $endDate])
+                ->where('is_locked', false)
+                ->update(['is_locked' => true]);
+
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => "Locked {$soLocked} Sales Order(s) and {$deliveryLocked} Delivery/ies.",
+                'message' => "Locked {$soLocked} Sales Order(s), {$deliveryLocked} Delivery/ies, {$customerLocked} Customer(s), and {$itemLocked} Item(s).",
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -123,11 +147,19 @@ class LockController extends Controller
                 ->where('is_locked', true)
                 ->update(['is_locked' => false]);
 
+            $customerUnlocked = Customer::whereBetween('created_at', [$startDate, $endDate])
+                ->where('is_locked', true)
+                ->update(['is_locked' => false]);
+
+            $itemUnlocked = Item::whereBetween('created_at', [$startDate, $endDate])
+                ->where('is_locked', true)
+                ->update(['is_locked' => false]);
+
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => "Unlocked {$soUnlocked} Sales Order(s) and {$deliveryUnlocked} Delivery/ies.",
+                'message' => "Unlocked {$soUnlocked} Sales Order(s), {$deliveryUnlocked} Delivery/ies, {$customerUnlocked} Customer(s), and {$itemUnlocked} Item(s).",
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -180,10 +212,40 @@ class LockController extends Controller
                 ];
             });
 
+        $customers = Customer::whereBetween('created_at', [$startDate, $endDate])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'customer_code' => $c->customer_code,
+                    'customer_name' => $c->customer_name,
+                    'status' => $c->status,
+                    'is_locked' => (bool) $c->is_locked,
+                    'created_at' => $c->created_at,
+                ];
+            });
+
+        $items = Item::whereBetween('created_at', [$startDate, $endDate])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($i) {
+                return [
+                    'id' => $i->id,
+                    'item_code' => $i->item_code,
+                    'item_description' => $i->item_description,
+                    'approval_status' => $i->approval_status,
+                    'is_locked' => (bool) $i->is_locked,
+                    'created_at' => $i->created_at,
+                ];
+            });
+
         return response()->json([
             'success' => true,
             'sales_orders' => $salesOrders,
             'deliveries' => $deliveries,
+            'customers' => $customers,
+            'items' => $items,
         ]);
     }
 }
