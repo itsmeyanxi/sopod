@@ -54,6 +54,9 @@ class AccountsPayableInvoice extends Model
         'approved_location',
         'rejection_reason',
         'created_by',
+        'cash_advance_request_id',
+        'reimbursement_form_id',
+        'reference_type',
     ];
 
     protected $casts = [
@@ -90,5 +93,15 @@ class AccountsPayableInvoice extends Model
     public function departmentHeadApprover()
     {
         return $this->belongsTo(User::class, 'department_head_approved_by');
+    }
+
+    public function cashAdvanceRequest()
+    {
+        return $this->belongsTo(CashAdvanceRequest::class);
+    }
+
+    public function reimbursementForm()
+    {
+        return $this->belongsTo(ReimbursementForm::class);
     }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\AccountsPayableInvoice;
 use App\Models\RequestForPayment;
+use App\Models\CashAdvanceRequest;
+use App\Models\ReimbursementForm;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,9 +13,6 @@ use Illuminate\Support\Facades\Auth;
 
 class AccountsPayableInvoiceController extends Controller
 {
-    /**
-     * Display a listing of invoices
-     */
     public function index()
     {
         $invoices = AccountsPayableInvoice::with(['creator', 'requestForPayment'])
@@ -23,9 +22,6 @@ class AccountsPayableInvoiceController extends Controller
         return view('accounts_payable_invoices.index', compact('invoices'));
     }
 
-    /**
-     * Show the form for creating a new invoice
-     */
     public function create(Request $request)
     {
         // Generate APV number
@@ -86,6 +82,66 @@ class AccountsPayableInvoiceController extends Controller
     }
 
     /**
+     * Search approved Cash Advance Requests (AJAX)
+     */
+    public function searchCARs(Request $request)
+    {
+        $searchTerm = $request->input('search', '');
+
+        $cars = CashAdvanceRequest::where('status', 'approved')
+            ->where(function ($query) use ($searchTerm) {
+                $query->where('car_no', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('payee', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('department', 'LIKE', "%{$searchTerm}%");
+            })
+            ->limit(10)
+            ->get()
+            ->map(function ($car) {
+                return [
+                    'id' => $car->id,
+                    'car_no' => $car->car_no,
+                    'payee' => $car->payee,
+                    'department' => $car->department,
+                    'amount' => (float) $car->amount_advanced,
+                    'purpose' => $car->purpose,
+                    'date_requested' => $car->date_requested?->format('Y-m-d'),
+                ];
+            });
+
+        return response()->json($cars);
+    }
+
+    /**
+     * Search approved Reimbursement Forms (AJAX)
+     */
+    public function searchReimbursements(Request $request)
+    {
+        $searchTerm = $request->input('search', '');
+
+        $reimbursements = ReimbursementForm::where('status', 'approved')
+            ->where(function ($query) use ($searchTerm) {
+                $query->where('ri_no', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('department', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('submitted_by', 'LIKE', "%{$searchTerm}%");
+            })
+            ->limit(10)
+            ->get()
+            ->map(function ($ri) {
+                return [
+                    'id' => $ri->id,
+                    'ri_no' => $ri->ri_no,
+                    'department' => $ri->department,
+                    'submitted_by' => $ri->submitted_by,
+                    'amount' => (float) $ri->amount_to_be_reimbursed,
+                    'total_spent' => (float) $ri->total_amount_spent,
+                    'date_applied' => $ri->date_applied?->format('Y-m-d'),
+                ];
+            });
+
+        return response()->json($reimbursements);
+    }
+
+    /**
      * Store a newly created invoice
      */
     public function store(Request $request)
@@ -128,6 +184,9 @@ class AccountsPayableInvoiceController extends Controller
             $invoice = AccountsPayableInvoice::create([
                 'apv_no' => $apvNo,
                 'request_for_payment_id' => $request->request_for_payment_id,
+                'cash_advance_request_id' => $request->cash_advance_request_id,
+                'reimbursement_form_id' => $request->reimbursement_form_id,
+                'reference_type' => $request->reference_type,
                 'apv_date' => $request->apv_date,
                 'payment_type' => $request->payment_type,
                 'vendor_code' => $request->vendor_code,

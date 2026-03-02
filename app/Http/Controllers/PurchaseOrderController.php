@@ -129,22 +129,11 @@ class PurchaseOrderController extends Controller
             });
 
         if ($description !== '') {
-            // Find supplier IDs confirmed in the library for this exact item
-            $confirmedIds = collect();
-
-            $confirmedIds = $confirmedIds->merge(
-                \App\Models\NonTradeItem::where('name', $description)
-                    ->whereNotNull('supplier_id')
-                    ->pluck('supplier_id')
-            );
-
-            $confirmedIds = $confirmedIds->merge(
-                \App\Models\TradeItem::where('name', $description)
-                    ->whereNotNull('supplier_id')
-                    ->pluck('supplier_id')
-            );
-
-            $confirmedIds = $confirmedIds->unique()->filter()->values();
+            // Find supplier IDs confirmed in the Non-Trade Items library for this item
+            $confirmedIds = \App\Models\NonTradeItem::where('name', $description)
+                ->whereNotNull('supplier_id')
+                ->pluck('supplier_id')
+                ->unique()->filter()->values();
 
             if ($confirmedIds->isNotEmpty()) {
                 // Return confirmed suppliers, always ensuring current supplier is included

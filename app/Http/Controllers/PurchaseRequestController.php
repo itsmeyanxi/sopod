@@ -6,6 +6,7 @@ use App\Models\PurchaseRequest;
 use App\Models\PurchaseRequestItem;
 use App\Models\PurchaseOrderItem;
 use App\Models\NonTradeItem;
+use App\Models\TradeItem;
 use App\Models\Supplier;
 use App\Models\Activity;
 use Illuminate\Http\Request;
@@ -84,22 +85,11 @@ class PurchaseRequestController extends Controller
             });
 
         if ($description !== '') {
-            // Find supplier IDs confirmed in the library for this exact item
-            $confirmedIds = collect();
-
-            $confirmedIds = $confirmedIds->merge(
-                NonTradeItem::where('name', $description)
-                    ->whereNotNull('supplier_id')
-                    ->pluck('supplier_id')
-            );
-
-            $confirmedIds = $confirmedIds->merge(
-                \App\Models\TradeItem::where('name', $description)
-                    ->whereNotNull('supplier_id')
-                    ->pluck('supplier_id')
-            );
-
-            $confirmedIds = $confirmedIds->unique()->filter()->values();
+            // Find supplier IDs confirmed in the Non-Trade Items library for this item
+            $confirmedIds = NonTradeItem::where('name', $description)
+                ->whereNotNull('supplier_id')
+                ->pluck('supplier_id')
+                ->unique()->filter()->values();
 
             if ($confirmedIds->isNotEmpty()) {
                 $suppliers = (clone $baseQuery)
@@ -154,6 +144,68 @@ class PurchaseRequestController extends Controller
             $s->is_current = ($currentSupplierId && $s->id == $currentSupplierId);
             return $s;
         }));
+    }
+
+    /**
+     * Search items from both Trade and Non-Trade libraries (AJAX)
+     */
+    public function searchItems(Request $request)
+    {
+        $term = $request->input('q', '');
+        $supplierId = $request->input('supplier_id');
+
+        if (strlen($term) < 2 && !$supplierId) {
+            return response()->json([]);
+        }
+
+        // Search Non-Trade Items
+        $ntQuery = NonTradeItem::with('supplier')->where('name', 'LIKE', "%{$term}%");
+        if ($supplierId) {
+            $ntQuery->where('supplier_id', $supplierId);
+        }
+        $nonTradeItems = $ntQuery->orderBy('name')->limit(25)->get()->map(function ($item) {
+            $displayName = $item->name;
+            if ($item->supplier) {
+                $displayName .= ' (' . $item->supplier->supplier_name . ')';
+            }
+            return [
+                'display_name' => $displayName,
+                'name' => $item->name,
+                'item_code' => $item->item_code,
+                'supplier_id' => $item->supplier_id,
+                'supplier_name' => $item->supplier->supplier_name ?? null,
+                'type' => 'non_trade',
+            ];
+        });
+
+        // Search Trade Items
+        $tQuery = TradeItem::with('supplier')->where('name', 'LIKE', "%{$term}%");
+        if ($supplierId) {
+            $tQuery->where('supplier_id', $supplierId);
+        }
+        $tradeItems = $tQuery->orderBy('name')->limit(25)->get()->map(function ($item) {
+            $displayName = $item->name;
+            if ($item->supplier) {
+                $displayName .= ' (' . $item->supplier->supplier_name . ')';
+            }
+            return [
+                'display_name' => $displayName,
+                'name' => $item->name,
+                'item_code' => $item->item_code,
+                'supplier_id' => $item->supplier_id,
+                'supplier_name' => $item->supplier->supplier_name ?? null,
+                'type' => 'trade',
+            ];
+        });
+
+        // Merge, deduplicate by name+supplier, and limit
+        $combined = $nonTradeItems->merge($tradeItems)
+            ->unique(fn($item) => $item['name'] . '|' . $item['supplier_id'])
+            ->sortBy('name')
+            ->take(50)
+            ->values();
+
+        return response()->json($combined);
     }
 
     /**

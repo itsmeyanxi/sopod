@@ -321,6 +321,10 @@
                         <a href="{{ route('check_vouchers.index') }}" class="block hover:underline">Check Voucher (CV)</a>
                     @endif
 
+                    <a href="{{ route('cash_advance_requests.index') }}" class="block hover:underline">Cash Advance Request (CAR)</a>
+                    <a href="{{ route('liquidation_forms.index') }}" class="block hover:underline">Liquidation Form (LIQ)</a>
+                    <a href="{{ route('reimbursement_forms.index') }}" class="block hover:underline">Reimbursement Form (RI)</a>
+
                     <a href="{{ route('po_records.index') }}" class="block hover:underline">PO Records</a>
 
                     @if(auth()->user()->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']))
