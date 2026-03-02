@@ -44,18 +44,8 @@
             @csrf
             <input type="hidden" id="maxRfpAmount" value="{{ $poAmount ? number_format($poAmount, 2, '.', '') : '' }}">
 
-            <!-- Company Selection -->
-            <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-                <label class="block font-semibold text-gray-300 mb-3">SELECT COMPANY: <span class="text-red-400">*</span></label>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    @foreach($companies as $company)
-                        <label class="flex items-center p-3 bg-gray-800 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer transition">
-                            <input type="radio" name="company" value="{{ $company }}" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500" {{ old('company', $selectedPO->company ?? '') == $company ? 'checked' : '' }} required>
-                            <span class="ml-3 text-white">{{ $company }}</span>
-                        </label>
-                    @endforeach
-                </div>
-            </div>
+            <!-- Company (Hidden - MeatPlus Only) -->
+            <input type="hidden" name="company" value="MeatPlus">
 
             <!-- Payment Methods & Dates Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('purchase_orders', function (Blueprint $table) {
-            $table->string('currency', 10)->default('PHP')->after('lc_price');
-            $table->decimal('exchange_rate', 12, 4)->default(1)->after('currency');
+            if (!Schema::hasColumn('purchase_orders', 'currency')) {
+                $table->string('currency', 10)->default('PHP')->after('lc_price');
+            }
+            if (!Schema::hasColumn('purchase_orders', 'exchange_rate')) {
+                $table->decimal('exchange_rate', 12, 4)->default(1)->after('currency');
+            }
         });
     }
 

@@ -35,18 +35,8 @@
         <form action="{{ route('purchase_requests.store') }}" method="POST" id="prForm">
             @csrf
 
-            <!-- Company Selection -->
-            <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-2">COMPANY: <span class="text-red-400">*</span></label>
-                <select name="company" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                    <option value="">-- Select Company --</option>
-                    @foreach($companies as $company)
-                        <option value="{{ $company }}" {{ old('company') == $company ? 'selected' : '' }}>
-                            {{ $company }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <!-- Company (Hidden - MeatPlus Only) -->
+            <input type="hidden" name="company" value="MeatPlus">
 
             <!-- Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

@@ -216,7 +216,7 @@
             <!-- Header -->
             <div class="slip-header">
                 <div class="slip-header-left">
-                    <img src="{{ asset('images/meatplus-logo.png') }}" alt="Logo">
+                    <img src="{{ asset('images/sopod-logo.png') }}" alt="Logo">
                     <div class="company-info">
                         <div class="company-name">MEATPLUS</div>
                         <div class="company-sub">Pacific Magalang Agriventures Inc.</div>

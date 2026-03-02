@@ -159,7 +159,7 @@
 
     @php
         // Convert logo to base64
-        $logoPath = public_path('images/meatplus-logo.png');
+        $logoPath = public_path('images/sopod-logo.png');
         $logoBase64 = '';
         if (file_exists($logoPath)) {
             $logoData = base64_encode(file_get_contents($logoPath));

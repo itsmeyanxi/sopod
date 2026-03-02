@@ -729,6 +729,6 @@ class PurchaseRequestController extends Controller
     private function isPMAI(?string $company): bool
     {
         if (!$company) return false;
-        return str_contains(strtolower($company), 'magalang');
+        return str_contains(strtolower($company), 'meatplus');
     }
 }

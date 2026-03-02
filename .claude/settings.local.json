@@ -24,7 +24,11 @@
       "Bash(php -r \"require ''/c/sopod/vendor/autoload.php''; echo ''ok'';\")",
       "Bash(curl:*)",
       "Read(//c/Windows/System32/drivers/etc/**)",
-      "Bash(ipconfig:*)"
+      "Bash(ipconfig:*)",
+      "Bash(c:/xampp/apache/bin/httpd.exe -t)",
+      "Bash(\"c:/xampp/mysql/bin/mysql.exe\" -u root sopod -e \"SELECT COUNT\\(*\\) as ''Total Tables'' FROM information_schema.tables WHERE table_schema=''sopod'';\")",
+      "Bash(\"c:/xampp/mysql/bin/mysql.exe\" -u root sopod -e \"SHOW TABLES LIKE ''trade%'';\")",
+      "Bash(git pull origin main)"
     ],
     "additionalDirectories": [
       "c:\\Windows\\System32\\drivers\\etc"

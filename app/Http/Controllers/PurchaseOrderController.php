@@ -884,11 +884,11 @@ class PurchaseOrderController extends Controller
     }
 
     /**
-     * Check if company is PMAI
+     * Check if company is SOPOD (MeatPlus)
      */
     private function isPMAI(?string $company): bool
     {
         if (!$company) return false;
-        return str_contains(strtolower($company), 'magalang');
+        return str_contains(strtolower($company), 'meatplus');
     }
 }

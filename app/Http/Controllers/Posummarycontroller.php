@@ -88,15 +88,15 @@ class POSummaryController extends Controller
 
                 if ($company === 'NBC') {
                     $q->orWhere('po.company', 'like', '%North Breeders%');
-                } elseif ($company === 'PMAI') {
-                    $q->orWhere('po.company', 'like', '%Magalang%')
-                      ->orWhere('po.company', 'like', '%Pacific Magalang%');
+                } elseif ($company === 'SOPOD') {
+                    $q->orWhere('po.company', 'like', '%MeatPlus%')
+                      ->orWhere('po.company', 'like', '%Meat Plus%');
                 } elseif ($company === 'PARI') {
                     $q->orWhere('po.company', 'like', '%Agro Resources%')
                       ->orWhere('po.company', 'like', '%Pacific Agro%');
                 }
 
-                $prefixMap = ['NBC' => 'NBC', 'PMAI' => 'PMA', 'PARI' => 'PAR'];
+                $prefixMap = ['NBC' => 'NBC', 'SOPOD' => 'MP', 'PARI' => 'PAR'];
                 if (isset($prefixMap[$company])) {
                     $q->orWhere('po.po_no', 'like', $prefixMap[$company] . '%');
                 }
@@ -137,16 +137,16 @@ class POSummaryController extends Controller
 
     private static function normalizeCompany(?string $company, ?string $poNumber): string
     {
-        if (in_array($company, ['NBC', 'PMAI', 'PARI'])) return $company;
+        if (in_array($company, ['NBC', 'SOPOD', 'PARI'])) return $company;
 
         $lower = strtolower($company ?? '');
         if (str_contains($lower, 'north breeders')) return 'NBC';
-        if (str_contains($lower, 'magalang'))        return 'PMAI';
+        if (str_contains($lower, 'meatplus'))        return 'SOPOD';
         if (str_contains($lower, 'agro resources'))  return 'PARI';
 
         $po = $poNumber ?? '';
         if (str_starts_with($po, 'NBC')) return 'NBC';
-        if (str_starts_with($po, 'PMA')) return 'PMAI';
+        if (str_starts_with($po, 'MP')) return 'SOPOD';
         if (str_starts_with($po, 'PAR')) return 'PARI';
 
         return $company ?? 'UNKNOWN';

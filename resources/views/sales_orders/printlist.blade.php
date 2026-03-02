@@ -141,7 +141,7 @@
 <body onload="window.print()">
 
     <div class="header">
-        <img src="{{ asset('images/meatplus-logo.png') }}" class="logo" alt="Logo">
+        <img src="{{ asset('images/sopod-logo.png') }}" class="logo" alt="Logo">
         <div class="company-name">Meatplus Trading Corp</div>
         <div class="company-info">
             12F Victoria Building, United Nations Avenue, Ermita, Manila, Philippines, 1004<br>
