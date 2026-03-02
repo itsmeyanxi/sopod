@@ -220,7 +220,7 @@ class PurchaseRequestController extends Controller
             'date_of_request' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.qty' => 'required|numeric|min:0',
-            'items.*.uom' => 'nullable|string',
+            'items.*.uom' => 'required|string',
             'items.*.description' => 'required|string',
         ]);
 
@@ -396,7 +396,7 @@ class PurchaseRequestController extends Controller
             'date_of_request' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.qty' => 'required|numeric|min:0',
-            'items.*.uom' => 'nullable|string',
+            'items.*.uom' => 'required|string',
             'items.*.description' => 'required|string',
         ]);
 
