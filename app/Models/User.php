@@ -205,7 +205,7 @@ class User extends Authenticatable
 
     public function canManageSuppliers()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Accounting_Creator', 'Accounting_Approver', 'SCM']);
     }
 
     public function canDeleteSuppliers()
@@ -236,17 +236,17 @@ class User extends Authenticatable
 
     public function canManagePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President']);
+        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President', 'SCM']);
     }
 
     public function canCreatePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver', 'SCM']);
     }
 
     public function canApprovePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President']);
+        return $this->hasRole(['Admin', 'IT', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President', 'SCM']);
     }
 
     public function canApprovePurchaseRequestsAsDH()
@@ -268,17 +268,17 @@ class User extends Authenticatable
 
     public function canManagePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President', 'SCM']);
     }
 
     public function canCreatePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'SCM']);
     }
 
     public function canApprovePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President']);
+        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President', 'SCM']);
     }
 
     public function canApprovePurchaseOrdersAsDH()
@@ -300,17 +300,17 @@ class User extends Authenticatable
 
     public function canManageRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'SCM']);
     }
 
     public function canCreateRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'SCM']);
     }
 
     public function canApproveRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'Accounting_Approver', 'CFO', 'President', 'Vice_President']);
+        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'Accounting_Approver', 'CFO', 'President', 'Vice_President', 'SCM']);
     }
 
     public function canApproveRFPAsDH()

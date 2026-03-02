@@ -215,6 +215,21 @@
                     @if(auth()->user()->canManageIssueSlips())
                         <a href="{{ route('issue_slips.index') }}" class="block hover:underline">Issue Slips</a>
                     @endif
+                    <!-- SCM Role - Supply Chain Module Links -->
+                    @if(auth()->user()->hasRole(['SCM']))
+                        <hr class="my-2 border-gray-600">
+                        @if(auth()->user()->canManagePurchaseRequests())
+                            <a href="{{ route('purchase_requests.index') }}" class="block hover:underline">Purchase Request (PR)</a>
+                        @endif
+                        @if(auth()->user()->canManagePurchaseOrders())
+                            <a href="{{ route('purchase_orders.index') }}" class="block hover:underline">Purchase Order (PO)</a>
+                        @endif
+                        @if(auth()->user()->canManageRequestForPayments())
+                            <a href="{{ route('request_for_payments.index') }}" class="block hover:underline">Request For Payment (RFP)</a>
+                        @endif
+                        <a href="{{ route('non_trade_items.index') }}" class="block hover:underline">Non-Trade Items Library</a>
+                        <a href="{{ route('trade_items.index') }}" class="block hover:underline">Trade Items Library</a>
+                    @endif
                 </div>
             </div>
         @endif
@@ -274,12 +289,12 @@
         @endif
 
         <!-- =================== PURCHASE ORDER =================== -->
-        @if(auth()->user()->canManagePurchaseRequests() || auth()->user()->canManagePurchaseOrders() || auth()->user()->canManageRequestForPayments() || auth()->user()->hasRole(['Accounting_Creator', 'Accounting_Approver']))
+        @if((auth()->user()->canManagePurchaseRequests() || auth()->user()->canManagePurchaseOrders() || auth()->user()->canManageRequestForPayments() || auth()->user()->hasRole(['Accounting_Creator', 'Accounting_Approver'])) && !auth()->user()->hasRole(['SCM']))
             <div>
                 <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
                     <span class="flex items-center space-x-2">
                         <span>💰</span>
-                        <span class="sidebar-text">Purchase Order</span>
+                        <span class="sidebar-text">Finance</span>
                     </span>
                     <span class="chevron">▼</span>
                 </button>
