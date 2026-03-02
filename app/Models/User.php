@@ -205,7 +205,7 @@ class User extends Authenticatable
 
     public function canManageSuppliers()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Accounting_Creator', 'Accounting_Approver', 'SCM']);
     }
 
     public function canDeleteSuppliers()

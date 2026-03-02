@@ -33,7 +33,10 @@ use App\Http\Controllers\{
     NonTradeItemController,
     TradeItemController,
     CurrencyController,
-    POSummaryController
+    POSummaryController,
+    CashAdvanceRequestController,
+    LiquidationFormController,
+    ReimbursementFormController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -1227,23 +1230,23 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
     // ===================== PURCHASE REQUESTS =====================
     Route::prefix('purchase_requests')->name('purchase_requests.')->group(function () {
 
-        // Search Suppliers (AJAX) for per-item supplier
+        // Search Suppliers (AJAX) for per-item supplier — uses controller method with description filtering
         Route::get('/search-suppliers', function () {
             $user = auth()->user();
             if ($user->canManagePurchaseRequests()) {
-                $search = request()->input('q', '');
-                return \App\Models\Supplier::where('status', 'active')
-                    ->where(function ($query) use ($search) {
-                        $query->where('supplier_name', 'LIKE', "%{$search}%")
-                              ->orWhere('supplier_code', 'LIKE', "%{$search}%");
-                    })
-                    ->select('id', 'supplier_code', 'supplier_name', 'address')
-                    ->orderBy('supplier_name')
-                    ->limit(10)
-                    ->get();
+                return app(PurchaseRequestController::class)->searchSuppliers(request());
             }
             return response()->json([]);
         })->name('search_suppliers');
+
+        // Search Items (AJAX) — combined Trade + Non-Trade item search
+        Route::get('/search-items', function () {
+            $user = auth()->user();
+            if ($user->canManagePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->searchItems(request());
+            }
+            return response()->json([]);
+        })->name('search_items');
 
         // Index
         Route::get('/', function () {
@@ -1403,23 +1406,23 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         return response()->json(['error' => 'Unauthorized'], 403);
     })->name('search_by_item_code');
 
-        // Search Suppliers (AJAX)
+        // Search Suppliers (AJAX) — uses controller method with description filtering
         Route::get('/search-suppliers', function () {
             $user = auth()->user();
             if ($user->canManagePurchaseOrders()) {
-                $search = request()->input('q', '');
-                return \App\Models\Supplier::where('status', 'active')
-                    ->where(function ($query) use ($search) {
-                        $query->where('supplier_name', 'LIKE', "%{$search}%")
-                              ->orWhere('supplier_code', 'LIKE', "%{$search}%");
-                    })
-                    ->select('id', 'supplier_code', 'supplier_name', 'address')
-                    ->orderBy('supplier_name')
-                    ->limit(10)
-                    ->get();
+                return app(PurchaseOrderController::class)->searchSuppliers(request());
             }
             return response()->json([]);
         })->name('search_suppliers');
+
+        // Search Items (AJAX) — combined Trade + Non-Trade item search
+        Route::get('/search-items', function () {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders() || $user->canManagePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->searchItems(request());
+            }
+            return response()->json([]);
+        })->name('search_items');
 
         // Get PR Details (AJAX) - Allow reuse across multiple POs
         Route::get('/get-pr-details', function () {
@@ -1784,6 +1787,24 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
             return response()->json([]);
         })->name('search_rfps');
 
+        // Search CARs (AJAX)
+        Route::get('/search-cars', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->searchCARs(request());
+            }
+            return response()->json([]);
+        })->name('search_cars');
+
+        // Search Reimbursements (AJAX)
+        Route::get('/search-reimbursements', function () {
+            $user = auth()->user();
+            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+                return app(AccountsPayableInvoiceController::class)->searchReimbursements(request());
+            }
+            return response()->json([]);
+        })->name('search_reimbursements');
+
         // Index
         Route::get('/', function () {
             $user = auth()->user();
@@ -1993,6 +2014,202 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
                 return app(CheckVoucherController::class)->show($id);
             }
             return view('errors.noaccess');
+        })->name('show');
+    });
+
+    // ===================== CASH ADVANCE REQUESTS =====================
+    Route::prefix('cash_advance_requests')->name('cash_advance_requests.')->group(function () {
+
+        Route::get('/', function () {
+            return app(CashAdvanceRequestController::class)->index();
+        })->name('index');
+
+        Route::get('/create', function () {
+            return app(CashAdvanceRequestController::class)->create();
+        })->name('create');
+
+        Route::post('/', function () {
+            return app(CashAdvanceRequestController::class)->store(request());
+        })->name('store');
+
+        Route::post('/{id}/approve-dh', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver'])) {
+                return app(CashAdvanceRequestController::class)->approveDH(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_dh');
+
+        Route::post('/{id}/approve', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'President', 'Vice_President', 'CFO'])) {
+                return app(CashAdvanceRequestController::class)->approve(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve');
+
+        Route::post('/{id}/reject', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'President', 'Vice_President', 'CFO'])) {
+                return app(CashAdvanceRequestController::class)->reject(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('reject');
+
+        Route::get('/{id}/edit', function ($id) {
+            return app(CashAdvanceRequestController::class)->edit($id);
+        })->name('edit');
+
+        Route::put('/{id}', function ($id) {
+            return app(CashAdvanceRequestController::class)->update(request(), $id);
+        })->name('update');
+
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT'])) {
+                return app(CashAdvanceRequestController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+
+        Route::get('/{id}/print', function ($id) {
+            return app(CashAdvanceRequestController::class)->print($id);
+        })->name('print');
+
+        Route::get('/{id}', function ($id) {
+            return app(CashAdvanceRequestController::class)->show($id);
+        })->name('show');
+    });
+
+    // ===================== LIQUIDATION FORMS =====================
+    Route::prefix('liquidation_forms')->name('liquidation_forms.')->group(function () {
+
+        Route::get('/search-cars', function () {
+            return app(LiquidationFormController::class)->searchCARs(request());
+        })->name('search_cars');
+
+        Route::get('/', function () {
+            return app(LiquidationFormController::class)->index();
+        })->name('index');
+
+        Route::get('/create', function () {
+            return app(LiquidationFormController::class)->create(request());
+        })->name('create');
+
+        Route::post('/', function () {
+            return app(LiquidationFormController::class)->store(request());
+        })->name('store');
+
+        Route::post('/{id}/approve-dh', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver'])) {
+                return app(LiquidationFormController::class)->approveDH(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_dh');
+
+        Route::post('/{id}/approve', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'President', 'Vice_President', 'CFO'])) {
+                return app(LiquidationFormController::class)->approve(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve');
+
+        Route::post('/{id}/reject', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'President', 'Vice_President', 'CFO'])) {
+                return app(LiquidationFormController::class)->reject(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('reject');
+
+        Route::get('/{id}/edit', function ($id) {
+            return app(LiquidationFormController::class)->edit($id);
+        })->name('edit');
+
+        Route::put('/{id}', function ($id) {
+            return app(LiquidationFormController::class)->update(request(), $id);
+        })->name('update');
+
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT'])) {
+                return app(LiquidationFormController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+
+        Route::get('/{id}/print', function ($id) {
+            return app(LiquidationFormController::class)->print($id);
+        })->name('print');
+
+        Route::get('/{id}', function ($id) {
+            return app(LiquidationFormController::class)->show($id);
+        })->name('show');
+    });
+
+    // ===================== REIMBURSEMENT FORMS =====================
+    Route::prefix('reimbursement_forms')->name('reimbursement_forms.')->group(function () {
+
+        Route::get('/', function () {
+            return app(ReimbursementFormController::class)->index();
+        })->name('index');
+
+        Route::get('/create', function () {
+            return app(ReimbursementFormController::class)->create();
+        })->name('create');
+
+        Route::post('/', function () {
+            return app(ReimbursementFormController::class)->store(request());
+        })->name('store');
+
+        Route::post('/{id}/approve-dh', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver'])) {
+                return app(ReimbursementFormController::class)->approveDH(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve_dh');
+
+        Route::post('/{id}/approve', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'President', 'Vice_President', 'CFO'])) {
+                return app(ReimbursementFormController::class)->approve(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('approve');
+
+        Route::post('/{id}/reject', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'President', 'Vice_President', 'CFO'])) {
+                return app(ReimbursementFormController::class)->reject(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('reject');
+
+        Route::get('/{id}/edit', function ($id) {
+            return app(ReimbursementFormController::class)->edit($id);
+        })->name('edit');
+
+        Route::put('/{id}', function ($id) {
+            return app(ReimbursementFormController::class)->update(request(), $id);
+        })->name('update');
+
+        Route::delete('/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->hasRole(['Admin', 'IT'])) {
+                return app(ReimbursementFormController::class)->destroy($id);
+            }
+            return view('errors.noaccess');
+        })->name('destroy');
+
+        Route::get('/{id}/print', function ($id) {
+            return app(ReimbursementFormController::class)->print($id);
+        })->name('print');
+
+        Route::get('/{id}', function ($id) {
+            return app(ReimbursementFormController::class)->show($id);
         })->name('show');
     });
 

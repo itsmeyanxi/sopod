@@ -24,19 +24,50 @@
             </div>
         @endif
 
-        <!-- Search RFP Section -->
+        <!-- Reference Document Type Selector -->
         @if(!$selectedRFP)
         <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-            <h3 class="font-semibold text-white mb-2">Search Approved Request for Payment</h3>
-            <div class="relative">
-                <input
-                    type="text"
-                    id="rfpSearchInput"
-                    class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Search by RFP No, Payee, or Company..."
-                />
-                <div id="rfpSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+            <h3 class="font-semibold text-white mb-3">REFERENCE DOCUMENT TYPE</h3>
+            <div class="flex gap-3 mb-4">
+                <button type="button" class="ref-type-btn px-4 py-2 rounded border border-purple-500 bg-purple-600 text-white font-semibold transition" data-type="rfp">RFP</button>
+                <button type="button" class="ref-type-btn px-4 py-2 rounded border border-gray-700 bg-gray-800 text-white hover:bg-purple-700 transition" data-type="car">Cash Advance</button>
+                <button type="button" class="ref-type-btn px-4 py-2 rounded border border-gray-700 bg-gray-800 text-white hover:bg-purple-700 transition" data-type="reimbursement">Reimbursement</button>
             </div>
+
+            <!-- RFP Search (default) -->
+            <div id="rfpSearchSection">
+                <label class="block text-gray-300 text-sm mb-1">Search Approved Request for Payment</label>
+                <div class="relative">
+                    <input type="text" id="rfpSearchInput"
+                        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Search by RFP No, Payee, or Company..." />
+                    <div id="rfpSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- CAR Search -->
+            <div id="carSearchSection" class="hidden">
+                <label class="block text-gray-300 text-sm mb-1">Search Approved Cash Advance Request</label>
+                <div class="relative">
+                    <input type="text" id="carSearchInput"
+                        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Search by CAR No, Payee, or Department..." />
+                    <div id="carSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- Reimbursement Search -->
+            <div id="reimbursementSearchSection" class="hidden">
+                <label class="block text-gray-300 text-sm mb-1">Search Approved Reimbursement Form</label>
+                <div class="relative">
+                    <input type="text" id="reimbursementSearchInput"
+                        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Search by RI No, Department, or Submitted By..." />
+                    <div id="reimbursementSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <div id="linkedRefBadge"></div>
         </div>
         @endif
 
@@ -44,6 +75,9 @@
             @csrf
 
             <input type="hidden" name="request_for_payment_id" value="{{ old('request_for_payment_id', $selectedRFP->id ?? '') }}">
+            <input type="hidden" name="cash_advance_request_id" id="carId" value="{{ old('cash_advance_request_id', '') }}">
+            <input type="hidden" name="reimbursement_form_id" id="reimbursementId" value="{{ old('reimbursement_form_id', '') }}">
+            <input type="hidden" name="reference_type" id="referenceType" value="{{ old('reference_type', '') }}">
             <input type="hidden" id="maxInvoiceAmount" value="{{ $selectedRFP->amount ?? '' }}">
 
             <!-- APV Date and Payment Type -->
@@ -463,9 +497,224 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('apvForm').addEventListener('submit', function(e) {
         if (!validateTotalLimit()) {
             e.preventDefault();
-            alert('Total amount cannot exceed the linked RFP amount. Please correct the amount.');
+            alert('Total amount cannot exceed the linked reference document amount. Please correct the amount.');
         }
     });
+
+    // ===================== REFERENCE TYPE SWITCHING =====================
+    const refTypeBtns = document.querySelectorAll('.ref-type-btn');
+    const rfpSearchSection = document.getElementById('rfpSearchSection');
+    const carSearchSection = document.getElementById('carSearchSection');
+    const reimbursementSearchSection = document.getElementById('reimbursementSearchSection');
+    const linkedRefBadge = document.getElementById('linkedRefBadge');
+
+    function clearAutoFilledFields() {
+        const vendorName = document.getElementById('vendor_name');
+        const vendorCode = document.getElementById('vendor_code');
+        const vendorAddress = document.getElementById('vendor_address');
+        const vendorTin = document.getElementById('vendor_tin');
+        const poNo = document.getElementById('purchase_order_no');
+        const particulars = document.querySelector('textarea[name="particulars"]');
+        if (vendorName) vendorName.value = '';
+        if (vendorCode) vendorCode.value = '';
+        if (vendorAddress) vendorAddress.value = '';
+        if (vendorTin) vendorTin.value = '';
+        if (poNo) poNo.value = '';
+        if (particulars) particulars.value = '';
+        if (totalInput) { totalInput.value = ''; totalInput.dispatchEvent(new Event('input')); }
+        document.querySelector('input[name="request_for_payment_id"]').value = '';
+        document.getElementById('carId').value = '';
+        document.getElementById('reimbursementId').value = '';
+        document.getElementById('maxInvoiceAmount').value = '';
+        if (linkedRefBadge) linkedRefBadge.innerHTML = '';
+    }
+
+    if (refTypeBtns.length > 0) {
+        refTypeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.dataset.type;
+                document.getElementById('referenceType').value = type;
+
+                // Update button styles
+                refTypeBtns.forEach(b => {
+                    b.className = 'ref-type-btn px-4 py-2 rounded border border-gray-700 bg-gray-800 text-white hover:bg-purple-700 transition';
+                });
+                this.className = 'ref-type-btn px-4 py-2 rounded border border-purple-500 bg-purple-600 text-white font-semibold transition';
+
+                // Show/hide search sections
+                if (rfpSearchSection) rfpSearchSection.classList.toggle('hidden', type !== 'rfp');
+                if (carSearchSection) carSearchSection.classList.toggle('hidden', type !== 'car');
+                if (reimbursementSearchSection) reimbursementSearchSection.classList.toggle('hidden', type !== 'reimbursement');
+
+                // Clear previous selection
+                clearAutoFilledFields();
+                if (document.getElementById('rfpSearchInput')) document.getElementById('rfpSearchInput').value = '';
+                if (document.getElementById('carSearchInput')) document.getElementById('carSearchInput').value = '';
+                if (document.getElementById('reimbursementSearchInput')) document.getElementById('reimbursementSearchInput').value = '';
+            });
+        });
+    }
+
+    // ===================== CAR SEARCH =====================
+    const carSearchInput = document.getElementById('carSearchInput');
+    const carSearchResults = document.getElementById('carSearchResults');
+
+    if (carSearchInput) {
+        let carDebounce;
+        carSearchInput.addEventListener('input', function() {
+            clearTimeout(carDebounce);
+            const searchTerm = this.value.trim();
+            if (searchTerm.length < 2) { carSearchResults.classList.add('hidden'); return; }
+
+            carDebounce = setTimeout(() => {
+                fetch(`{{ route('accounts_payable_invoices.search_cars') }}?search=${encodeURIComponent(searchTerm)}`)
+                    .then(r => r.json())
+                    .then(cars => {
+                        if (cars.length === 0) {
+                            carSearchResults.innerHTML = '<div class="p-4 text-gray-400">No approved Cash Advance Requests found</div>';
+                            carSearchResults.classList.remove('hidden');
+                            return;
+                        }
+                        let html = '<div class="divide-y divide-gray-700">';
+                        cars.forEach(car => {
+                            html += `<div class="car-result-item block p-3 hover:bg-gray-700 transition cursor-pointer"
+                                data-id="${car.id}" data-car-no="${(car.car_no||'').replace(/"/g,'&quot;')}"
+                                data-payee="${(car.payee||'').replace(/"/g,'&quot;')}" data-department="${(car.department||'').replace(/"/g,'&quot;')}"
+                                data-amount="${car.amount||0}" data-purpose="${(car.purpose||'').replace(/"/g,'&quot;')}">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-semibold text-purple-400">${car.car_no}</div>
+                                        <div class="text-sm text-gray-300">${car.payee}</div>
+                                        <div class="text-xs text-gray-400">${car.department}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-sm text-green-400">&#8369;${parseFloat(car.amount).toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        });
+                        html += '</div>';
+                        carSearchResults.innerHTML = html;
+                        carSearchResults.classList.remove('hidden');
+
+                        carSearchResults.querySelectorAll('.car-result-item').forEach(item => {
+                            item.addEventListener('click', function() {
+                                document.getElementById('carId').value = this.dataset.id;
+                                document.getElementById('referenceType').value = 'car';
+                                const vendorName = document.getElementById('vendor_name');
+                                if (vendorName) vendorName.value = this.dataset.payee;
+                                const particulars = document.querySelector('textarea[name="particulars"]');
+                                if (particulars) particulars.value = this.dataset.purpose;
+                                const maxAmount = parseFloat(this.dataset.amount).toFixed(2);
+                                if (totalInput) { totalInput.value = maxAmount; totalInput.dispatchEvent(new Event('input')); }
+                                document.getElementById('maxInvoiceAmount').value = maxAmount;
+
+                                if (linkedRefBadge) {
+                                    linkedRefBadge.innerHTML = `<div class="mt-2 p-3 bg-green-900/20 border border-green-700 rounded">
+                                        <div class="flex items-center justify-between text-green-300">
+                                            <span><i class="fas fa-link mr-2"></i>Linked to CAR: ${this.dataset.carNo}</span>
+                                            <span class="text-sm text-gray-300">${this.dataset.payee} | &#8369;${parseFloat(this.dataset.amount).toLocaleString('en-US',{minimumFractionDigits:2})}</span>
+                                        </div>
+                                    </div>`;
+                                }
+                                carSearchResults.classList.add('hidden');
+                                carSearchInput.value = this.dataset.carNo;
+                            });
+                        });
+                    })
+                    .catch(() => {
+                        carSearchResults.innerHTML = '<div class="p-4 text-red-400">Error searching Cash Advance Requests</div>';
+                        carSearchResults.classList.remove('hidden');
+                    });
+            }, 300);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (carSearchInput && !carSearchInput.contains(e.target) && !carSearchResults.contains(e.target)) {
+                carSearchResults.classList.add('hidden');
+            }
+        });
+    }
+
+    // ===================== REIMBURSEMENT SEARCH =====================
+    const reimbursementSearchInput = document.getElementById('reimbursementSearchInput');
+    const reimbursementSearchResults = document.getElementById('reimbursementSearchResults');
+
+    if (reimbursementSearchInput) {
+        let riDebounce;
+        reimbursementSearchInput.addEventListener('input', function() {
+            clearTimeout(riDebounce);
+            const searchTerm = this.value.trim();
+            if (searchTerm.length < 2) { reimbursementSearchResults.classList.add('hidden'); return; }
+
+            riDebounce = setTimeout(() => {
+                fetch(`{{ route('accounts_payable_invoices.search_reimbursements') }}?search=${encodeURIComponent(searchTerm)}`)
+                    .then(r => r.json())
+                    .then(ris => {
+                        if (ris.length === 0) {
+                            reimbursementSearchResults.innerHTML = '<div class="p-4 text-gray-400">No approved Reimbursement Forms found</div>';
+                            reimbursementSearchResults.classList.remove('hidden');
+                            return;
+                        }
+                        let html = '<div class="divide-y divide-gray-700">';
+                        ris.forEach(ri => {
+                            html += `<div class="ri-result-item block p-3 hover:bg-gray-700 transition cursor-pointer"
+                                data-id="${ri.id}" data-ri-no="${(ri.ri_no||'').replace(/"/g,'&quot;')}"
+                                data-submitted-by="${(ri.submitted_by||'').replace(/"/g,'&quot;')}" data-department="${(ri.department||'').replace(/"/g,'&quot;')}"
+                                data-amount="${ri.amount||0}" data-total-spent="${ri.total_spent||0}">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-semibold text-purple-400">${ri.ri_no}</div>
+                                        <div class="text-sm text-gray-300">${ri.submitted_by || ri.department}</div>
+                                        <div class="text-xs text-gray-400">${ri.department}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-sm text-green-400">&#8369;${parseFloat(ri.amount).toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+                                        <div class="text-xs text-gray-400">Total: &#8369;${parseFloat(ri.total_spent).toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        });
+                        html += '</div>';
+                        reimbursementSearchResults.innerHTML = html;
+                        reimbursementSearchResults.classList.remove('hidden');
+
+                        reimbursementSearchResults.querySelectorAll('.ri-result-item').forEach(item => {
+                            item.addEventListener('click', function() {
+                                document.getElementById('reimbursementId').value = this.dataset.id;
+                                document.getElementById('referenceType').value = 'reimbursement';
+                                const vendorName = document.getElementById('vendor_name');
+                                if (vendorName) vendorName.value = this.dataset.submittedBy || this.dataset.department;
+                                const maxAmount = parseFloat(this.dataset.amount).toFixed(2);
+                                if (totalInput) { totalInput.value = maxAmount; totalInput.dispatchEvent(new Event('input')); }
+                                document.getElementById('maxInvoiceAmount').value = maxAmount;
+
+                                if (linkedRefBadge) {
+                                    linkedRefBadge.innerHTML = `<div class="mt-2 p-3 bg-green-900/20 border border-green-700 rounded">
+                                        <div class="flex items-center justify-between text-green-300">
+                                            <span><i class="fas fa-link mr-2"></i>Linked to RI: ${this.dataset.riNo}</span>
+                                            <span class="text-sm text-gray-300">${this.dataset.submittedBy || this.dataset.department} | &#8369;${parseFloat(this.dataset.amount).toLocaleString('en-US',{minimumFractionDigits:2})}</span>
+                                        </div>
+                                    </div>`;
+                                }
+                                reimbursementSearchResults.classList.add('hidden');
+                                reimbursementSearchInput.value = this.dataset.riNo;
+                            });
+                        });
+                    })
+                    .catch(() => {
+                        reimbursementSearchResults.innerHTML = '<div class="p-4 text-red-400">Error searching Reimbursement Forms</div>';
+                        reimbursementSearchResults.classList.remove('hidden');
+                    });
+            }, 300);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (reimbursementSearchInput && !reimbursementSearchInput.contains(e.target) && !reimbursementSearchResults.contains(e.target)) {
+                reimbursementSearchResults.classList.add('hidden');
+            }
+        });
+    }
 });
 </script>
 @endsection

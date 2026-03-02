@@ -274,12 +274,12 @@
         @endif
 
         <!-- =================== PURCHASE ORDER =================== -->
-        @if(auth()->user()->canManagePurchaseRequests() || auth()->user()->canManagePurchaseOrders() || auth()->user()->canManageRequestForPayments() || auth()->user()->hasRole(['Accounting_Creator', 'Accounting_Approver']))
+        @if(auth()->check())
             <div>
                 <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
                     <span class="flex items-center space-x-2">
                         <span>💰</span>
-                        <span class="sidebar-text">Purchase Order</span>
+                        <span class="sidebar-text">Finance</span>
                     </span>
                     <span class="chevron">▼</span>
                 </button>
@@ -305,6 +305,10 @@
                         <a href="{{ route('accounts_payable_invoices.index') }}" class="block hover:underline">Account Payable Invoice (APV)</a>
                         <a href="{{ route('check_vouchers.index') }}" class="block hover:underline">Check Voucher (CV)</a>
                     @endif
+
+                    <a href="{{ route('cash_advance_requests.index') }}" class="block hover:underline">Cash Advance Request (CAR)</a>
+                    <a href="{{ route('liquidation_forms.index') }}" class="block hover:underline">Liquidation Form (LIQ)</a>
+                    <a href="{{ route('reimbursement_forms.index') }}" class="block hover:underline">Reimbursement Form (RI)</a>
 
                     <a href="{{ route('po_records.index') }}" class="block hover:underline">PO Records</a>
 
