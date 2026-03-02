@@ -28,7 +28,8 @@
       "Bash(c:/xampp/apache/bin/httpd.exe -t)",
       "Bash(\"c:/xampp/mysql/bin/mysql.exe\" -u root sopod -e \"SELECT COUNT\\(*\\) as ''Total Tables'' FROM information_schema.tables WHERE table_schema=''sopod'';\")",
       "Bash(\"c:/xampp/mysql/bin/mysql.exe\" -u root sopod -e \"SHOW TABLES LIKE ''trade%'';\")",
-      "Bash(git pull origin main)"
+      "Bash(git pull origin main)",
+      "Bash(php -r \":*)"
     ],
     "additionalDirectories": [
       "c:\\Windows\\System32\\drivers\\etc"
