@@ -15,7 +15,7 @@
                 </svg>
                 Record Lock Management
             </h2>
-            <p class="text-gray-400 mt-1">Lock Sales Orders and Deliveries by month to prevent modifications</p>
+            <p class="text-gray-400 mt-1">Lock Sales Orders, Deliveries, Customers, and Items by month to prevent modifications</p>
         </div>
         <div class="flex items-center gap-2 text-sm">
             <span class="px-3 py-1 bg-green-600/20 text-green-400 rounded-full border border-green-600">
@@ -64,6 +64,7 @@
                     <li>• Locked records become <strong>view-only</strong> - no edits, deletions, or status changes allowed</li>
                     <li>• Locking is based on the record's <strong>creation month</strong></li>
                     <li>• Only <strong>Admin</strong> and <strong>IT</strong> roles can lock/unlock records</li>
+                    <li>• Applies to: <strong>Sales Orders, Deliveries, Customers, Items</strong> (Purchase Orders and Suppliers are not affected)</li>
                     <li>• Unlocking requires confirmation to prevent accidental changes</li>
                 </ul>
             </div>
@@ -75,9 +76,12 @@
         @forelse($monthsData as $monthData)
             @php
                 $isFullyLocked = $monthData['is_fully_locked'];
-                $hasLockedItems = $monthData['so_locked_count'] > 0 || $monthData['delivery_locked_count'] > 0;
+                $hasLockedItems = $monthData['so_locked_count'] > 0 || $monthData['delivery_locked_count'] > 0
+                    || $monthData['customer_locked_count'] > 0 || $monthData['item_locked_count'] > 0;
                 $soPercentLocked = $monthData['so_count'] > 0 ? round(($monthData['so_locked_count'] / $monthData['so_count']) * 100) : 0;
                 $deliveryPercentLocked = $monthData['delivery_count'] > 0 ? round(($monthData['delivery_locked_count'] / $monthData['delivery_count']) * 100) : 0;
+                $customerPercentLocked = $monthData['customer_count'] > 0 ? round(($monthData['customer_locked_count'] / $monthData['customer_count']) * 100) : 0;
+                $itemPercentLocked = $monthData['item_count'] > 0 ? round(($monthData['item_locked_count'] / $monthData['item_count']) * 100) : 0;
             @endphp
 
             <div class="bg-gray-800/60 border {{ $isFullyLocked ? 'border-red-600' : ($hasLockedItems ? 'border-yellow-600' : 'border-gray-700') }} rounded-xl p-5 hover:bg-gray-800/80 transition-all">
@@ -155,6 +159,34 @@
                             </div>
                         @endif
                     </div>
+
+                    {{-- Customers --}}
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-400">Customers</span>
+                            <span class="text-sm font-semibold {{ $monthData['customer_locked_count'] > 0 ? 'text-red-400' : 'text-green-400' }}">
+                                {{ $monthData['customer_locked_count'] }} / {{ $monthData['customer_count'] }} locked
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2">
+                            <div class="h-2 rounded-full transition-all duration-300 {{ $customerPercentLocked == 100 ? 'bg-red-500' : ($customerPercentLocked > 0 ? 'bg-yellow-500' : 'bg-green-500') }}"
+                                 style="width: {{ $customerPercentLocked }}%"></div>
+                        </div>
+                    </div>
+
+                    {{-- Items --}}
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-400">Items</span>
+                            <span class="text-sm font-semibold {{ $monthData['item_locked_count'] > 0 ? 'text-red-400' : 'text-green-400' }}">
+                                {{ $monthData['item_locked_count'] }} / {{ $monthData['item_count'] }} locked
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2">
+                            <div class="h-2 rounded-full transition-all duration-300 {{ $itemPercentLocked == 100 ? 'bg-red-500' : ($itemPercentLocked > 0 ? 'bg-yellow-500' : 'bg-green-500') }}"
+                                 style="width: {{ $itemPercentLocked }}%"></div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Actions --}}
@@ -177,7 +209,7 @@
                             Unlock
                         </button>
                     @else
-                        <button onclick="lockMonth({{ $monthData['year'] }}, {{ $monthData['month'] }}, '{{ $monthData['month_name'] }}', {{ $monthData['so_count'] }}, {{ $monthData['delivery_count'] }})"
+                        <button onclick="lockMonth({{ $monthData['year'] }}, {{ $monthData['month'] }}, '{{ $monthData['month_name'] }}', {{ $monthData['so_count'] }}, {{ $monthData['delivery_count'] }}, {{ $monthData['customer_count'] }}, {{ $monthData['item_count'] }})"
                                 class="flex-1 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
@@ -193,7 +225,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
                 <p class="text-gray-400 text-lg">No records found</p>
-                <p class="text-gray-500 text-sm mt-1">Create Sales Orders or Deliveries to see them here</p>
+                <p class="text-gray-500 text-sm mt-1">Create Sales Orders, Deliveries, Customers, or Items to see them here</p>
             </div>
         @endforelse
     </div>
@@ -215,12 +247,18 @@
         {{-- Modal Body --}}
         <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
             {{-- Tabs --}}
-            <div class="flex gap-2 mb-6">
+            <div class="flex gap-2 mb-6 flex-wrap">
                 <button id="tabSO" onclick="switchTab('so')" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium transition-all">
                     Sales Orders
                 </button>
                 <button id="tabDelivery" onclick="switchTab('delivery')" class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg font-medium transition-all hover:bg-gray-600">
                     Deliveries
+                </button>
+                <button id="tabCustomer" onclick="switchTab('customer')" class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg font-medium transition-all hover:bg-gray-600">
+                    Customers
+                </button>
+                <button id="tabItem" onclick="switchTab('item')" class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg font-medium transition-all hover:bg-gray-600">
+                    Items
                 </button>
             </div>
 
@@ -261,6 +299,42 @@
                     </tbody>
                 </table>
             </div>
+
+            {{-- Customers Table --}}
+            <div id="customerTable" class="overflow-x-auto hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-800 text-gray-400 uppercase text-xs">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Customer Code</th>
+                            <th class="px-4 py-3 text-left">Customer Name</th>
+                            <th class="px-4 py-3 text-center">Status</th>
+                            <th class="px-4 py-3 text-center">Lock Status</th>
+                            <th class="px-4 py-3 text-center">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTableBody" class="divide-y divide-gray-700">
+                        <tr><td colspan="5" class="text-center py-8 text-gray-500">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Items Table --}}
+            <div id="itemTable" class="overflow-x-auto hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-800 text-gray-400 uppercase text-xs">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Item Code</th>
+                            <th class="px-4 py-3 text-left">Description</th>
+                            <th class="px-4 py-3 text-center">Approval Status</th>
+                            <th class="px-4 py-3 text-center">Lock Status</th>
+                            <th class="px-4 py-3 text-center">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemTableBody" class="divide-y divide-gray-700">
+                        <tr><td colspan="5" class="text-center py-8 text-gray-500">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -289,6 +363,8 @@ function viewDetails(year, month, monthName) {
         if (data.success) {
             populateSOTable(data.sales_orders);
             populateDeliveryTable(data.deliveries);
+            populateCustomerTable(data.customers);
+            populateItemTable(data.items);
         }
     })
     .catch(error => {
@@ -351,6 +427,58 @@ function populateDeliveryTable(deliveries) {
     `).join('');
 }
 
+function populateCustomerTable(customers) {
+    const tbody = document.getElementById('customerTableBody');
+
+    if (customers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">No Customers found</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = customers.map(c => `
+        <tr class="hover:bg-gray-800/50">
+            <td class="px-4 py-3 font-mono text-purple-400">${c.customer_code || '—'}</td>
+            <td class="px-4 py-3">${c.customer_name || '—'}</td>
+            <td class="px-4 py-3 text-center">
+                <span class="px-2 py-1 rounded text-xs font-medium ${c.status === 'enabled' ? 'bg-green-600/20 text-green-400 border border-green-600' : 'bg-gray-600/20 text-gray-400 border border-gray-600'}">${c.status || '—'}</span>
+            </td>
+            <td class="px-4 py-3 text-center">
+                ${c.is_locked
+                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-400 rounded text-xs font-medium border border-red-600">LOCKED</span>'
+                    : '<span class="px-2 py-1 bg-green-600/20 text-green-400 rounded text-xs font-medium border border-green-600">OPEN</span>'
+                }
+            </td>
+            <td class="px-4 py-3 text-center text-gray-400">${formatDate(c.created_at)}</td>
+        </tr>
+    `).join('');
+}
+
+function populateItemTable(items) {
+    const tbody = document.getElementById('itemTableBody');
+
+    if (items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">No Items found</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = items.map(i => `
+        <tr class="hover:bg-gray-800/50">
+            <td class="px-4 py-3 font-mono text-orange-400">${i.item_code || '—'}</td>
+            <td class="px-4 py-3">${i.item_description || '—'}</td>
+            <td class="px-4 py-3 text-center">
+                <span class="px-2 py-1 rounded text-xs font-medium ${getApprovalClass(i.approval_status)}">${i.approval_status || '—'}</span>
+            </td>
+            <td class="px-4 py-3 text-center">
+                ${i.is_locked
+                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-400 rounded text-xs font-medium border border-red-600">LOCKED</span>'
+                    : '<span class="px-2 py-1 bg-green-600/20 text-green-400 rounded text-xs font-medium border border-green-600">OPEN</span>'
+                }
+            </td>
+            <td class="px-4 py-3 text-center text-gray-400">${formatDate(i.created_at)}</td>
+        </tr>
+    `).join('');
+}
+
 function getStatusClass(status) {
     const classes = {
         'Approved': 'bg-green-600/20 text-green-400 border border-green-600',
@@ -362,32 +490,35 @@ function getStatusClass(status) {
     return classes[status] || 'bg-gray-600/20 text-gray-400 border border-gray-600';
 }
 
+function getApprovalClass(status) {
+    const classes = {
+        'approved': 'bg-green-600/20 text-green-400 border border-green-600',
+        'pending': 'bg-yellow-600/20 text-yellow-400 border border-yellow-600',
+        'rejected': 'bg-red-600/20 text-red-400 border border-red-600',
+    };
+    return classes[status] || 'bg-gray-600/20 text-gray-400 border border-gray-600';
+}
+
 function formatDate(dateString) {
     if (!dateString) return '—';
     return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function switchTab(tab) {
-    const tabSO = document.getElementById('tabSO');
-    const tabDelivery = document.getElementById('tabDelivery');
-    const soTable = document.getElementById('soTable');
-    const deliveryTable = document.getElementById('deliveryTable');
-
-    if (tab === 'so') {
-        tabSO.classList.remove('bg-gray-700', 'text-gray-300');
-        tabSO.classList.add('bg-blue-600', 'text-white');
-        tabDelivery.classList.remove('bg-blue-600', 'text-white');
-        tabDelivery.classList.add('bg-gray-700', 'text-gray-300');
-        soTable.classList.remove('hidden');
-        deliveryTable.classList.add('hidden');
-    } else {
-        tabDelivery.classList.remove('bg-gray-700', 'text-gray-300');
-        tabDelivery.classList.add('bg-blue-600', 'text-white');
-        tabSO.classList.remove('bg-blue-600', 'text-white');
-        tabSO.classList.add('bg-gray-700', 'text-gray-300');
-        deliveryTable.classList.remove('hidden');
-        soTable.classList.add('hidden');
-    }
+    const tabs = ['so', 'delivery', 'customer', 'item'];
+    tabs.forEach(t => {
+        const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+        const table = document.getElementById(t + 'Table');
+        if (t === tab) {
+            btn.classList.remove('bg-gray-700', 'text-gray-300');
+            btn.classList.add('bg-blue-600', 'text-white');
+            table.classList.remove('hidden');
+        } else {
+            btn.classList.remove('bg-blue-600', 'text-white');
+            btn.classList.add('bg-gray-700', 'text-gray-300');
+            table.classList.add('hidden');
+        }
+    });
 }
 
 function closeModal() {
@@ -395,7 +526,7 @@ function closeModal() {
     document.getElementById('detailsModal').classList.remove('flex');
 }
 
-function lockMonth(year, month, monthName, soCount, deliveryCount) {
+function lockMonth(year, month, monthName, soCount, deliveryCount, customerCount, itemCount) {
     Swal.fire({
         icon: 'warning',
         title: `Lock ${monthName}?`,
@@ -410,6 +541,14 @@ function lockMonth(year, month, monthName, soCount, deliveryCount) {
                     <li class="flex items-center gap-2">
                         <span class="w-4 h-4 bg-green-500 rounded"></span>
                         <strong>${deliveryCount}</strong> Delivery/ies
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="w-4 h-4 bg-purple-500 rounded"></span>
+                        <strong>${customerCount}</strong> Customer(s)
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="w-4 h-4 bg-orange-500 rounded"></span>
+                        <strong>${itemCount}</strong> Item(s)
                     </li>
                 </ul>
                 <p class="mt-4 text-sm text-gray-500">Locked records become view-only and cannot be modified.</p>

@@ -19,14 +19,16 @@ class Item extends Model
         'approved_at',
         'rejection_reason',
         'is_enabled',
+        'is_locked',
     ];
-    
+
     protected $attributes = [
         'is_enabled' => 1,
     ];
 
     protected $casts = [
         'approved_at' => 'datetime',
+        'is_locked' => 'boolean',
     ];
 
     // Relationship to the user who approved

@@ -288,6 +288,12 @@ public function export(Request $request)
         }
 
         $item = Item::findOrFail($id);
+
+        if ($item->is_locked) {
+            return redirect()->route('items.show', $id)
+                ->with('error', 'This Item is locked and cannot be edited.');
+        }
+
         return view('items.edit', compact('item'));
     }
 
@@ -299,6 +305,11 @@ public function export(Request $request)
         }
 
         $item = Item::findOrFail($id);
+
+        if ($item->is_locked) {
+            return redirect()->route('items.show', $id)
+                ->with('error', 'This Item is locked and cannot be edited.');
+        }
 
         $validatedData = $request->validate([
             'item_description' => 'nullable|string',
@@ -329,7 +340,12 @@ public function export(Request $request)
         }
 
         $item = Item::findOrFail($id);
-        
+
+        if ($item->is_locked) {
+            return redirect()->back()
+                ->with('error', 'This Item is locked and cannot be deleted.');
+        }
+
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
             'action' => 'Deleted',
@@ -354,6 +370,11 @@ public function export(Request $request)
         }
 
         $item = Item::findOrFail($id);
+
+        if ($item->is_locked) {
+            return redirect()->back()
+                ->with('error', 'This Item is locked and cannot be modified.');
+        }
 
         // Toggle the status
         $item->is_enabled = !$item->is_enabled;
