@@ -136,7 +136,7 @@
                                     @endif
 
                                     <!-- 🚩 Flag / Unflag Toggle (CC_Approver only) -->
-                                    @if(in_array(auth()->user()->role, ['CC_Approver', 'Admin', 'IT']))
+                                    @if(auth()->user()->canPerformInModule('can_manage', 'customers'))
                                         <form action="{{ route('customers.toggleFlag', $customer->id) }}" method="POST" class="inline-block">
                                             @csrf
                                             @method('PATCH')

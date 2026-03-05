@@ -32,29 +32,7 @@ class UserManagementController extends Controller
             return RoleHelper::unauthorized();
         }
 
-        $availableRoles = [
-            'Admin',
-            'IT',
-            'CSR',
-            'SCM',
-            'Delivery_Creator',
-            'Delivery_Approver',
-            'CC_Creator',
-            'CC_Approver',
-            'Accounting_Creator',
-            'Accounting_Approver',
-            'Requisitioner',
-            'PR_Approver',
-            'Purchasing',
-            'Procurement_Approver',
-            'Department_Head',
-            'General_Manager',
-            'CFO',
-            'President',
-            'Vice_President',
-        ];
-
-        return view('admin.users.create', compact('availableRoles'));
+        return view('admin.users.create');
     }
 
     /**
@@ -71,16 +49,14 @@ class UserManagementController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users',
                 'password' => 'required|min:6',
-                'roles' => 'required|array|min:1',
-                'roles.*' => 'required|in:Admin,IT,CSR,SCM,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,Requisitioner,PR_Approver,Purchasing,Procurement_Approver,Department_Head,General_Manager,CFO,President,Vice_President',
             ]);
 
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => $request->password,
-                'roles' => $request->roles,
-                'role' => $request->roles[0], // Legacy field
+                'roles' => ['User'],
+                'role' => 'User',
                 'login_attempts' => 0,
             ]);
 
@@ -90,7 +66,7 @@ class UserManagementController extends Controller
                 'item' => $user->name,
                 'target' => 'User Account',
                 'type' => 'User Management',
-                'message' => "User account created with roles: " . implode(', ', $request->roles),
+                'message' => "User account created",
             ]);
 
             return redirect()->route('admin.users.create')
@@ -115,29 +91,8 @@ class UserManagementController extends Controller
         }
 
         $user = User::with('lockedBy')->findOrFail($id);
-        $roles = [
-            'Admin',
-            'IT',
-            'CSR',
-            'SCM',
-            'Delivery_Creator',
-            'Delivery_Approver',
-            'CC_Creator',
-            'CC_Approver',
-            'Accounting_Creator',
-            'Accounting_Approver',
-            'Requisitioner',
-            'PR_Approver',
-            'Purchasing',
-            'Procurement_Approver',
-            'Department_Head',
-            'General_Manager',
-            'CFO',
-            'President',
-            'Vice_President',
-        ];
 
-        return view('admin.users.edit', compact('user', 'roles'));
+        return view('admin.users.edit', compact('user'));
     }
 
     /**
@@ -179,15 +134,11 @@ class UserManagementController extends Controller
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $id,
-                'roles' => 'required|array|min:1',
-                'roles.*' => 'required|in:Admin,IT,CSR,SCM,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,Requisitioner,PR_Approver,Purchasing,Procurement_Approver,Department_Head,General_Manager,CFO,President,Vice_President',
                 'password' => 'nullable|min:6',
             ]);
 
             $user->name = $request->name;
             $user->email = $request->email;
-            $user->roles = $request->roles;
-            $user->role = $request->roles[0]; // Update legacy field
 
             if ($request->filled('password')) {
                 $user->password = $request->password;
@@ -202,7 +153,7 @@ class UserManagementController extends Controller
                 'item' => $user->name,
                 'target' => 'User Account',
                 'type' => 'User Management',
-                'message' => "User account updated with roles: " . implode(', ', $request->roles),
+                'message' => "User account updated",
             ]);
 
             return redirect()->route('admin.users.index')

@@ -149,18 +149,17 @@ class PurchaseOrderRecordsController extends Controller
     private function getAllowedTabs($user): array
     {
         $tabs = [];
-        $role = $user->role ?? '';
 
-        if (in_array($role, ['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver']) || $user->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver'])) {
+        if ($user->canAccessModule('purchase_requests')) {
             $tabs[] = 'purchase_requests';
         }
-        if (in_array($role, ['Admin', 'IT', 'Purchasing', 'Procurement_Approver']) || $user->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver'])) {
+        if ($user->canAccessModule('purchase_orders')) {
             $tabs[] = 'purchase_orders';
         }
-        if (in_array($role, ['Admin', 'IT', 'Purchasing', 'Procurement_Approver']) || $user->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver'])) {
+        if ($user->canAccessModule('rfp')) {
             $tabs[] = 'rfp';
         }
-        if (in_array($role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+        if ($user->canAccessModule('apv')) {
             $tabs[] = 'apv';
             $tabs[] = 'check_vouchers';
         }

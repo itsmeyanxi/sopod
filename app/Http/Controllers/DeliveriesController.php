@@ -494,9 +494,8 @@ public function store(Request $request)
         $items = $validated['items'];
         unset($validated['items']);
 
-        // Check user role
-        $userRole = auth()->user()->role ?? null;
-        $isApprover = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
+        // Check user permissions
+        $isApprover = auth()->user()->canApproveDeliveries();
         $validated['created_by'] = auth()->user()->name ?? 'System';
 
         if ($isApprover) {
@@ -666,13 +665,12 @@ public function quickUpdate(Request $request, $id)
             ], 403);
         }
 
-        $userRole = auth()->user()->role;
-        $canApprove = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
-        
+        $canApprove = auth()->user()->canApproveDeliveries();
+
         if (!$canApprove) {
             if (!$delivery->edit_approved) {
                 return response()->json([
-                    'success' => false, 
+                    'success' => false,
                     'message' => 'You need edit approval to modify this pending delivery.'
                 ], 403);
             }
@@ -1155,8 +1153,7 @@ public function search(Request $request)
         } else {
             $newBatchName = 'Batch ' . ($deliveryCount + 1);
         }
-        $userRole = auth()->user()->role ?? null;
-        $willAutoApprove = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
+        $willAutoApprove = auth()->user()->canApproveDeliveries();
     } elseif (!$isEditMode && !$canCreateNewDelivery) {
         $newBatchName = 'View Only';
     }
@@ -1423,8 +1420,7 @@ public function getEditData($id)
         }
 
         // ✅ For PENDING deliveries: Check permissions
-        $userRole = auth()->user()->role;
-        $canApprove = in_array($userRole, ['Admin', 'IT', 'Delivery_Approver']);
+        $canApprove = auth()->user()->canApproveDeliveries();
         
         if (!$canApprove) {
             // Creators need edit approval even for pending deliveries
@@ -1540,13 +1536,17 @@ public function getEditData($id)
 public function requestEdit($id)
 {
     try {
-        $userRole = auth()->user()->role;
-        
-        // ✅ Only Delivery_Creator needs to request edit
-        if (!in_array($userRole, ['Delivery_Creator'])) {
+        // Only users who can edit (but not approve) need to request edit
+        if (auth()->user()->canApproveDeliveries()) {
             return response()->json([
-                'success' => false, 
-                'message' => 'Unauthorized - Only Delivery Creators need to request edit permission.'
+                'success' => false,
+                'message' => 'Approvers do not need to request edit permission.'
+            ], 400);
+        }
+        if (!auth()->user()->canPerformInModule('can_edit', 'deliveries')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
             ], 403);
         }
 
@@ -1643,9 +1643,7 @@ public function approveEdit($id)
 public function rejectEdit(Request $request, $id)
 {
     try {
-        $userRole = auth()->user()->role;
-        
-        if (!in_array($userRole, ['Admin', 'IT', 'Delivery_Approver'])) {
+        if (!auth()->user()->canApproveDeliveries()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -2391,7 +2389,7 @@ public function recalculateAllTotals(Request $request)
 {
     try {
         // Check authorization - only admins and IT can run this
-        if (!in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        if (!auth()->user()->isAdminUser()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized. Only Admin and IT users can recalculate totals.'
@@ -2510,7 +2508,7 @@ private function recalculateSingleDelivery($deliveryId)
  */
 public function repairDuplicateItemCodes(Request $request)
 {
-    if (!in_array(auth()->user()->role, ['Admin', 'IT'])) {
+    if (!auth()->user()->isAdminUser()) {
         return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
     }
 
@@ -2655,7 +2653,7 @@ public function repairDuplicateItemCodes(Request $request)
  */
 public function recalculateSODeliveries(Request $request)
 {
-    if (!in_array(auth()->user()->role, ['Admin', 'IT'])) {
+    if (!auth()->user()->isAdminUser()) {
         return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
     }
 

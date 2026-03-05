@@ -33,11 +33,16 @@
         </div>
 
         <div class="mb-4">
-            <label class="block text-sm mb-1">Role</label>
-            <input type="text" value="{{ auth()->user()->role }}" 
-                   class="w-full bg-gray-600 border border-gray-600 rounded-lg p-2 text-gray-400 cursor-not-allowed" 
-                   disabled>
-            <small class="text-gray-400 text-xs">Role cannot be changed</small>
+            <label class="block text-sm mb-1">Departments</label>
+            <div class="w-full bg-gray-600 border border-gray-600 rounded-lg p-2 text-gray-300">
+                @php $userRoles = auth()->user()->userRoles()->with('subDepartment.department')->get(); @endphp
+                @forelse($userRoles as $ur)
+                    <span class="inline-block bg-blue-600 text-white px-2 py-1 rounded text-xs mr-1 mb-1">{{ $ur->subDepartment->department->name }} - {{ $ur->subDepartment->name }}</span>
+                @empty
+                    <span class="text-gray-400 text-sm">No departments assigned</span>
+                @endforelse
+            </div>
+            <small class="text-gray-400 text-xs">Managed by admin via RBAC</small>
         </div>
 
         <div class="mb-4">

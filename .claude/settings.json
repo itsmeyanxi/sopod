@@ -20,7 +20,11 @@
       "Bash(wc -l /c/sopod/resources/views/liquidation_forms/*.blade.php /c/sopod/resources/views/reimbursement_forms/*.blade.php)",
       "Bash(git pull origin main --rebase)",
       "Bash(git stash)",
-      "Bash(git stash pop)"
+      "Bash(git stash pop)",
+      "Bash(git checkout --theirs app/Models/User.php)",
+      "Bash(git rebase --continue)",
+      "Bash(GIT_EDITOR=true git rebase --continue)",
+      "Bash(git -c core.editor=true rebase --continue)"
     ],
     "additionalDirectories": [
       "c:\\xampp\\apache\\conf\\extra"

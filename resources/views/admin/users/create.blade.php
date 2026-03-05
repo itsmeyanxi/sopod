@@ -21,13 +21,13 @@
 
         <div class="mb-4">
             <label class="block text-sm mb-1">Name</label>
-            <input type="text" name="name" value="{{ old('name') }}" 
+            <input type="text" name="name" value="{{ old('name') }}"
                    class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-blue-500" required>
         </div>
 
         <div class="mb-4">
             <label class="block text-sm mb-1">Email</label>
-            <input type="email" name="email" value="{{ old('email') }}" 
+            <input type="email" name="email" value="{{ old('email') }}"
                    class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-blue-500" required>
         </div>
 
@@ -37,17 +37,8 @@
                    class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-blue-500" required>
         </div>
 
-        {{-- 🆕 MULTI-ROLE SELECT --}}
-        <div class="mb-4">
-            <label class="block text-sm mb-1">Roles <span class="text-red-500">*</span></label>
-            <select name="roles[]" id="roles" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white" multiple required>
-                @foreach($availableRoles as $role)
-                    <option value="{{ $role }}" {{ (old('roles') && in_array($role, old('roles'))) ? 'selected' : '' }}>
-                        {{ $role }}
-                    </option>
-                @endforeach
-            </select>
-            <small class="text-gray-400 text-xs mt-1 block">Select one or more roles for this user</small>
+        <div class="bg-yellow-900/30 border border-yellow-600/30 rounded-lg p-3 mb-4">
+            <p class="text-yellow-300 text-sm"><i class="fas fa-info-circle mr-1"></i> After creating the user, assign them to a sub-department via the <a href="{{ route('rbac.index') }}" class="underline">RBAC Management</a> page to grant module access.</p>
         </div>
 
         <div class="flex justify-end space-x-3 mt-6">
@@ -57,65 +48,9 @@
     </form>
 </div>
 
-{{-- Select2 CSS --}}
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-{{-- Select2 Dark Theme CSS --}}
-<style>
-.select2-container--default .select2-selection--multiple {
-    background-color: #374151 !important;
-    border-color: #4b5563 !important;
-    color: white !important;
-}
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
-    background-color: #3b82f6 !important;
-    border: none !important;
-    color: white !important;
-}
-.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-    color: white !important;
-    margin-right: 5px !important;
-}
-.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-    color: #fee2e2 !important;
-}
-.select2-dropdown {
-    background-color: #374151 !important;
-    border-color: #4b5563 !important;
-}
-.select2-container--default .select2-results__option {
-    color: white !important;
-}
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: #3b82f6 !important;
-}
-.select2-container--default .select2-search--dropdown .select2-search__field {
-    background-color: #1f2937 !important;
-    border-color: #4b5563 !important;
-    color: white !important;
-}
-</style>
-
-{{-- SweetAlert2 --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-{{-- jQuery (required for Select2) --}}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-{{-- Select2 JS --}}
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <script>
-$(document).ready(function() {
-    // Initialize Select2
-    $('#roles').select2({
-        placeholder: 'Select roles',
-        allowClear: false,
-        closeOnSelect: false
-    });
-});
-
-// ✅ Show SUCCESS popup after account created
 @if(session('success'))
     Swal.fire({
         icon: 'success',
@@ -128,7 +63,6 @@ $(document).ready(function() {
     });
 @endif
 
-// Show error message if validation fails or other errors
 @if(session('error'))
     Swal.fire({
         icon: 'error',

@@ -218,7 +218,7 @@
             @php
                 $canApproveManagementPO = auth()->user()->canApprovePurchaseOrdersAsManagement();
                 if ($canApproveManagementPO && str_contains(strtolower($purchaseOrder->company ?? ''), 'magalang')) {
-                    $canApproveManagementPO = auth()->user()->hasRole(['Admin', 'IT', 'CFO']);
+                    $canApproveManagementPO = auth()->user()->isAdminUser() || auth()->user()->canApprovePurchaseOrdersAsManagement();
                 }
             @endphp
             @if($purchaseOrder->approval_stage === 'pending_management' && $canApproveManagementPO)

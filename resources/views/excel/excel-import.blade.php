@@ -8,56 +8,19 @@
     @php
         $user = auth()->user();
 
-        $canImportItems = in_array($user->role, [
-            'Admin',
-            'IT',
-            'Accounting_Creator',
-            'Accounting_Approver'
-        ]);
+        $canImportItems = $user->canPerformInModule('can_create', 'items');
 
-        $canImportCustomers = in_array($user->role, [
-            'Admin',
-            'IT',
-            'CC_Approver',
-            'CC_Creator',
-            'Accounting_Creator',
-            'Accounting_Approver'
-        ]);
+        $canImportCustomers = $user->canPerformInModule('can_create', 'customers');
 
-        $canImportMonthlySales = in_array($user->role, [
-            'Admin',
-            'IT',
-            'Accounting_Creator',
-            'Accounting_Approver'
-        ]);
+        $canImportMonthlySales = $user->canAccessModule('sales_analytics');
 
-        $canImportSuppliers = in_array($user->role, [
-            'Admin',
-            'IT',
-            'Accounting_Creator',
-            'Accounting_Approver'
-        ]);
+        $canImportSuppliers = $user->canPerformInModule('can_create', 'suppliers');
 
-        $canImportARAging = in_array($user->role, [
-            'Admin',
-            'IT',
-            'Accounting_Creator',
-            'Accounting_Approver'
-        ]);
+        $canImportARAging = $user->canAccessModule('aging_reports');
 
-        $canImportCollections = in_array($user->role, [
-            'Admin',
-            'IT',
-            'Accounting_Creator',
-            'Accounting_Approver'
-        ]);
+        $canImportCollections = $user->canAccessModule('payments');
 
-        $canImportARAdjustments = in_array($user->role, [
-            'Admin',
-            'IT',
-            'Accounting_Creator',
-            'Accounting_Approver'
-        ]);
+        $canImportARAdjustments = $user->canAccessModule('aging_reports');
     @endphp
 
     <h1 class="text-3xl font-bold text-white mb-2">Import Data from Excel/CSV</h1>

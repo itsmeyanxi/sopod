@@ -42,7 +42,11 @@
                     <td class="px-4 py-3">{{ $user->name }}</td>
                     <td class="px-4 py-3">{{ $user->email }}</td>
                     <td class="px-4 py-3">
-                        <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">{{ $user->role }}</span>
+                        @forelse($user->userRoles as $ur)
+                            <span class="bg-blue-600 text-white px-2 py-1 rounded text-xs mr-1">{{ $ur->subDepartment->name ?? '?' }}</span>
+                        @empty
+                            <span class="bg-gray-600 text-gray-400 px-2 py-1 rounded text-xs">No dept</span>
+                        @endforelse
                     </td>
                     
                     {{-- Account Lock Status --}}

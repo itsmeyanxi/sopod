@@ -23,19 +23,19 @@ class PurchaseRequestController extends Controller
         $user = Auth::user();
         $query = PurchaseRequest::with(['creator', 'items']);
 
-        if ($user->hasRole(['Admin', 'IT'])) {
+        if ($user->isAdminUser()) {
             // Admin/IT see all — no filter
-        } elseif ($user->hasRole(['President', 'Vice_President'])) {
+        } elseif ($user->canApprovePurchaseRequestsAsExecutive()) {
             $query->where(function($q) use ($user) {
                 $q->whereIn('approval_stage', ['pending_dh', 'pending_management', 'pending_executive', 'approved'])
                   ->orWhere('created_by', $user->id);
             });
-        } elseif ($user->hasRole(['General_Manager', 'CFO'])) {
+        } elseif ($user->canApprovePurchaseRequestsAsManagement()) {
             $query->where(function($q) use ($user) {
                 $q->whereIn('approval_stage', ['pending_management', 'pending_executive', 'approved'])
                   ->orWhere('created_by', $user->id);
             });
-        } elseif ($user->hasRole(['Department_Head'])) {
+        } elseif ($user->canApprovePurchaseRequestsAsDH()) {
             $query->where(function($q) use ($user) {
                 $q->where('approval_stage', 'pending_dh')
                   ->orWhere('created_by', $user->id);
@@ -481,7 +481,7 @@ class PurchaseRequestController extends Controller
         try {
             $purchaseRequest = PurchaseRequest::findOrFail($id);
 
-            if ($purchaseRequest->created_by !== Auth::id() && !Auth::user()->hasRole(['Admin', 'IT', 'Department_Head'])) {
+            if ($purchaseRequest->created_by !== Auth::id() && !Auth::user()->isAdminUser() && !Auth::user()->canApprovePurchaseRequestsAsDH()) {
                 return back()->with('error', 'You can only delete your own Purchase Requests.');
             }
 
@@ -576,7 +576,7 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'This PR is not pending Management approval. Current stage: ' . $purchaseRequest->approval_stage);
         }
 
-        if ($this->isPMAI($purchaseRequest->company) && !$user->hasRole(['Admin', 'IT', 'CFO'])) {
+        if ($this->isPMAI($purchaseRequest->company) && !$user->isAdminUser() && !$user->canApprovePurchaseRequestsAsManagement()) {
             return redirect()->route('purchase_requests.show', $id)
                 ->with('error', 'Only CFO can approve PRs for this company.');
         }
