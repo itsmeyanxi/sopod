@@ -124,7 +124,6 @@
                                     @if(auth()->user()->canEditCustomers())
                                         <form action="{{ route('customers.toggleStatus', $customer->id) }}" method="POST" class="inline-block">
                                             @csrf
-                                            @method('PATCH')
                                             <button type="submit" 
                                                     class="text-white text-xs font-medium px-3 py-1.5 rounded transition
                                                            {{ $customer->status === 'enabled' 
@@ -136,10 +135,9 @@
                                     @endif
 
                                     <!-- 🚩 Flag / Unflag Toggle (CC_Approver only) -->
-                                    @if(in_array(auth()->user()->role, ['CC_Approver', 'Admin', 'IT']))
+                                    @if(auth()->user()->hasRole(['CC_Approver', 'Admin', 'IT']))
                                         <form action="{{ route('customers.toggleFlag', $customer->id) }}" method="POST" class="inline-block">
                                             @csrf
-                                            @method('PATCH')
                                             <button type="submit" 
                                                     class="text-white text-xs font-medium px-3 py-1.5 rounded transition
                                                            {{ $customer->is_flagged 

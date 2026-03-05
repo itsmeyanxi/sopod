@@ -91,6 +91,31 @@
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $reimbursement->submitted_by ?? 'N/A' }}</p>
         </div>
 
+        <!-- Proof Documents -->
+        @if($reimbursement->proof_documents && count($reimbursement->proof_documents) > 0)
+            <div class="mb-6">
+                <label class="block font-semibold text-gray-300 mb-3">PROOF DOCUMENTS:</label>
+                <div class="bg-gray-900 border border-gray-700 rounded p-4">
+                    <ul class="space-y-2">
+                        @foreach($reimbursement->proof_documents as $doc)
+                            <li class="flex items-center justify-between p-3 bg-gray-800 rounded">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-file text-purple-400"></i>
+                                    <div>
+                                        <p class="text-white font-semibold">{{ $doc['name'] }}</p>
+                                        <p class="text-gray-400 text-sm">{{ number_format($doc['size'] / 1024, 2) }} KB</p>
+                                    </div>
+                                </div>
+                                <a href="{{ asset('storage/' . $doc['path']) }}" download class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition">
+                                    <i class="fas fa-download mr-1"></i> Download
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @endif
+
         <!-- Remarks -->
         @if($reimbursement->remarks)
             <div class="mb-6">
@@ -273,19 +298,19 @@
         <!-- Approval Buttons -->
         @if($reimbursement->status === 'pending' && $reimbursement->approval_stage !== 'rejected')
             <div class="flex gap-3 mb-4 mt-6">
-                @if($reimbursement->approval_stage === 'pending_dh' && auth()->user()->hasRole(['Admin','IT','Department_Head','Procurement_Approver']))
+                @if($reimbursement->approval_stage === 'pending_dh' && auth()->user()->canApproveReimbursementForms())
                     <button type="button" onclick="showApproveDHModal()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
                         <i class="fas fa-check mr-1"></i> Approve as Department Head
                     </button>
                 @endif
 
-                @if($reimbursement->approval_stage === 'pending_executive' && auth()->user()->hasRole(['Admin','IT','President','Vice_President','CFO']))
+                @if($reimbursement->approval_stage === 'pending_executive' && auth()->user()->canApproveReimbursementForms())
                     <button type="button" onclick="showApproveExecutiveModal()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
                         <i class="fas fa-check mr-1"></i> Approve as Executive
                     </button>
                 @endif
 
-                @if(auth()->user()->hasRole(['Admin','IT','Department_Head','Procurement_Approver','President','Vice_President','CFO']))
+                @if(auth()->user()->canApproveReimbursementForms())
                     <button type="button" onclick="showRejectModal()" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition">
                         <i class="fas fa-times mr-1"></i> Reject
                     </button>

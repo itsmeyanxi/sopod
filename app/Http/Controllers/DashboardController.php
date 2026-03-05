@@ -29,9 +29,18 @@ class DashboardController extends Controller
                                       ->whereYear('created_at', now()->year)
                                       ->count();
 
-        $totalDelivered = Deliveries::where('status', 'Delivered')->count();
-        $totalPending = SalesOrder::where('status', 'Pending')->count();
-        $totalDeclined = SalesOrder::where('status', 'Declined')->count();
+        $totalDelivered = Deliveries::where('status', 'Delivered')
+                                   ->whereMonth('created_at', now()->month)
+                                   ->whereYear('created_at', now()->year)
+                                   ->count();
+        $totalPending = SalesOrder::where('status', 'Pending')
+                                 ->whereMonth('created_at', now()->month)
+                                 ->whereYear('created_at', now()->year)
+                                 ->count();
+        $totalDeclined = SalesOrder::where('status', 'Declined')
+                                  ->whereMonth('created_at', now()->month)
+                                  ->whereYear('created_at', now()->year)
+                                  ->count();
 
         // 📦 Pending & Approved Purchase Orders
         $pendingPOs = PurchaseOrder::where('status', 'pending')->count();

@@ -323,7 +323,7 @@ class CustomerController extends Controller
     {
         // Check if user is CC_Approver
         $user = auth()->user();
-        if (!$user || !in_array($user->role, ['CC_Approver', 'Admin', 'IT'])) {
+        if (!$user || !$user->hasRole(['CC_Approver', 'Admin', 'IT'])) {
             return redirect()->back()->with('error', 'Unauthorized: Only CC_Approver can flag/unflag customers.');
         }
 

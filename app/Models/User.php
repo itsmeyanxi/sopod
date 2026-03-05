@@ -236,17 +236,17 @@ class User extends Authenticatable
 
     public function canManagePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President', 'SCM']);
+        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'SCM']);
     }
 
     public function canCreatePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver', 'SCM']);
+        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Preparer', 'PR_Reviewer', 'Procurement_Approver', 'SCM']);
     }
 
     public function canApprovePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President', 'SCM']);
+        return $this->hasRole(['Admin', 'IT', 'PR_Viewer', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'SCM']);
     }
 
     public function canApprovePurchaseRequestsAsDH()
@@ -261,24 +261,24 @@ class User extends Authenticatable
 
     public function canApprovePurchaseRequestsAsExecutive()
     {
-        return $this->hasRole(['Admin', 'IT', 'President', 'Vice_President']);
+        return $this->hasRole(['Admin', 'IT', 'CFO']);
     }
 
     // ==================== PURCHASE ORDER ROLES ====================
 
     public function canManagePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President', 'SCM']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'SCM', 'PO_Preparer', 'PO_Reviewer', 'PO_Approver']);
     }
 
     public function canCreatePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'SCM']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'SCM', 'PO_Preparer', 'PO_Reviewer']);
     }
 
     public function canApprovePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'President', 'Vice_President', 'SCM']);
+        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'SCM', 'PO_Reviewer', 'PO_Approver']);
     }
 
     public function canApprovePurchaseOrdersAsDH()
@@ -293,7 +293,7 @@ class User extends Authenticatable
 
     public function canApprovePurchaseOrdersAsExecutive()
     {
-        return $this->hasRole(['Admin', 'IT', 'President', 'Vice_President']);
+        return $this->hasRole(['Admin', 'IT', 'CFO']);
     }
 
     // ==================== REQUEST FOR PAYMENT ROLES ====================
@@ -305,12 +305,12 @@ class User extends Authenticatable
 
     public function canCreateRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'SCM']);
+        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'SCM', 'RFP_Preparer', 'RFP_Reviewer']);
     }
 
     public function canApproveRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'Accounting_Approver', 'CFO', 'President', 'Vice_President', 'SCM']);
+        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'Accounting_Approver', 'CFO', 'SCM', 'RFP_Reviewer', 'RFP_Approver']);
     }
 
     public function canApproveRFPAsDH()
@@ -325,7 +325,7 @@ class User extends Authenticatable
 
     public function canApproveRFPAsExecutive()
     {
-        return $this->hasRole(['Admin', 'IT', 'CFO', 'President', 'Vice_President']);
+        return $this->hasRole(['Admin', 'IT', 'CFO']);
     }
 
     // APV permissions
@@ -336,7 +336,7 @@ class User extends Authenticatable
 
     public function canApproveAPV()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'APV_Approver']);
     }
 
     // CV permissions
@@ -360,6 +360,169 @@ class User extends Authenticatable
     public function canEditAfterCCApproval()
     {
         return $this->hasRole(['Admin', 'IT', 'CSR']);
+    }
+
+    // ==================== REIMBURSEMENT FORM PERMISSIONS ====================
+
+    /**
+     * Check if user can view and manage reimbursement forms (full access)
+     */
+    public function canManageReimbursementForms()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+    }
+
+    /**
+     * Check if user can create reimbursement forms
+     * Reimbursement_Preparer role: can create and view only
+     * Accounting roles and above: full access
+     */
+    public function canCreateReimbursementForms()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'Reimbursement_Preparer']);
+    }
+
+    /**
+     * Check if user can view reimbursement forms list
+     */
+    public function canAccessReimbursementForms()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'Reimbursement_Preparer', 'Reimbursement_Reviewer']);
+    }
+
+    /**
+     * Check if user can approve reimbursement forms
+     * Reimbursement_Reviewer: can view and approve/reject forms
+     * Reimbursement_Approver: final approval
+     * Accounting_Approver and above: full approval access
+     */
+    public function canApproveReimbursementForms()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'Reimbursement_Reviewer', 'Reimbursement_Approver']);
+    }
+
+    // ==================== CASH ADVANCE REQUEST PERMISSIONS ====================
+
+    /**
+     * Check if user can create cash advance requests
+     * CAR_Preparer: can create and view only
+     * Accounting roles and above: full access
+     */
+    public function canCreateCashAdvanceRequests()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CAR_Preparer']);
+    }
+
+    /**
+     * Check if user can access cash advance requests list
+     */
+    public function canAccessCashAdvanceRequests()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CAR_Preparer', 'CAR_Reviewer']);
+    }
+
+    /**
+     * Check if user can approve cash advance requests
+     * CAR_Reviewer: can view and approve/reject requests
+     * CAR_Approver: final approval
+     * Accounting_Approver and above: full approval access
+     */
+    public function canApproveCashAdvanceRequests()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'CAR_Reviewer', 'CAR_Approver']);
+    }
+
+    // ==================== ACCOUNTS PAYABLE INVOICE (APV) PERMISSIONS ====================
+
+    /**
+     * Check if user can create APV invoices
+     * APV_Preparer: can create and view only
+     * Accounting roles and above: full access
+     */
+    public function canCreateAPV()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'APV_Preparer']);
+    }
+
+    /**
+     * Check if user can access APV invoices list
+     */
+    public function canAccessAPV()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'APV_Preparer', 'APV_Reviewer']);
+    }
+
+    /**
+     * Check if user can approve APV invoices
+     * APV_Reviewer: can view and approve/reject invoices
+     * APV_Approver: final approval
+     * Accounting_Approver and above: full approval access
+     */
+    public function canApproveAPVInvoices()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'APV_Reviewer', 'APV_Approver']);
+    }
+
+    // ==================== LIQUIDATION FORM PERMISSIONS ====================
+
+    /**
+     * Check if user can create liquidation forms
+     * LF_Preparer: can create and view only
+     * Accounting roles and above: full access
+     */
+    public function canCreateLiquidationForms()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'LF_Preparer']);
+    }
+
+    /**
+     * Check if user can view liquidation forms list
+     */
+    public function canAccessLiquidationForms()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'LF_Preparer', 'LF_Reviewer']);
+    }
+
+    /**
+     * Check if user can approve liquidation forms
+     * LF_Reviewer: can view and approve/reject forms
+     * LF_Approver: final approval
+     * Accounting_Approver and above: full approval access
+     */
+    public function canApproveLiquidationForms()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'LF_Reviewer', 'LF_Approver']);
+    }
+
+    // ==================== CHECK VOUCHER (JOURNAL VOUCHER) PERMISSIONS ====================
+
+    /**
+     * Check if user can create check vouchers
+     * CV_Preparer: can create and view only
+     * Accounting roles and above: full access
+     */
+    public function canCreateCheckVouchers()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CV_Preparer']);
+    }
+
+    /**
+     * Check if user can view check vouchers list
+     */
+    public function canAccessCheckVouchers()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CV_Preparer', 'CV_Reviewer']);
+    }
+
+    /**
+     * Check if user can approve check vouchers
+     * CV_Reviewer: can view and approve/reject vouchers
+     * CV_Approver: final approval
+     * Accounting_Approver and above: full approval access
+     */
+    public function canApproveCheckVouchers()
+    {
+        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'CV_Reviewer', 'CV_Approver']);
     }
 
     // ==================== RELATIONSHIPS ====================

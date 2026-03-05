@@ -8,11 +8,17 @@ use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ReimbursementFormController extends Controller
 {
     public function index()
     {
+        // Check if user can access reimbursement forms
+        if (!Auth::user()->canAccessReimbursementForms()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $reimbursements = ReimbursementForm::with(['creator'])
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -22,6 +28,11 @@ class ReimbursementFormController extends Controller
 
     public function create()
     {
+        // Check if user can create reimbursement forms
+        if (!Auth::user()->canCreateReimbursementForms()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         do {
             $riNo = 'RI-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
         } while (ReimbursementForm::where('ri_no', $riNo)->exists());
@@ -39,6 +50,8 @@ class ReimbursementFormController extends Controller
             'items.*.particulars' => 'required|string',
             'items.*.cost' => 'required|numeric|min:0',
             'items.*.date' => 'nullable|date',
+            'proof_documents' => 'nullable|array',
+            'proof_documents.*' => 'nullable|file|mimes:doc,docx,odf,jpg,jpeg,png,gif,bmp,webp|max:10240',
         ]);
 
         DB::beginTransaction();
@@ -48,6 +61,20 @@ class ReimbursementFormController extends Controller
             } while (ReimbursementForm::where('ri_no', $riNo)->exists());
 
             $totalAmountSpent = collect($request->items)->sum('cost');
+
+            // Handle proof documents upload
+            $proofDocuments = [];
+            if ($request->hasFile('proof_documents')) {
+                foreach ($request->file('proof_documents') as $file) {
+                    $path = $file->store('reimbursement_forms', 'public');
+                    $proofDocuments[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                    ];
+                }
+            }
 
             $reimbursement = ReimbursementForm::create([
                 'ri_no' => $riNo,
@@ -59,6 +86,7 @@ class ReimbursementFormController extends Controller
                 'checked_by' => $request->checked_by,
                 'approved_by_name' => $request->approved_by_name,
                 'remarks' => $request->remarks,
+                'proof_documents' => !empty($proofDocuments) ? $proofDocuments : null,
                 'status' => 'pending',
                 'approval_stage' => 'pending_dh',
                 'created_by' => Auth::id(),
@@ -126,12 +154,28 @@ class ReimbursementFormController extends Controller
             'items.*.particulars' => 'required|string',
             'items.*.cost' => 'required|numeric|min:0',
             'items.*.date' => 'nullable|date',
+            'proof_documents' => 'nullable|array',
+            'proof_documents.*' => 'nullable|file|mimes:doc,docx,odf,jpg,jpeg,png,gif,bmp,webp|max:10240',
         ]);
 
         DB::beginTransaction();
         try {
             $reimbursement = ReimbursementForm::findOrFail($id);
             $totalAmountSpent = collect($request->items)->sum('cost');
+
+            // Handle proof documents upload
+            $proofDocuments = $reimbursement->proof_documents ?? [];
+            if ($request->hasFile('proof_documents')) {
+                foreach ($request->file('proof_documents') as $file) {
+                    $path = $file->store('reimbursement_forms', 'public');
+                    $proofDocuments[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                    ];
+                }
+            }
 
             $reimbursement->update([
                 'department' => $request->department,
@@ -142,6 +186,7 @@ class ReimbursementFormController extends Controller
                 'checked_by' => $request->checked_by,
                 'approved_by_name' => $request->approved_by_name,
                 'remarks' => $request->remarks,
+                'proof_documents' => !empty($proofDocuments) ? $proofDocuments : null,
             ]);
 
             $reimbursement->items()->delete();
@@ -205,6 +250,11 @@ class ReimbursementFormController extends Controller
 
     public function approveDH(Request $request, $id)
     {
+        // Check if user can approve reimbursement forms
+        if (!Auth::user()->canApproveReimbursementForms()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $reimbursement = ReimbursementForm::where('approval_stage', 'pending_dh')->findOrFail($id);
         $reimbursement->update([
             'approval_stage' => 'pending_executive',
@@ -230,6 +280,11 @@ class ReimbursementFormController extends Controller
 
     public function approve(Request $request, $id)
     {
+        // Check if user can approve reimbursement forms
+        if (!Auth::user()->canApproveReimbursementForms()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $reimbursement = ReimbursementForm::where('approval_stage', 'pending_executive')->findOrFail($id);
         $reimbursement->update([
             'status' => 'approved',
@@ -256,6 +311,11 @@ class ReimbursementFormController extends Controller
 
     public function reject(Request $request, $id)
     {
+        // Check if user can approve/reject reimbursement forms
+        if (!Auth::user()->canApproveReimbursementForms()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate(['rejection_reason' => 'nullable|string|max:500']);
         $reimbursement = ReimbursementForm::findOrFail($id);
 

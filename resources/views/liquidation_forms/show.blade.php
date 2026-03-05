@@ -108,6 +108,31 @@
             </div>
         @endif
 
+        <!-- Proof Documents -->
+        @if($liquidation->proof_documents && count($liquidation->proof_documents) > 0)
+            <div class="mb-6">
+                <label class="block font-semibold text-gray-300 mb-3">PROOF DOCUMENTS:</label>
+                <div class="bg-gray-900 border border-gray-700 rounded p-4">
+                    <ul class="space-y-2">
+                        @foreach($liquidation->proof_documents as $doc)
+                            <li class="flex items-center justify-between p-3 bg-gray-800 rounded">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-file text-purple-400"></i>
+                                    <div>
+                                        <p class="text-white font-semibold">{{ $doc['name'] }}</p>
+                                        <p class="text-gray-400 text-sm">{{ number_format($doc['size'] / 1024, 2) }} KB</p>
+                                    </div>
+                                </div>
+                                <a href="{{ asset('storage/' . $doc['path']) }}" download class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition">
+                                    <i class="fas fa-download mr-1"></i> Download
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @endif
+
         <!-- Created By -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-300 mb-1">CREATED BY:</label>

@@ -9,6 +9,7 @@ use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class LiquidationFormController extends Controller
 {
@@ -75,6 +76,8 @@ class LiquidationFormController extends Controller
             'items' => 'required|array|min:1',
             'items.*.particulars' => 'required|string',
             'items.*.amount' => 'required|numeric|min:0',
+            'proof_documents' => 'nullable|array',
+            'proof_documents.*' => 'nullable|file|mimes:doc,docx,odf,jpg,jpeg,png,gif,bmp,webp|max:10240',
         ]);
 
         DB::beginTransaction();
@@ -84,6 +87,20 @@ class LiquidationFormController extends Controller
             } while (LiquidationForm::where('liq_no', $liqNo)->exists());
 
             $totalAmountSpent = collect($request->items)->sum('amount');
+
+            // Handle proof documents upload
+            $proofDocuments = [];
+            if ($request->hasFile('proof_documents')) {
+                foreach ($request->file('proof_documents') as $file) {
+                    $path = $file->store('liquidation_forms', 'public');
+                    $proofDocuments[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                    ];
+                }
+            }
 
             $liquidation = LiquidationForm::create([
                 'liq_no' => $liqNo,
@@ -96,6 +113,7 @@ class LiquidationFormController extends Controller
                 'checked_by' => $request->checked_by,
                 'approved_by_name' => $request->approved_by_name,
                 'remarks' => $request->remarks,
+                'proof_documents' => !empty($proofDocuments) ? $proofDocuments : null,
                 'status' => 'pending',
                 'approval_stage' => 'pending_dh',
                 'created_by' => Auth::id(),
@@ -161,12 +179,28 @@ class LiquidationFormController extends Controller
             'items' => 'required|array|min:1',
             'items.*.particulars' => 'required|string',
             'items.*.amount' => 'required|numeric|min:0',
+            'proof_documents' => 'nullable|array',
+            'proof_documents.*' => 'nullable|file|mimes:doc,docx,odf,jpg,jpeg,png,gif,bmp,webp|max:10240',
         ]);
 
         DB::beginTransaction();
         try {
             $liquidation = LiquidationForm::findOrFail($id);
             $totalAmountSpent = collect($request->items)->sum('amount');
+
+            // Handle proof documents upload
+            $proofDocuments = $liquidation->proof_documents ?? [];
+            if ($request->hasFile('proof_documents')) {
+                foreach ($request->file('proof_documents') as $file) {
+                    $path = $file->store('liquidation_forms', 'public');
+                    $proofDocuments[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                    ];
+                }
+            }
 
             $liquidation->update([
                 'cash_advance_request_id' => $request->cash_advance_request_id,
@@ -178,6 +212,7 @@ class LiquidationFormController extends Controller
                 'checked_by' => $request->checked_by,
                 'approved_by_name' => $request->approved_by_name,
                 'remarks' => $request->remarks,
+                'proof_documents' => !empty($proofDocuments) ? $proofDocuments : null,
             ]);
 
             // Delete old items and recreate

@@ -3,7 +3,7 @@
 @section('title', 'User List')
 
 @section('content')
-<div class="max-w-7xl mx-auto bg-gray-800 text-white p-8 rounded-lg mt-8 shadow-md">
+<div class="max-w-6xl mx-auto bg-gray-800 text-white p-8 rounded-lg mt-8 shadow-md">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">User Management</h2>
         <a href="{{ route('admin.users.create') }}" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition w-full sm:w-auto text-center">
@@ -21,32 +21,32 @@
         />
     </div>
 
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto shadow-md rounded-lg">
         <table class="w-full text-left" id="usersTable">
             <thead class="bg-gray-700">
                 <tr>
-                    <th class="px-4 py-3">ID</th>
-                    <th class="px-4 py-3">Name</th>
-                    <th class="px-4 py-3">Email</th>
-                    <th class="px-4 py-3">Role</th>
-                    <th class="px-4 py-3">Account Status</th>
-                    <th class="px-4 py-3">Login Attempts</th>
-                    <th class="px-4 py-3">Password Hash</th>
-                    <th class="px-4 py-3">Actions</th>
+                    <th class="px-2 py-2 hidden lg:table-cell text-xs">ID</th>
+                    <th class="px-2 py-2 text-xs">Name</th>
+                    <th class="px-2 py-2 hidden md:table-cell text-xs">Email</th>
+                    <th class="px-2 py-2 hidden sm:table-cell text-xs">Role</th>
+                    <th class="px-2 py-2 hidden lg:table-cell text-xs">Account Status</th>
+                    <th class="px-2 py-2 hidden xl:table-cell text-xs">Login Attempts</th>
+                    <th class="px-2 py-2 hidden 2xl:table-cell text-xs">Password Hash</th>
+                    <th class="px-2 py-2">Actions</th>
                 </tr>
             </thead>
             <tbody id="userTableBody">
                 @foreach($users as $user)
                 <tr class="border-b border-gray-700 hover:bg-gray-700 user-row">
-                    <td class="px-4 py-3">{{ $user->id }}</td>
-                    <td class="px-4 py-3">{{ $user->name }}</td>
-                    <td class="px-4 py-3">{{ $user->email }}</td>
-                    <td class="px-4 py-3">
-                        <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">{{ $user->role }}</span>
+                    <td class="px-2 py-2 hidden lg:table-cell text-xs">{{ $user->id }}</td>
+                    <td class="px-2 py-2 font-medium text-sm truncate">{{ $user->name }}</td>
+                    <td class="px-2 py-2 hidden md:table-cell text-xs truncate">{{ $user->email }}</td>
+                    <td class="px-2 py-2 hidden sm:table-cell">
+                        <span class="bg-blue-600 text-white px-1 py-0.5 rounded text-xs whitespace-nowrap">{{ $user->role }}</span>
                     </td>
-                    
+
                     {{-- Account Lock Status --}}
-                    <td class="px-4 py-3">
+                    <td class="px-2 py-2 hidden lg:table-cell">
                         @if($user->is_locked)
                             {{-- Manually locked by admin --}}
                             <div class="flex flex-col gap-1">
@@ -79,7 +79,7 @@
                     </td>
 
                     {{-- Login Attempts Status --}}
-                    <td class="px-4 py-3">
+                    <td class="px-2 py-2 hidden xl:table-cell">
                         @if(isset($user->login_attempts) && $user->login_attempts >= 6)
                             <span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">
                                 🔒 {{ $user->login_attempts }} attempts
@@ -95,40 +95,40 @@
                         @endif
                     </td>
 
-                    <td class="px-4 py-3">
-                        <div class="flex items-center gap-2">
-                            <input type="password" 
-                                   value="{{ $user->password }}" 
-                                   class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-white font-mono text-sm w-48" 
+                    <td class="px-2 py-2 hidden 2xl:table-cell">
+                        <div class="flex items-center gap-1">
+                            <input type="password"
+                                   value="{{ $user->password }}"
+                                   class="bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-white font-mono text-xs w-24"
                                    id="password-{{ $user->id }}"
                                    readonly>
-                            <button class="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded toggle-password" 
+                            <button class="bg-gray-600 hover:bg-gray-500 text-white px-1 py-0.5 rounded toggle-password"
                                     data-target="password-{{ $user->id }}"
                                     type="button"
                                     title="Show/Hide Hash">
-                                <i class="fas fa-eye"></i>
+                                <i class="fas fa-eye text-xs"></i>
                             </button>
                         </div>
-                        <small class="text-gray-400 text-xs">Hashed - cannot be decrypted</small>
+                        <small class="text-gray-400 text-xs">Hashed</small>
                     </td>
 
-                    <td class="px-4 py-3">
-                        <div class="flex flex-wrap gap-2">
+                    <td class="px-2 py-2">
+                        <div class="flex flex-wrap gap-1">
                             {{-- Lock/Unlock Button - Check BOTH manual lock AND max attempts --}}
                             @if($user->id !== auth()->id())
                                 @php
                                     // Account is locked if EITHER manually locked OR max attempts reached
                                     $isLocked = $user->is_locked || (isset($user->login_attempts) && $user->login_attempts >= 6);
                                 @endphp
-                                
-                                <form action="{{ route('admin.users.toggleLock', $user->id) }}" 
-                                      method="POST" 
+
+                                <form action="{{ route('admin.users.toggleLock', $user->id) }}"
+                                      method="POST"
                                       class="inline lock-form">
                                     @csrf
                                     @if($isLocked)
                                         {{-- Show UNLOCK button when account is locked --}}
-                                        <button type="submit" 
-                                                class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                                        <button type="submit"
+                                                class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
                                                 title="Unlock Account"
                                                 data-user-name="{{ $user->name }}"
                                                 data-action="unlock"
@@ -137,8 +137,8 @@
                                         </button>
                                     @else
                                         {{-- Show LOCK button when account is active --}}
-                                        <button type="submit" 
-                                                class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded text-sm"
+                                        <button type="submit"
+                                                class="bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
                                                 title="Lock Account"
                                                 data-user-name="{{ $user->name }}"
                                                 data-action="lock">
@@ -149,36 +149,36 @@
                             @endif
 
                             {{-- Edit Button --}}
-                            <a href="{{ route('admin.users.edit', $user->id) }}" 
-                               class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
+                            <a href="{{ route('admin.users.edit', $user->id) }}"
+                               class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
                                title="Edit User">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            
+
                             {{-- Reset Login Attempts Button - Show if attempts > 0 --}}
                             @if(isset($user->login_attempts) && $user->login_attempts > 0)
-                            <form action="{{ route('users.reset-attempts', $user->id) }}" 
-                                  method="POST" 
+                            <form action="{{ route('users.reset-attempts', $user->id) }}"
+                                  method="POST"
                                   class="inline reset-attempts-form">
                                 @csrf
-                                <button type="submit" 
-                                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                                <button type="submit"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
                                         title="Reset Login Attempts"
                                         data-attempts="{{ $user->login_attempts }}">
                                     <i class="fas fa-sync"></i> Reset
                                 </button>
                             </form>
                             @endif
-                            
+
                             {{-- Delete Button --}}
                             @if($user->id !== auth()->id())
-                            <form action="{{ route('admin.users.destroy', $user->id) }}" 
-                                  method="POST" 
+                            <form action="{{ route('admin.users.destroy', $user->id) }}"
+                                  method="POST"
                                   class="inline delete-form">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" 
-                                        class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                                <button type="submit"
+                                        class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
                                         title="Delete User">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>

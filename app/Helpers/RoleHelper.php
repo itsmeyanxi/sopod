@@ -60,8 +60,10 @@ class RoleHelper
         }
 
         $role = auth()->user()->role ?? null;
-        return in_array($role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver'])
-            || auth()->user()->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
+        $allowedRoles = ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'];
+
+        return in_array($role, $allowedRoles)
+            || auth()->user()->hasRole($allowedRoles);
     }
 
     public static function canManageDeliveries()

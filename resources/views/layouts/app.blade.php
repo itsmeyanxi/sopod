@@ -129,7 +129,7 @@
 <!-- =================== SIDEBAR =================== -->
 <div id="sidebar" class="sidebar bg-gray-900 text-white w-64 min-h-screen transition-all duration-300 ease-in-out md:relative">
     <div class="flex items-center justify-center p-4 sidebar-header">
-        <h2 class="text-lg font-bold sidebar-text">SOPOD</h2>
+        <h2 class="text-lg font-bold sidebar-text">NOMSUITE</h2>
         <span class="text-2xl hidden collapsed-icon">☰</span>
     </div>
 
@@ -323,7 +323,9 @@
 
                     <a href="{{ route('cash_advance_requests.index') }}" class="block hover:underline">Cash Advance Request (CAR)</a>
                     <a href="{{ route('liquidation_forms.index') }}" class="block hover:underline">Liquidation Form (LIQ)</a>
-                    <a href="{{ route('reimbursement_forms.index') }}" class="block hover:underline">Reimbursement Form (RI)</a>
+                    @if(auth()->user()->canAccessReimbursementForms())
+                        <a href="{{ route('reimbursement_forms.index') }}" class="block hover:underline">Reimbursement Form (RI)</a>
+                    @endif
 
                     <a href="{{ route('po_records.index') }}" class="block hover:underline">PO Records</a>
 

@@ -12,6 +12,11 @@ class CashAdvanceRequestController extends Controller
 {
     public function index()
     {
+        // Check if user can access cash advance requests
+        if (!Auth::user()->canAccessCashAdvanceRequests()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $cars = CashAdvanceRequest::with(['creator'])
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -21,6 +26,11 @@ class CashAdvanceRequestController extends Controller
 
     public function create()
     {
+        // Check if user can create cash advance requests
+        if (!Auth::user()->canCreateCashAdvanceRequests()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         do {
             $carNo = 'CAR-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
         } while (CashAdvanceRequest::where('car_no', $carNo)->exists());
@@ -30,6 +40,11 @@ class CashAdvanceRequestController extends Controller
 
     public function store(Request $request)
     {
+        // Check if user can create cash advance requests
+        if (!Auth::user()->canCreateCashAdvanceRequests()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate([
             'payee' => 'required|string|max:255',
             'department' => 'required|string|max:255',
@@ -95,6 +110,11 @@ class CashAdvanceRequestController extends Controller
 
     public function edit($id)
     {
+        // Check if user can create/edit cash advance requests
+        if (!Auth::user()->canCreateCashAdvanceRequests()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $car = CashAdvanceRequest::findOrFail($id);
 
         if ($car->status === 'approved' || $car->status === 'liquidated') {
@@ -107,6 +127,11 @@ class CashAdvanceRequestController extends Controller
 
     public function update(Request $request, $id)
     {
+        // Check if user can create/edit cash advance requests
+        if (!Auth::user()->canCreateCashAdvanceRequests()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate([
             'payee' => 'required|string|max:255',
             'department' => 'required|string|max:255',
@@ -184,6 +209,11 @@ class CashAdvanceRequestController extends Controller
 
     public function approveDH(Request $request, $id)
     {
+        // Check if user can approve cash advance requests
+        if (!Auth::user()->canApproveCashAdvanceRequests()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $car = CashAdvanceRequest::where('approval_stage', 'pending_dh')->findOrFail($id);
         $car->update([
             'approval_stage' => 'pending_executive',
@@ -209,6 +239,11 @@ class CashAdvanceRequestController extends Controller
 
     public function approve(Request $request, $id)
     {
+        // Check if user can approve cash advance requests
+        if (!Auth::user()->canApproveCashAdvanceRequests()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $car = CashAdvanceRequest::where('approval_stage', 'pending_executive')->findOrFail($id);
         $car->update([
             'status' => 'approved',
@@ -235,6 +270,11 @@ class CashAdvanceRequestController extends Controller
 
     public function reject(Request $request, $id)
     {
+        // Check if user can approve/reject cash advance requests
+        if (!Auth::user()->canApproveCashAdvanceRequests()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate(['rejection_reason' => 'nullable|string|max:500']);
         $car = CashAdvanceRequest::findOrFail($id);
 

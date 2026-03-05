@@ -24,7 +24,7 @@
             </div>
         @endif
 
-        <form action="{{ route('reimbursement_forms.update', $reimbursement->id) }}" method="POST" id="reimbursementForm">
+        <form action="{{ route('reimbursement_forms.update', $reimbursement->id) }}" method="POST" id="reimbursementForm" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -108,6 +108,37 @@
                 <input type="text" name="submitted_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('submitted_by', $reimbursement->submitted_by) }}" placeholder="Name of person submitting">
             </div>
 
+            <!-- Proof Documents -->
+            <div class="mb-6">
+                <label class="block font-semibold text-gray-300 mb-2">PROOF DOCUMENTS:</label>
+
+                @if($reimbursement->proof_documents && count($reimbursement->proof_documents) > 0)
+                    <div class="mb-4 p-4 bg-gray-900 border border-gray-700 rounded">
+                        <p class="text-gray-300 font-semibold mb-3">Currently uploaded documents:</p>
+                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-2">
+                            @foreach($reimbursement->proof_documents as $index => $doc)
+                                <li>
+                                    <a href="{{ asset('storage/' . $doc['path']) }}" target="_blank" class="text-purple-400 hover:text-purple-300">{{ $doc['name'] }}</a>
+                                    <span class="text-gray-500">({{ number_format($doc['size'] / 1024, 2) }} KB)</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <div class="bg-gray-900 border-2 border-dashed border-gray-700 rounded px-4 py-6 text-center">
+                    <input type="file" name="proof_documents[]" id="proofDocuments" class="hidden" multiple accept=".doc,.docx,.odf,.jpg,.jpeg,.png,.gif,.bmp,.webp">
+                    <label for="proofDocuments" class="cursor-pointer">
+                        <div class="text-gray-400 mb-2">
+                            <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                        </div>
+                        <p class="text-white font-semibold mb-1">Click to upload or drag and drop</p>
+                        <p class="text-gray-500 text-sm">Accepted formats: .doc, .docx, .odf, .jpg, .jpeg, .png, .gif, .bmp, .webp</p>
+                    </label>
+                </div>
+                <div id="fileList" class="mt-3"></div>
+            </div>
+
             <!-- Remarks -->
             <div class="mb-6">
                 <label class="block font-semibold text-gray-300 mb-2">REMARKS:</label>
@@ -184,5 +215,51 @@ function calculateTotal() {
 document.addEventListener('DOMContentLoaded', function() {
     calculateTotal();
 });
+
+// File upload handling
+const proofDocumentsInput = document.getElementById('proofDocuments');
+const fileListDiv = document.getElementById('fileList');
+const uploadArea = proofDocumentsInput.closest('.bg-gray-900');
+
+// Click to upload
+proofDocumentsInput.addEventListener('change', function() {
+    updateFileList();
+});
+
+// Drag and drop
+uploadArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    uploadArea.classList.add('border-purple-500', 'bg-gray-800');
+});
+
+uploadArea.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    uploadArea.classList.remove('border-purple-500', 'bg-gray-800');
+});
+
+uploadArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    uploadArea.classList.remove('border-purple-500', 'bg-gray-800');
+    proofDocumentsInput.files = e.dataTransfer.files;
+    updateFileList();
+});
+
+function updateFileList() {
+    fileListDiv.innerHTML = '';
+    const files = proofDocumentsInput.files;
+
+    if (files.length > 0) {
+        const ul = document.createElement('ul');
+        ul.className = 'list-disc list-inside text-gray-300 text-sm space-y-1';
+
+        for (let i = 0; i < files.length; i++) {
+            const li = document.createElement('li');
+            li.textContent = files[i].name + ' (' + (files[i].size / 1024).toFixed(2) + ' KB)';
+            ul.appendChild(li);
+        }
+
+        fileListDiv.appendChild(ul);
+    }
+}
 </script>
 @endsection

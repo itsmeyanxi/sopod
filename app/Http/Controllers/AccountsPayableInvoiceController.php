@@ -15,6 +15,11 @@ class AccountsPayableInvoiceController extends Controller
 {
     public function index()
     {
+        // Check if user can access APV invoices
+        if (!Auth::user()->canAccessAPV()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $invoices = AccountsPayableInvoice::with(['creator', 'requestForPayment'])
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -24,6 +29,11 @@ class AccountsPayableInvoiceController extends Controller
 
     public function create(Request $request)
     {
+        // Check if user can create APV invoices
+        if (!Auth::user()->canCreateAPV()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         // Generate APV number
         $apvNo = 'APV-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
@@ -146,6 +156,11 @@ class AccountsPayableInvoiceController extends Controller
      */
     public function store(Request $request)
     {
+        // Check if user can create APV invoices
+        if (!Auth::user()->canCreateAPV()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate([
             'apv_date' => 'required|date',
             'payment_type' => 'required|in:full_payment,downpayment',
@@ -258,6 +273,11 @@ class AccountsPayableInvoiceController extends Controller
      */
     public function edit($id)
     {
+        // Check if user can create/edit APV invoices
+        if (!Auth::user()->canCreateAPV()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $invoice = AccountsPayableInvoice::findOrFail($id);
 
         return view('accounts_payable_invoices.edit', compact('invoice'));
@@ -268,6 +288,11 @@ class AccountsPayableInvoiceController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Check if user can create/edit APV invoices
+        if (!Auth::user()->canCreateAPV()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate([
             'apv_date' => 'required|date',
             'payment_type' => 'required|in:full_payment,downpayment',
@@ -391,7 +416,7 @@ class AccountsPayableInvoiceController extends Controller
     public function approveDH(Request $request, $id)
     {
         $user = Auth::user();
-        if (!$user->canApproveAPVAsDH()) {
+        if (!$user->canApproveAPVInvoices()) {
             return redirect()->route('accounts_payable_invoices.index')->with('error', 'Unauthorized.');
         }
 
@@ -457,6 +482,11 @@ class AccountsPayableInvoiceController extends Controller
      */
     public function reject(Request $request, $id)
     {
+        // Check if user can approve/reject APV invoices
+        if (!Auth::user()->canApproveAPVInvoices()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate(['rejection_reason' => 'nullable|string|max:500']);
         $invoice = AccountsPayableInvoice::findOrFail($id);
 

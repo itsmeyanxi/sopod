@@ -51,6 +51,11 @@ class PurchaseOrderController extends Controller
      */
     public function create(Request $request)
     {
+        // Check if user can create purchase orders
+        if (!Auth::user()->canCreatePurchaseOrders()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $poNo = 'PO-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
         $companies = [
@@ -270,6 +275,11 @@ class PurchaseOrderController extends Controller
 
     public function store(Request $request)
     {
+        // Check if user can create purchase orders
+        if (!Auth::user()->canCreatePurchaseOrders()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         // ── Validate ────────────────────────────────────────────────────────
         $validated = $request->validate([
             'company'               => 'required|string',
@@ -395,6 +405,11 @@ class PurchaseOrderController extends Controller
     {
         $purchaseOrder = PurchaseOrder::with('items')->findOrFail($id);
 
+        // Check if user can create/edit purchase orders
+        if (!Auth::user()->canCreatePurchaseOrders()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $notesOnly = false;
         if ($purchaseOrder->status === 'approved' && $purchaseOrder->approved_at !== null) {
             $notesOnly = true;
@@ -424,6 +439,11 @@ class PurchaseOrderController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Check if user can create/edit purchase orders
+        if (!Auth::user()->canCreatePurchaseOrders()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate([
             'company'                  => 'required|string',
             'order_date'               => 'required|date',
@@ -584,9 +604,9 @@ class PurchaseOrderController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->canApprovePurchaseOrdersAsDH()) {
+        if (!$user->canApprovePurchaseOrders()) {
             return redirect()->route('purchase_orders.index')
-                ->with('error', 'Unauthorized to approve as Department Head.');
+                ->with('error', 'Unauthorized to approve Purchase Orders.');
         }
 
         $purchaseOrder = PurchaseOrder::where('approval_stage', 'pending_dh')->findOrFail($id);
@@ -620,9 +640,9 @@ class PurchaseOrderController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->canApprovePurchaseOrdersAsManagement()) {
+        if (!$user->canApprovePurchaseOrders()) {
             return redirect()->route('purchase_orders.index')
-                ->with('error', 'Unauthorized to approve as Management.');
+                ->with('error', 'Unauthorized to approve Purchase Orders.');
         }
 
         $purchaseOrder = PurchaseOrder::where('approval_stage', 'pending_management')->findOrFail($id);
@@ -661,9 +681,9 @@ class PurchaseOrderController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->canApprovePurchaseOrdersAsExecutive()) {
+        if (!$user->canApprovePurchaseOrders()) {
             return redirect()->route('purchase_orders.index')
-                ->with('error', 'Unauthorized to approve as Executive.');
+                ->with('error', 'Unauthorized to approve Purchase Orders.');
         }
 
         $purchaseOrder = PurchaseOrder::where('approval_stage', 'pending_executive')->findOrFail($id);

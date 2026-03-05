@@ -653,11 +653,10 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // ✅ Index
         Route::get('/', function () {
-            $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
-                return app(CustomerController::class)->index();
+            if (!auth()->user()->canManageCustomers()) {
+                return view('errors.noaccess');
             }
-            return view('errors.noaccess');
+            return app(CustomerController::class)->index();
         })->name('index');
 
         // ✅ Export
@@ -671,20 +670,18 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // ✅ Create
         Route::get('/create', function () {
-            $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
-                return app(CustomerController::class)->create();
+            if (!auth()->user()->canManageCustomers()) {
+                return view('errors.noaccess');
             }
-            return view('errors.noaccess');
+            return app(CustomerController::class)->create();
         })->name('create');
 
         // ✅ Store
         Route::post('/', function () {
-            $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
-                return app(CustomerController::class)->store(request());
+            if (!auth()->user()->canManageCustomers()) {
+                return view('errors.noaccess');
             }
-            return view('errors.noaccess');
+            return app(CustomerController::class)->store(request());
         })->name('store');
 
         // ✅  Get customer by code (for AJAX autofill)
@@ -698,20 +695,18 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // ✅ Edit
         Route::get('/{id}/edit', function ($id) {
-            $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
-                return app(CustomerController::class)->edit($id);
+            if (!auth()->user()->canManageCustomers()) {
+                return view('errors.noaccess');
             }
-            return view('errors.noaccess');
+            return app(CustomerController::class)->edit($id);
         })->name('edit');
 
         // ✅ Update
         Route::put('/{id}', function ($id) {
-            $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
-                return app(CustomerController::class)->update(request(), $id);
+            if (!auth()->user()->canManageCustomers()) {
+                return view('errors.noaccess');
             }
-            return view('errors.noaccess');
+            return app(CustomerController::class)->update(request(), $id);
         })->name('update');
 
         // ✅ Delete
@@ -723,19 +718,19 @@ Route::prefix('items')->name('items.')->group(function () {
             return view('errors.noaccess');
         })->name('destroy');
 
-        // ✅ Toggle Status 
-        Route::patch('/{id}/toggle-status', function ($id) {
+        // ✅ Toggle Status
+        Route::post('/{id}/toggle-status', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
+            if ($user && $user->hasRole(['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
                 return app(CustomerController::class)->toggleStatus($id);
             }
             return view('errors.noaccess');
         })->name('toggleStatus');
 
         // ✅ Toggle Flag (CC_Approver, Admin, IT only)
-        Route::patch('/{id}/toggle-flag', function ($id) {
+        Route::post('/{id}/toggle-flag', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver'])) {
+            if ($user && $user->hasRole(['Admin', 'IT', 'CC_Approver'])) {
                 return app(CustomerController::class)->toggleFlag($id);
             }
             return view('errors.noaccess');
@@ -743,11 +738,10 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // ✅ Show (MUST BE LAST because it catches any /{id})
         Route::get('/{id}', function ($id) {
-            $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
-                return app(CustomerController::class)->show($id);
+            if (!auth()->user()->canManageCustomers()) {
+                return view('errors.noaccess');
             }
-            return view('errors.noaccess');
+            return app(CustomerController::class)->show($id);
         })->name('show');
     });
 
@@ -2042,7 +2036,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'President', 'Vice_President', 'CFO'])) {
+            if ($user->hasRole(['Admin', 'IT', 'CFO'])) {
                 return app(CashAdvanceRequestController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
@@ -2050,7 +2044,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/reject', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'President', 'Vice_President', 'CFO'])) {
+            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'CFO'])) {
                 return app(CashAdvanceRequestController::class)->reject(request(), $id);
             }
             return view('errors.noaccess');
@@ -2110,7 +2104,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'President', 'Vice_President', 'CFO'])) {
+            if ($user->hasRole(['Admin', 'IT', 'CFO'])) {
                 return app(LiquidationFormController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
@@ -2118,7 +2112,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/reject', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'President', 'Vice_President', 'CFO'])) {
+            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'CFO'])) {
                 return app(LiquidationFormController::class)->reject(request(), $id);
             }
             return view('errors.noaccess');
@@ -2174,7 +2168,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'President', 'Vice_President', 'CFO'])) {
+            if ($user->hasRole(['Admin', 'IT', 'CFO'])) {
                 return app(ReimbursementFormController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
@@ -2182,7 +2176,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/reject', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'President', 'Vice_President', 'CFO'])) {
+            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'CFO'])) {
                 return app(ReimbursementFormController::class)->reject(request(), $id);
             }
             return view('errors.noaccess');
