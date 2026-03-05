@@ -47,7 +47,7 @@ class Handler extends ExceptionHandler
             $user = auth()->user();
 
             // IT/Admin users see detailed debug page
-            if ($user && in_array(strtoupper($user->role), ['IT', 'ADMIN'])) {
+            if ($user && $user->isAdminUser()) {
                 return response()->view('errors.it-debug', [
                     'exception' => $e,
                 ], 500);

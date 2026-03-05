@@ -1716,7 +1716,7 @@ public function updateStatus(Request $request, $id)
         try {
             // ✅ Check permissions (only Admin, IT, CC_Approver can manually close)
             $user = auth()->user();
-            if (!in_array($user->role, ['Admin', 'IT', 'CC_Approver'])) {
+            if (!$user->canPerformInModule('can_manage', 'sales_orders')) {
                 return redirect()->back()->with('error', 'Unauthorized: Only Admin, IT, or CC_Approver can manually close Sales Orders.');
             }
 

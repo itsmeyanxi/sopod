@@ -67,23 +67,7 @@ class UserController extends Controller
             'target_user_email' => $user->email,
         ]);
 
-        $roles = [
-            'Admin',
-            'IT',
-            'CSR',
-            'SCM',
-            'Delivery_Creator',
-            'Delivery_Approver',
-            'CC_Creator',
-            'CC_Approver',
-            'Accounting_Creator',
-            'Accounting_Approver',
-            'Requisitioner',
-            'PR_Approver',
-            'Purchasing',
-            'Procurement_Approver',
-        ];
-        return view('users.edit', compact('user', 'roles'));
+        return view('users.edit', compact('user'));
     }
 
     public function update(Request $request, $id)
@@ -98,12 +82,11 @@ class UserController extends Controller
         $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'unique:users,email,' . $user->id],
-            'role' => ['required', 'string', 'in:Admin,IT,CSR,SCM,Delivery_Creator,Delivery_Approver,CC_Creator,CC_Approver,Accounting_Creator,Accounting_Approver,Requisitioner,PR_Approver,Purchasing,Procurement_Approver'],            'password' => ['nullable', 'min:6'],
+            'password' => ['nullable', 'min:6'],
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
-        $user->role = $request->role;
 
         $passwordChanged = false;
         if ($request->filled('password')) {

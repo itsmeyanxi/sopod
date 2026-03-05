@@ -398,7 +398,7 @@
                 $canApproveManagement = auth()->user()->canApprovePurchaseRequestsAsManagement();
                 // PMAI requires CFO specifically at management level
                 if ($canApproveManagement && str_contains(strtolower($purchaseRequest->company ?? ''), 'magalang')) {
-                    $canApproveManagement = auth()->user()->hasRole(['Admin', 'IT', 'CFO']);
+                    $canApproveManagement = auth()->user()->isAdminUser() || auth()->user()->canApprovePurchaseRequestsAsManagement();
                 }
             @endphp
             @if($purchaseRequest->approval_stage === 'pending_management' && $canApproveManagement)
@@ -443,7 +443,7 @@
                 <a href="{{ route('purchase_requests.print', $purchaseRequest->id) }}" target="_blank" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
                     <i class="fas fa-print mr-1"></i> Print
                 </a>
-                @if(auth()->id() === $purchaseRequest->created_by || auth()->user()->hasRole(['Admin', 'IT', 'Department_Head']))
+                @if(auth()->id() === $purchaseRequest->created_by || auth()->user()->isAdminUser() || auth()->user()->canApprovePurchaseRequestsAsDH())
                     <button type="button" onclick="confirmDelete()" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition">
                         <i class="fas fa-trash mr-1"></i> Delete
                     </button>

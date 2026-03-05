@@ -19,7 +19,7 @@
                 <a href="{{ route('accounts_payable_invoices.print', $invoice->id) }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition inline-block">
                     <i class="fas fa-print mr-1"></i> Print
                 </a>
-                @if(auth()->user()->hasRole(['Admin', 'IT', 'Department_Head']))
+                @if(auth()->user()->canApproveAPVAsDH() || auth()->user()->canApproveAPV())
                     <button type="button" onclick="confirmDelete()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
                         <i class="fas fa-trash mr-1"></i> Delete
                     </button>
@@ -348,7 +348,7 @@
                     </button>
                 @endif
 
-                @if(in_array(auth()->user()->role, ['Admin', 'IT', 'Accounting_Approver', 'Department_Head']))
+                @if(auth()->user()->canApproveAPV() || auth()->user()->canApproveAPVAsDH())
                     <button type="button" onclick="showRejectModal()" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition">
                         <i class="fas fa-times mr-1"></i> Reject
                     </button>
@@ -563,7 +563,7 @@ function getLocationName(lat, lng, prefix) {
 </style>
 
 <!-- Delete Confirmation Modal -->
-@if(auth()->user()->hasRole(['Admin', 'IT', 'Department_Head']))
+@if(auth()->user()->canApproveAPVAsDH() || auth()->user()->canApproveAPV())
 <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-gray-800 rounded-lg p-6 w-96">
         <h3 class="text-xl font-bold text-white mb-4">Delete Invoice</h3>

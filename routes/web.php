@@ -36,7 +36,9 @@ use App\Http\Controllers\{
     POSummaryController,
     CashAdvanceRequestController,
     LiquidationFormController,
-    ReimbursementFormController
+    ReimbursementFormController,
+    RoleController,
+    WarehouseController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -46,6 +48,9 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     // ===================== SUPPLIER IMPORT =====================
     Route::post('/excel/import/suppliers', [SupplierImportController::class, 'importSuppliers'])
     ->name('excel.import.suppliers');
+
+    // ===================== Warehouse =====================
+    Route::resource('warehouses', WarehouseController::class)->middleware('auth');
 
     // ===================== AUTH (Public Routes) =====================
     Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');
@@ -145,28 +150,28 @@ Route::prefix('receiving-reports')->name('receiving-reports.')->group(function (
 // Only Admin and IT roles can access this module
 Route::prefix('lock')->name('lock.')->group(function () {
     Route::get('/', function () {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        if (!auth()->check() || !auth()->user()->canAccessModule('record_lock')) {
             return view('errors.noaccess');
         }
         return app(LockController::class)->index(request());
     })->name('index');
 
     Route::get('/details', function () {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        if (!auth()->check() || !auth()->user()->canAccessModule('record_lock')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
         return app(LockController::class)->getMonthDetails(request());
     })->name('details');
 
     Route::post('/lock', function () {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        if (!auth()->check() || !auth()->user()->canAccessModule('record_lock')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
         return app(LockController::class)->lock(request());
     })->name('lock');
 
     Route::post('/unlock', function () {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+        if (!auth()->check() || !auth()->user()->canAccessModule('record_lock')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
         return app(LockController::class)->unlock(request());
@@ -250,7 +255,7 @@ Route::post('/excel/import/ar-adjustments', [ExcelImportController::class, 'impo
     // IMPORT MONTHLY SALES
     Route::post('/excel-import/monthly-sales', function () {
         $user = auth()->user();
-        if (!$user || !in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+        if (!$user || !$user->canAccessModule('apv')) {
             abort(403, 'Unauthorized');
         }
         return app(App\Http\Controllers\ExcelImportController::class)->importMonthlySales(request());
@@ -268,7 +273,7 @@ Route::post('/excel/import/ar-adjustments', [ExcelImportController::class, 'impo
     // IMPORT AR AGING — Admin, IT + Accounting roles
     Route::post('/excel-import/ar-aging', function () {
         $user = auth()->user();
-        if (!$user || !in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+        if (!$user || !$user->canAccessModule('apv')) {
             abort(403, 'Unauthorized');
         }
         return app(App\Http\Controllers\ExcelImportController::class)->importARAging(request());
@@ -382,25 +387,22 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // =================== SPECIFIC ACTION ROUTES (MUST BE BEFORE {id} ROUTES) ===================
     Route::post('/bulk-approve', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR', 'CC_Approver', 'Accounting_Approver'])) {
+        if (auth()->user()->canApproveSalesOrders()) {
             return app(SalesOrderController::class)->bulkApprove(request());
         }
         return view('errors.noaccess');
     })->name('bulkApprove');
-    
+
     Route::post('/bulk-decline', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR', 'CC_Approver', 'Accounting_Approver'])) {
+        if (auth()->user()->canApproveSalesOrders()) {
             return app(SalesOrderController::class)->bulkDecline(request());
         }
         return view('errors.noaccess');
     })->name('bulkDecline');
-    
+
     // Manual Close Sales Order
     Route::patch('/{id}/close', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CC_Approver'])) {
+        if (auth()->user()->canPerformInModule('can_manage', 'sales_orders')) {
             return app(SalesOrderController::class)->manualClose($id);
         }
         return view('errors.noaccess');
@@ -412,8 +414,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Excel Export
     Route::get('/export-excel', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+        if (auth()->user()->canPerformInModule('can_export', 'sales_orders')) {
             return app(SalesOrderController::class)->exportExcel(request());
         }
         return view('errors.noaccess');
@@ -425,8 +426,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Create
     Route::get('/create', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR'])) {
+        if (auth()->user()->canCreateSalesOrders()) {
             return app(SalesOrderController::class)->create();
         }
         return view('errors.noaccess');
@@ -434,8 +434,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Accepted
     Route::get('/accepted', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+        if (auth()->user()->canManageSalesOrders()) {
             return app(SalesOrderController::class)->accepted(request());
         }
         return view('errors.noaccess');
@@ -443,8 +442,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Search
     Route::get('/search', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+        if (auth()->user()->canManageSalesOrders()) {
             return app(SalesOrderController::class)->search(request());
         }
         return view('errors.noaccess');
@@ -452,8 +450,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Edit
     Route::get('/{id}/edit', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR', 'CC_Approver'])) {
+        if (auth()->user()->canPerformInModule('can_edit', 'sales_orders')) {
             return app(SalesOrderController::class)->edit($id);
         }
         return view('errors.noaccess');
@@ -461,8 +458,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Add Items to Approved SO
     Route::get('/{id}/add-items', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR'])) {
+        if (auth()->user()->canCreateSalesOrders()) {
             return app(SalesOrderController::class)->addItemsForm($id);
         }
         return view('errors.noaccess');
@@ -472,8 +468,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Store
     Route::post('/', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR'])) {
+        if (auth()->user()->canCreateSalesOrders()) {
             return app(SalesOrderController::class)->store(request());
         }
         return view('errors.noaccess');
@@ -481,8 +476,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Approve
     Route::post('/{id}/approve', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR','Accounting_Approver'])) {
+        if (auth()->user()->canApproveSalesOrders()) {
             return app(SalesOrderController::class)->approve($id);
         }
         return view('errors.noaccess');
@@ -490,8 +484,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Approve for Editing
     Route::post('/{id}/approve-edit', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CC_Approver'])) {
+        if (auth()->user()->canPerformInModule('can_manage', 'sales_orders')) {
             return app(SalesOrderController::class)->approveForEdit($id);
         }
         return view('errors.noaccess');
@@ -499,8 +492,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Update
     Route::put('/{id}', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR', 'CC_Approver'])) {
+        if (auth()->user()->canPerformInModule('can_edit', 'sales_orders')) {
             return app(SalesOrderController::class)->update(request(), $id);
         }
         return view('errors.noaccess');
@@ -508,8 +500,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Update Status
     Route::patch('/{id}/update-status', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CC_Approver','Accounting_Approver'])) {
+        if (auth()->user()->canApproveSalesOrders()) {
             return app(SalesOrderController::class)->updateStatus(request(), $id);
         }
         return view('errors.noaccess');
@@ -517,8 +508,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Mark Delivered
     Route::patch('/{id}/mark-delivered', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT','CSR','Accounting_Approver'])) {
+        if (auth()->user()->canPerformInModule('can_manage', 'sales_orders')) {
             return app(SalesOrderController::class)->markDelivered($id);
         }
         return view('errors.noaccess');
@@ -526,8 +516,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Delete
     Route::delete('/{id}', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR'])) {
+        if (auth()->user()->canPerformInModule('can_delete', 'sales_orders')) {
             return app(SalesOrderController::class)->destroy($id);
         }
         return view('errors.noaccess');
@@ -537,8 +526,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Index
     Route::get('/', function () {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+        if (auth()->user()->canManageSalesOrders()) {
             return app(SalesOrderController::class)->index(request());
         }
         return view('errors.noaccess');
@@ -546,8 +534,7 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 
     // Show (MUST BE LAST - catches all remaining /{id} routes)
     Route::get('/{id}', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT', 'CSR', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+        if (auth()->user()->canManageSalesOrders()) {
             return app(SalesOrderController::class)->show($id);
         }
         return view('errors.noaccess');
@@ -574,74 +561,55 @@ Route::prefix('items')->name('items.')->group(function () {
     
     // ✅ Index
     Route::get('/', function () {
-        $user = auth()->user(); 
-        if (in_array($user->role, [
-            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Creator', 'CC_Approver',
-        ])) {
-            return app(ItemController::class)->index(); 
+        if (auth()->user()->canManageItems()) {
+            return app(ItemController::class)->index();
         }
         return view('errors.noaccess');
     })->name('index');
-    
+
     // ✅ Create
     Route::get('/create', function () {
-        $user = auth()->user();
-        if (in_array($user->role, [
-            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver','CC_Creator', 'CC_Approver',
-        ])) { 
+        if (auth()->user()->canAddItems()) {
             return app(ItemController::class)->create();
-        } 
+        }
         return view('errors.noaccess');
     })->name('create');
-    
+
     // ✅ Store
     Route::post('/', function () {
-        $user = auth()->user();
-        if (in_array($user->role, [
-            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
-        ])) {
-            return app(ItemController::class)->store(request()); 
-        } 
+        if (auth()->user()->canAddItems()) {
+            return app(ItemController::class)->store(request());
+        }
         return view('errors.noaccess');
     })->name('store');
-    
+
     // ✅ Edit
     Route::get('/{id}/edit', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, [
-            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
-        ])) {  
+        if (auth()->user()->canEditItems()) {
             return app(ItemController::class)->edit($id);
         }
         return view('errors.noaccess');
     })->name('edit');
-    
+
     // ✅ Update
     Route::put('/{id}', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, [
-            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 
-        ])) { 
-            return app(ItemController::class)->update(request(), $id); 
+        if (auth()->user()->canEditItems()) {
+            return app(ItemController::class)->update(request(), $id);
         }
         return view('errors.noaccess');
     })->name('update');
-    
+
     // ✅ Delete
     Route::delete('/{id}', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, ['Admin', 'IT','Accounting_Approver'])) { 
-            return app(ItemController::class)->destroy($id); 
+        if (auth()->user()->canDeleteItems()) {
+            return app(ItemController::class)->destroy($id);
         }
         return view('errors.noaccess');
     })->name('destroy');
-    
+
     // ✅ Show - Must be LAST to avoid conflicts
     Route::get('/{id}', function ($id) {
-        $user = auth()->user();
-        if (in_array($user->role, [
-            'Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver',  'CC_Creator', 'CC_Approver'
-        ])) {
+        if (auth()->user()->canManageItems()) {
             return app(ItemController::class)->show($id);
         }
         return view('errors.noaccess');
@@ -653,16 +621,15 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // ✅ Index
         Route::get('/', function () {
-            if (!auth()->user()->canManageCustomers()) {
-                return view('errors.noaccess');
+            if (auth()->user()->canManageCustomers()) {
+                return app(CustomerController::class)->index();
             }
-            return app(CustomerController::class)->index();
+            return view('errors.noaccess');
         })->name('index');
 
         // ✅ Export
         Route::get('/export', function () {
-            $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if (auth()->user()->canPerformInModule('can_export', 'customers')) {
                 return app(CustomerController::class)->export();
             }
             return view('errors.noaccess');
@@ -670,24 +637,23 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // ✅ Create
         Route::get('/create', function () {
-            if (!auth()->user()->canManageCustomers()) {
-                return view('errors.noaccess');
+            if (auth()->user()->canAddCustomers()) {
+                return app(CustomerController::class)->create();
             }
-            return app(CustomerController::class)->create();
+            return view('errors.noaccess');
         })->name('create');
 
         // ✅ Store
         Route::post('/', function () {
-            if (!auth()->user()->canManageCustomers()) {
-                return view('errors.noaccess');
+            if (auth()->user()->canAddCustomers()) {
+                return app(CustomerController::class)->store(request());
             }
-            return app(CustomerController::class)->store(request());
+            return view('errors.noaccess');
         })->name('store');
 
-        // ✅  Get customer by code (for AJAX autofill)
+        // ✅ Get customer by code (for AJAX autofill)
         Route::get('/get/{code}', function ($code) {
-            $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CSR', 'CC_Creator', 'CC_Approver'])) {
+            if (auth()->user()->canManageCustomers() || auth()->user()->canManageSalesOrders()) {
                 return app(CustomerController::class)->getByCode($code);
             }
             return response()->json(['error' => 'Access denied'], 403);
@@ -695,42 +661,39 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // ✅ Edit
         Route::get('/{id}/edit', function ($id) {
-            if (!auth()->user()->canManageCustomers()) {
-                return view('errors.noaccess');
+            if (auth()->user()->canEditCustomers()) {
+                return app(CustomerController::class)->edit($id);
             }
-            return app(CustomerController::class)->edit($id);
+            return view('errors.noaccess');
         })->name('edit');
 
         // ✅ Update
         Route::put('/{id}', function ($id) {
-            if (!auth()->user()->canManageCustomers()) {
-                return view('errors.noaccess');
+            if (auth()->user()->canEditCustomers()) {
+                return app(CustomerController::class)->update(request(), $id);
             }
-            return app(CustomerController::class)->update(request(), $id);
+            return view('errors.noaccess');
         })->name('update');
 
         // ✅ Delete
         Route::delete('/{id}', function ($id) {
-            $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT'])) {
+            if (auth()->user()->canDeleteCustomers()) {
                 return app(CustomerController::class)->destroy($id);
             }
             return view('errors.noaccess');
         })->name('destroy');
 
         // ✅ Toggle Status
-        Route::post('/{id}/toggle-status', function ($id) {
-            $user = auth()->user();
-            if ($user && $user->hasRole(['Admin', 'IT', 'CC_Creator', 'CC_Approver'])) {
+        Route::patch('/{id}/toggle-status', function ($id) {
+            if (auth()->user()->canEditCustomers()) {
                 return app(CustomerController::class)->toggleStatus($id);
             }
             return view('errors.noaccess');
         })->name('toggleStatus');
 
-        // ✅ Toggle Flag (CC_Approver, Admin, IT only)
-        Route::post('/{id}/toggle-flag', function ($id) {
-            $user = auth()->user();
-            if ($user && $user->hasRole(['Admin', 'IT', 'CC_Approver'])) {
+        // ✅ Toggle Flag
+        Route::patch('/{id}/toggle-flag', function ($id) {
+            if (auth()->user()->canPerformInModule('can_manage', 'customers')) {
                 return app(CustomerController::class)->toggleFlag($id);
             }
             return view('errors.noaccess');
@@ -738,10 +701,10 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // ✅ Show (MUST BE LAST because it catches any /{id})
         Route::get('/{id}', function ($id) {
-            if (!auth()->user()->canManageCustomers()) {
-                return view('errors.noaccess');
+            if (auth()->user()->canManageCustomers()) {
+                return app(CustomerController::class)->show($id);
             }
-            return app(CustomerController::class)->show($id);
+            return view('errors.noaccess');
         })->name('show');
     });
 
@@ -1056,7 +1019,7 @@ Route::prefix('items')->name('items.')->group(function () {
         
         // PRINT ROUTES (must be first to avoid conflicts)
         Route::get('/print-list', function() {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if (auth()->user()->canManageDeliveries()) {
                 return app(DeliveriesController::class)->printList(request());
             }
             return view('errors.noaccess');
@@ -1064,81 +1027,81 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // EXCEL EXPORT (LIST)
         Route::get('/export-excel', function() {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if (auth()->user()->canPerformInModule('can_export', 'deliveries')) {
                 return app(DeliveriesController::class)->exportExcel(request());
             }
             return view('errors.noaccess');
         })->name('exportExcel');
 
-        // ✅ FIXED: EXCEL EXPORT (SINGLE DELIVERY WITH ITEMS)
+        // EXCEL EXPORT (SINGLE DELIVERY WITH ITEMS)
         Route::get('/export-items', function() {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if (auth()->user()->canPerformInModule('can_export', 'deliveries')) {
                 return app(DeliveriesController::class)->exportDeliveryItemsExcel(request());
             }
             return view('errors.noaccess');
         })->name('exportDeliveryItemsExcel');
-        
-        // DELIVERIES LIST PAGE (for deliveries.deliveries view)
+
+        // DELIVERIES LIST PAGE
         Route::get('/list', function() {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if (auth()->user()->canManageDeliveries()) {
                 return app(DeliveriesController::class)->deliveriesList(request());
             }
             return view('errors.noaccess');
         })->name('deliveries');
-        
+
         // SEARCH
         Route::get('/search', [DeliveriesController::class, 'search'])->name('search');
-        
+
         // CREATE
         Route::get('/create', function() {
-            if (in_array(auth()->user()->role, ['Admin', 'IT',  'Delivery_Creator', 'Delivery_Approver'])) {
+            if (auth()->user()->canCreateDeliveries()) {
                 return app(DeliveriesController::class)->create();
             }
             return view('errors.noaccess');
         })->name('create');
-        
+
         // STORE
         Route::post('/store', function() {
-            if (in_array(auth()->user()->role, ['Admin', 'IT',  'Delivery_Creator', 'Delivery_Approver'])) {
+            if (auth()->user()->canCreateDeliveries()) {
                 return app(DeliveriesController::class)->store(request());
             }
             return view('errors.noaccess');
         })->name('store');
-        
+
         // INDEX (main list page with date filter)
         Route::get('/', function() {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if (auth()->user()->canManageDeliveries()) {
                 return app(DeliveriesController::class)->index(request());
             }
             return view('errors.noaccess');
         })->name('index');
-        
-        // SINGLE DELIVERY PRINT (must come before /{id} to avoid conflict)
+
+        // SINGLE DELIVERY PRINT
         Route::get('/{id}/print', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if (auth()->user()->canManageDeliveries()) {
                 return app(DeliveriesController::class)->print($id);
             }
             return view('errors.noaccess');
         })->name('print');
-        
+
         // EDIT
         Route::get('/{id}/edit', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT',  'Delivery_Creator', 'Delivery_Approver'])) {
+            if (auth()->user()->canPerformInModule('can_edit', 'deliveries')) {
                 return app(DeliveriesController::class)->edit($id);
             }
             return view('errors.noaccess');
         })->name('edit');
-        
+
         // UPDATE
         Route::put('/{id}', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT',  'Delivery_Creator', 'Delivery_Approver'])) {
+            if (auth()->user()->canPerformInModule('can_edit', 'deliveries')) {
                 return app(DeliveriesController::class)->update(request(), $id);
             }
             return view('errors.noaccess');
         })->name('update');
 
         Route::post('/{id}/reject-edit', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Approver'])) {
+            if (auth()->user()->canApproveDeliveries()) {
                 return app(DeliveriesController::class)->rejectEdit(request(), $id);
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -1146,7 +1109,7 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // Get delivery data for editing
         Route::get('/{id}/edit-data', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Approver', 'Delivery_Creator'])) {
+            if (auth()->user()->canPerformInModule('can_edit', 'deliveries')) {
                 return app(DeliveriesController::class)->getEditData($id);
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -1154,67 +1117,67 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // Quick update delivery
         Route::post('/{id}/quick-update', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Approver', 'Delivery_Creator'])) {
+            if (auth()->user()->canPerformInModule('can_edit', 'deliveries')) {
                 return app(DeliveriesController::class)->quickUpdate(request(), $id);
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         })->name('quickUpdate');
 
-        // ✅ FIXED: Delivery approval routes - REMOVED /deliveries prefix
+        // Delivery approval routes
         Route::post('/{id}/approve', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Approver'])) {
+            if (auth()->user()->canApproveDeliveries()) {
                 return app(DeliveriesController::class)->approve($id);
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         })->name('approve');
-        
+
         Route::post('/{id}/reject', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Approver'])) {
+            if (auth()->user()->canApproveDeliveries()) {
                 return app(DeliveriesController::class)->reject(request(), $id);
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         })->name('reject');
 
         Route::post('/batch-approve', [DeliveriesController::class, 'batchApprove'])->name('batch-approve');
-Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name('batch-reject');
+        Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name('batch-reject');
 
-        // ✅ Repair routes for fixing duplicate item_code issues
+        // Repair routes
         Route::post('/repair-duplicate-items', [DeliveriesController::class, 'repairDuplicateItemCodes'])->name('repair-duplicate-items');
         Route::post('/recalculate-so-deliveries', [DeliveriesController::class, 'recalculateSODeliveries'])->name('recalculate-so-deliveries');
 
-       // ✅ FIXED: Request Edit 
+        // Request Edit
         Route::post('/{id}/request-edit', function($id) {
-            if (in_array(auth()->user()->role, ['Delivery_Creator'])) {
+            if (auth()->user()->canPerformInModule('can_edit', 'deliveries')) {
                 return app(DeliveriesController::class)->requestEdit($id);
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         })->name('requestEdit');
-        
+
         Route::post('/{id}/approve-edit', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Approver'])) {
+            if (auth()->user()->canApproveDeliveries()) {
                 return app(DeliveriesController::class)->approveEdit($id);
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         })->name('approveEdit');
-        
+
         Route::post('/{id}/pullout', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Approver'])) {
+            if (auth()->user()->canApproveDeliveries()) {
                 return app(DeliveriesController::class)->pullout(request(), $id);
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         })->name('pullout');
 
-        // Recalculate totals (Admin/IT only) - can be for all deliveries or specific one
+        // Recalculate totals (Admin/IT only)
         Route::post('/recalculate-totals', function() {
-            if (in_array(auth()->user()->role, ['Admin', 'IT'])) {
+            if (auth()->user()->canPerformInModule('can_manage', 'deliveries')) {
                 return app(DeliveriesController::class)->recalculateAllTotals(request());
             }
-            return response()->json(['success' => false, 'message' => 'Unauthorized. Only Admin and IT users can recalculate totals.'], 403);
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         })->name('recalculateTotals');
 
         // SHOW (must be last because it catches any /{id})
         Route::get('/{id}', function($id) {
-            if (in_array(auth()->user()->role, ['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if (auth()->user()->canManageDeliveries()) {
                 return app(DeliveriesController::class)->show($id);
             }
             return view('errors.noaccess');
@@ -1558,7 +1521,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
     Route::prefix('non-trade-items')->name('non_trade_items.')->middleware('auth')->group(function () {
         Route::get('/', function () {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+            if ($user->canAccessModule('non_trade_items')) {
                 return app(NonTradeItemController::class)->index(request());
             }
             return view('errors.noaccess');
@@ -1570,7 +1533,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/store', function () {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+            if ($user->canAccessModule('non_trade_items')) {
                 return app(NonTradeItemController::class)->store(request());
             }
             return view('errors.noaccess');
@@ -1578,7 +1541,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/import', function () {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+            if ($user->canAccessModule('non_trade_items')) {
                 return app(NonTradeItemController::class)->import(request());
             }
             return view('errors.noaccess');
@@ -1586,7 +1549,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::put('/{id}', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+            if ($user->canAccessModule('non_trade_items')) {
                 return app(NonTradeItemController::class)->update(request(), $id);
             }
             return view('errors.noaccess');
@@ -1594,7 +1557,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+            if ($user->canAccessModule('non_trade_items')) {
                 return app(NonTradeItemController::class)->destroy($id);
             }
             return view('errors.noaccess');
@@ -1605,7 +1568,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
     Route::prefix('trade-items')->name('trade_items.')->middleware('auth')->group(function () {
         Route::get('/', function () {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+            if ($user->canAccessModule('trade_items')) {
                 return app(TradeItemController::class)->index(request());
             }
             return view('errors.noaccess');
@@ -1617,7 +1580,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/store', function () {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+            if ($user->canAccessModule('trade_items')) {
                 return app(TradeItemController::class)->store(request());
             }
             return view('errors.noaccess');
@@ -1625,7 +1588,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/import', function () {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+            if ($user->canAccessModule('trade_items')) {
                 return app(TradeItemController::class)->import(request());
             }
             return view('errors.noaccess');
@@ -1633,7 +1596,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::put('/{id}', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+            if ($user->canAccessModule('trade_items')) {
                 return app(TradeItemController::class)->update(request(), $id);
             }
             return view('errors.noaccess');
@@ -1641,7 +1604,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'SCM'])) {
+            if ($user->canAccessModule('trade_items')) {
                 return app(TradeItemController::class)->destroy($id);
             }
             return view('errors.noaccess');
@@ -1775,7 +1738,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Search RFPs (AJAX)
         Route::get('/search-rfps', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('apv')) {
                 return app(AccountsPayableInvoiceController::class)->searchRFPs(request());
             }
             return response()->json([]);
@@ -1784,7 +1747,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Search CARs (AJAX)
         Route::get('/search-cars', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('apv')) {
                 return app(AccountsPayableInvoiceController::class)->searchCARs(request());
             }
             return response()->json([]);
@@ -1793,7 +1756,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Search Reimbursements (AJAX)
         Route::get('/search-reimbursements', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('apv')) {
                 return app(AccountsPayableInvoiceController::class)->searchReimbursements(request());
             }
             return response()->json([]);
@@ -1802,7 +1765,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Index
         Route::get('/', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('apv')) {
                 return app(AccountsPayableInvoiceController::class)->index();
             }
             return view('errors.noaccess');
@@ -1811,7 +1774,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Create
         Route::get('/create', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('apv')) {
                 return app(AccountsPayableInvoiceController::class)->create(request());
             }
             return view('errors.noaccess');
@@ -1820,7 +1783,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Store
         Route::post('/', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('apv')) {
                 return app(AccountsPayableInvoiceController::class)->store(request());
             }
             return view('errors.noaccess');
@@ -1847,7 +1810,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Reject
         Route::post('/{id}/reject', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver', 'Department_Head'])) {
+            if ($user->canApproveAPV() || $user->canApproveAPVAsDH()) {
                 return app(AccountsPayableInvoiceController::class)->reject(request(), $id);
             }
             return view('errors.noaccess');
@@ -1856,7 +1819,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Edit
         Route::get('/{id}/edit', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('apv')) {
                 return app(AccountsPayableInvoiceController::class)->edit($id);
             }
             return view('errors.noaccess');
@@ -1865,7 +1828,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Update
         Route::put('/{id}', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('apv')) {
                 return app(AccountsPayableInvoiceController::class)->update(request(), $id);
             }
             return view('errors.noaccess');
@@ -1874,7 +1837,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Delete
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Department_Head'])) {
+            if ($user->canApproveAPVAsDH()) {
                 return app(AccountsPayableInvoiceController::class)->destroy($id);
             }
             return view('errors.noaccess');
@@ -1883,7 +1846,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Print
         Route::get('/{id}/print', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('apv')) {
                 return app(AccountsPayableInvoiceController::class)->print($id);
             }
             return view('errors.noaccess');
@@ -1892,7 +1855,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Show (must be last)
         Route::get('/{id}', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('apv')) {
                 return app(AccountsPayableInvoiceController::class)->show($id);
             }
             return view('errors.noaccess');
@@ -1905,7 +1868,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Search APVs (AJAX)
         Route::get('/search-apvs', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('cv')) {
                 return app(CheckVoucherController::class)->searchAPVs(request());
             }
             return response()->json([]);
@@ -1914,7 +1877,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Index
         Route::get('/', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('cv')) {
                 return app(CheckVoucherController::class)->index();
             }
             return view('errors.noaccess');
@@ -1923,7 +1886,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Create
         Route::get('/create', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('cv')) {
                 return app(CheckVoucherController::class)->create(request());
             }
             return view('errors.noaccess');
@@ -1932,7 +1895,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Store
         Route::post('/', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('cv')) {
                 return app(CheckVoucherController::class)->store(request());
             }
             return view('errors.noaccess');
@@ -1959,7 +1922,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Reject
         Route::post('/{id}/reject', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Approver'])) {
+            if ($user->canPerformInModule('can_approve', 'cv')) {
                 return app(CheckVoucherController::class)->reject(request(), $id);
             }
             return view('errors.noaccess');
@@ -1968,7 +1931,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Edit
         Route::get('/{id}/edit', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('cv')) {
                 return app(CheckVoucherController::class)->edit($id);
             }
             return view('errors.noaccess');
@@ -1977,7 +1940,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Update
         Route::put('/{id}', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('cv')) {
                 return app(CheckVoucherController::class)->update(request(), $id);
             }
             return view('errors.noaccess');
@@ -1986,7 +1949,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Delete
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Department_Head'])) {
+            if ($user->canApproveAPVAsDH()) {
                 return app(CheckVoucherController::class)->destroy($id);
             }
             return view('errors.noaccess');
@@ -1995,7 +1958,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Print
         Route::get('/{id}/print', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('cv')) {
                 return app(CheckVoucherController::class)->print($id);
             }
             return view('errors.noaccess');
@@ -2004,7 +1967,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Show (must be last)
         Route::get('/{id}', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('cv')) {
                 return app(CheckVoucherController::class)->show($id);
             }
             return view('errors.noaccess');
@@ -2028,7 +1991,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/approve-dh', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver'])) {
+            if ($user->canApproveRFPAsDH() || $user->canPerformInModule('can_approve', 'rfp')) {
                 return app(CashAdvanceRequestController::class)->approveDH(request(), $id);
             }
             return view('errors.noaccess');
@@ -2036,7 +1999,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'CFO'])) {
+            if ($user->canApproveRFPAsExecutive()) {
                 return app(CashAdvanceRequestController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
@@ -2044,7 +2007,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/reject', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'CFO'])) {
+            if ($user->canApproveRequestForPayments()) {
                 return app(CashAdvanceRequestController::class)->reject(request(), $id);
             }
             return view('errors.noaccess');
@@ -2060,7 +2023,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT'])) {
+            if ($user->isAdminUser()) {
                 return app(CashAdvanceRequestController::class)->destroy($id);
             }
             return view('errors.noaccess');
@@ -2096,7 +2059,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/approve-dh', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver'])) {
+            if ($user->canApproveRFPAsDH() || $user->canPerformInModule('can_approve', 'rfp')) {
                 return app(LiquidationFormController::class)->approveDH(request(), $id);
             }
             return view('errors.noaccess');
@@ -2104,7 +2067,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'CFO'])) {
+            if ($user->canApproveRFPAsExecutive()) {
                 return app(LiquidationFormController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
@@ -2112,7 +2075,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/reject', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'CFO'])) {
+            if ($user->canApproveRequestForPayments()) {
                 return app(LiquidationFormController::class)->reject(request(), $id);
             }
             return view('errors.noaccess');
@@ -2128,7 +2091,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT'])) {
+            if ($user->isAdminUser()) {
                 return app(LiquidationFormController::class)->destroy($id);
             }
             return view('errors.noaccess');
@@ -2160,7 +2123,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/approve-dh', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver'])) {
+            if ($user->canApproveRFPAsDH() || $user->canPerformInModule('can_approve', 'rfp')) {
                 return app(ReimbursementFormController::class)->approveDH(request(), $id);
             }
             return view('errors.noaccess');
@@ -2168,7 +2131,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/approve', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'CFO'])) {
+            if ($user->canApproveRFPAsExecutive()) {
                 return app(ReimbursementFormController::class)->approve(request(), $id);
             }
             return view('errors.noaccess');
@@ -2176,7 +2139,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::post('/{id}/reject', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT', 'Department_Head', 'Procurement_Approver', 'CFO'])) {
+            if ($user->canApproveRequestForPayments()) {
                 return app(ReimbursementFormController::class)->reject(request(), $id);
             }
             return view('errors.noaccess');
@@ -2192,7 +2155,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::delete('/{id}', function ($id) {
             $user = auth()->user();
-            if ($user->hasRole(['Admin', 'IT'])) {
+            if ($user->isAdminUser()) {
                 return app(ReimbursementFormController::class)->destroy($id);
             }
             return view('errors.noaccess');
@@ -2211,7 +2174,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
     Route::middleware('auth')->prefix('po-records')->name('po_records.')->group(function () {
         Route::get('/', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Purchasing', 'Procurement_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('po_dashboard')) {
                 return app(PurchaseOrderRecordsController::class)->index(request());
             }
             return view('errors.noaccess');
@@ -2220,7 +2183,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
         Route::get('/export', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Purchasing', 'Procurement_Approver', 'Accounting_Creator', 'Accounting_Approver'])) {
+            if ($user->canAccessModule('po_dashboard')) {
                 return app(PurchaseOrderRecordsController::class)->exportExcel(request());
             }
             return view('errors.noaccess');
@@ -2233,7 +2196,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Main changelog index
         Route::get('/', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+            if ($user->canAccessChangelog()) {
                 return app(App\Http\Controllers\ChangeLogController::class)->index(request());
             }
             return view('errors.noaccess');
@@ -2242,7 +2205,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // View changes for specific sales order
         Route::get('/sales-order/{id}', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+            if ($user->canAccessChangelog()) {
                 return app(App\Http\Controllers\ChangeLogController::class)->salesOrderChanges($id);
             }
             return view('errors.noaccess');
@@ -2251,7 +2214,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Export changelog to CSV
         Route::get('/export', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+            if ($user->canAccessChangelog()) {
                 return app(App\Http\Controllers\ChangeLogController::class)->export(request());
             }
             return view('errors.noaccess');
@@ -2260,7 +2223,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Notifications
         Route::get('/notifications', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+            if ($user->canAccessChangelog()) {
                 return app(App\Http\Controllers\ChangeLogController::class)->notifications();
             }
             return view('errors.noaccess');
@@ -2269,7 +2232,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Mark notification as read
         Route::post('/notifications/{id}/read', function ($id) {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+            if ($user->canAccessChangelog()) {
                 return app(App\Http\Controllers\ChangeLogController::class)->markAsRead($id);
             }
             return redirect()->back()->with('error', 'Access denied');
@@ -2278,7 +2241,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Mark all notifications as read
         Route::post('/notifications/read-all', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+            if ($user->canAccessChangelog()) {
                 return app(App\Http\Controllers\ChangeLogController::class)->markAllAsRead();
             }
             return redirect()->back()->with('error', 'Access denied');
@@ -2287,7 +2250,7 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
         // Get unread notification count (for AJAX)
         Route::get('/notifications/unread-count', function () {
             $user = auth()->user();
-            if (in_array($user->role, ['Admin', 'IT', 'CC_Approver', 'CC_Creator'])) {
+            if ($user->canAccessChangelog()) {
                 return app(App\Http\Controllers\ChangeLogController::class)->unreadCount();
             }
             return response()->json(['count' => 0]);
@@ -2296,13 +2259,30 @@ Route::post('/batch-reject', [DeliveriesController::class, 'batchReject'])->name
 
     // ===================== USER MANAGEMENT =====================
 Route::prefix('admin/users')->name('admin.users.')->group(function () {
-    Route::get('/', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->index() : view('errors.noaccess'))->name('index');
-    Route::get('/create', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->create() : view('errors.noaccess'))->name('create');
-    Route::post('/', fn() => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->store(request()) : view('errors.noaccess'))->name('store');
-    Route::post('/{id}/toggle-lock', fn($id) => in_array(auth()->user()->role, ['IT']) ? app(UserManagementController::class)->toggleLock($id) : view('errors.noaccess'))->name('toggleLock');
-    Route::get('/{id}/edit', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->edit($id) : view('errors.noaccess'))->name('edit');
-    Route::put('/{id}', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->update(request(), $id) : view('errors.noaccess'))->name('update');
-    Route::delete('/{id}', fn($id) => in_array(auth()->user()->role, ['Admin', 'IT']) ? app(UserManagementController::class)->destroy($id) : view('errors.noaccess'))->name('destroy');
+    Route::get('/', fn() => auth()->user()->canManageUsers() ? app(UserManagementController::class)->index() : view('errors.noaccess'))->name('index');
+    Route::get('/create', fn() => auth()->user()->canManageUsers() ? app(UserManagementController::class)->create() : view('errors.noaccess'))->name('create');
+    Route::post('/', fn() => auth()->user()->canManageUsers() ? app(UserManagementController::class)->store(request()) : view('errors.noaccess'))->name('store');
+    Route::post('/{id}/toggle-lock', fn($id) => auth()->user()->isAdminUser() ? app(UserManagementController::class)->toggleLock($id) : view('errors.noaccess'))->name('toggleLock');
+    Route::get('/{id}/edit', fn($id) => auth()->user()->canManageUsers() ? app(UserManagementController::class)->edit($id) : view('errors.noaccess'))->name('edit');
+    Route::put('/{id}', fn($id) => auth()->user()->canManageUsers() ? app(UserManagementController::class)->update(request(), $id) : view('errors.noaccess'))->name('update');
+    Route::delete('/{id}', fn($id) => auth()->user()->canManageUsers() ? app(UserManagementController::class)->destroy($id) : view('errors.noaccess'))->name('destroy');
+});
+
+// ===================== RBAC MANAGEMENT =====================
+Route::prefix('rbac')->name('rbac.')->middleware('auth')->group(function () {
+    Route::get('/', [RoleController::class, 'index'])->name('index');
+    Route::post('/toggle-permission', [RoleController::class, 'togglePermission'])->name('toggle');
+    Route::post('/change-level', [RoleController::class, 'changeLevel'])->name('level');
+    Route::post('/add-role', [RoleController::class, 'addRole'])->name('addRole');
+    Route::delete('/remove-role/{id}', [RoleController::class, 'removeRole'])->name('removeRole');
+    Route::post('/change-role-type/{id}', [RoleController::class, 'changeRoleType'])->name('changeRoleType');
+
+    // User Management
+    Route::post('/user', [RoleController::class, 'storeUser'])->name('storeUser');
+    Route::put('/user/{id}', [RoleController::class, 'updateUser'])->name('updateUser');
+    Route::delete('/user/{id}', [RoleController::class, 'destroyUser'])->name('destroyUser');
+    Route::post('/user/{id}/toggle-lock', [RoleController::class, 'toggleLockUser'])->name('toggleLock');
+    Route::post('/user/{id}/reset-attempts', [RoleController::class, 'resetLoginAttempts'])->name('resetAttempts');
 });
 
 // ===================== CURRENCIES =====================
@@ -2313,7 +2293,7 @@ Route::prefix('currencies')->name('currencies.')->group(function () {
 
     Route::put('/{id}', function ($id) {
         $user = auth()->user();
-        if ($user->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver'])) {
+        if ($user->canAccessModule('currency_rates')) {
             return app(CurrencyController::class)->update(request(), $id);
         }
         return view('errors.noaccess');
@@ -2343,7 +2323,7 @@ Route::get('/fix-delivery-totals', [DeliveriesController::class, 'fixExistingTot
 
 // ✅ Fix duplicate item codes for a specific SO (run once to repair data)
 Route::get('/fix-duplicate-items/{so_number?}', function($soNumber = null) {
-    if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+    if (!auth()->check() || !auth()->user()->isAdminUser()) {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
 
@@ -2354,7 +2334,7 @@ Route::get('/fix-duplicate-items/{so_number?}', function($soNumber = null) {
 })->middleware('auth');
 
 Route::get('/recalculate-deliveries/{so_number}', function($soNumber) {
-    if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'IT'])) {
+    if (!auth()->check() || !auth()->user()->isAdminUser()) {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
 

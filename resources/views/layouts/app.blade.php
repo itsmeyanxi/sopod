@@ -141,14 +141,14 @@
         </a>
 
         <!-- PO Dashboard -->
-        @if(auth()->user()->canManagePurchaseRequests() || auth()->user()->canManagePurchaseOrders() || auth()->user()->canManageRequestForPayments() || auth()->user()->hasRole(['Accounting_Creator', 'Accounting_Approver']))
+        @if(auth()->user()->canAccessModule('po_dashboard'))
         <a href="{{ route('po_dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
             <span>💰</span>
             <span class="sidebar-text">PO Dashboard</span>
         </a>
         @endif
 
-        @if(auth()->user()->canManagePurchaseRequests() || auth()->user()->canManagePurchaseOrders() || auth()->user()->canManageRequestForPayments() || auth()->user()->hasRole(['Accounting_Creator', 'Accounting_Approver']))
+        @if(auth()->user()->canAccessModule('po_dashboard'))
         <a href="{{ route('po_summary') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
             <span>📋</span>
             <span class="sidebar-text">PO Summary</span>
@@ -169,7 +169,7 @@
                     @if(auth()->user()->canCreateSalesOrders())
                         <a href="{{ route('sales_orders.create') }}" class="block hover:underline">Create Order</a>
                     @endif
-                    @if(!in_array(auth()->user()->role, ['Delivery_Approver', 'Delivery_Creator']))
+                    @if(auth()->user()->canAccessModule('sales_orders'))
                         <a href="{{ route('sales_orders.index') }}" class="block hover:underline">Order List</a>
                     @endif
                     <a href="{{ route('sales_orders.accepted') }}" class="block hover:underline">Accepted Orders</a>
@@ -232,6 +232,23 @@
                     @endif
                 </div>
             </div>
+        @endif
+
+        <!-- =================== STORAGE / WAREHOUSE =================== -->
+        @if(auth()->user()->canAccessModule('warehouse'))
+        <div>
+            <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <span class="flex items-center space-x-2">
+                    <span>🏭</span>
+                    <span class="sidebar-text">Storage / Warehouse</span>
+                </span>
+                <span class="chevron">▼</span>
+            </button>
+            <div class="submenu ml-8 space-y-1 hidden">
+                <a href="{{ route('warehouses.create') }}" class="block hover:underline">Add Warehouse</a>
+                <a href="{{ route('warehouses.index') }}" class="block hover:underline">Warehouse List</a>
+            </div>
+        </div>
         @endif
 
         <!-- =================== ITEMS =================== -->
@@ -307,7 +324,7 @@
                         <a href="{{ route('purchase_orders.index') }}" class="block hover:underline">Purchase Order (PO)</a>
                     @endif
 
-                    @if(auth()->user()->hasRole(['Admin', 'IT', 'Purchasing', 'SCM']))
+                    @if(auth()->user()->canAccessModule('non_trade_items'))
                         <a href="{{ route('non_trade_items.index') }}" class="block hover:underline">Non-Trade Items Library</a>
                         <a href="{{ route('trade_items.index') }}" class="block hover:underline">Trade Items Library</a>
                     @endif
@@ -316,8 +333,11 @@
                         <a href="{{ route('request_for_payments.index') }}" class="block hover:underline">Request For Payment (RFP)</a>
                     @endif
 
-                    @if(auth()->user()->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']))
+                    @if(auth()->user()->canAccessModule('apv'))
                         <a href="{{ route('accounts_payable_invoices.index') }}" class="block hover:underline">Account Payable Invoice (APV)</a>
+                    @endif
+
+                    @if(auth()->user()->canAccessModule('cv'))
                         <a href="{{ route('check_vouchers.index') }}" class="block hover:underline">Check Voucher (CV)</a>
                     @endif
 
@@ -329,7 +349,7 @@
 
                     <a href="{{ route('po_records.index') }}" class="block hover:underline">PO Records</a>
 
-                    @if(auth()->user()->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver']))
+                    @if(auth()->user()->canAccessModule('currency_rates'))
                         <a href="{{ route('currencies.index') }}" class="block hover:underline">Currency Rates</a>
                     @endif
                 </div>
@@ -400,7 +420,7 @@
         @endif
 
         <!-- =================== RECORD LOCK =================== -->
-        @if(in_array(auth()->user()->role, ['Admin', 'IT']))
+        @if(auth()->user()->canAccessModule('record_lock'))
             <a href="{{ route('lock.index') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
                 <span>🔒</span>
                 <span class="sidebar-text">Record Lock</span>
@@ -440,7 +460,7 @@
                             <a href="{{ route('items.create') }}" class="block px-4 py-2 hover:bg-gray-100">Item</a>
                         @endif
                         @if(auth()->user()->canManageUsers())
-                            <a href="{{ route('admin.users.create') }}" class="block px-4 py-2 hover:bg-gray-100">User</a>
+                            <a href="{{ route('rbac.index') }}" class="block px-4 py-2 hover:bg-gray-100">User</a>
                         @endif
                     </div>
                 </div>
@@ -461,10 +481,10 @@
                         <p class="text-xs text-gray-600">{{ Auth::user()->roles_display }}</p>
                     </a>
 
-                    <!-- User List (IT Only) -->
+                    <!-- User & Access Management (IT Only) -->
                     @if(Auth::user()->canManageUsers())
-                    <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 hover:bg-gray-100">
-                        <i class="fas fa-users mr-2"></i>User List
+                    <a href="{{ route('rbac.index') }}" class="block px-4 py-2 hover:bg-gray-100">
+                        <i class="fas fa-users-gear mr-2"></i>User & Access Management
                     </a>
                     @endif
 

@@ -297,19 +297,19 @@
         <!-- Approval Buttons -->
         @if($liquidation->status === 'pending' && $liquidation->approval_stage !== 'rejected')
             <div class="flex gap-3 mb-4 mt-6">
-                @if($liquidation->approval_stage === 'pending_dh' && auth()->user()->hasRole(['Admin','IT','Department_Head','Procurement_Approver']))
+                @if($liquidation->approval_stage === 'pending_dh' && auth()->user()->canApproveRFPAsDH() || auth()->user()->canPerformInModule('can_approve', 'rfp'))
                     <button type="button" onclick="showApproveDHModal()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
                         <i class="fas fa-check mr-1"></i> Approve as Immediate Superior
                     </button>
                 @endif
 
-                @if($liquidation->approval_stage === 'pending_executive' && auth()->user()->hasRole(['Admin','IT','President','Vice_President','CFO']))
+                @if($liquidation->approval_stage === 'pending_executive' && auth()->user()->canApproveRFPAsExecutive())
                     <button type="button" onclick="showApproveExecutiveModal()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
                         <i class="fas fa-check mr-1"></i> Approve as Executive
                     </button>
                 @endif
 
-                @if(auth()->user()->hasRole(['Admin','IT','Department_Head','Procurement_Approver','President','Vice_President','CFO']))
+                @if(auth()->user()->canApproveRequestForPayments())
                     <button type="button" onclick="showRejectModal()" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition">
                         <i class="fas fa-times mr-1"></i> Reject
                     </button>

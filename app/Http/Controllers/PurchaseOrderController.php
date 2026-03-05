@@ -22,19 +22,19 @@ class PurchaseOrderController extends Controller
         $user = Auth::user();
         $query = PurchaseOrder::with(['creator', 'items', 'purchaseRequest']);
 
-        if ($user->hasRole(['Admin', 'IT'])) {
+        if ($user->isAdminUser()) {
             // Admin/IT see all
-        } elseif ($user->hasRole(['President', 'Vice_President'])) {
+        } elseif ($user->canApprovePurchaseOrdersAsExecutive()) {
             $query->where(function($q) use ($user) {
                 $q->whereIn('approval_stage', ['pending_dh', 'pending_management', 'pending_executive', 'approved'])
                   ->orWhere('created_by', $user->id);
             });
-        } elseif ($user->hasRole(['General_Manager', 'CFO'])) {
+        } elseif ($user->canApprovePurchaseOrdersAsManagement()) {
             $query->where(function($q) use ($user) {
                 $q->whereIn('approval_stage', ['pending_management', 'pending_executive', 'approved'])
                   ->orWhere('created_by', $user->id);
             });
-        } elseif ($user->hasRole(['Department_Head'])) {
+        } elseif ($user->canApprovePurchaseOrdersAsDH()) {
             $query->where(function($q) use ($user) {
                 $q->where('approval_stage', 'pending_dh')
                   ->orWhere('created_by', $user->id);
@@ -647,7 +647,7 @@ class PurchaseOrderController extends Controller
 
         $purchaseOrder = PurchaseOrder::where('approval_stage', 'pending_management')->findOrFail($id);
 
-        if ($this->isPMAI($purchaseOrder->company) && !$user->hasRole(['Admin', 'IT', 'CFO'])) {
+        if ($this->isPMAI($purchaseOrder->company) && !$user->isAdminUser() && !$user->canApprovePurchaseOrdersAsManagement()) {
             return redirect()->route('purchase_orders.show', $id)
                 ->with('error', 'Only CFO can approve POs for this company.');
         }

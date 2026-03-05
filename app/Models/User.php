@@ -103,430 +103,272 @@ class User extends Authenticatable
 
     public function canManageSalesOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'CSR', 'CC_Approver', 'CC_Creator', 'Accounting_Approver', 'Delivery_Approver', 'Delivery_Creator']);
+        return $this->canAccessModule('sales_orders');
     }
 
     public function canCreateSalesOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'CSR']);
+        return $this->canPerformInModule('can_create', 'sales_orders');
     }
 
     public function canApproveSalesOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Approver']);
+        return $this->canPerformInModule('can_approve', 'sales_orders');
     }
 
     // ==================== ITEM PERMISSIONS ====================
-    
+
     public function canManageItems()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Creator', 'CC_Approver']);
+        return $this->canAccessModule('items');
     }
-    
+
     public function canAddItems()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->canPerformInModule('can_create', 'items');
     }
 
     public function canEditItems()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->canPerformInModule('can_edit', 'items');
     }
 
     public function canDeleteItems()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+        return $this->canPerformInModule('can_delete', 'items');
     }
 
     public function canApproveItems()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+        return $this->canPerformInModule('can_approve', 'items');
     }
 
     // ==================== CUSTOMER PERMISSIONS ====================
-    
+
     public function canManageCustomers()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Creator', 'CC_Approver', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->canAccessModule('customers');
     }
 
     public function canAddCustomers()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Creator', 'CC_Approver']);
+        return $this->canPerformInModule('can_create', 'customers');
     }
 
     public function canEditCustomers()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Creator', 'CC_Approver']);
+        return $this->canPerformInModule('can_edit', 'customers');
     }
 
     public function canDeleteCustomers()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Approver']); 
+        return $this->canPerformInModule('can_delete', 'customers');
     }
 
     // ==================== DELIVERY PERMISSIONS ====================
-    
+
     public function canManageDeliveries()
     {
-        return $this->hasRole(['Delivery_Creator', 'Delivery_Approver', 'Admin', 'IT', 'CC_Approver']);
+        return $this->canAccessModule('deliveries');
     }
 
     public function canApproveDeliveries()
     {
-        return $this->hasRole(['Admin', 'IT', 'Delivery_Approver']);
+        return $this->canPerformInModule('can_approve', 'deliveries');
     }
 
     public function canCreateDeliveries()
     {
-        return $this->hasRole(['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver']);
+        return $this->canPerformInModule('can_create', 'deliveries');
     }
 
     // ==================== USER MANAGEMENT ====================
-    
+
     public function canManageUsers()
     {
-        return $this->hasRole(['Admin', 'IT']);
+        return $this->canAccessModule('user_management');
     }
 
     // ==================== IMPORT PERMISSIONS ====================
-    
+
     public function canImportItems()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->canPerformInModule('can_create', 'items');
     }
 
     public function canImportCustomers()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->canPerformInModule('can_create', 'customers');
     }
 
     // ==================== SUPPLIER MANAGEMENT ====================
 
     public function canManageSuppliers()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Accounting_Creator', 'Accounting_Approver', 'SCM']);
+        return $this->canAccessModule('suppliers');
     }
 
     public function canDeleteSuppliers()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+        return $this->canPerformInModule('can_delete', 'suppliers');
     }
 
     // ==================== SUPPLIER RECEIVING REPORTS ====================
 
     public function canManageSupplierReceivingReports()
     {
-        return $this->hasRole(['Admin', 'IT', 'SCM']);
+        return $this->canAccessModule('supplier_rr');
     }
 
     public function canApproveSupplierReceivingReports()
     {
-        return $this->hasRole(['Admin', 'IT', 'SCM']);
+        return $this->canPerformInModule('can_approve', 'supplier_rr');
     }
 
     // ==================== ISSUE SLIP ROLES ====================
 
     public function canManageIssueSlips()
     {
-        return $this->hasRole(['Admin', 'IT', 'SCM', 'CSR', 'CC_Approver', 'CC_Creator', 'Delivery_Creator', 'Delivery_Approver']);
+        return $this->canAccessModule('issue_slips');
     }
 
     // ==================== PURCHASE REQUEST ROLES ====================
 
     public function canManagePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'SCM']);
+        return $this->canAccessModule('purchase_requests');
     }
 
     public function canCreatePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'Requisitioner', 'PR_Preparer', 'PR_Reviewer', 'Procurement_Approver', 'SCM']);
+        return $this->canPerformInModule('can_create', 'purchase_requests');
     }
 
     public function canApprovePurchaseRequests()
     {
-        return $this->hasRole(['Admin', 'IT', 'PR_Viewer', 'PR_Approver', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'SCM']);
+        return $this->canPerformInModule('can_approve', 'purchase_requests');
     }
 
     public function canApprovePurchaseRequestsAsDH()
     {
-        return $this->hasRole(['Admin', 'IT', 'Department_Head']);
+        return $this->hasPermission('can_approve', 16); // Department Head sub-dept
     }
 
     public function canApprovePurchaseRequestsAsManagement()
     {
-        return $this->hasRole(['Admin', 'IT', 'General_Manager', 'CFO']);
+        return $this->userRoles()->whereIn('sub_department_id', [17, 18])->where('can_approve', true)->exists() || $this->isAdminUser();
     }
 
     public function canApprovePurchaseRequestsAsExecutive()
     {
-        return $this->hasRole(['Admin', 'IT', 'CFO']);
+        return $this->userRoles()->whereIn('sub_department_id', [19, 20])->where('can_approve', true)->exists() || $this->isAdminUser();
     }
 
     // ==================== PURCHASE ORDER ROLES ====================
 
     public function canManagePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'SCM', 'PO_Preparer', 'PO_Reviewer', 'PO_Approver']);
+        return $this->canAccessModule('purchase_orders');
     }
 
     public function canCreatePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'SCM', 'PO_Preparer', 'PO_Reviewer']);
+        return $this->canPerformInModule('can_create', 'purchase_orders');
     }
 
     public function canApprovePurchaseOrders()
     {
-        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'General_Manager', 'CFO', 'SCM', 'PO_Reviewer', 'PO_Approver']);
+        return $this->canPerformInModule('can_approve', 'purchase_orders');
     }
 
     public function canApprovePurchaseOrdersAsDH()
     {
-        return $this->hasRole(['Admin', 'IT', 'Department_Head']);
+        return $this->hasPermission('can_approve', 16); // Department Head sub-dept
     }
 
     public function canApprovePurchaseOrdersAsManagement()
     {
-        return $this->hasRole(['Admin', 'IT', 'General_Manager', 'CFO']);
+        return $this->userRoles()->whereIn('sub_department_id', [17, 18])->where('can_approve', true)->exists() || $this->isAdminUser();
     }
 
     public function canApprovePurchaseOrdersAsExecutive()
     {
-        return $this->hasRole(['Admin', 'IT', 'CFO']);
+        return $this->userRoles()->whereIn('sub_department_id', [19, 20])->where('can_approve', true)->exists() || $this->isAdminUser();
     }
 
     // ==================== REQUEST FOR PAYMENT ROLES ====================
 
     public function canManageRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'SCM']);
+        return $this->canAccessModule('rfp');
     }
 
     public function canCreateRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'Purchasing', 'Procurement_Approver', 'SCM', 'RFP_Preparer', 'RFP_Reviewer']);
+        return $this->canPerformInModule('can_create', 'rfp');
     }
 
     public function canApproveRequestForPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'Procurement_Approver', 'Department_Head', 'Accounting_Approver', 'CFO', 'SCM', 'RFP_Reviewer', 'RFP_Approver']);
+        return $this->canPerformInModule('can_approve', 'rfp') || $this->canApproveRFPAsDH() || $this->canApproveRFPAsAccounting() || $this->canApproveRFPAsExecutive();
     }
 
     public function canApproveRFPAsDH()
     {
-        return $this->hasRole(['Admin', 'IT', 'Department_Head']);
+        return $this->hasPermission('can_approve', 16); // Department Head sub-dept
     }
 
     public function canApproveRFPAsAccounting()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+        return $this->hasPermission('can_approve', 26); // Accounting sub-dept
     }
 
     public function canApproveRFPAsExecutive()
     {
-        return $this->hasRole(['Admin', 'IT', 'CFO']);
+        return $this->userRoles()->whereIn('sub_department_id', [18, 19, 20])->where('can_approve', true)->exists() || $this->isAdminUser();
     }
 
     // APV permissions
     public function canApproveAPVAsDH()
     {
-        return $this->hasRole(['Admin', 'IT', 'Department_Head']);
+        return $this->hasPermission('can_approve', 16); // Department Head sub-dept
     }
 
     public function canApproveAPV()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'APV_Approver']);
+        return $this->hasPermission('can_approve', 26); // Accounting sub-dept
     }
 
     // CV permissions
     public function canApproveCVAsAccounting()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+        return $this->hasPermission('can_approve', 26); // Accounting sub-dept
     }
 
     public function canApproveCV()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
+        return $this->hasPermission('can_approve', 26); // Accounting sub-dept
     }
 
     // ==================== OTHER PERMISSIONS ====================
 
     public function canInitiateEdit()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Approver']);
+        return $this->canPerformInModule('can_manage', 'customers');
     }
 
     public function canEditAfterCCApproval()
     {
-        return $this->hasRole(['Admin', 'IT', 'CSR']);
-    }
-
-    // ==================== REIMBURSEMENT FORM PERMISSIONS ====================
-
-    /**
-     * Check if user can view and manage reimbursement forms (full access)
-     */
-    public function canManageReimbursementForms()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver']);
-    }
-
-    /**
-     * Check if user can create reimbursement forms
-     * Reimbursement_Preparer role: can create and view only
-     * Accounting roles and above: full access
-     */
-    public function canCreateReimbursementForms()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'Reimbursement_Preparer']);
-    }
-
-    /**
-     * Check if user can view reimbursement forms list
-     */
-    public function canAccessReimbursementForms()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'Reimbursement_Preparer', 'Reimbursement_Reviewer']);
-    }
-
-    /**
-     * Check if user can approve reimbursement forms
-     * Reimbursement_Reviewer: can view and approve/reject forms
-     * Reimbursement_Approver: final approval
-     * Accounting_Approver and above: full approval access
-     */
-    public function canApproveReimbursementForms()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'Reimbursement_Reviewer', 'Reimbursement_Approver']);
-    }
-
-    // ==================== CASH ADVANCE REQUEST PERMISSIONS ====================
-
-    /**
-     * Check if user can create cash advance requests
-     * CAR_Preparer: can create and view only
-     * Accounting roles and above: full access
-     */
-    public function canCreateCashAdvanceRequests()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CAR_Preparer']);
-    }
-
-    /**
-     * Check if user can access cash advance requests list
-     */
-    public function canAccessCashAdvanceRequests()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CAR_Preparer', 'CAR_Reviewer']);
-    }
-
-    /**
-     * Check if user can approve cash advance requests
-     * CAR_Reviewer: can view and approve/reject requests
-     * CAR_Approver: final approval
-     * Accounting_Approver and above: full approval access
-     */
-    public function canApproveCashAdvanceRequests()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'CAR_Reviewer', 'CAR_Approver']);
-    }
-
-    // ==================== ACCOUNTS PAYABLE INVOICE (APV) PERMISSIONS ====================
-
-    /**
-     * Check if user can create APV invoices
-     * APV_Preparer: can create and view only
-     * Accounting roles and above: full access
-     */
-    public function canCreateAPV()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'APV_Preparer']);
-    }
-
-    /**
-     * Check if user can access APV invoices list
-     */
-    public function canAccessAPV()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'APV_Preparer', 'APV_Reviewer']);
-    }
-
-    /**
-     * Check if user can approve APV invoices
-     * APV_Reviewer: can view and approve/reject invoices
-     * APV_Approver: final approval
-     * Accounting_Approver and above: full approval access
-     */
-    public function canApproveAPVInvoices()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'APV_Reviewer', 'APV_Approver']);
-    }
-
-    // ==================== LIQUIDATION FORM PERMISSIONS ====================
-
-    /**
-     * Check if user can create liquidation forms
-     * LF_Preparer: can create and view only
-     * Accounting roles and above: full access
-     */
-    public function canCreateLiquidationForms()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'LF_Preparer']);
-    }
-
-    /**
-     * Check if user can view liquidation forms list
-     */
-    public function canAccessLiquidationForms()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'LF_Preparer', 'LF_Reviewer']);
-    }
-
-    /**
-     * Check if user can approve liquidation forms
-     * LF_Reviewer: can view and approve/reject forms
-     * LF_Approver: final approval
-     * Accounting_Approver and above: full approval access
-     */
-    public function canApproveLiquidationForms()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'LF_Reviewer', 'LF_Approver']);
-    }
-
-    // ==================== CHECK VOUCHER (JOURNAL VOUCHER) PERMISSIONS ====================
-
-    /**
-     * Check if user can create check vouchers
-     * CV_Preparer: can create and view only
-     * Accounting roles and above: full access
-     */
-    public function canCreateCheckVouchers()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CV_Preparer']);
-    }
-
-    /**
-     * Check if user can view check vouchers list
-     */
-    public function canAccessCheckVouchers()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CV_Preparer', 'CV_Reviewer']);
-    }
-
-    /**
-     * Check if user can approve check vouchers
-     * CV_Reviewer: can view and approve/reject vouchers
-     * CV_Approver: final approval
-     * Accounting_Approver and above: full approval access
-     */
-    public function canApproveCheckVouchers()
-    {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Approver', 'CV_Reviewer', 'CV_Approver']);
+        return $this->canPerformInModule('can_edit', 'sales_orders');
     }
 
     // ==================== RELATIONSHIPS ====================
-    
+
+    public function userRoles()
+    {
+        return $this->hasMany(UserRole::class);
+    }
+
     public function lockedBy()
     {
         return $this->belongsTo(User::class, 'locked_by');
@@ -537,73 +379,200 @@ class User extends Authenticatable
         return $this->is_locked;
     }
 
-    // =================== MODULE ACCESS METHODS ===================
+    // ==================== MODULE ↔ SUB-DEPARTMENT MAPPING ====================
+
+    // Admin/IT sub-departments — users here get access to ALL modules
+    const ADMIN_SUB_DEPARTMENTS = [5, 12]; // General Administration, IT Operations
+
+    // Each module maps to sub-department IDs that grant access
+    const MODULE_SUB_DEPARTMENTS = [
+        'sales_orders'       => [13, 15, 26],                    // Sales, Credit & Collection, Accounting
+        'customers'          => [15, 26],                      // Credit & Collection, Accounting
+        'suppliers'          => [6, 1, 2, 3, 4, 26],          // Purchasing, Supply Chain subs, Accounting
+        'items'              => [15, 26],                      // Credit & Collection, Accounting
+        'deliveries'         => [15, 25],                      // Credit & Collection, Delivery
+        'receiving_reports'  => [25],                          // Delivery
+        'issue_slips'        => [1, 2, 3, 4, 14, 15, 25],     // Supply Chain, Customer Service, Credit & Collection, Delivery
+        'supplier_rr'        => [1, 2, 3, 4],                  // Supply Chain subs
+        'purchase_requests'  => [1, 5, 27, 28, 29, 16, 17, 18, 19, 20], // SC-Category, Administration, Procurement, Executive
+        'purchase_orders'    => [5, 6, 27, 28, 29, 16, 17, 18, 19, 20], // Administration, Purchasing, Procurement, Executive
+        'rfp'                => [1, 2, 3, 4, 5, 6],           // Supply Chain subs, Administration, Purchasing
+        'apv'                => [22],                          // FAS Trade Local/Imports
+        'jv'                 => [22],                          // FAS Trade Local/Imports
+        'cv'                 => [24],                          // Treasury
+        'non_trade_items'    => [6, 1, 2, 3, 4],              // Purchasing, Supply Chain subs
+        'trade_items'        => [6, 1, 2, 3, 4],              // Purchasing, Supply Chain subs
+        'currency_rates'     => [6, 28, 29],                   // Purchasing, PR Approver, Procurement Approver
+        'aging_reports'      => [26],                          // Accounting
+        'ar_dashboard'       => [26],                          // Accounting
+        'payments'           => [26, 15],                      // Accounting, Credit & Collection
+        'change_log'         => [15],                          // Credit & Collection
+        'sales_analytics'    => [26, 16, 17, 18, 19, 20],     // Accounting, Executive
+        'records'            => [15, 26],                       // Credit & Collection, Accounting
+        'excel_import'       => [15, 26],                      // Credit & Collection, Accounting
+        'record_lock'        => [12],                          // IT Operations
+        'user_management'    => [5, 12],                       // General Administration, IT Operations
+        'po_dashboard'       => [5, 6, 26, 27, 28, 29, 16, 17, 18, 19, 20, 21, 22, 23, 24], // Administration, Purchasing, Accounting, Procurement, Executive, Finance
+        'warehouse'          => [2],                              // SC - Logistics only
+        'cash_advance'       => [],                            // All users
+        'liquidation'        => [],                            // All users
+        'reimbursement'      => [],                            // All users
+    ];
+
+    // Sub-departments that can perform actions (create/edit/etc.) in a module.
+    // If a module is NOT listed here, all its MODULE_SUB_DEPARTMENTS can perform actions.
+    // If listed, only these sub-departments are checked for action permissions.
+    const MODULE_ACTION_DEPARTMENTS = [
+        'sales_orders' => [13, 15, 26],       // Sales, Credit & Collection, Accounting (NOT Delivery)
+        'deliveries'   => [15, 25],              // Credit & Collection, Delivery
+    ];
+
+    // ==================== RBAC HELPER METHODS ====================
 
     /**
-     * Check if user can access Payments/Collections module
+     * Check if user is in an Admin/IT sub-department (full access).
      */
+    public function isAdminUser(): bool
+    {
+        return $this->userRoles()
+            ->whereIn('sub_department_id', self::ADMIN_SUB_DEPARTMENTS)
+            ->exists();
+    }
+
+    /**
+     * Check if user can access a module based on their sub-department assignments.
+     */
+    public function canAccessModule(string $module): bool
+    {
+        if ($this->isAdminUser()) {
+            return true;
+        }
+
+        $subDeptIds = self::MODULE_SUB_DEPARTMENTS[$module] ?? [];
+
+        // Empty array means all users can access
+        if (empty($subDeptIds)) {
+            return true;
+        }
+
+        return $this->userRoles()
+            ->whereIn('sub_department_id', $subDeptIds)
+            ->exists();
+    }
+
+    /**
+     * Check if user has a specific permission flag in ANY sub-department
+     * that maps to the given module. Uses MODULE_ACTION_DEPARTMENTS if defined
+     * for the module, so view-only departments are excluded from action checks.
+     */
+    public function canPerformInModule(string $flag, string $module): bool
+    {
+        if ($this->isAdminUser()) {
+            return true;
+        }
+
+        // Use action-specific departments if defined, otherwise fall back to all module departments
+        $subDeptIds = self::MODULE_ACTION_DEPARTMENTS[$module]
+            ?? self::MODULE_SUB_DEPARTMENTS[$module]
+            ?? [];
+
+        if (empty($subDeptIds)) {
+            return true;
+        }
+
+        return $this->userRoles()
+            ->whereIn('sub_department_id', $subDeptIds)
+            ->where($flag, true)
+            ->exists();
+    }
+
+    /**
+     * Check if user has a specific permission flag in a given sub-department.
+     */
+    public function hasPermission(string $flag, int $subDepartmentId): bool
+    {
+        if ($this->isAdminUser()) {
+            return true;
+        }
+
+        return $this->userRoles()
+            ->where('sub_department_id', $subDepartmentId)
+            ->where($flag, true)
+            ->exists();
+    }
+
+    /**
+     * Check if user has ANY role in a given sub-department.
+     */
+    public function hasAccessTo(int $subDepartmentId): bool
+    {
+        if ($this->isAdminUser()) {
+            return true;
+        }
+
+        return $this->userRoles()
+            ->where('sub_department_id', $subDepartmentId)
+            ->exists();
+    }
+
+    /**
+     * Check if user has a specific permission in ANY sub-department
+     * whose name matches the given array.
+     */
+    public function hasPermissionInSubDepartments(string $flag, array $subDeptNames): bool
+    {
+        if ($this->isAdminUser()) {
+            return true;
+        }
+
+        return $this->userRoles()
+            ->whereHas('subDepartment', function ($q) use ($subDeptNames) {
+                $q->whereIn('name', $subDeptNames);
+            })
+            ->where($flag, true)
+            ->exists();
+    }
+
+    // =================== MODULE ACCESS METHODS (delegate to RBAC) ===================
+
     public function canAccessPayments()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver', 'CC_Approver']);
+        return $this->canAccessModule('payments');
     }
 
-    /**
-     * Check if user can access Aging Reports module
-     * Only Accounting, IT, and Admin can access
-     */
     public function canAccessAgingReports()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->canAccessModule('aging_reports');
     }
 
-    /**
-     * Check if user can access AR Dashboard module
-     * Only Accounting, IT, and Admin can access
-     */
     public function canAccessARDashboard()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->canAccessModule('ar_dashboard');
     }
 
-    /**
-     * Check if user can access Receiving Reports module
-     * Only Delivery, IT, and Admin can access
-     */
     public function canAccessReceivingReports()
     {
-        return $this->hasRole(['Admin', 'IT', 'Delivery_Creator', 'Delivery_Approver']);
+        return $this->canAccessModule('receiving_reports');
     }
 
-    /**
-     * Check if user can access Change Log module
-     */
     public function canAccessChangelog()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator']);
+        return $this->canAccessModule('change_log');
     }
 
-    /**
-     * Check if user can access Sales Analytics module
-     */
     public function canAccessSalesAnalytics()
     {
-        return $this->hasRole(['Admin', 'IT', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->canAccessModule('sales_analytics');
     }
 
-    /**
-     * Check if user can access Records module
-     */
     public function canAccessRecords()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->canAccessModule('records');
     }
 
-    /**
-     * Check if user can access Excel Import module
-     */
     public function canAccessExcelImport()
     {
-        return $this->hasRole(['Admin', 'IT', 'CC_Approver', 'CC_Creator', 'Accounting_Creator', 'Accounting_Approver']);
+        return $this->canAccessModule('excel_import');
     }
 
 }

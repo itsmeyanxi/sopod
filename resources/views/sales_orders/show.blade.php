@@ -85,7 +85,7 @@
     @endif
 
         {{-- ✅ NEW: Manual Close Sales Order Button --}}
-        @if(!$salesOrder->is_closed && in_array(auth()->user()->role, ['Admin', 'IT', 'CC_Approver']))
+        @if(!$salesOrder->is_closed && auth()->user()->canPerformInModule('can_manage', 'sales_orders'))
             <button onclick="confirmCloseSO()"
                     class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded inline-block transition flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

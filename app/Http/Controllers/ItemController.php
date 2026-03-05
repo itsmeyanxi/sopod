@@ -34,7 +34,7 @@ class ItemController extends Controller
     {
         $user = Auth::user();
         
-        if ($user->role !== 'accounting_approver' && !RoleHelper::canManageItems()) {
+        if (!$user->canApproveItems() && !RoleHelper::canManageItems()) {
             return redirect()->route('items.index')->with('error', 'Unauthorized access.');
         }
 
@@ -206,7 +206,7 @@ public function export(Request $request)
     {
         $user = Auth::user();
         
-        if ($user->role !== 'accounting_approver' && !RoleHelper::canManageItems()) {
+        if (!$user->canApproveItems() && !RoleHelper::canManageItems()) {
             return redirect()->route('items.index')->with('error', 'Unauthorized access.');
         }
 
@@ -238,7 +238,7 @@ public function export(Request $request)
     {
         $user = Auth::user();
         
-        if ($user->role !== 'accounting_approver' && !RoleHelper::canManageItems()) {
+        if (!$user->canApproveItems() && !RoleHelper::canManageItems()) {
             return redirect()->route('items.index')->with('error', 'Unauthorized access.');
         }
 
@@ -272,7 +272,7 @@ public function export(Request $request)
         
         // Check if user can view this item
         if (!$item->isApproved() && 
-            Auth::user()->role !== 'accounting_approver' && 
+            !Auth::user()->canApproveItems() &&
             !RoleHelper::canManageItems()) {
             return redirect()->route('items.index')->with('error', 'Item not found or pending approval.');
         }
