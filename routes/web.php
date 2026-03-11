@@ -132,6 +132,9 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     // Export adjustments
     Route::get('/export/csv', [ArAdjustmentController::class, 'export'])->name('export');
 
+    // ✅ NEW: View adjustments by customer (must be before /{id} route)
+    Route::get('/customer/{customerCode}', [ArAdjustmentController::class, 'byCustomer'])->name('by_customer');
+
     // Store new adjustment
     Route::post('/', [ArAdjustmentController::class, 'store'])->name('store');
 
@@ -146,9 +149,6 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
 
     // Delete adjustment
     Route::delete('/{id}', [ArAdjustmentController::class, 'destroy'])->name('destroy');
-
-    // ✅ NEW: View adjustments by customer
-    Route::get('/customer/{customerCode}', [ArAdjustmentController::class, 'byCustomer'])->name('by_customer');
 });
 
 // ===================== RECEIVING REPORTS =====================
