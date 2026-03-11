@@ -14,28 +14,28 @@ class CustomerARProfileController extends Controller
      */
     public function show($customerCode)
     {
-        // Get customer name from first AR aging record
-        $firstAging = ArAging::where('customer_code', $customerCode)->first();
+        // Get customer name from first AR aging record (using TRIM for whitespace handling)
+        $firstAging = ArAging::whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])->first();
         $customerName = $firstAging?->client_name ?? $customerCode;
 
-        // Get AR aging invoices
-        $arAging = ArAging::where('customer_code', $customerCode)
+        // Get AR aging invoices (using TRIM to handle whitespace)
+        $arAging = ArAging::whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
             ->orderBy('invoice_date', 'desc')
             ->get();
 
-        // Get collection/payment history
-        $payments = Payment::where('customer_code', $customerCode)
+        // Get collection/payment history (using TRIM to handle whitespace)
+        $payments = Payment::whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get AR adjustments
-        $adjustments = ArAdjustment::where('customer_code', $customerCode)
+        // Get AR adjustments (using TRIM to handle whitespace)
+        $adjustments = ArAdjustment::whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
             ->orderBy('transaction_date', 'desc')
             ->get();
 
-        // Try customer_ar_summary VIEW first, fallback to inline calculation
+        // Try customer_ar_summary VIEW first, fallback to inline calculation (using TRIM for whitespace)
         $summary = DB::table('customer_ar_summary')
-            ->where('customer_code', $customerCode)
+            ->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
             ->first();
 
         if (!$summary) {
