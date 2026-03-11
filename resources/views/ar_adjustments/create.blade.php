@@ -124,4 +124,25 @@
         </form>
     </div>
 </div>
+
+<script>
+// Pre-fill form from delivery query parameters
+document.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+
+    const drNo = params.get('dr_no');
+    const customerCode = params.get('customer_code');
+    const customerName = params.get('customer_name');
+
+    if (drNo) {
+        document.querySelector('input[name="dr_no"]').value = drNo;
+    }
+    if (customerCode) {
+        document.querySelector('input[name="customer_code"]').value = customerCode;
+    }
+    if (customerName) {
+        document.querySelector('input[name="customer_name"]').value = customerName;
+    }
+});
+</script>
 @endsection

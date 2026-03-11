@@ -1233,10 +1233,13 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
         Swal.close();
 
         if (data.success) {
-            // Pre-populate the form with delivery information
-            // Use customer name from the function parameter
-            document.getElementById('customer_search').value = customerName;
-            document.getElementById('search_customer_btn').click();
+            // Redirect to create page with delivery info as query parameters
+            const params = new URLSearchParams({
+                dr_no: drNo,
+                customer_code: customerCode,
+                customer_name: customerName
+            });
+            window.location.href = `/ar-adjustments/create?${params.toString()}`;
         } else {
             Swal.fire({
                 icon: 'error',
