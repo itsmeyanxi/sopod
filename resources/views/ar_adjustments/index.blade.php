@@ -1177,7 +1177,7 @@ function loadDeliveryList() {
                 <td class="px-3 py-3 text-center">
                     ${delivery.has_adjustment
                         ? '<span class="text-gray-500 text-sm">—</span>'
-                        : `<button onclick="createAdjustmentFromDelivery('${delivery.dr_no}', '${delivery.customer_code}', '${delivery.customer_name}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="Create Adjustment">
+                        : `<button onclick="createAdjustmentFromDelivery('${delivery.dr_no.replace(/'/g, "\\'")}', '${delivery.customer_code.replace(/'/g, "\\'")}', '${delivery.customer_name.replace(/'/g, "\\'")}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="Create Adjustment">
                             <i class="fas fa-plus"></i> Create
                         </button>`
                     }
