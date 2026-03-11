@@ -144,7 +144,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const weekEndDateInput = document.getElementById('week_end_date');
     const loadDashboardBtn = document.getElementById('load_dashboard_btn');
     const viewSummaryBtn = document.getElementById('view_summary_btn');
-    const viewDetailsBtn = document.getElementById('view_details_btn');
     const exportSummaryBtn = document.getElementById('export_summary_btn');
     const exportDetailsBtn = document.getElementById('export_details_btn');
 
@@ -202,24 +201,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         window.location.href = `/aging-reports/summary?filter_date=${weekEndDate}`;
-    });
-
-    // View Details Report
-    viewDetailsBtn.addEventListener('click', function() {
-        const weekEndDate = weekEndDateInput.value;
-        
-        if (!weekEndDate) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Missing Date',
-                text: 'Please select a date before viewing details.',
-                background: '#1f2937',
-                color: '#fff'
-            });
-            return;
-        }
-
-        window.location.href = `/aging-reports?filter_date=${weekEndDate}`;
     });
 
     // Export Summary
