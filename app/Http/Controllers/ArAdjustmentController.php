@@ -774,29 +774,26 @@ public function store(Request $request)
     public function getPendingDeliveries()
     {
         try {
-            // Get DR numbers that already have AR adjustments
-            $deliveriesWithAdjustments = ArAdjustment::pluck('dr_no')->toArray();
-
-            // Get all deliveries that are delivered/completed but don't have AR adjustments yet
+            // Get all deliveries that don't have matching AR adjustments
+            // Use whereNotExists() for proper SQL subquery matching
             $deliveries = \App\Models\Deliveries::select(
                 'id',
                 'dr_no',
                 'customer_code',
                 'customer_name',
-                'delivery_date',
                 'status',
                 'approval_status'
             )
-            ->where(function ($query) {
-                // Match delivered orders (check both status values)
-                $query->where('status', 'Delivered')
-                      ->orWhere('status', 'Completed')
-                      ->orWhere('approval_status', 'Approved');
-            })
-            ->whereNotIn('dr_no', $deliveriesWithAdjustments)  // Exclude those with adjustments
+            ->where('status', 'Delivered')  // Only delivered orders
             ->where('is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
-            ->orderBy('delivery_date', 'desc')
-            ->limit(200)  // Limit to avoid loading too many
+            ->whereNotExists(function ($query) {
+                // Exclude deliveries that have a matching AR adjustment by DR number
+                $query->select(DB::raw(1))
+                    ->from('ar_adjustments')
+                    ->whereColumn('ar_adjustments.dr_no', '=', 'deliveries.dr_no');
+            })
+            ->orderBy('id', 'desc')  // Show newest first
+            ->limit(500)  // Limit to avoid loading too many
             ->get()
             ->map(function ($delivery) {
                 $delivery->has_adjustment = false;  // All these don't have adjustments
