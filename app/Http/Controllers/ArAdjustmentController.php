@@ -774,21 +774,32 @@ public function store(Request $request)
     public function getPendingDeliveries()
     {
         try {
-            // Get all deliveries and check which ones don't have adjustments
+            // Get DR numbers that already have AR adjustments
+            $deliveriesWithAdjustments = ArAdjustment::pluck('dr_no')->toArray();
+
+            // Get all deliveries that are delivered/completed but don't have AR adjustments yet
             $deliveries = \App\Models\Deliveries::select(
                 'id',
                 'dr_no',
                 'customer_code',
                 'customer_name',
                 'delivery_date',
-                'status'
+                'status',
+                'approval_status'
             )
+            ->where(function ($query) {
+                // Match delivered orders (check both status values)
+                $query->where('status', 'Delivered')
+                      ->orWhere('status', 'Completed')
+                      ->orWhere('approval_status', 'Approved');
+            })
+            ->whereNotIn('dr_no', $deliveriesWithAdjustments)  // Exclude those with adjustments
+            ->where('is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
             ->orderBy('delivery_date', 'desc')
+            ->limit(200)  // Limit to avoid loading too many
             ->get()
             ->map(function ($delivery) {
-                // Check if this delivery has an adjustment
-                $hasAdjustment = ArAdjustment::where('dr_no', $delivery->dr_no)->exists();
-                $delivery->has_adjustment = $hasAdjustment;
+                $delivery->has_adjustment = false;  // All these don't have adjustments
                 return $delivery;
             });
 
@@ -803,7 +814,7 @@ public function store(Request $request)
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to load deliveries'
+                'message' => 'Failed to load deliveries: ' . $e->getMessage()
             ], 500);
         }
     }
