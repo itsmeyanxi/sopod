@@ -39,7 +39,8 @@ use App\Http\Controllers\{
     LiquidationFormController,
     ReimbursementFormController,
     RoleController,
-    WarehouseController
+    WarehouseController,
+    CustomerARProfileController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -156,6 +157,10 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     // Delete adjustment
     Route::delete('/{id}', [ArAdjustmentController::class, 'destroy'])->name('destroy');
 });
+
+    // ===================== CUSTOMER AR PROFILE (Cross-Module) =====================
+    Route::get('/ar/customer/{customerCode}', [CustomerARProfileController::class, 'show'])
+        ->name('ar.customer_profile');
 
 // ===================== RECEIVING REPORTS =====================
 Route::prefix('receiving-reports')->name('receiving-reports.')->group(function () {

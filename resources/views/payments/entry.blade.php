@@ -156,10 +156,15 @@
 
             <!-- Customer Information -->
             <div id="customer_info_container" class="bg-gray-700 rounded-lg p-4 mb-4">
-                <h4 class="text-sm font-semibold text-white mb-3 flex items-center">
-                    <i class="fas fa-user mr-2"></i>
-                    Customer Information
-                </h4>
+                <div class="flex justify-between items-start mb-3">
+                    <h4 class="text-sm font-semibold text-white flex items-center">
+                        <i class="fas fa-user mr-2"></i>
+                        Customer Information
+                    </h4>
+                    <a href="#" id="customerProfileLink" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs flex items-center gap-2 hidden" target="_blank">
+                        <i class="fas fa-user-circle"></i>View AR Profile
+                    </a>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                     <div>
                         <label class="block text-gray-400 text-xs mb-1">Customer Name</label>
@@ -691,13 +696,22 @@ document.getElementById('search_customer_btn').addEventListener('click', functio
             }
             
             console.log('Outstanding invoices loaded:', outstandingInvoices);
-            
+
             document.getElementById('display_customer_name').textContent = currentCustomer.name;
             document.getElementById('display_outstanding_balance').textContent = '₱' + parseFloat(currentCustomer.outstanding_balance).toLocaleString('en-PH', { minimumFractionDigits: 2 });
 
             const balanceElement = document.getElementById('display_outstanding_balance');
             balanceElement.classList.remove('text-green-400', 'text-yellow-400');
             balanceElement.classList.add('text-red-400');
+
+            // Update customer profile link
+            const profileLink = document.getElementById('customerProfileLink');
+            if (currentCustomer.code) {
+                profileLink.href = `/ar/customer/${currentCustomer.code}`;
+                profileLink.classList.remove('hidden');
+            } else {
+                profileLink.classList.add('hidden');
+            }
 
             loadCustomerPaymentHistory(currentCustomer.code, currentCustomer.name);
             switchToPaymentEntries();

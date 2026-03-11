@@ -812,6 +812,9 @@ function filterAdjustmentList() {
                     <td class="px-3 py-3 text-xs max-w-xs truncate" title="${adj.remarks || ''}">${adj.remarks || '—'}</td>
                     <td class="px-3 py-3 text-center">
                         <div class="flex items-center justify-center gap-2">
+                            ${adj.customer_code ? `<a href="/ar/customer/${adj.customer_code}" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs transition inline-block" title="View AR Profile">
+                                <i class="fas fa-user-circle"></i>
+                            </a>` : ''}
                             <button onclick="viewAdjustment(${adj.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="View">
                                 <i class="fas fa-eye"></i>
                             </button>
