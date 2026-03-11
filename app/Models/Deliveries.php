@@ -71,6 +71,16 @@ class Deliveries extends Model
         return $this->hasMany(DeliveryItem::class, 'delivery_id');
     }
 
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'customer_code', 'customer_code');
+    }
+
+    public function arAdjustments()
+    {
+        return $this->hasMany(ArAdjustment::class, 'dr_no', 'dr_no');
+    }
+
     // ✅ Check if user can edit this delivery
     public function canBeEdited()
     {

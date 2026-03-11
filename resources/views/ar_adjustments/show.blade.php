@@ -60,13 +60,44 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-300 mb-1">DR Number:</label>
-                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $adjustment->dr_no ?? 'N/A' }}</p>
+                @if($adjustment->dr_no)
+                    @if($adjustment->delivery)
+                        <a href="{{ route('deliveries.show', $adjustment->delivery->id) }}" class="px-4 py-2 bg-blue-900/30 border border-blue-700 rounded text-blue-300 hover:bg-blue-900/50 transition inline-block">
+                            <i class="fas fa-link mr-1"></i> {{ $adjustment->dr_no }}
+                        </a>
+                    @else
+                        <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $adjustment->dr_no }}</p>
+                    @endif
+                @else
+                    <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-400">N/A</p>
+                @endif
             </div>
             <div>
                 <label class="block font-semibold text-gray-300 mb-1">Invoice Number:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $adjustment->invoice_number ?? 'N/A' }}</p>
             </div>
         </div>
+
+        <!-- Linked Delivery Information -->
+        @if($adjustment->delivery)
+        <div class="mb-6 p-4 bg-blue-900/20 border border-blue-700 rounded">
+            <h3 class="font-semibold text-blue-300 mb-3">📦 Linked Delivery Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div>
+                    <p class="text-gray-400">Delivery Batch</p>
+                    <p class="text-blue-300 font-semibold">{{ $adjustment->delivery->delivery_batch ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Delivery Status</p>
+                    <p class="text-blue-300 font-semibold">{{ ucfirst($adjustment->delivery->status ?? 'pending') }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Requested Date</p>
+                    <p class="text-blue-300 font-semibold">{{ $adjustment->delivery->request_delivery_date?->format('M d, Y') ?? 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <!-- Amount & Account -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

@@ -44,5 +44,20 @@ class Customer extends Model
         'is_locked' => 'boolean',
         'is_flagged' => 'boolean',
     ];
+
+    public function deliveries()
+    {
+        return $this->hasMany(Deliveries::class, 'customer_code', 'customer_code');
+    }
+
+    public function arAdjustments()
+    {
+        return $this->hasMany(ArAdjustment::class, 'customer_code', 'customer_code');
+    }
+
+    public function arAging()
+    {
+        return $this->hasMany(ArAging::class, 'customer_code', 'customer_code');
+    }
 }
 

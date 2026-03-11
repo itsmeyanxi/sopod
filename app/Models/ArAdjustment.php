@@ -48,6 +48,30 @@ class ARAdjustment extends Model
     }
 
     /**
+     * Get the delivery record if linked
+     */
+    public function delivery()
+    {
+        return $this->belongsTo(Deliveries::class, 'dr_no', 'dr_no');
+    }
+
+    /**
+     * Get the customer record
+     */
+    public function customerRecord()
+    {
+        return $this->belongsTo(Customer::class, 'customer_code', 'customer_code');
+    }
+
+    /**
+     * Get the user who created this adjustment
+     */
+    public function createdByUser()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
      * Get absolute amount
      */
     // public function getAbsoluteAmountAttribute()
