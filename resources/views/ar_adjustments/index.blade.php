@@ -1241,12 +1241,23 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
 
             data.deliveries.forEach(delivery => {
                 const deliveryDate = new Date(delivery.request_delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const totalAmount = parseFloat(delivery.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const itemCount = delivery.item_count || 0;
+                const poNumber = delivery.po_number ? `PO: ${delivery.po_number}` : '';
+
                 deliveryHTML += `
                     <button onclick="selectDeliveryAndRedirect('${delivery.dr_no.replace(/'/g, "\\'")}', '${customerCode.replace(/'/g, "\\'")}', '${customerName.replace(/'/g, "\\'")}')"
-                            style="padding: 10px; background: #374151; border: 1px solid #4B5563; border-radius: 6px; color: #E5E7EB; cursor: pointer; text-align: left; transition: background 0.2s;"
+                            style="padding: 12px; background: #374151; border: 1px solid #4B5563; border-radius: 6px; color: #E5E7EB; cursor: pointer; text-align: left; transition: background 0.2s;"
                             onmouseover="this.style.background='#4B5563'"
                             onmouseout="this.style.background='#374151'">
-                        <strong>${delivery.dr_no}</strong> • ${deliveryDate}
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <strong style="font-size: 15px;">${delivery.dr_no}</strong>
+                            <span style="font-size: 13px; color: #9CA3AF;">₱${totalAmount}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9CA3AF;">
+                            <span>${deliveryDate} • ${itemCount} item${itemCount !== 1 ? 's' : ''}</span>
+                            ${poNumber ? `<span>${poNumber}</span>` : ''}
+                        </div>
                     </button>
                 `;
             });

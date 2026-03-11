@@ -829,10 +829,13 @@ public function store(Request $request)
                 'dr_no',
                 'customer_code',
                 'customer_name',
+                'sales_order_number',
+                'po_number',
                 'status',
                 'approval_status',
                 'request_delivery_date'
             )
+            ->with('items')
             ->where('customer_code', $customerCode)
             ->where('status', 'Delivered')
             ->where('is_pulled_out', '!=', 1)
@@ -842,7 +845,13 @@ public function store(Request $request)
                     ->whereColumn('ar_adjustments.dr_no', '=', 'deliveries.dr_no');
             })
             ->orderBy('request_delivery_date', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($delivery) {
+                // Add calculated fields
+                $delivery->item_count = $delivery->items->count();
+                $delivery->total_amount = $delivery->items->sum('total_amount');
+                return $delivery;
+            });
 
             return response()->json([
                 'success' => true,
