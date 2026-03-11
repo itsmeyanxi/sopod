@@ -32,7 +32,21 @@
       "Bash(php -r \":*)",
       "Bash(xargs ls -1)",
       "Bash(unzip -l \"C:\\\\Users\\\\WIN11SOPOD\\\\Downloads\\\\erp\\\\nbc_ap_backend.zip\")",
-      "Bash(unzip -q nbc_ap_backend.zip)"
+      "Bash(unzip -q nbc_ap_backend.zip)",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root -e \"DESCRIBE sopod.payments;\")",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root sopod -e \"DESCRIBE payments;\")",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root -e \"SHOW DATABASES;\")",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root -e \"SHOW TABLES FROM sopod LIKE ''%collection%''; SHOW TABLES FROM sopod LIKE ''%ar_ledger%''; SHOW TABLES FROM sopod LIKE ''%customer_ar%'';\")",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root -e \"SHOW TABLES FROM sopod;\")",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root -e \"DESCRIBE sopod.ar_ledger; DESCRIBE sopod.customer_ar_summary;\")",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root -e \"DESCRIBE sopod.ar_aging;\")",
+      "Bash(php \"c:\\\\xampp\\\\htdocs\\\\sopod\\\\artisan\" route:list --name=\"ar.customer\")",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\sopod\\\\app\\\\Http\\\\Controllers\\\\CustomerARProfileController.php\")",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\sopod\\\\resources\\\\views\\\\ar\\\\customer_profile.blade.php\")",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\sopod\\\\routes\\\\web.php\")",
+      "Bash(php \"c:\\\\xampp\\\\htdocs\\\\sopod\\\\artisan\" tinker --execute=\"echo route\\(''ar.customer_profile'', ''CUST001''\\);\")",
+      "Bash(php \"c:\\\\xampp\\\\htdocs\\\\sopod\\\\artisan\" tinker --execute=\":*)",
+      "Bash(git reset HEAD .claude/settings.local.json public/po_images/1773215105_Screenshot_2026-03-11_154947.png app/Http/Controllers/CustomerARProfileController.php)"
     ],
     "additionalDirectories": [
       "c:\\Windows\\System32\\drivers\\etc"

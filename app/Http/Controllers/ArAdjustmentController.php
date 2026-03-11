@@ -817,6 +817,50 @@ public function store(Request $request)
     }
 
     /**
+     * Get all pending deliveries for a specific customer
+     */
+    public function getCustomerDeliveries($customerCode)
+    {
+        try {
+            // Get all deliveries for this customer that don't have AR adjustments
+            $deliveries = \App\Models\Deliveries::select(
+                'id',
+                'dr_no',
+                'customer_code',
+                'customer_name',
+                'status',
+                'approval_status',
+                'delivery_date'
+            )
+            ->where('customer_code', $customerCode)
+            ->where('status', 'Delivered')
+            ->where('is_pulled_out', '!=', 1)
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('ar_adjustments')
+                    ->whereColumn('ar_adjustments.dr_no', '=', 'deliveries.dr_no');
+            })
+            ->orderBy('delivery_date', 'desc')
+            ->get();
+
+            return response()->json([
+                'success' => true,
+                'deliveries' => $deliveries
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to load customer deliveries', [
+                'customer_code' => $customerCode,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load deliveries: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get delivery information by DR number
      */
     public function getDeliveryInfo($drNo)

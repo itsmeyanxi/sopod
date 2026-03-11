@@ -23,8 +23,13 @@ class CustomerARProfileController extends Controller
             ->orderBy('invoice_date', 'desc')
             ->get();
 
-        // Get collection/payment history (using TRIM to handle whitespace)
-        $payments = Payment::whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
+        // Get collection/payment history
+        // Match by customer_code (with TRIM) OR by customer_name (LIKE search)
+        $payments = Payment::where(function($query) use ($customerCode, $customerName) {
+                $query->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
+                      ->orWhere('customer_name', 'LIKE', '%' . $customerName . '%');
+            })
+            ->orderBy('payment_posting_date', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 

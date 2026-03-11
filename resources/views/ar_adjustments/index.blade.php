@@ -1205,14 +1205,14 @@ function reloadDeliveryList() {
     loadDeliveryList();
 }
 
-// ✅ Create adjustment from delivery
+// ✅ Create adjustment from delivery - show list of customer's deliveries to choose from
 function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
-    // Fetch delivery info and pre-populate the adjustment form
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
+    // Show loading dialog
     Swal.fire({
         title: 'Loading...',
-        text: 'Preparing adjustment form',
+        text: 'Fetching deliveries',
         background: '#1f2937',
         color: '#fff',
         allowOutsideClick: false,
@@ -1221,7 +1221,8 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
         }
     });
 
-    fetch(`/ar-adjustments/delivery/${drNo}`, {
+    // Fetch all pending deliveries for this customer
+    fetch(`/ar-adjustments/customer/${customerCode}/deliveries`, {
         method: 'GET',
         headers: {
             'Accept': 'application/json',
@@ -1232,36 +1233,51 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
     .then(data => {
         Swal.close();
 
-        if (data.success) {
-            // Show confirmation dialog before redirecting
+        if (data.success && data.deliveries && data.deliveries.length > 0) {
+            // Build HTML for delivery selection modal
+            let deliveryHTML = '<div style="text-align: left; max-height: 400px; overflow-y: auto;">';
+            deliveryHTML += '<p style="margin-bottom: 15px; color: #9CA3AF; font-size: 14px;">Select a delivery to create an adjustment for:</p>';
+            deliveryHTML += '<div style="display: flex; flex-direction: column; gap: 10px;">';
+
+            data.deliveries.forEach(delivery => {
+                const deliveryDate = new Date(delivery.delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                deliveryHTML += `
+                    <button onclick="selectDeliveryAndRedirect('${delivery.dr_no.replace(/'/g, "\\'")}', '${customerCode.replace(/'/g, "\\'")}', '${customerName.replace(/'/g, "\\'")}')"
+                            style="padding: 10px; background: #374151; border: 1px solid #4B5563; border-radius: 6px; color: #E5E7EB; cursor: pointer; text-align: left; transition: background 0.2s;"
+                            onmouseover="this.style.background='#4B5563'"
+                            onmouseout="this.style.background='#374151'">
+                        <strong>${delivery.dr_no}</strong> • ${deliveryDate}
+                    </button>
+                `;
+            });
+
+            deliveryHTML += '</div>';
+            deliveryHTML += '</div>';
+
+            // Show modal with delivery list
             Swal.fire({
-                icon: 'question',
-                title: 'Create Adjustment',
-                text: `Create adjustment for delivery ${drNo}?`,
+                title: `${customerName}`,
+                html: deliveryHTML,
                 background: '#1f2937',
                 color: '#fff',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, Create',
-                confirmButtonColor: '#3b82f6',
-                cancelButtonText: 'Cancel',
-                cancelButtonColor: '#ef4444'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Redirect to create page with delivery info as query parameters
-                    const params = new URLSearchParams({
-                        dr_no: drNo,
-                        customer_code: customerCode,
-                        customer_name: customerName
-                    });
-                    window.location.href = `/ar-adjustments/create?${params.toString()}`;
-                }
-                // If cancelled, just close the dialog and stay on page
+                confirmButtonText: 'Cancel',
+                confirmButtonColor: '#6B7280',
+                showConfirmButton: true,
+                allowOutsideClick: true
+            });
+        } else if (data.deliveries && data.deliveries.length === 0) {
+            Swal.fire({
+                icon: 'info',
+                title: 'No Deliveries',
+                text: 'No pending deliveries found for this customer.',
+                background: '#1f2937',
+                color: '#fff'
             });
         } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: data.message || 'Failed to load delivery information',
+                text: data.message || 'Failed to load deliveries',
                 background: '#1f2937',
                 color: '#fff'
             });
@@ -1273,11 +1289,21 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Failed to load delivery information',
+            text: 'Failed to load deliveries',
             background: '#1f2937',
             color: '#fff'
         });
     });
+}
+
+// ✅ Helper function to redirect after selecting a delivery
+function selectDeliveryAndRedirect(selectedDrNo, customerCode, customerName) {
+    const params = new URLSearchParams({
+        dr_no: selectedDrNo,
+        customer_code: customerCode,
+        customer_name: customerName
+    });
+    window.location.href = `/ar-adjustments/create?${params.toString()}`;
 }
 </script>
 @endsection

@@ -139,6 +139,9 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     // ✅ NEW: Get delivery information by DR number
     Route::get('/delivery/{drNo}', [ArAdjustmentController::class, 'getDeliveryInfo'])->name('delivery.info');
 
+    // ✅ NEW: Get all pending deliveries for a customer
+    Route::get('/customer/{customerCode}/deliveries', [ArAdjustmentController::class, 'getCustomerDeliveries'])->name('customer.deliveries');
+
     // ✅ NEW: View adjustments by customer (must be before /{id} route)
     Route::get('/customer/{customerCode}', [ArAdjustmentController::class, 'byCustomer'])->name('by_customer');
 
