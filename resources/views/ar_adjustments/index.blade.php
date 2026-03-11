@@ -12,6 +12,10 @@
 
             {{-- Action Buttons --}}
             <div class="flex items-center gap-3">
+                <button type="button" id="import_modal_btn" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
+                    <i class="fas fa-upload"></i>
+                    <span>Import Bulk</span>
+                </button>
                 <a href="{{ route('ar_adjustments.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-plus"></i>
                     <span>New Adjustment</span>
@@ -219,6 +223,83 @@
             <h3 class="text-xl font-semibold text-white mb-2">No Results Found</h3>
             <p class="text-gray-400">The customer or DR number you searched for does not exist. Please check and try again.</p>
         </div>
+
+        {{-- Import Modal --}}
+        <div id="import_modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-white">Import AR Adjustments</h3>
+                    <button type="button" onclick="closeImportModal()" class="text-gray-400 hover:text-white text-2xl">×</button>
+                </div>
+
+                {{-- Import Info --}}
+                <div class="bg-blue-900/30 border border-blue-700 rounded-lg p-4 mb-6">
+                    <p class="text-blue-300 text-sm">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Upload a CSV or Excel file with AR adjustment records. Required columns: <strong>Customer Code</strong>, <strong>Customer Name</strong>, <strong>Transaction Type</strong>, <strong>Amount</strong>, <strong>Transaction Date</strong>.
+                    </p>
+                </div>
+
+                <form id="import_form" class="space-y-4">
+                    @csrf
+
+                    {{-- File Upload with Drag & Drop --}}
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 bg-gray-700/50 hover:bg-gray-700/70 transition cursor-pointer" id="drop_zone">
+                        <div class="text-center">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-white font-semibold mb-1">Drag and drop your file here</p>
+                            <p class="text-gray-400 text-sm">or click to select a CSV/Excel file</p>
+                            <input type="file" id="import_file" name="file" accept=".csv,.xlsx,.xls" class="hidden" required>
+                        </div>
+                    </div>
+
+                    {{-- Selected File Display --}}
+                    <div id="file_info" class="hidden bg-green-900/30 border border-green-700 rounded-lg p-3">
+                        <p class="text-green-300 text-sm">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <span id="file_name">File selected</span>
+                        </p>
+                    </div>
+
+                    {{-- Import Options --}}
+                    <div class="bg-gray-700 rounded-lg p-4 space-y-4">
+                        <h4 class="font-semibold text-white text-sm">Import Options</h4>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="merge_dr" checked class="w-4 h-4 bg-gray-600 border border-gray-500 rounded">
+                            <span class="text-gray-300 text-sm">
+                                <strong>Merge existing DRs:</strong> Combine adjustments if DR already has records
+                            </span>
+                        </label>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="auto_approve" checked class="w-4 h-4 bg-gray-600 border border-gray-500 rounded">
+                            <span class="text-gray-300 text-sm">
+                                <strong>Auto-approve deliveries:</strong> Mark linked deliveries as approved
+                            </span>
+                        </label>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="create_rr_link" class="w-4 h-4 bg-gray-600 border border-gray-500 rounded">
+                            <span class="text-gray-300 text-sm">
+                                <strong>Link to RR:</strong> Auto-link adjustments to Receiving Reports if available
+                            </span>
+                        </label>
+                    </div>
+
+                    {{-- Action Buttons --}}
+                    <div class="flex gap-3 pt-4 border-t border-gray-700">
+                        <button type="button" onclick="closeImportModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-medium transition">
+                            Cancel
+                        </button>
+                        <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition flex items-center justify-center space-x-2">
+                            <i class="fas fa-upload"></i>
+                            <span>Import Now</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 <script>
@@ -231,6 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAdjustmentList();
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('transaction_date').value = today;
+    setupImportModal();
 });
 
 // ✅ Toggle between views
@@ -706,6 +788,151 @@ function deleteAdjustment(id) {
             });
         }
     });
+}
+
+// ✅ Import Modal Functions
+function setupImportModal() {
+    const importModalBtn = document.getElementById('import_modal_btn');
+    const importModal = document.getElementById('import_modal');
+    const importForm = document.getElementById('import_form');
+    const dropZone = document.getElementById('drop_zone');
+    const importFile = document.getElementById('import_file');
+    const fileInfo = document.getElementById('file_info');
+
+    // Open modal
+    importModalBtn.addEventListener('click', () => {
+        importModal.classList.remove('hidden');
+    });
+
+    // Close modal on background click
+    importModal.addEventListener('click', (e) => {
+        if (e.target === importModal) {
+            closeImportModal();
+        }
+    });
+
+    // Drag & drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-blue-500', 'bg-blue-900/20');
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-500', 'bg-blue-900/20');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-500', 'bg-blue-900/20');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            importFile.files = files;
+            displayFileName(files[0]);
+        }
+    });
+
+    // Click to browse
+    dropZone.addEventListener('click', () => {
+        importFile.click();
+    });
+
+    importFile.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            displayFileName(e.target.files[0]);
+        }
+    });
+
+    // Handle form submit
+    importForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const file = importFile.files[0];
+        if (!file) {
+            Swal.fire({
+                icon: 'error',
+                title: 'No File Selected',
+                text: 'Please select a file to import.',
+                background: '#1f2937',
+                color: '#fff'
+            });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('merge_dr', document.getElementById('merge_dr').checked ? 1 : 0);
+        formData.append('auto_approve', document.getElementById('auto_approve').checked ? 1 : 0);
+        formData.append('create_rr_link', document.getElementById('create_rr_link').checked ? 1 : 0);
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+
+        Swal.fire({
+            title: 'Importing...',
+            text: 'Processing your file',
+            background: '#1f2937',
+            color: '#fff',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            const response = await fetch('{{ route("excel.import.ar_adjustments") }}', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            Swal.close();
+
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Import Successful!',
+                    html: data.message.replace(/\n/g, '<br>'),
+                    background: '#1f2937',
+                    color: '#fff'
+                }).then(() => {
+                    closeImportModal();
+                    importFile.value = '';
+                    fileInfo.classList.add('hidden');
+                    loadAdjustmentList();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Import Completed with Errors',
+                    html: data.message.replace(/\n/g, '<br>'),
+                    background: '#1f2937',
+                    color: '#fff'
+                });
+            }
+        } catch (error) {
+            Swal.close();
+            console.error('Import error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Import Failed',
+                text: error.message || 'An error occurred during import.',
+                background: '#1f2937',
+                color: '#fff'
+            });
+        }
+    });
+}
+
+function displayFileName(file) {
+    const fileInfo = document.getElementById('file_info');
+    const fileName = document.getElementById('file_name');
+    fileName.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+    fileInfo.classList.remove('hidden');
+}
+
+function closeImportModal() {
+    document.getElementById('import_modal').classList.add('hidden');
+    document.getElementById('import_file').value = '';
+    document.getElementById('file_info').classList.add('hidden');
 }
 </script>
 @endsection

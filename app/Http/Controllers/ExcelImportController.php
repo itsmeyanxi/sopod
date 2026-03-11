@@ -1234,7 +1234,10 @@ private $arAdjustmentColumnMap = [
    public function importArAdjustments(Request $request)
 {
     $request->validate([
-        'file' => 'required|mimes:xlsx,xls,csv|max:10240'
+        'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+        'merge_dr' => 'nullable|boolean',
+        'auto_approve' => 'nullable|boolean',
+        'create_rr_link' => 'nullable|boolean'
     ]);
 
     try {
@@ -1243,8 +1246,16 @@ private $arAdjustmentColumnMap = [
         $rows = $worksheet->toArray();
 
         if (empty($rows)) {
-            return redirect()->back()->with('error', 'The file is empty.');
+            return response()->json([
+                'success' => false,
+                'message' => 'The file is empty.'
+            ], 400);
         }
+
+        // Get import options
+        $mergeDr = $request->boolean('merge_dr', true);
+        $autoApprove = $request->boolean('auto_approve', true);
+        $createRrLink = $request->boolean('create_rr_link', false);
 
         $tableColumns = \Schema::getColumnListing('ar_adjustments');
 
@@ -1369,7 +1380,17 @@ private $arAdjustmentColumnMap = [
             try {
                 $adjustment = ArAdjustment::create($insertData);
                 $imported++;
-                
+
+                // ✅ AUTO-APPROVE DELIVERY if option enabled and DR number provided
+                if ($autoApprove && !empty($insertData['dr_no'])) {
+                    $this->approveDeliveryByDrNo($insertData['dr_no']);
+                }
+
+                // ✅ LINK TO RECEIVING REPORT if option enabled
+                if ($createRrLink && !empty($insertData['dr_no'])) {
+                    $this->linkToReceivingReport($adjustment, $insertData['dr_no']);
+                }
+
             } catch (\Exception $e) {
                 $errors[] = "Row $rowNum: " . $e->getMessage();
                 \Log::error("Row $rowNum import failed", [
@@ -1391,14 +1412,23 @@ private $arAdjustmentColumnMap = [
             if (count($errors) > 10) {
                 $errorMessage .= "\n\n... and " . (count($errors) - 10) . " more errors. Check logs for details.";
             }
-            
+
             if ($imported > 0) {
-                return redirect()->back()->with('warning', "$message\n\nBut encountered " . count($errors) . " errors:\n\n" . $errorMessage);
+                return response()->json([
+                    'success' => true,
+                    'message' => "$message\n\nBut encountered " . count($errors) . " errors:\n\n" . $errorMessage
+                ]);
             }
-            return redirect()->back()->with('error', "Import failed with " . count($errors) . " errors:\n\n" . $errorMessage);
+            return response()->json([
+                'success' => false,
+                'message' => "Import failed with " . count($errors) . " errors:\n\n" . $errorMessage
+            ], 400);
         }
 
-        return redirect()->back()->with('success', $message);
+        return response()->json([
+            'success' => true,
+            'message' => $message
+        ]);
 
     } catch (\Exception $e) {
         DB::rollBack();
@@ -1406,7 +1436,53 @@ private $arAdjustmentColumnMap = [
             'error' => $e->getMessage(),
             'trace' => $e->getTraceAsString()
         ]);
-        return redirect()->back()->with('error', 'Error importing file: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error importing file: ' . $e->getMessage()
+        ], 500);
+    }
+
+    /**
+     * ✅ Auto-approve delivery by DR number
+     */
+    private function approveDeliveryByDrNo($drNo)
+    {
+        try {
+            $delivery = \App\Models\Deliveries::where('dr_no', $drNo)->first();
+            if ($delivery) {
+                $delivery->update([
+                    'approval_status' => 'approved',
+                    'approved_by_user' => auth()->user()->name ?? 'System',
+                    'approved_at' => now(),
+                    'status' => 'completed'
+                ]);
+                \Log::info("Delivery auto-approved on AR import", ['dr_no' => $drNo]);
+            }
+        } catch (\Exception $e) {
+            \Log::warning("Could not auto-approve delivery: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * ✅ Link adjustment to Receiving Report if available
+     */
+    private function linkToReceivingReport($adjustment, $drNo)
+    {
+        try {
+            $rr = \App\Models\ReceivingReport::where('delivery_batch', $drNo)
+                ->orWhere('rr_number', $drNo)
+                ->first();
+
+            if ($rr) {
+                // Link by adding a note/reference in the adjustment
+                $remarks = $adjustment->remarks ?? '';
+                $remarks .= ($remarks ? "\n" : '') . "Linked to RR: {$rr->rr_number}";
+                $adjustment->update(['remarks' => $remarks]);
+                \Log::info("Adjustment linked to RR", ['dr_no' => $drNo, 'rr_number' => $rr->rr_number]);
+            }
+        } catch (\Exception $e) {
+            \Log::warning("Could not link to receiving report: " . $e->getMessage());
+        }
     }
 }
 }
