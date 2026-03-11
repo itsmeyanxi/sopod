@@ -143,6 +143,9 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
 
     // Delete adjustment
     Route::delete('/{id}', [ArAdjustmentController::class, 'destroy'])->name('destroy');
+
+    // ✅ NEW: View adjustments by customer
+    Route::get('/customer/{customerCode}', [ArAdjustmentController::class, 'byCustomer'])->name('by_customer');
 });
 
 // ===================== RECEIVING REPORTS =====================

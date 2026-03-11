@@ -530,6 +530,64 @@ public function store(Request $request)
     }
 
     /**
+     * Display adjustments for a specific customer
+     */
+    public function byCustomer($customerCode)
+    {
+        try {
+            // Get customer details
+            $customer = \App\Models\Customer::where('customer_code', $customerCode)->first();
+
+            if (!$customer) {
+                return redirect()->route('ar_adjustments.index')->with('error', 'Customer not found');
+            }
+
+            // Get all adjustments for this customer
+            $adjustments = ArAdjustment::where(function($query) use ($customerCode) {
+                $query->where('customer_code', $customerCode)
+                      ->orWhere('customer_name', $customer->customer_name);
+            })
+            ->orderBy('transaction_date', 'desc')
+            ->get();
+
+            // Calculate summary
+            $summary = [
+                'total_count' => $adjustments->count(),
+                'credit_total' => $adjustments->where('is_decrease', true)->sum(function($adj) {
+                    return abs($adj->amount);
+                }),
+                'debit_total' => $adjustments->where('is_decrease', false)->sum('amount'),
+                'net_total' => $adjustments->sum('amount')
+            ];
+
+            // Get AR aging for this customer
+            $arAging = \App\Models\ArAging::where(function($query) use ($customerCode, $customer) {
+                if (!empty($customerCode) && $customerCode !== '#N/A' && $customerCode !== 'N/A') {
+                    $query->where('customer_code', $customerCode);
+                } else {
+                    $query->where('client_name', $customer->customer_name);
+                }
+            })
+            ->orderBy('invoice_date', 'desc')
+            ->get();
+
+            return view('ar_adjustments.by_customer', compact(
+                'customer',
+                'adjustments',
+                'summary',
+                'arAging'
+            ));
+
+        } catch (\Exception $e) {
+            Log::error('Failed to load customer adjustments', [
+                'error' => $e->getMessage(),
+                'customer_code' => $customerCode
+            ]);
+            return redirect()->route('ar_adjustments.index')->with('error', 'Failed to load customer adjustments');
+        }
+    }
+
+    /**
      * Apply adjustment to AR Aging records
      */
     private function applyAdjustmentToAR($customerCode, $adjustmentAmount, $invoiceNumber, $transactionDate, $referenceNumber)
