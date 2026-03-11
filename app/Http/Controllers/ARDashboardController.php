@@ -75,6 +75,9 @@ class ARDashboardController extends Controller
         $filename = 'ar_summary_' . now()->format('Y-m-d_His') . '.csv';
         $handle = fopen('php://memory', 'r+');
 
+        // Write UTF-8 BOM for Excel compatibility
+        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
         // Write CSV headers
         fputcsv($handle, ['APV No', 'Vendor', 'Due Date', 'Amount', 'Days Overdue/Until Due', 'Status']);
 
@@ -109,8 +112,12 @@ class ARDashboardController extends Controller
         fclose($handle);
 
         return response($csv, 200, [
-            'Content-Type' => 'text/csv',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Length' => strlen($csv),
+            'Pragma' => 'public',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
         ]);
     }
 
@@ -128,6 +135,9 @@ class ARDashboardController extends Controller
 
         $filename = 'ar_details_' . now()->format('Y-m-d_His') . '.csv';
         $handle = fopen('php://memory', 'r+');
+
+        // Write UTF-8 BOM for Excel compatibility
+        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
         // Write CSV headers
         fputcsv($handle, [
@@ -170,8 +180,12 @@ class ARDashboardController extends Controller
         fclose($handle);
 
         return response($csv, 200, [
-            'Content-Type' => 'text/csv',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Length' => strlen($csv),
+            'Pragma' => 'public',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
         ]);
     }
 }
