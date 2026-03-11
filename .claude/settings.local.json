@@ -29,7 +29,10 @@
       "Bash(\"c:/xampp/mysql/bin/mysql.exe\" -u root sopod -e \"SELECT COUNT\\(*\\) as ''Total Tables'' FROM information_schema.tables WHERE table_schema=''sopod'';\")",
       "Bash(\"c:/xampp/mysql/bin/mysql.exe\" -u root sopod -e \"SHOW TABLES LIKE ''trade%'';\")",
       "Bash(git pull origin main)",
-      "Bash(php -r \":*)"
+      "Bash(php -r \":*)",
+      "Bash(xargs ls -1)",
+      "Bash(unzip -l \"C:\\\\Users\\\\WIN11SOPOD\\\\Downloads\\\\erp\\\\nbc_ap_backend.zip\")",
+      "Bash(unzip -q nbc_ap_backend.zip)"
     ],
     "additionalDirectories": [
       "c:\\Windows\\System32\\drivers\\etc"

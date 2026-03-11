@@ -89,7 +89,7 @@
                                 <th class="border border-gray-700 px-2 py-2 w-28">SO QTY</th>
                                 <th class="border border-gray-700 px-2 py-2 w-32">NUMBER OF BOXES</th>
                                 <th class="border border-gray-700 px-2 py-2 w-32">NET WEIGHT</th>
-                                <th class="border border-gray-700 px-2 py-2 w-32">ACTUAL WEIGHT</th>
+                                <th class="border border-gray-700 px-2 py-2 w-32">ORIGIN</th>
                             </tr>
                         </thead>
                         <tbody id="itemsBody">
@@ -98,27 +98,23 @@
                 </div>
             </div>
 
-            <!-- Signature Section -->
-            <div class="mb-6">
-                <div class="border border-gray-700 rounded">
-                    <table class="w-full">
-                        <thead>
-                            <tr class="bg-gray-700">
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Issued By:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Transport:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Service Providers Checker:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Received By:</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="border border-gray-700 px-4 py-12 text-center"></td>
-                                <td class="border border-gray-700 px-4 py-12 text-center"></td>
-                                <td class="border border-gray-700 px-4 py-12 text-center"></td>
-                                <td class="border border-gray-700 px-4 py-12 text-center"></td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <!-- Signature Fields -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block font-semibold text-gray-300 mb-1">ISSUED BY:</label>
+                    <input type="text" name="issued_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('issued_by') }}" placeholder="Name / Signature">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-300 mb-1">TRANSPORT:</label>
+                    <input type="text" name="transport" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('transport') }}" placeholder="Name / Signature">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-300 mb-1">SERVICE PROVIDERS CHECKER:</label>
+                    <input type="text" name="service_providers_checker" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('service_providers_checker') }}" placeholder="Name / Signature">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-300 mb-1">RECEIVED BY:</label>
+                    <input type="text" name="received_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('received_by') }}" placeholder="Name / Signature">
                 </div>
             </div>
 
@@ -158,20 +154,25 @@ soSearch.addEventListener('input', function() {
             const res = await fetch(`${SO_SEARCH_URL}?q=${encodeURIComponent(q)}`);
             const orders = await res.json();
             if (!orders.length) { soDropdown.innerHTML = '<div class="px-3 py-2 text-gray-400 text-sm">No sales orders found.</div>'; soDropdown.classList.remove('hidden'); return; }
-            soDropdown.innerHTML = orders.map(so =>
-                `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 so-option"
-                      data-id="${so.id}" data-number="${so.sales_order_number}" data-customer="${so.customer_name || ''}">
+            soDropdown.innerHTML = orders.map(so => {
+                const isUsed = so.has_issue_slip;
+                const className = isUsed ? 'text-gray-500 bg-gray-900' : 'text-gray-200 hover:bg-gray-700 cursor-pointer';
+                const disabledAttr = isUsed ? 'disabled' : '';
+                return `<div class="px-3 py-2 text-sm so-option ${className}" ${disabledAttr}
+                      data-id="${so.id}" data-number="${so.sales_order_number}" data-customer="${so.customer_name || ''}" data-used="${isUsed}">
                     <strong>${so.sales_order_number}</strong>
-                    <span class="text-gray-400 ml-2">${so.customer_name || ''}</span>
-                    <span class="text-xs text-gray-500 ml-2">${so.status}</span>
-                </div>`
-            ).join('');
+                    <span class="ml-2">${so.customer_name || ''}</span>
+                    ${isUsed ? '<span class="text-xs ml-2 text-red-400 font-semibold">[ALREADY USED]</span>' : '<span class="text-xs text-gray-500 ml-2">' + so.status + '</span>'}
+                </div>`;
+            }).join('');
             soDropdown.classList.remove('hidden');
             soDropdown.querySelectorAll('.so-option').forEach(opt => {
-                opt.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    selectSO(this.dataset.id, this.dataset.number, this.dataset.customer);
-                });
+                if (opt.getAttribute('data-used') !== 'true') {
+                    opt.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        selectSO(this.dataset.id, this.dataset.number, this.dataset.customer);
+                    });
+                }
             });
         } catch (e) { soDropdown.classList.add('hidden'); }
     }, 250);
@@ -212,7 +213,7 @@ function loadSOItems(items) {
     const noMsg = document.getElementById('no_so_msg');
 
     if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-gray-400 py-4">No items in this Sales Order.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-400 py-4">No items in this Sales Order.</td></tr>';
         section.classList.remove('hidden');
         noMsg.classList.add('hidden');
         return;
@@ -242,8 +243,9 @@ function loadSOItems(items) {
             <td class="border border-gray-700 px-2 py-2">
                 <input type="number" step="0.0001" name="items[${i}][net_weight]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-center" value="0">
             </td>
-            <td class="border border-gray-700 px-2 py-2">
-                <input type="number" step="0.0001" name="items[${i}][actual_weight]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-center" value="0">
+            <td class="border border-gray-700 px-2 py-2 text-gray-300 text-center">
+                <input type="hidden" name="items[${i}][origin]" value="${item.note || ''}">
+                ${item.note || '-'}
             </td>
         `;
         tbody.appendChild(tr);

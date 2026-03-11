@@ -169,7 +169,7 @@ public function store(Request $request)
         $validated = $request->validate([
             'transaction_date' => 'required|date',
             'reference_number' => 'required|string|max:255|unique:ar_adjustments,reference_number',
-            'transaction_type' => 'required|in:credit_memo,debit_memo,adjustment,write_off',
+            'transaction_type' => 'required|in:atd,offset,credit_memo,debit_memo,adjustment,write_off',
             'dr_no' => 'nullable|string|max:255',
             'invoice_number' => 'nullable|string|max:255',
             'customer_code' => 'nullable|string|max:255',
@@ -283,7 +283,7 @@ public function store(Request $request)
             $validated = $request->validate([
                 'transaction_date' => 'required|date',
                 'reference_number' => 'required|string|max:255|unique:ar_adjustments,reference_number,' . $id,
-                'transaction_type' => 'required|in:credit_memo,debit_memo,adjustment,write_off',
+                'transaction_type' => 'required|in:atd,offset,credit_memo,debit_memo,adjustment,write_off',
                 'dr_no' => 'nullable|string|max:255',
                 'invoice_number' => 'nullable|string|max:255',
                 'customer_code' => 'nullable|string|max:255',

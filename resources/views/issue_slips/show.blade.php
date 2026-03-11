@@ -31,6 +31,7 @@
                 <p class="text-gray-400"><span class="font-semibold text-gray-300">Issue Slip No:</span> <span class="text-white font-bold">{{ $issueSlip->issue_slip_number }}</span></p>
                 <p class="text-gray-400"><span class="font-semibold text-gray-300">Date:</span> {{ $issueSlip->date->format('M d, Y') }}</p>
                 <p class="text-gray-400"><span class="font-semibold text-gray-300">Origin:</span> {{ $issueSlip->origin ?? 'N/A' }}</p>
+                <p class="text-gray-400"><span class="font-semibold text-gray-300">Branch:</span> {{ $issueSlip->branch ?? optional($issueSlip->salesOrder)->branch ?? optional(optional($issueSlip->salesOrder)->customer)->branch ?? 'N/A' }}</p>
             </div>
             <div class="space-y-2">
                 <p class="text-gray-400"><span class="font-semibold text-gray-300">Sales Order:</span>
@@ -41,9 +42,15 @@
             </div>
         </div>
 
+        @if($issueSlip->salesOrder && $issueSlip->salesOrder->additional_instructions)
+        <div class="mb-6">
+            <p class="text-gray-400"><span class="font-semibold text-gray-300">Delivery Instructions:</span> {{ $issueSlip->salesOrder->additional_instructions }}</p>
+        </div>
+        @endif
+
         @if($issueSlip->remarks)
         <div class="mb-6">
-            <p class="text-gray-400"><span class="font-semibold text-gray-300">Remarks:</span> {{ $issueSlip->remarks }}</p>
+            <p class="text-gray-400"><span class="font-semibold text-gray-300">Issue Slip Remarks:</span> {{ $issueSlip->remarks }}</p>
         </div>
         @endif
 
@@ -62,7 +69,7 @@
                             <th class="border border-gray-700 px-2 py-2">SO QTY</th>
                             <th class="border border-gray-700 px-2 py-2">NUMBER OF BOXES</th>
                             <th class="border border-gray-700 px-2 py-2">NET WEIGHT</th>
-                            <th class="border border-gray-700 px-2 py-2">ACTUAL WEIGHT</th>
+                            <th class="border border-gray-700 px-2 py-2">ORIGIN</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,7 +83,7 @@
                             <td class="border border-gray-700 px-2 py-2 text-center text-gray-300">{{ $item->so_quantity }}</td>
                             <td class="border border-gray-700 px-2 py-2 text-center text-white font-semibold">{{ $item->number_of_boxes }}</td>
                             <td class="border border-gray-700 px-2 py-2 text-center text-white font-semibold">{{ number_format($item->net_weight, 4) }}</td>
-                            <td class="border border-gray-700 px-2 py-2 text-center text-white font-semibold">{{ number_format($item->actual_weight, 4) }}</td>
+                            <td class="border border-gray-700 px-2 py-2 text-center text-white font-semibold">{{ $item->origin ?? '-' }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -86,29 +93,24 @@
 
         <!-- Signature Section -->
         <div class="mb-6">
-            <div class="border border-gray-700 rounded">
-                <table class="w-full">
-                    <thead>
-                        <tr class="bg-gray-700">
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Issued By:</th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Transport:</th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Service Providers Checker:</th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Received By:</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="border border-gray-700 px-4 py-12 text-center"></td>
-                            <td class="border border-gray-700 px-4 py-12 text-center"></td>
-                            <td class="border border-gray-700 px-4 py-12 text-center"></td>
-                            <td class="border border-gray-700 px-4 py-12 text-center"></td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-gray-400"><span class="font-semibold text-gray-300">Issued By:</span> {{ $issueSlip->issued_by ?? 'Not set' }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400"><span class="font-semibold text-gray-300">Transport:</span> {{ $issueSlip->transport ?? 'Not set' }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400"><span class="font-semibold text-gray-300">Service Providers Checker:</span> {{ $issueSlip->service_providers_checker ?? 'Not set' }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400"><span class="font-semibold text-gray-300">Received By:</span> {{ $issueSlip->received_by ?? 'Not set' }}</p>
+                </div>
             </div>
         </div>
 
         <!-- Delete -->
+        @if(auth()->user()->canDeleteIssueSlips())
         <div class="flex justify-end">
             <form action="{{ route('issue_slips.destroy', $issueSlip->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this issue slip?')">
                 @csrf
@@ -118,6 +120,7 @@
                 </button>
             </form>
         </div>
+        @endif
     </div>
 </div>
 @endsection

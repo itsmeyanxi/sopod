@@ -57,7 +57,16 @@ class IssueSlipController extends Controller
             'items.*.number_of_boxes'     => 'nullable|numeric|min:0',
             'items.*.net_weight'          => 'nullable|numeric|min:0',
             'items.*.actual_weight'       => 'nullable|numeric|min:0',
+            'issued_by'                   => 'nullable|string|max:255',
+            'transport'                   => 'nullable|string|max:255',
+            'service_providers_checker'   => 'nullable|string|max:255',
+            'received_by'                 => 'nullable|string|max:255',
         ]);
+
+        // Check if this Sales Order already has an Issue Slip
+        if (IssueSlip::where('sales_order_id', $request->sales_order_id)->exists()) {
+            return back()->withInput()->with('error', 'This Sales Order has already been used to create an Issue Slip. Each Sales Order can only have one Issue Slip.');
+        }
 
         DB::beginTransaction();
         try {
@@ -76,11 +85,25 @@ class IssueSlipController extends Controller
                 'sales_order_id'     => $salesOrder->id,
                 'sales_order_number' => $salesOrder->sales_order_number,
                 'customer_name'      => $salesOrder->customer_name,
+                'branch'             => $salesOrder->branch,
                 'remarks'            => $request->remarks,
+                'issued_by'          => $request->issued_by,
+                'transport'          => $request->transport,
+                'service_providers_checker' => $request->service_providers_checker,
+                'received_by'        => $request->received_by,
                 'created_by'         => Auth::id(),
             ]);
 
             foreach ($request->items as $item) {
+                // Get the origin/notes from the SalesOrderItem
+                $origin = null;
+                if (!empty($item['sales_order_item_id'])) {
+                    $soItem = \App\Models\SalesOrderItem::find($item['sales_order_item_id']);
+                    if ($soItem) {
+                        $origin = $soItem->note; // Get the note from SalesOrderItem
+                    }
+                }
+
                 IssueSlipItem::create([
                     'issue_slip_id'       => $issueSlip->id,
                     'sales_order_item_id' => !empty($item['sales_order_item_id']) ? $item['sales_order_item_id'] : null,
@@ -88,6 +111,7 @@ class IssueSlipController extends Controller
                     'item_description'    => $item['item_description'] ?? null,
                     'brand'               => $item['brand'] ?? null,
                     'item_category'       => $item['item_category'] ?? null,
+                    'origin'              => $origin, // Auto-populated from SalesOrderItem note
                     'so_quantity'         => $item['so_quantity'] ?? 0,
                     'number_of_boxes'     => $item['number_of_boxes'] ?? 0,
                     'net_weight'          => $item['net_weight'] ?? 0,
@@ -126,6 +150,10 @@ class IssueSlipController extends Controller
             'items.*.number_of_boxes' => 'nullable|numeric|min:0',
             'items.*.net_weight'      => 'nullable|numeric|min:0',
             'items.*.actual_weight'   => 'nullable|numeric|min:0',
+            'issued_by'                   => 'nullable|string|max:255',
+            'transport'                   => 'nullable|string|max:255',
+            'service_providers_checker'   => 'nullable|string|max:255',
+            'received_by'                 => 'nullable|string|max:255',
         ]);
 
         DB::beginTransaction();
@@ -137,11 +165,24 @@ class IssueSlipController extends Controller
                 'customer_id' => $request->customer_id ?: null,
                 'destination' => $request->destination,
                 'remarks'     => $request->remarks,
+                'issued_by'   => $request->issued_by,
+                'transport'   => $request->transport,
+                'service_providers_checker' => $request->service_providers_checker,
+                'received_by' => $request->received_by,
             ]);
 
             $issueSlip->items()->delete();
 
             foreach ($request->items as $item) {
+                // Get the origin/notes from the SalesOrderItem
+                $origin = null;
+                if (!empty($item['sales_order_item_id'])) {
+                    $soItem = \App\Models\SalesOrderItem::find($item['sales_order_item_id']);
+                    if ($soItem) {
+                        $origin = $soItem->note; // Get the note from SalesOrderItem
+                    }
+                }
+
                 IssueSlipItem::create([
                     'issue_slip_id'       => $issueSlip->id,
                     'sales_order_item_id' => !empty($item['sales_order_item_id']) ? $item['sales_order_item_id'] : null,
@@ -149,6 +190,7 @@ class IssueSlipController extends Controller
                     'item_description'    => $item['item_description'] ?? null,
                     'brand'               => $item['brand'] ?? null,
                     'item_category'       => $item['item_category'] ?? null,
+                    'origin'              => $origin, // Auto-populated from SalesOrderItem note
                     'so_quantity'         => $item['so_quantity'] ?? 0,
                     'number_of_boxes'     => $item['number_of_boxes'] ?? 0,
                     'net_weight'          => $item['net_weight'] ?? 0,
@@ -168,6 +210,11 @@ class IssueSlipController extends Controller
 
     public function destroy($id)
     {
+        // Check if user has permission to delete issue slips
+        if (!auth()->user()->canDeleteIssueSlips()) {
+            abort(403, 'Unauthorized to delete issue slips.');
+        }
+
         $issueSlip = IssueSlip::findOrFail($id);
         $issueSlip->delete();
 
@@ -195,6 +242,11 @@ class IssueSlipController extends Controller
             ->limit(10)
             ->get(['id', 'sales_order_number', 'customer_name', 'status', 'request_delivery_date']);
 
+        // Mark which SOs are already used for Issue Slips
+        $results->each(function ($so) {
+            $so->has_issue_slip = IssueSlip::where('sales_order_id', $so->id)->exists();
+        });
+
         return response()->json($results);
     }
 
@@ -214,6 +266,7 @@ class IssueSlipController extends Controller
                 'item_category'    => $item->item_category,
                 'quantity'         => $item->quantity,
                 'unit'             => $item->unit,
+                'note'             => $item->note, // Include note so origin can be displayed
             ];
         });
 

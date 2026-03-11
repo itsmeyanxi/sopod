@@ -96,10 +96,10 @@
         <div class="header-top">
             <div class="header-title-section">
                 <div class="main-title">ACCOUNTS PAYABLE VOUCHER</div>
-                <div class="company-name">Pacific Magalang Agriventures Inc.</div>
+                <div class="company-name">Meatplus Trading Corp</div>
             </div>
             <div class="logo-section">
-                <img src="{{ asset('images/sopod-logo.png') }}" class="logo" alt="Logo">
+                <img src="{{ asset('images/sopod-logo.PNG') }}" class="logo" alt="Logo">
                 <div class="header-info-right">
                     <div><strong>APV Date:</strong> {{ $apv->apv_date ? $apv->apv_date->format('F j, Y') : '' }}</div>
                     <div><strong>Doc Date:</strong> {{ $apv->document_date ? $apv->document_date->format('F j, Y') : '' }}</div>

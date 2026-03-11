@@ -84,7 +84,7 @@ class RbacSeeder extends Seeder
             [
                 'name'  => 'Procurement',
                 'color' => '#CA8A04',
-                'subs'  => ['Requisitioner', 'PR Approver', 'Procurement Approver'],
+                'subs'  => ['Requisitioner', 'PR Approver', 'Procurement Approver', 'PO Creator'],
             ],
         ];
 

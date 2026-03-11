@@ -111,7 +111,7 @@
     <div class="page">
         <!-- Header -->
         <div class="header">
-            <img src="{{ asset('images/sopod-logo.png') }}" class="header-logo" alt="Logo">
+            <img src="{{ asset('images/sopod-logo.PNG') }}" class="header-logo" alt="Logo">
             <div class="header-company">
                 <div class="company-name">{{ $purchaseRequest->company }}</div>
             </div>

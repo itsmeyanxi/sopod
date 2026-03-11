@@ -43,6 +43,7 @@
                         <th class="border border-gray-700 px-3 py-2 text-left">IS NUMBER</th>
                         <th class="border border-gray-700 px-3 py-2 text-left">DATE</th>
                         <th class="border border-gray-700 px-3 py-2 text-left">ORIGIN</th>
+                        <th class="border border-gray-700 px-3 py-2 text-left">BRANCH</th>
                         <th class="border border-gray-700 px-3 py-2 text-left">SO NUMBER</th>
                         <th class="border border-gray-700 px-3 py-2 text-left">DESTINATION</th>
                         <th class="border border-gray-700 px-3 py-2 text-left">CREATED BY</th>
@@ -57,6 +58,7 @@
                         </td>
                         <td class="border border-gray-700 px-3 py-2">{{ $is->date->format('M d, Y') }}</td>
                         <td class="border border-gray-700 px-3 py-2">{{ $is->origin ?? '-' }}</td>
+                        <td class="border border-gray-700 px-3 py-2">{{ $is->branch ?? optional($is->salesOrder)->branch ?? optional(optional($is->salesOrder)->customer)->branch ?? '-' }}</td>
                         <td class="border border-gray-700 px-3 py-2">{{ $is->sales_order_number }}</td>
                         <td class="border border-gray-700 px-3 py-2">{{ $is->destination ?? $is->customer_name }}</td>
                         <td class="border border-gray-700 px-3 py-2">{{ $is->creator->name ?? '-' }}</td>
@@ -70,7 +72,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="border border-gray-700 px-3 py-6 text-center text-gray-400">No issue slips found.</td>
+                        <td colspan="8" class="border border-gray-700 px-3 py-6 text-center text-gray-400">No issue slips found.</td>
                     </tr>
                     @endforelse
                 </tbody>

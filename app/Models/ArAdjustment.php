@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ArAdjustment extends Model
+class ARAdjustment extends Model
 {
     protected $table = 'ar_adjustments';
 
@@ -62,6 +62,8 @@ class ArAdjustment extends Model
     public function getFormattedTypeAttribute()
 {
     return match($this->transaction_type) {
+        'atd' => 'ATD (Authority to Debit)',
+        'offset' => 'Offset',
         'credit_memo' => 'Credit Memo',
         'debit_memo' => 'Debit Memo',
         'adjustment' => 'Adjustment',

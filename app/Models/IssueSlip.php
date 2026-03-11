@@ -15,7 +15,12 @@ class IssueSlip extends Model
         'customer_name',
         'customer_id',
         'destination',
+        'branch',
         'remarks',
+        'issued_by',
+        'transport',
+        'service_providers_checker',
+        'received_by',
         'created_by',
     ];
 

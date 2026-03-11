@@ -190,7 +190,7 @@
     <!-- Header -->
     <div class="header">
         <div class="header-logo">
-            <img src="{{ asset('images/sopod-logo.png') }}" alt="MeatPlus">
+            <img src="{{ asset('images/sopod-logo.PNG') }}" alt="MeatPlus">
         </div>
         <div class="header-center">
             <h1>CASH ADVANCE REQUEST</h1>

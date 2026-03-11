@@ -45,7 +45,7 @@
             <div class="text-center mb-6">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-bold">Pacific Magalang Agriventures Inc.</h2>
+                        <h2 class="text-2xl font-bold">Meatplus Trading Corp</h2>
                         <p class="text-xs">12F Victoria Building</p>
                         <p class="text-xs">United Nations Avenue, Ermita, Manila, Philippines, 1004</p>
                         <p class="text-xs">VAT Reg. TIN 006-873-989-000</p>

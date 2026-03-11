@@ -108,6 +108,10 @@ class User extends Authenticatable
 
     public function canCreateSalesOrders()
     {
+        // CC and Accounting cannot create sales orders
+        if ($this->hasRole(['Credit & Collection', 'Accounting'])) {
+            return false;
+        }
         return $this->canPerformInModule('can_create', 'sales_orders');
     }
 
@@ -120,11 +124,19 @@ class User extends Authenticatable
 
     public function canManageItems()
     {
+        // Delivery cannot access items
+        if ($this->isDeliveryOnlyRole()) {
+            return false;
+        }
         return $this->canAccessModule('items');
     }
 
     public function canAddItems()
     {
+        // CC cannot create items
+        if ($this->hasRole('Credit & Collection')) {
+            return false;
+        }
         return $this->canPerformInModule('can_create', 'items');
     }
 
@@ -147,11 +159,19 @@ class User extends Authenticatable
 
     public function canManageCustomers()
     {
+        // Delivery cannot access customers
+        if ($this->isDeliveryOnlyRole()) {
+            return false;
+        }
         return $this->canAccessModule('customers');
     }
 
     public function canAddCustomers()
     {
+        // Accounting cannot create customers
+        if ($this->hasRole('Accounting')) {
+            return false;
+        }
         return $this->canPerformInModule('can_create', 'customers');
     }
 
@@ -182,17 +202,64 @@ class User extends Authenticatable
         return $this->canPerformInModule('can_create', 'deliveries');
     }
 
+    // ==================== REIMBURSEMENT PERMISSIONS ====================
+
+    public function canAccessReimbursementForms()
+    {
+        // Delivery cannot access reimbursement forms
+        if ($this->isDeliveryOnlyRole()) {
+            return false;
+        }
+        return $this->canAccessModule('reimbursement');
+    }
+
+    public function canCreateReimbursementForms()
+    {
+        return $this->canPerformInModule('can_create', 'reimbursement');
+    }
+
+    public function canApproveReimbursementForms()
+    {
+        return $this->canPerformInModule('can_approve', 'reimbursement');
+    }
+
+    // ==================== CASH ADVANCE PERMISSIONS ====================
+
+    public function canAccessCashAdvanceRequests()
+    {
+        // Delivery cannot access cash advance requests
+        if ($this->isDeliveryOnlyRole()) {
+            return false;
+        }
+        return $this->canAccessModule('cash_advance');
+    }
+
+    public function canCreateCashAdvanceRequests()
+    {
+        return $this->canPerformInModule('can_create', 'cash_advance');
+    }
+
+    public function canApproveCashAdvanceRequests()
+    {
+        return $this->canPerformInModule('can_approve', 'cash_advance');
+    }
+
     // ==================== USER MANAGEMENT ====================
 
     public function canManageUsers()
     {
-        return $this->canAccessModule('user_management');
+        // Check new RBAC system OR legacy IT role for backward compatibility
+        return $this->canAccessModule('user_management') || $this->hasRole('IT') || $this->role === 'IT';
     }
 
     // ==================== IMPORT PERMISSIONS ====================
 
     public function canImportItems()
     {
+        // CC cannot import items
+        if ($this->hasRole('Credit & Collection')) {
+            return false;
+        }
         return $this->canPerformInModule('can_create', 'items');
     }
 
@@ -205,12 +272,34 @@ class User extends Authenticatable
 
     public function canManageSuppliers()
     {
+        // CC and Delivery cannot manage suppliers
+        if ($this->hasRole(['Credit & Collection', 'Delivery'])) {
+            return false;
+        }
         return $this->canAccessModule('suppliers');
     }
 
     public function canDeleteSuppliers()
     {
         return $this->canPerformInModule('can_delete', 'suppliers');
+    }
+
+    // ==================== DELIVERY ROLE RESTRICTIONS ====================
+
+    public function isDeliveryOnlyRole()
+    {
+        // Check if user is Delivery role - they have restricted access
+        return $this->hasRole('Delivery');
+    }
+
+    public function isPOCreatorRole()
+    {
+        // Check if user is PO Creator sub-department - they can only create POs
+        return $this->userRoles()
+            ->whereHas('subDepartment', function ($query) {
+                $query->where('name', 'PO Creator');
+            })
+            ->exists();
     }
 
     // ==================== SUPPLIER RECEIVING REPORTS ====================
@@ -232,10 +321,19 @@ class User extends Authenticatable
         return $this->canAccessModule('issue_slips');
     }
 
+    public function canDeleteIssueSlips()
+    {
+        return $this->canPerformInModule('can_delete', 'issue_slips');
+    }
+
     // ==================== PURCHASE REQUEST ROLES ====================
 
     public function canManagePurchaseRequests()
     {
+        // Delivery cannot access purchase requests
+        if ($this->isDeliveryOnlyRole()) {
+            return false;
+        }
         return $this->canAccessModule('purchase_requests');
     }
 
@@ -268,31 +366,59 @@ class User extends Authenticatable
 
     public function canManagePurchaseOrders()
     {
+        // Delivery cannot access purchase orders
+        if ($this->isDeliveryOnlyRole()) {
+            return false;
+        }
+        // PO Creator can only create, allow access to the module
+        if ($this->isPOCreatorRole()) {
+            return true;
+        }
         return $this->canAccessModule('purchase_orders');
     }
 
     public function canCreatePurchaseOrders()
     {
+        // PO Creator can create
+        if ($this->isPOCreatorRole()) {
+            return true;
+        }
         return $this->canPerformInModule('can_create', 'purchase_orders');
     }
 
     public function canApprovePurchaseOrders()
     {
+        // PO Creator cannot approve
+        if ($this->isPOCreatorRole()) {
+            return false;
+        }
         return $this->canPerformInModule('can_approve', 'purchase_orders');
     }
 
     public function canApprovePurchaseOrdersAsDH()
     {
+        // PO Creator cannot approve
+        if ($this->isPOCreatorRole()) {
+            return false;
+        }
         return $this->hasPermission('can_approve', 16); // Department Head sub-dept
     }
 
     public function canApprovePurchaseOrdersAsManagement()
     {
+        // PO Creator cannot approve
+        if ($this->isPOCreatorRole()) {
+            return false;
+        }
         return $this->userRoles()->whereIn('sub_department_id', [17, 18])->where('can_approve', true)->exists() || $this->isAdminUser();
     }
 
     public function canApprovePurchaseOrdersAsExecutive()
     {
+        // PO Creator cannot approve
+        if ($this->isPOCreatorRole()) {
+            return false;
+        }
         return $this->userRoles()->whereIn('sub_department_id', [19, 20])->where('can_approve', true)->exists() || $this->isAdminUser();
     }
 
@@ -300,6 +426,10 @@ class User extends Authenticatable
 
     public function canManageRequestForPayments()
     {
+        // Delivery cannot access request for payments
+        if ($this->isDeliveryOnlyRole()) {
+            return false;
+        }
         return $this->canAccessModule('rfp');
     }
 
@@ -337,6 +467,11 @@ class User extends Authenticatable
     public function canApproveAPV()
     {
         return $this->hasPermission('can_approve', 26); // Accounting sub-dept
+    }
+
+    public function canApproveAPVInvoices()
+    {
+        return $this->canApproveAPV();
     }
 
     // CV permissions
@@ -434,9 +569,10 @@ class User extends Authenticatable
      */
     public function isAdminUser(): bool
     {
+        // Check new RBAC system OR legacy IT/Admin role
         return $this->userRoles()
             ->whereIn('sub_department_id', self::ADMIN_SUB_DEPARTMENTS)
-            ->exists();
+            ->exists() || $this->hasRole(['IT', 'Admin']) || in_array($this->role, ['IT', 'Admin']);
     }
 
     /**
@@ -540,6 +676,16 @@ class User extends Authenticatable
         return $this->canAccessModule('payments');
     }
 
+    public function canAccessAPV()
+    {
+        return $this->canAccessModule('apv');
+    }
+
+    public function canCreateAPV()
+    {
+        return $this->canPerformInModule('can_create', 'apv');
+    }
+
     public function canAccessAgingReports()
     {
         return $this->canAccessModule('aging_reports');
@@ -562,6 +708,10 @@ class User extends Authenticatable
 
     public function canAccessSalesAnalytics()
     {
+        // Delivery cannot access sales analytics
+        if ($this->isDeliveryOnlyRole()) {
+            return false;
+        }
         return $this->canAccessModule('sales_analytics');
     }
 
@@ -573,6 +723,14 @@ class User extends Authenticatable
     public function canAccessExcelImport()
     {
         return $this->canAccessModule('excel_import');
+    }
+
+    // ==================== PRESIDENT/VP ROLE RESTRICTIONS ====================
+
+    public function isPresidentOrVicePresident()
+    {
+        // Check if user has President or Vice President role
+        return $this->hasRole(['President', 'Vice President']);
     }
 
 }

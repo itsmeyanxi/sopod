@@ -58,7 +58,7 @@
         <!-- Header -->
         <div class="header">
             <div class="logo-section">
-                <img src="{{ asset('images/sopod-logo.png') }}" class="logo" alt="Logo">
+                <img src="{{ asset('images/sopod-logo.PNG') }}" class="logo" alt="Logo">
                 <div class="company-info">
                     <div class="company-name">{{ $apv->company ?? 'MEATPLUS' }}</div>
                     <div class="company-address">

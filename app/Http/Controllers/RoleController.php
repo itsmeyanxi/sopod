@@ -124,7 +124,7 @@ class RoleController extends Controller
         ]);
     }
 
-    public function removeRole($id)
+    public function removeRole(Request $request, $id)
     {
         if (!RoleHelper::canManageUsers()) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -147,7 +147,7 @@ class RoleController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function changeRoleType($id)
+    public function changeRoleType(Request $request, $id)
     {
         if (!RoleHelper::canManageUsers()) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -253,7 +253,7 @@ class RoleController extends Controller
         ]);
     }
 
-    public function destroyUser($id)
+    public function destroyUser(Request $request, $id)
     {
         if (!RoleHelper::canManageUsers()) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -280,7 +280,7 @@ class RoleController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function toggleLockUser($id)
+    public function toggleLockUser(Request $request, $id)
     {
         if (!RoleHelper::canManageUsers()) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -341,7 +341,7 @@ class RoleController extends Controller
         }
     }
 
-    public function resetLoginAttempts($id)
+    public function resetLoginAttempts(Request $request, $id)
     {
         if (!RoleHelper::canManageUsers()) {
             return response()->json(['error' => 'Unauthorized'], 403);

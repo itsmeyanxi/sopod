@@ -66,6 +66,26 @@
                 </div>
             </div>
 
+            <!-- Signature Fields -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block font-semibold text-gray-300 mb-1">ISSUED BY:</label>
+                    <input type="text" name="issued_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('issued_by', $issueSlip->issued_by) }}" placeholder="Name / Signature">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-300 mb-1">TRANSPORT:</label>
+                    <input type="text" name="transport" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('transport', $issueSlip->transport) }}" placeholder="Name / Signature">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-300 mb-1">SERVICE PROVIDERS CHECKER:</label>
+                    <input type="text" name="service_providers_checker" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('service_providers_checker', $issueSlip->service_providers_checker) }}" placeholder="Name / Signature">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-300 mb-1">RECEIVED BY:</label>
+                    <input type="text" name="received_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('received_by', $issueSlip->received_by) }}" placeholder="Name / Signature">
+                </div>
+            </div>
+
             <!-- Items Table -->
             <div class="mb-6">
                 <h3 class="text-lg font-semibold text-white mb-2">Items</h3>

@@ -4,7 +4,7 @@
 @section('content')
 @php
     // Convert logo to base64 (same method as PDF)
-    $logoPath = public_path('images/sopod-logo.png');
+    $logoPath = public_path('images/sopod-logo.PNG');
     $logoBase64 = '';
     if (file_exists($logoPath)) {
         $logoData = base64_encode(file_get_contents($logoPath));

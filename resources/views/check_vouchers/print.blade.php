@@ -39,6 +39,11 @@
         .detail-label { font-weight: bold; width: 120px; }
         .detail-value { flex: 1; }
 
+        .payment-details-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 8px; }
+        .payment-field { display: flex; flex-direction: column; }
+        .payment-field-label { font-weight: bold; font-size: 9px; margin-bottom: 2px; }
+        .payment-field-value { border: 1px solid #000; padding: 4px; font-size: 10px; min-height: 20px; }
+
         .e-signature { font-size: 8px; color: #333; margin-top: 4px; font-style: normal; font-weight: 500; }
         .e-signature-detail { font-size: 7px; color: #666; margin-top: 2px; font-style: italic; }
 
@@ -58,9 +63,9 @@
         <!-- Header -->
         <div class="header">
             <div class="logo-section">
-                <img src="{{ asset('images/sopod-logo.png') }}" class="logo" alt="Logo">
+                <img src="{{ asset('images/sopod-logo.PNG') }}" class="logo" alt="Logo">
                 <div class="company-info">
-                    <div class="company-name">{{ $checkVoucher->company ?? 'Pacific Magalang Agriventures Inc.' }}</div>
+                    <div class="company-name">{{ $checkVoucher->company ?? 'Meatplus Trading Corp' }}</div>
                     <div class="company-address">
                         12F Victoria Building, United Nations Avenue, Ermita, Manila, Philippines, 1004<br>
                         VAT Reg. TIN 006-873-989-000
@@ -94,7 +99,8 @@
             </div>
         </div>
 
-        <!-- Check Details -->
+        <!-- Payment Details -->
+        <!-- Additional Check Details -->
         <div class="detail-box">
             <div class="detail-row">
                 <div class="detail-label">Check #:</div>
@@ -112,49 +118,36 @@
                 <div class="detail-label">Check Amount:</div>
                 <div class="detail-value">{{ $checkVoucher->check_amount ? number_format($checkVoucher->check_amount, 2) : '' }}</div>
             </div>
-            <div class="detail-row">
-                <div class="detail-label">Check Date:</div>
-                <div class="detail-value">{{ $checkVoucher->check_date ? $checkVoucher->check_date->format('m/d/Y') : '' }}</div>
+        </div>
+        <div class="section-header">PAYMENT DETAILS:</div>
+        <div class="payment-details-row">
+            <div class="payment-field">
+                <div class="payment-field-label">Date</div>
+                <div class="payment-field-value">{{ $checkVoucher->check_date ? $checkVoucher->check_date->format('m/d/Y') : '' }}</div>
+            </div>
+            <div class="payment-field">
+                <div class="payment-field-label">Type</div>
+                <div class="payment-field-value">{{ $checkVoucher->payment_type ?? '' }}</div>
+            </div>
+            <div class="payment-field">
+                <div class="payment-field-label">Reference No.</div>
+                <div class="payment-field-value">{{ $checkVoucher->reference_no ?? '' }}</div>
+            </div>
+            <div class="payment-field">
+                <div class="payment-field-label">APV No.</div>
+                <div class="payment-field-value">{{ $checkVoucher->apv_no ?? '' }}</div>
+            </div>
+            <div class="payment-field">
+                <div class="payment-field-label">Paid Amount</div>
+                <div class="payment-field-value">{{ $checkVoucher->paid_amount ? number_format($checkVoucher->paid_amount, 2) : '' }}</div>
             </div>
         </div>
 
-        <!-- Line Items Table -->
+        <!-- Particulars Section -->
         <div class="section-header">PARTICULARS:</div>
-        <table style="margin-bottom: 10px;">
-            <thead>
-                <tr>
-                    <th style="width: 5%;">No.</th>
-                    <th style="width: 15%;">Date</th>
-                    <th style="width: 15%;">Type</th>
-                    <th style="width: 25%;">Reference No.</th>
-                    <th style="width: 20%;">Particulars</th>
-                    <th style="width: 20%;">Amount (PHP)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($checkVoucher->items ?? [] as $item)
-                    <tr>
-                        <td class="text-center">{{ $loop->iteration }}</td>
-                        <td class="text-center">{{ $item->date ? $item->date->format('m/d/Y') : '' }}</td>
-                        <td class="text-center">{{ $item->type ?? '' }}</td>
-                        <td class="text-left">{{ $item->reference_no ?? '' }}</td>
-                        <td class="text-left">{{ $item->particulars ?? '' }}</td>
-                        <td class="text-right">{{ $item->amount ? number_format($item->amount, 2) : '' }}</td>
-                    </tr>
-                @empty
-                    @for($i = 0; $i < 5; $i++)
-                        <tr>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                        </tr>
-                    @endfor
-                @endforelse
-            </tbody>
-        </table>
+        <div style="border: 1px solid #000; padding: 8px; margin-bottom: 10px; min-height: 60px; font-size: 10px;">
+            {{ $checkVoucher->particulars ?? '' }}
+        </div>
 <!-- Journal Entry -->
 @if(is_array($checkVoucher->journal_entries) && count($checkVoucher->journal_entries) > 0)
 <div class="section-header" style="margin-top: 10px;">JOURNAL ENTRY:</div>

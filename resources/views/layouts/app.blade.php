@@ -155,6 +155,24 @@
         </a>
         @endif
 
+        <!-- =================== RESTRICTED: Hide everything below for President/VP =================== -->
+        @if(!auth()->user()->isPresidentOrVicePresident())
+
+        <!-- =================== PO CREATOR ROLE (LIMITED ACCESS) =================== -->
+        @if(auth()->user()->isPOCreatorRole())
+            <div>
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                    <span class="flex items-center space-x-2">
+                        <span>📦</span>
+                        <span class="sidebar-text">Purchase Order</span>
+                    </span>
+                    <span class="chevron">▼</span>
+                </button>
+                <div class="submenu ml-8 space-y-1 hidden">
+                    <a href="{{ route('purchase_orders.create') }}" class="block hover:underline">Create Purchase Order</a>
+                </div>
+            </div>
+        @else
         <!-- =================== SALES ORDERS =================== -->
         @if(auth()->user()->canManageSalesOrders())
             <div>
@@ -355,6 +373,7 @@
                 </div>
             </div>
         @endif
+        @endif <!-- Close PO Creator role check -->
 
         <!-- =================== AGING REPORT =================== -->
         @if(auth()->user()->canAccessAgingReports())
@@ -426,6 +445,7 @@
                 <span class="sidebar-text">Record Lock</span>
             </a>
         @endif
+        @endif <!-- Close President/VP restriction -->
     </nav>
 </div>
 

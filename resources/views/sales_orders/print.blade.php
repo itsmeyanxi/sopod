@@ -193,8 +193,8 @@
 <body onload="window.print()">
 
     <div class="header">
-        <img src="{{ asset('images/sopod-logo.png') }}" class="logo" alt="Logo">
-        <div class="company-name">Meatplus Trading Corp</div>
+        <img src="{{ asset('images/sopod-logo.PNG') }}" class="logo" alt="Logo">
+        <div class="company-name">Meatplus Trading Corp.</div>
         <div class="company-info">
             12F Victoria Building, United Nations Avenue, Ermita, Manila, Philippines, 1004<br>
             VAT Reg. TIN 006-873-989-000

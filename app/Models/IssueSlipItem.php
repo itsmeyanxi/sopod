@@ -13,6 +13,7 @@ class IssueSlipItem extends Model
         'item_description',
         'brand',
         'item_category',
+        'origin',
         'so_quantity',
         'number_of_boxes',
         'net_weight',

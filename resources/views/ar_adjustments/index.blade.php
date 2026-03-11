@@ -63,6 +63,8 @@
                         <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Type</label>
                         <select id="filter_transaction_type" class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2">
                             <option value="">All Types</option>
+                            <option value="atd">ATD (Authority to Debit)</option>
+                            <option value="offset">Offset</option>
                             <option value="credit_memo">Credit Memo</option>
                             <option value="debit_memo">Debit Memo</option>
                             <option value="adjustment">Adjustment</option>
@@ -554,6 +556,8 @@ function filterAdjustmentList() {
                 row.className = 'border-b border-gray-700 hover:bg-gray-750';
 
                 const typeColor = {
+                    'atd': 'blue',
+                    'offset': 'indigo',
                     'credit_memo': 'green',
                     'debit_memo': 'red',
                     'adjustment': 'yellow',

@@ -21,19 +21,19 @@
 
         .page-container {
             width: 100%;
-            height: 100vh;
+            height: auto;
             display: flex;
             flex-direction: column;
-            gap: 6mm;
+            gap: 12mm;
         }
 
         .slip-copy {
-            flex: 1;
             border: 1.5px solid #999;
-            padding: 4mm 5mm;
+            padding: 3mm 4mm;
             display: flex;
             flex-direction: column;
             page-break-inside: avoid;
+            margin-top: 12mm;
         }
 
         /* ========== HEADER ========== */
@@ -41,24 +41,24 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 3mm;
+            margin-bottom: 2mm;
             border-bottom: 1.5px solid #c00;
-            padding-bottom: 2mm;
+            padding-bottom: 1.5mm;
         }
 
         .slip-header-left {
             display: flex;
             align-items: center;
-            gap: 3mm;
+            gap: 2mm;
         }
 
         .slip-header-left img {
-            width: 50px;
+            width: 40px;
             height: auto;
         }
 
         .slip-header-left .company-info {
-            line-height: 1.3;
+            line-height: 1.2;
         }
 
         .slip-header-left .company-name {
@@ -68,7 +68,7 @@
         }
 
         .slip-header-left .company-sub {
-            font-size: 7px;
+            font-size: 8px;
             color: #666;
         }
 
@@ -80,12 +80,12 @@
             font-size: 14px;
             font-weight: bold;
             color: #c00;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .slip-number {
             font-size: 10px;
-            margin-top: 1mm;
+            margin-top: 0.5mm;
             font-weight: bold;
         }
 
@@ -93,13 +93,13 @@
         .slip-meta {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 2mm;
+            margin-bottom: 1.5mm;
             font-size: 9px;
         }
 
         .meta-row {
             display: flex;
-            gap: 4mm;
+            gap: 3mm;
         }
 
         .meta-label {
@@ -109,23 +109,23 @@
 
         .meta-value {
             border-bottom: 1px solid #999;
-            min-width: 30mm;
-            padding: 0 2mm;
+            min-width: 25mm;
+            padding: 0.5mm 1.5mm;
         }
 
         /* ========== ITEMS TABLE ========== */
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 2mm;
+            margin-bottom: 1.5mm;
             flex: 1;
         }
 
         .items-table th {
             background: #c00;
             color: white;
-            font-size: 8px;
-            padding: 2px 3px;
+            font-size: 8.5px;
+            padding: 3px 4px;
             text-align: center;
             font-weight: bold;
             border: 1px solid #999;
@@ -134,7 +134,7 @@
 
         .items-table td {
             border: 1px solid #ccc;
-            padding: 2px 3px;
+            padding: 3px 4px;
             font-size: 8.5px;
             text-align: center;
             vertical-align: middle;
@@ -150,13 +150,14 @@
 
         /* Empty rows for manual writing */
         .items-table .empty-row td {
-            height: 5mm;
+            height: 3.5mm;
         }
 
         /* ========== SIGNATURES ========== */
         .signatures {
             display: flex;
             justify-content: space-between;
+            gap: 4mm;
             margin-top: auto;
             padding-top: 2mm;
             border-top: 1px solid #ddd;
@@ -164,31 +165,52 @@
 
         .sig-block {
             text-align: center;
-            width: 23%;
+            flex: 1;
         }
 
         .sig-label {
-            font-size: 7.5px;
+            font-size: 8px;
             font-weight: bold;
             color: #555;
             text-transform: uppercase;
-            margin-bottom: 10mm;
+            margin-bottom: 7mm;
         }
 
         .sig-line {
             border-top: 1px solid #333;
-            margin-top: 1mm;
-            padding-top: 1mm;
-            font-size: 7px;
+            margin-top: 0.5mm;
+            padding-top: 0.5mm;
+            font-size: 8px;
             color: #999;
         }
 
         /* ========== COPY LABEL ========== */
         .copy-label {
-            font-size: 7px;
+            font-size: 9px;
             color: #aaa;
             text-align: right;
             font-style: italic;
+        }
+
+        /* ========== REMARKS ========== */
+        .remarks-section {
+            margin: 1.5mm 0;
+            padding: 1.5mm 2mm;
+            background: #fafafa;
+            border: 1px solid #ddd;
+        }
+
+        .remarks-label {
+            font-size: 8.5px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 0.5mm;
+        }
+
+        .remarks-content {
+            font-size: 8.5px;
+            color: #333;
+            line-height: 1.3;
         }
 
         @media print {
@@ -216,10 +238,10 @@
             <!-- Header -->
             <div class="slip-header">
                 <div class="slip-header-left">
-                    <img src="{{ asset('images/sopod-logo.png') }}" alt="Logo">
+                    <img src="{{ asset('images/sopod-logo.PNG') }}" alt="Logo">
                     <div class="company-info">
                         <div class="company-name">MEATPLUS</div>
-                        <div class="company-sub">Pacific Magalang Agriventures Inc.</div>
+                        <div class="company-sub">Meatplus Trading Corp.</div>
                     </div>
                 </div>
                 <div class="slip-header-right">
@@ -235,12 +257,12 @@
                     <span class="meta-value">{{ $issueSlip->date->format('d-M-y') }}</span>
                 </div>
                 <div class="meta-row">
-                    <span class="meta-label">ORIGIN:</span>
-                    <span class="meta-value">{{ $issueSlip->origin ?? '' }}</span>
-                </div>
-                <div class="meta-row">
                     <span class="meta-label">DESTINATION:</span>
                     <span class="meta-value">{{ $issueSlip->destination ?? $issueSlip->customer_name ?? '' }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">BRANCH:</span>
+                    <span class="meta-value">{{ $issueSlip->branch ?? optional($issueSlip->salesOrder)->branch ?? optional(optional($issueSlip->salesOrder)->customer)->branch ?? '' }}</span>
                 </div>
                 <div class="meta-row">
                     <span class="meta-label">SO#:</span>
@@ -260,7 +282,7 @@
                         <th style="width:8%">SO QTY</th>
                         <th style="width:12%">NUMBER OF BOXES</th>
                         <th style="width:12%">NET WEIGHT</th>
-                        <th style="width:12%">ACTUAL WEIGHT</th>
+                        <th style="width:12%">ORIGIN</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -272,9 +294,9 @@
                         <td>{{ $item->brand }}</td>
                         <td>{{ $item->item_category }}</td>
                         <td>{{ $item->so_quantity ? number_format($item->so_quantity, 2) : '' }}</td>
-                        <td>{{ $item->number_of_boxes ? number_format($item->number_of_boxes, 2) : '' }}</td>
-                        <td>{{ $item->net_weight ? number_format($item->net_weight, 4) : '' }}</td>
-                        <td>{{ $item->actual_weight ? number_format($item->actual_weight, 4) : '' }}</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>{{ $item->origin ?? '-' }}</td>
                     </tr>
                     @endforeach
                     @for($i = $issueSlip->items->count(); $i < 8; $i++)
@@ -293,23 +315,35 @@
                 </tbody>
             </table>
 
+            <!-- Remarks Section -->
+            <div class="remarks-section">
+                @if($issueSlip->salesOrder && $issueSlip->salesOrder->additional_instructions)
+                <div class="remarks-label">DELIVERY INSTRUCTIONS:</div>
+                <div class="remarks-content">{{ $issueSlip->salesOrder->additional_instructions }}</div>
+                @endif
+                @if($issueSlip->remarks)
+                <div class="remarks-label" @if($issueSlip->salesOrder && $issueSlip->salesOrder->additional_instructions) style="margin-top: 8px;" @endif>ISSUE SLIP REMARKS:</div>
+                <div class="remarks-content">{{ $issueSlip->remarks }}</div>
+                @endif
+            </div>
+
             <!-- Signatures -->
             <div class="signatures">
                 <div class="sig-block">
                     <div class="sig-label">Issued By</div>
-                    <div class="sig-line">Signature over printed name</div>
+                    <div class="sig-line">{{ $issueSlip->issued_by ?? 'Signature over printed name' }}</div>
                 </div>
                 <div class="sig-block">
                     <div class="sig-label">Transport</div>
-                    <div class="sig-line">Signature over printed name</div>
+                    <div class="sig-line">{{ $issueSlip->transport ?? 'Signature over printed name' }}</div>
                 </div>
                 <div class="sig-block">
                     <div class="sig-label">Service Providers Checker</div>
-                    <div class="sig-line">Signature over printed name</div>
+                    <div class="sig-line">{{ $issueSlip->service_providers_checker ?? 'Signature over printed name' }}</div>
                 </div>
                 <div class="sig-block">
                     <div class="sig-label">Received By</div>
-                    <div class="sig-line">Signature over printed name</div>
+                    <div class="sig-line">{{ $issueSlip->received_by ?? 'Signature over printed name' }}</div>
                 </div>
             </div>
 
