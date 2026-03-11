@@ -16,13 +16,17 @@
                     <i class="fas fa-upload"></i>
                     <span>Import Bulk</span>
                 </button>
+                <a href="{{ route('ar_adjustments.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
+                    <i class="fas fa-plus"></i>
+                    <span>New Adjustment</span>
+                </a>
                 <button type="button" id="toggle_adjustments_btn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-list"></i>
                     <span>Adjustments</span>
                 </button>
                 <button type="button" id="toggle_deliveries_btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-truck"></i>
-                    <span>Deliveries</span>
+                    <span>Fulfilled Orders</span>
                 </button>
             </div>
         </div>
@@ -253,7 +257,7 @@
         {{-- Delivery List View --}}
         <div id="delivery_list_view" class="hidden bg-gray-700 rounded-lg p-4">
             <div class="flex justify-between items-center mb-4">
-                <h4 class="text-lg font-semibold text-white">Pending Deliveries</h4>
+                <h4 class="text-lg font-semibold text-white">Fulfilled Orders Awaiting AR Adjustment</h4>
                 <button type="button" onclick="reloadDeliveryList()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-2">
                     <i class="fas fa-sync-alt"></i>
                     <span>Refresh</span>
