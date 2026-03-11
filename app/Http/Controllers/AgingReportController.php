@@ -397,16 +397,16 @@ class AgingReportController extends Controller
 
                 $netAR = $aging['net_ar'];
 
-                // ✅ Only add to age bucket if outstanding (net_ar > 0)
+                // ✅ Only add to age bucket and total if outstanding (net_ar > 0)
                 if ($netAR > 0) {
                     $ageBucket = $this->getAgeBucket($aging['age']);
                     $agingData[$customerKey][$ageBucket] += $netAR;
                     $grandTotals[$ageBucket] += $netAR;
-                }
 
-                // ✅ Always add to total (outstanding + closed)
-                $agingData[$customerKey]['total'] += $netAR;
-                $grandTotals['total'] += $netAR;
+                    // Add to total only if outstanding
+                    $agingData[$customerKey]['total'] += $netAR;
+                    $grandTotals['total'] += $netAR;
+                }
             }
 
             return response()->json([
@@ -519,17 +519,16 @@ class AgingReportController extends Controller
                     $age = $record->age ?? 0; // fallback to pre-calculated
                 }
 
-                // ✅ Only add to age bucket if outstanding (net_ar_balance > 0)
+                // ✅ Only add to age bucket and total if outstanding (net_ar_balance > 0)
                 if ($netAR > 0) {
                     $ageBucket = $this->getAgeBucket($age);
                     $agingData[$customerKey][$ageBucket] += $netAR;
                     $grandTotals[$ageBucket] += $netAR;
-                }
 
-                // ✅ Always add to total using invoice_amount (original amount before payments)
-                $totalAmount = $record->invoice_amount ?? $record->gross_ar_balance ?? $netAR;
-                $agingData[$customerKey]['total'] += $totalAmount;
-                $grandTotals['total'] += $totalAmount;
+                    // Add to total using net AR balance (outstanding amount)
+                    $agingData[$customerKey]['total'] += $netAR;
+                    $grandTotals['total'] += $netAR;
+                }
             }
 
             return response()->json([
@@ -957,17 +956,16 @@ class AgingReportController extends Controller
                 $age = $record->age ?? 0; // fallback to pre-calculated
             }
 
-            // ✅ Only add to age bucket if outstanding
+            // ✅ Only add to age bucket and total if outstanding
             if ($netAR > 0) {
                 $ageBucket = $this->getAgeBucket($age);
                 $agingSummary[$key][$ageBucket] += $netAR;
                 $grandTotals[$ageBucket] += $netAR;
-            }
 
-            // ✅ Always add to total using invoice_amount (original amount)
-            $totalAmount = $record->invoice_amount ?? $record->gross_ar_balance ?? $netAR;
-            $agingSummary[$key]['total'] += $totalAmount;
-            $grandTotals['total'] += $totalAmount;
+                // Add to total using net AR balance (outstanding amount)
+                $agingSummary[$key]['total'] += $netAR;
+                $grandTotals['total'] += $netAR;
+            }
         }
 
         // Convert to array and sort by client name
