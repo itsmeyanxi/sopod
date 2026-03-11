@@ -28,6 +28,7 @@ use App\Http\Controllers\{
     PaymentController,
     ReceivingReportsController,
     ArAdjustmentController,
+    ARDashboardController,
     LockController,
     SupplierReceivingReportController,
     NonTradeItemController,
@@ -116,26 +117,32 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     // Main view
     Route::get('/', [ArAdjustmentController::class, 'index'])->name('index');
 
+    // Create view
+    Route::get('/create', [ArAdjustmentController::class, 'create'])->name('create');
+
     // Search AR Aging records
     Route::get('/search-ar', [ArAdjustmentController::class, 'searchArAging'])->name('search_ar');
 
     // Get adjustments data (for AJAX)
     Route::get('/get', [ArAdjustmentController::class, 'getAdjustments'])->name('get');
 
+    // Export adjustments
+    Route::get('/export/csv', [ArAdjustmentController::class, 'export'])->name('export');
+
     // Store new adjustment
-    Route::post('/store', [ArAdjustmentController::class, 'store'])->name('store');
+    Route::post('/', [ArAdjustmentController::class, 'store'])->name('store');
 
     // Show single adjustment
     Route::get('/{id}', [ArAdjustmentController::class, 'show'])->name('show');
+
+    // Edit form
+    Route::get('/{id}/edit', [ArAdjustmentController::class, 'editForm'])->name('edit');
 
     // Update adjustment
     Route::put('/{id}', [ArAdjustmentController::class, 'update'])->name('update');
 
     // Delete adjustment
     Route::delete('/{id}', [ArAdjustmentController::class, 'destroy'])->name('destroy');
-
-    // Export adjustments
-    Route::get('/export/csv', [ArAdjustmentController::class, 'export'])->name('export');
 });
 
 // ===================== RECEIVING REPORTS =====================
@@ -286,6 +293,11 @@ Route::post('/excel/import/ar-adjustments', [ExcelImportController::class, 'impo
 
     // In routes/web.php
     Route::get('/sales-report', [DashboardController::class, 'salesReport'])->name('sales.report');
+
+    // AR Dashboard
+    Route::get('/ar-dashboard', [ARDashboardController::class, 'index'])->name('ar_dashboard.index');
+    Route::get('/ar-dashboard/export-summary', [ARDashboardController::class, 'exportSummary'])->name('ar_dashboard.export_summary');
+    Route::get('/ar-dashboard/export-details', [ARDashboardController::class, 'exportDetails'])->name('ar_dashboard.export_details');
 
     // ===================== RECORDS =====================
     Route::get('/records', [App\Http\Controllers\RecordsController::class, 'index'])->name('records.index');
@@ -2268,21 +2280,31 @@ Route::prefix('admin/users')->name('admin.users.')->group(function () {
     Route::delete('/{id}', fn($id) => auth()->user()->canManageUsers() ? app(UserManagementController::class)->destroy($id) : view('errors.noaccess'))->name('destroy');
 });
 
-// ===================== RBAC MANAGEMENT =====================
+// ===================== RBAC MANAGEMENT (IT ONLY) =====================
 Route::prefix('rbac')->name('rbac.')->middleware('auth')->group(function () {
-    Route::get('/', [RoleController::class, 'index'])->name('index');
-    Route::post('/toggle-permission', [RoleController::class, 'togglePermission'])->name('toggle');
-    Route::post('/change-level', [RoleController::class, 'changeLevel'])->name('level');
-    Route::post('/add-role', [RoleController::class, 'addRole'])->name('addRole');
-    Route::delete('/remove-role/{id}', [RoleController::class, 'removeRole'])->name('removeRole');
-    Route::post('/change-role-type/{id}', [RoleController::class, 'changeRoleType'])->name('changeRoleType');
+    // Middleware-style closure to check IT role for all RBAC routes
+    $itOnlyMiddleware = function ($callback) {
+        return function () use ($callback) {
+            if (!auth()->user()->hasRole('IT') && auth()->user()->role !== 'IT') {
+                return view('errors.noaccess');
+            }
+            return $callback(...func_get_args());
+        };
+    };
 
-    // User Management
-    Route::post('/user', [RoleController::class, 'storeUser'])->name('storeUser');
-    Route::put('/user/{id}', [RoleController::class, 'updateUser'])->name('updateUser');
-    Route::delete('/user/{id}', [RoleController::class, 'destroyUser'])->name('destroyUser');
-    Route::post('/user/{id}/toggle-lock', [RoleController::class, 'toggleLockUser'])->name('toggleLock');
-    Route::post('/user/{id}/reset-attempts', [RoleController::class, 'resetLoginAttempts'])->name('resetAttempts');
+    Route::get('/', $itOnlyMiddleware(fn() => app(RoleController::class)->index()))->name('index');
+    Route::post('/toggle-permission', $itOnlyMiddleware(fn() => app(RoleController::class)->togglePermission(request())))->name('toggle');
+    Route::post('/change-level', $itOnlyMiddleware(fn() => app(RoleController::class)->changeLevel(request())))->name('level');
+    Route::post('/add-role', $itOnlyMiddleware(fn() => app(RoleController::class)->addRole(request())))->name('addRole');
+    Route::delete('/remove-role/{id}', $itOnlyMiddleware(fn($id) => app(RoleController::class)->removeRole(request(), $id)))->name('removeRole');
+    Route::post('/change-role-type/{id}', $itOnlyMiddleware(fn($id) => app(RoleController::class)->changeRoleType(request(), $id)))->name('changeRoleType');
+
+    // User Management (IT ONLY)
+    Route::post('/user', $itOnlyMiddleware(fn() => app(RoleController::class)->storeUser(request())))->name('storeUser');
+    Route::put('/user/{id}', $itOnlyMiddleware(fn($id) => app(RoleController::class)->updateUser(request(), $id)))->name('updateUser');
+    Route::delete('/user/{id}', $itOnlyMiddleware(fn($id) => app(RoleController::class)->destroyUser(request(), $id)))->name('destroyUser');
+    Route::post('/user/{id}/toggle-lock', $itOnlyMiddleware(fn($id) => app(RoleController::class)->toggleLockUser(request(), $id)))->name('toggleLock');
+    Route::post('/user/{id}/reset-attempts', $itOnlyMiddleware(fn($id) => app(RoleController::class)->resetLoginAttempts(request(), $id)))->name('resetAttempts');
 });
 
 // ===================== CURRENCIES =====================

@@ -23,6 +23,14 @@ class ArAdjustmentController extends Controller
     }
 
     /**
+     * Show create form
+     */
+    public function create()
+    {
+        return view('ar_adjustments.create');
+    }
+
+    /**
      * Search AR Aging records by customer name or DR number
      */
     public function searchArAging(Request $request)
@@ -217,11 +225,16 @@ public function store(Request $request)
 
         DB::commit();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'AR adjustment created successfully!',
-            'adjustment' => $adjustment
-        ]);
+        // Check if request is AJAX or form submission
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'AR adjustment created successfully!',
+                'adjustment' => $adjustment
+            ]);
+        }
+
+        return redirect()->route('ar_adjustments.show', $adjustment->id)->with('success', 'AR adjustment created successfully!');
 
     } catch (\Exception $e) {
         DB::rollBack();
@@ -230,10 +243,14 @@ public function store(Request $request)
             'trace' => $e->getTraceAsString()
         ]);
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to create adjustment: ' . $e->getMessage()
-        ], 500);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create adjustment: ' . $e->getMessage()
+            ], 500);
+        }
+
+        return back()->withInput()->with('error', 'Failed to create adjustment: ' . $e->getMessage());
     }
 }
 
@@ -242,38 +259,17 @@ public function store(Request $request)
      */
     public function show($id)
     {
-        try {
-            $adjustment = ArAdjustment::findOrFail($id);
+        $adjustment = ArAdjustment::findOrFail($id);
+        return view('ar_adjustments.show', compact('adjustment'));
+    }
 
-            return response()->json([
-                'success' => true,
-                'adjustment' => [
-                    'id' => $adjustment->id,
-                    'transaction_date' => Carbon::parse($adjustment->transaction_date)->format('Y-m-d'),
-                    'reference_number' => $adjustment->reference_number,
-                    'transaction_type' => $adjustment->transaction_type,
-                    'formatted_type' => $adjustment->formatted_type,
-                    'dr_no' => $adjustment->dr_no,
-                    'invoice_number' => $adjustment->invoice_number,
-                    'customer_code' => $adjustment->customer_code,
-                    'customer_name' => $adjustment->customer_name,
-                    'amount' => $adjustment->amount,
-                    'absolute_amount' => $adjustment->absolute_amount,
-                    'is_decrease' => $adjustment->is_decrease,
-                    'gl_account' => $adjustment->gl_account,
-                    'remarks' => $adjustment->remarks,
-                    'signed_by' => $adjustment->signed_by,
-                    'created_by' => $adjustment->created_by,
-                    'created_at' => $adjustment->created_at ? $adjustment->created_at->format('Y-m-d H:i:s') : 'N/A',
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Adjustment not found'
-            ], 404);
-        }
+    /**
+     * Show edit form
+     */
+    public function editForm($id)
+    {
+        $adjustment = ArAdjustment::findOrFail($id);
+        return view('ar_adjustments.edit', compact('adjustment'));
     }
 
     /**
@@ -328,11 +324,16 @@ public function store(Request $request)
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'AR adjustment updated successfully!',
-                'adjustment' => $adjustment
-            ]);
+            // Check if request is AJAX or form submission
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'AR adjustment updated successfully!',
+                    'adjustment' => $adjustment
+                ]);
+            }
+
+            return redirect()->route('ar_adjustments.show', $adjustment->id)->with('success', 'AR adjustment updated successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -340,10 +341,14 @@ public function store(Request $request)
                 'error' => $e->getMessage()
             ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update adjustment: ' . $e->getMessage()
-            ], 500);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to update adjustment: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withInput()->with('error', 'Failed to update adjustment: ' . $e->getMessage());
         }
     }
 
@@ -372,10 +377,15 @@ public function store(Request $request)
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'AR adjustment deleted successfully!'
-            ]);
+            // Check if request is AJAX or form submission
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'AR adjustment deleted successfully!'
+                ]);
+            }
+
+            return redirect()->route('ar_adjustments.index')->with('success', 'AR adjustment deleted successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -383,10 +393,14 @@ public function store(Request $request)
                 'error' => $e->getMessage()
             ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to delete adjustment: ' . $e->getMessage()
-            ], 500);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete adjustment: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'Failed to delete adjustment: ' . $e->getMessage());
         }
     }
 

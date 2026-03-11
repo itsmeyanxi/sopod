@@ -10,11 +10,17 @@
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-white">AR Adjustments</h2>
 
-            {{-- Toggle View Button --}}
-            <button type="button" id="toggle_view_btn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
-                <i class="fas fa-table"></i>
-                <span id="toggle_btn_text">Adjustment List</span>
-            </button>
+            {{-- Action Buttons --}}
+            <div class="flex items-center gap-3">
+                <a href="{{ route('ar_adjustments.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
+                    <i class="fas fa-plus"></i>
+                    <span>New Adjustment</span>
+                </a>
+                <button type="button" id="toggle_view_btn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
+                    <i class="fas fa-table"></i>
+                    <span id="toggle_btn_text">Adjustment List</span>
+                </button>
+            </div>
         </div>
 
         {{-- Search Section --}}
@@ -596,6 +602,9 @@ function filterAdjustmentList() {
                             <button onclick="viewAdjustment(${adj.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="View">
                                 <i class="fas fa-eye"></i>
                             </button>
+                            <a href="/ar-adjustments/${adj.id}/edit" class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-xs transition inline-block" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
                             <button onclick="deleteAdjustment(${adj.id})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -632,105 +641,7 @@ function exportAdjustmentList() {
 
 // ✅ View Adjustment Details
 function viewAdjustment(id) {
-    Swal.fire({
-        title: 'Loading...',
-        text: 'Fetching adjustment details',
-        background: '#1f2937',
-        color: '#fff',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    fetch(`/ar-adjustments/${id}`)
-        .then(response => response.json())
-        .then(data => {
-            Swal.close();
-
-            if (data.success) {
-                const adj = data.adjustment;
-                const amountColor = adj.amount < 0 ? 'color: #f87171' : 'color: #4ade80';
-                const amountSign = adj.amount < 0 ? '-' : '+';
-
-                Swal.fire({
-                    title: '<strong>AR Adjustment Details</strong>',
-                    html: `
-                        <div class="text-left space-y-3" style="color: #fff;">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p class="text-gray-400 text-xs">Reference Number</p>
-                                    <p class="font-semibold">${adj.reference_number}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">Date</p>
-                                    <p class="font-semibold">${adj.transaction_date}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">Transaction Type</p>
-                                    <p class="font-semibold">${adj.formatted_type}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">Amount</p>
-                                    <p class="font-semibold" style="${amountColor}">${amountSign}₱${Math.abs(adj.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">DR No.</p>
-                                    <p class="font-semibold">${adj.dr_no || 'N/A'}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">Invoice No.</p>
-                                    <p class="font-semibold">${adj.invoice_number || 'N/A'}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">Customer Code</p>
-                                    <p class="font-semibold">${adj.customer_code || 'N/A'}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">Customer Name</p>
-                                    <p class="font-semibold">${adj.customer_name}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">Branch</p>
-                                    <p class="font-semibold">${adj.branch || 'N/A'}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">GL Account</p>
-                                    <p class="font-semibold">${adj.gl_account}</p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-400 text-xs">Signed By</p>
-                                    <p class="font-semibold">${adj.signed_by}</p>
-                                </div>
-                                <div class="col-span-2">
-                                    <p class="text-gray-400 text-xs">Remarks</p>
-                                    <p class="font-semibold">${adj.remarks || 'N/A'}</p>
-                                </div>
-                                <div class="col-span-2">
-                                    <p class="text-gray-400 text-xs">Created At</p>
-                                    <p class="font-semibold">${adj.created_at}</p>
-                                </div>
-                            </div>
-                        </div>
-                    `,
-                    width: 700,
-                    background: '#1f2937',
-                    color: '#fff',
-                    confirmButtonText: 'Close',
-                    confirmButtonColor: '#3b82f6'
-                });
-            }
-        })
-        .catch(error => {
-            Swal.close();
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to load adjustment details',
-                background: '#1f2937',
-                color: '#fff'
-            });
-        });
+    window.location.href = `/ar-adjustments/${id}`;
 }
 
 // ✅ Delete Adjustment
