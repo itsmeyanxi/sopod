@@ -99,6 +99,27 @@
         </div>
         @endif
 
+        <!-- Linked Receiving Report Information -->
+        @if($adjustment->receivingReport)
+        <div class="mb-6 p-4 bg-green-900/20 border border-green-700 rounded">
+            <h3 class="font-semibold text-green-300 mb-3">📋 Linked Receiving Report</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div>
+                    <p class="text-gray-400">RR Number</p>
+                    <p class="text-green-300 font-semibold">{{ $adjustment->receivingReport->rr_number ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Received By</p>
+                    <p class="text-green-300 font-semibold">{{ $adjustment->receivingReport->received_by ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Received Date</p>
+                    <p class="text-green-300 font-semibold">{{ $adjustment->receivingReport->received_date?->format('M d, Y') ?? 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- Amount & Account -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>

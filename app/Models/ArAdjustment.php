@@ -56,6 +56,14 @@ class ARAdjustment extends Model
     }
 
     /**
+     * Get the receiving report if linked (via DR number)
+     */
+    public function receivingReport()
+    {
+        return $this->belongsTo(ReceivingReport::class, 'dr_no', 'delivery_batch');
+    }
+
+    /**
      * Get the customer record
      */
     public function customerRecord()

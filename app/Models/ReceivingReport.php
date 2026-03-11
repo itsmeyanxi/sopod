@@ -52,4 +52,10 @@ class ReceivingReport extends Model
     {
         return $this->belongsTo(Customer::class, 'customer_code', 'customer_code');
     }
+
+    // ✅ NEW: Relationship to AR Adjustments (via delivery_batch as DR number)
+    public function arAdjustments()
+    {
+        return $this->hasMany(ArAdjustment::class, 'dr_no', 'delivery_batch');
+    }
 }
