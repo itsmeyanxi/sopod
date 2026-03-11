@@ -148,9 +148,51 @@
 
 <script>
 function downloadExport(url) {
-    const link = document.createElement('a');
-    link.href = url;
-    link.click();
+    // Show loading indicator
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+    btn.disabled = true;
+
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Accept': 'text/csv'
+        },
+        credentials: 'include'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        // Create download link from blob
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+
+        // Extract filename from Content-Disposition header or create one
+        const filename = url.includes('export-summary')
+            ? `ar_summary_${new Date().toISOString().split('T')[0]}.csv`
+            : `ar_details_${new Date().toISOString().split('T')[0]}.csv`;
+
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+    })
+    .catch(error => {
+        console.error('Download error:', error);
+        alert('Failed to download file. Please try again.');
+    })
+    .finally(() => {
+        // Restore button state
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
 }
 </script>
 @endsection
