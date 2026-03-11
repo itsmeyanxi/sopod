@@ -155,14 +155,7 @@
                                         <span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-medium">No</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-center space-x-2">
-                                    @if(!empty($report['customer_code']))
-                                    <a href="{{ route('ar.customer_profile', $report['customer_code']) }}"
-                                       class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs inline-block"
-                                       title="View full AR profile for this customer">
-                                        <i class="fas fa-user-circle mr-1"></i>Profile
-                                    </a>
-                                    @endif
+                                <td class="px-4 py-3 text-center">
                                     <a href="{{ route('aging_reports.ar_profile', ['id' => $report['id'] ?? '']) }}"
                                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs inline-block">
                                         <i class="fas fa-eye mr-1"></i>View
