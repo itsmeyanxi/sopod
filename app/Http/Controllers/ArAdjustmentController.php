@@ -120,8 +120,22 @@ public function getAdjustments(Request $request)
             'net_total' => $adjustments->sum('amount')
         ];
 
-        // Format adjustments for frontend
+        // Format adjustments for frontend with delivery info
         $formattedAdjustments = $adjustments->map(function($adj) {
+            // Get linked delivery info if available
+            $delivery = null;
+            $drStatus = null;
+            if ($adj->dr_no) {
+                $delivery = \App\Models\Deliveries::where('dr_no', $adj->dr_no)->first();
+                if ($delivery) {
+                    $drStatus = $delivery->status ?? 'pending';
+                    // Handle approval status if set
+                    if ($delivery->approval_status) {
+                        $drStatus = $delivery->approval_status;
+                    }
+                }
+            }
+
             return [
                 'id' => $adj->id,
                 'transaction_date' => Carbon::parse($adj->transaction_date)->format('Y-m-d'),
@@ -129,6 +143,7 @@ public function getAdjustments(Request $request)
                 'transaction_type' => $adj->transaction_type,
                 'formatted_type' => $adj->formatted_type,
                 'dr_no' => $adj->dr_no,
+                'dr_status' => $drStatus,
                 'invoice_number' => $adj->invoice_number,
                 'customer_code' => $adj->customer_code,
                 'customer_name' => $adj->customer_name,
@@ -455,13 +470,15 @@ public function store(Request $request)
                     'Date',
                     'Reference No',
                     'Transaction Type',
-                    'DR No',
-                    'Invoice No',
                     'Customer Code',
                     'Customer Name',
+                    'DR No',
+                    'DR Status',
+                    'Invoice No',
                     'Amount',
                     'Effect',
                     'GL Account',
+                    'Branch',
                     'Remarks',
                     'Signed By',
                     'Created By',
@@ -469,17 +486,28 @@ public function store(Request $request)
                 ]);
 
                 foreach ($adjustments as $adj) {
+                    // Get DR status if available
+                    $drStatus = 'N/A';
+                    if ($adj->dr_no) {
+                        $delivery = \App\Models\Deliveries::where('dr_no', $adj->dr_no)->first();
+                        if ($delivery) {
+                            $drStatus = $delivery->approval_status ?? $delivery->status ?? 'pending';
+                        }
+                    }
+
                     fputcsv($file, [
                         Carbon::parse($adj->transaction_date)->format('Y-m-d'),
                         $adj->reference_number,
                         $adj->formatted_type,
-                        $adj->dr_no ?? 'N/A',
-                        $adj->invoice_number ?? 'N/A',
                         $adj->customer_code ?? 'N/A',
                         $adj->customer_name,
+                        $adj->dr_no ?? 'N/A',
+                        $drStatus,
+                        $adj->invoice_number ?? 'N/A',
                         number_format($adj->amount, 2),
                         $adj->is_decrease ? 'Decrease AR' : 'Increase AR',
                         $adj->gl_account,
+                        $adj->branch ?? 'N/A',
                         $adj->remarks ?? 'N/A',
                         $adj->signed_by,
                         $adj->created_by,

@@ -87,20 +87,17 @@
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-gray-800 rounded-lg text-sm">
                     <thead>
-                        <tr class="bg-gray-900 text-gray-300">
+                        <tr class="bg-gray-900 text-gray-300 text-xs">
                             <th class="px-3 py-3 text-left">Date</th>
-                            <th class="px-3 py-3 text-left">Reference No.</th>
+                            <th class="px-3 py-3 text-left">Ref No.</th>
                             <th class="px-3 py-3 text-left">Type</th>
+                            <th class="px-3 py-3 text-left">Customer</th>
                             <th class="px-3 py-3 text-left">DR No.</th>
-                            <th class="px-3 py-3 text-left">Invoice No.</th>
-                            <th class="px-3 py-3 text-left">Customer Code</th>
-                            <th class="px-3 py-3 text-left">Customer Name</th>
-                            <th class="px-3 py-3 text-left">Branch</th>
+                            <th class="px-3 py-3 text-left">DR Status</th>
+                            <th class="px-3 py-3 text-left">Invoice</th>
                             <th class="px-3 py-3 text-right">Amount</th>
                             <th class="px-3 py-3 text-left">GL Account</th>
                             <th class="px-3 py-3 text-left">Remarks</th>
-                            <th class="px-3 py-3 text-left">Signed By</th>
-                            <th class="px-3 py-3 text-left">Date & Time</th>
                             <th class="px-3 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -650,8 +647,24 @@ function filterAdjustmentList() {
                 const amountSign = adj.amount < 0 ? '-' : '+';
                 const amountDisplay = `${amountSign}₱${Math.abs(adj.amount).toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
 
+                // DR Status badge
+                const drStatusColor = {
+                    'approved': 'green',
+                    'pending': 'yellow',
+                    'rejected': 'red',
+                    'completed': 'blue',
+                    'partial': 'orange'
+                }[adj.dr_status] || 'gray';
+
+                const drStatusDisplay = adj.dr_status
+                    ? `<span class="bg-${drStatusColor}-900/30 border border-${drStatusColor}-700/50 px-2 py-1 rounded text-xs">${adj.dr_status}</span>`
+                    : '<span class="text-gray-500 text-xs">—</span>';
+
+                // Customer display
+                const customerDisplay = adj.customer_name ? `<div class="font-semibold">${adj.customer_name}</div><div class="text-xs text-gray-400">${adj.customer_code || 'N/A'}</div>` : 'N/A';
+
                 row.innerHTML = `
-                    <td class="px-3 py-3">${new Date(adj.transaction_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                    <td class="px-3 py-3 text-sm">${new Date(adj.transaction_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                     <td class="px-3 py-3">
                         <span class="bg-blue-900/30 border border-blue-700/50 px-2 py-1 rounded text-xs font-mono">
                             ${adj.reference_number}
@@ -662,27 +675,23 @@ function filterAdjustmentList() {
                             ${adj.formatted_type || adj.transaction_type}
                         </span>
                     </td>
-                    <td class="px-3 py-3">${adj.dr_no || 'N/A'}</td>
+                    <td class="px-3 py-3 text-sm">${customerDisplay}</td>
+                    <td class="px-3 py-3">
+                        ${adj.dr_no ? `<a href="javascript:void(0)" onclick="viewDeliveryByDrNo('${adj.dr_no}')" class="text-blue-400 hover:text-blue-300 font-mono text-sm cursor-pointer">${adj.dr_no}</a>` : '<span class="text-gray-500">N/A</span>'}
+                    </td>
+                    <td class="px-3 py-3">${drStatusDisplay}</td>
                     <td class="px-3 py-3">
                         <span class="bg-gray-700 px-2 py-1 rounded text-xs">
                             ${adj.invoice_number || 'N/A'}
                         </span>
                     </td>
-                    <td class="px-3 py-3">${adj.customer_code || 'N/A'}</td>
-                    <td class="px-3 py-3">${adj.customer_name}</td>
-                    <td class="px-3 py-3">${adj.branch || 'N/A'}</td>
                     <td class="px-3 py-3 text-right font-semibold ${amountColor}">${amountDisplay}</td>
                     <td class="px-3 py-3">
                         <span class="text-xs bg-purple-900/30 border border-purple-700/50 px-2 py-1 rounded">
                             ${adj.gl_account}
                         </span>
                     </td>
-                    <td class="px-3 py-3 text-xs">${adj.remarks || '—'}</td>
-                    <td class="px-3 py-3">${adj.signed_by}</td>
-                    <td class="px-3 py-3 text-xs">
-                        <div>${adj.created_at ? adj.created_at.split(' ')[0] : 'N/A'}</div>
-                        <div class="text-gray-400">${adj.created_at ? adj.created_at.split(' ')[1] : ''}</div>
-                    </td>
+                    <td class="px-3 py-3 text-xs max-w-xs truncate" title="${adj.remarks || ''}">${adj.remarks || '—'}</td>
                     <td class="px-3 py-3 text-center">
                         <div class="flex items-center justify-center gap-2">
                             <button onclick="viewAdjustment(${adj.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="View">
@@ -933,6 +942,56 @@ function closeImportModal() {
     document.getElementById('import_modal').classList.add('hidden');
     document.getElementById('import_file').value = '';
     document.getElementById('file_info').classList.add('hidden');
+}
+
+// ✅ View delivery by DR number
+function viewDeliveryByDrNo(drNo) {
+    Swal.fire({
+        title: 'Loading...',
+        text: 'Finding delivery record',
+        background: '#1f2937',
+        color: '#fff',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch(`/deliveries/search?dr_no=${encodeURIComponent(drNo)}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        Swal.close();
+        if (data.delivery && data.delivery.id) {
+            window.location.href = `/deliveries/${data.delivery.id}`;
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Delivery Not Found',
+                text: `Could not find delivery with DR number: ${drNo}`,
+                background: '#1f2937',
+                color: '#fff'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.close();
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to find delivery record',
+            background: '#1f2937',
+            color: '#fff'
+        });
+    });
 }
 </script>
 @endsection
