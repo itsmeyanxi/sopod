@@ -208,7 +208,7 @@
     <!-- Header -->
     <div class="header">
         <div class="header-left">
-            <img src="{{ asset('images/sopod-logo.png') }}" alt="Meat Plus"><br>
+            <img src="{{ asset('images/sopod-logo.PNG') }}" alt="Meat Plus"><br>
             <span class="addr">12th Floor, 429 Victoria Bldg, UN Ave., Ermita, Manila<br>Tel. No.: 2444618 - 19 &nbsp; Fax No: 2444620</span>
         </div>
         <div class="header-center">
