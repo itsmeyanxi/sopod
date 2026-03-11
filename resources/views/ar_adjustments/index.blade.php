@@ -27,6 +27,35 @@
             </div>
         </div>
 
+        {{-- Quick Stats Dashboard --}}
+        <div id="stats_dashboard" class="bg-gray-700 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+                <i class="fas fa-chart-bar mr-2"></i> Quick Statistics
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-blue-900 rounded p-4">
+                    <p class="text-gray-400 text-sm">Today's Adjustments</p>
+                    <p class="text-2xl font-bold text-blue-300" id="stat_today_count">—</p>
+                    <p class="text-gray-500 text-xs" id="stat_today_total">₱0.00</p>
+                </div>
+                <div class="bg-green-900 rounded p-4">
+                    <p class="text-gray-400 text-sm">This Month</p>
+                    <p class="text-2xl font-bold text-green-300" id="stat_month_count">—</p>
+                    <p class="text-gray-500 text-xs" id="stat_month_total">₱0.00</p>
+                </div>
+                <div class="bg-purple-900 rounded p-4">
+                    <p class="text-gray-400 text-sm">Last 30 Days</p>
+                    <p class="text-2xl font-bold text-purple-300" id="stat_30day_count">—</p>
+                    <p class="text-gray-500 text-xs" id="stat_30day_total">₱0.00</p>
+                </div>
+                <div class="bg-orange-900 rounded p-4">
+                    <p class="text-gray-400 text-sm">Pending Approvals</p>
+                    <p class="text-2xl font-bold text-orange-300" id="stat_pending_count">—</p>
+                    <p class="text-gray-500 text-xs">Needs DR approval</p>
+                </div>
+            </div>
+        </div>
+
         {{-- Search Section --}}
         <div class="bg-gray-700 rounded-lg p-6 mb-6">
             <h3 class="text-lg font-semibold text-white mb-4">Search Customer / DR Number</h3>
@@ -307,6 +336,7 @@ let currentCustomer = null;
 // ✅ Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadAdjustmentList();
+    loadDashboardStats();
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('transaction_date').value = today;
     setupImportModal();
@@ -577,6 +607,44 @@ function saveAdjustment() {
             background: '#1f2937',
             color: '#fff'
         });
+    });
+}
+
+// ✅ Load dashboard statistics
+function loadDashboardStats() {
+    fetch('{{ route("ar_adjustments.stats.dashboard") }}', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.stats) {
+            const stats = data.stats;
+
+            // Update today's stats
+            document.getElementById('stat_today_count').textContent = stats.today.count;
+            document.getElementById('stat_today_total').textContent = '₱' + parseFloat(stats.today.total).toLocaleString('en-PH', {minimumFractionDigits: 2});
+
+            // Update this month stats
+            document.getElementById('stat_month_count').textContent = stats.this_month.count;
+            document.getElementById('stat_month_total').textContent = '₱' + parseFloat(stats.this_month.total).toLocaleString('en-PH', {minimumFractionDigits: 2});
+
+            // Update last 30 days stats
+            document.getElementById('stat_30day_count').textContent = stats.last_30_days.count;
+            document.getElementById('stat_30day_total').textContent = '₱' + parseFloat(stats.last_30_days.total).toLocaleString('en-PH', {minimumFractionDigits: 2});
+
+            // Update pending approvals
+            if (data.pending_approvals && data.pending_approvals.length > 0) {
+                document.getElementById('stat_pending_count').textContent = data.pending_approvals.length;
+            } else {
+                document.getElementById('stat_pending_count').textContent = '0';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Failed to load dashboard stats:', error);
     });
 }
 

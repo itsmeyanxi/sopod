@@ -126,6 +126,9 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     // Get adjustments data (for AJAX)
     Route::get('/get', [ArAdjustmentController::class, 'getAdjustments'])->name('get');
 
+    // Get dashboard statistics
+    Route::get('/stats/dashboard', [ArAdjustmentController::class, 'getDashboardStats'])->name('stats.dashboard');
+
     // Export adjustments
     Route::get('/export/csv', [ArAdjustmentController::class, 'export'])->name('export');
 

@@ -530,6 +530,123 @@ public function store(Request $request)
     }
 
     /**
+     * Get dashboard statistics for AR adjustments
+     */
+    public function getDashboardStats()
+    {
+        try {
+            $thirtyDaysAgo = Carbon::now()->subDays(30);
+            $todayStart = Carbon::now()->startOfDay();
+            $todayEnd = Carbon::now()->endOfDay();
+
+            // Recent adjustments (last 7 days)
+            $recentAdjustments = ArAdjustment::where('transaction_date', '>=', Carbon::now()->subDays(7))
+                ->orderBy('transaction_date', 'desc')
+                ->limit(5)
+                ->get();
+
+            // High-value adjustments (absolute value > 50000)
+            $highValueAdjustments = ArAdjustment::where(DB::raw('ABS(amount)'), '>=', 50000)
+                ->orderBy(DB::raw('ABS(amount)'), 'desc')
+                ->limit(5)
+                ->get();
+
+            // Today's adjustments
+            $todayCount = ArAdjustment::whereBetween('transaction_date', [$todayStart, $todayEnd])->count();
+            $todayTotal = ArAdjustment::whereBetween('transaction_date', [$todayStart, $todayEnd])->sum('amount');
+
+            // This month's adjustments
+            $thisMonthCount = ArAdjustment::where('transaction_date', '>=', Carbon::now()->startOfMonth())->count();
+            $thisMonthTotal = ArAdjustment::where('transaction_date', '>=', Carbon::now()->startOfMonth())->sum('amount');
+
+            // Top customers by adjustment count
+            $topCustomers = DB::table('ar_adjustments')
+                ->select('customer_name', 'customer_code', DB::raw('COUNT(*) as adjustment_count'), DB::raw('SUM(amount) as total_amount'))
+                ->groupBy('customer_code', 'customer_name')
+                ->orderByDesc('adjustment_count')
+                ->limit(5)
+                ->get();
+
+            // Adjustments by type
+            $adjustmentsByType = DB::table('ar_adjustments')
+                ->select('transaction_type', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
+                ->groupBy('transaction_type')
+                ->get();
+
+            // Pending DR approvals (adjustments with DR but delivery not approved)
+            $pendingApprovals = ArAdjustment::whereNotNull('dr_no')
+                ->where(function($query) {
+                    $query->whereHas('delivery', function($q) {
+                        $q->where('approval_status', '!=', 'approved')
+                          ->orWhere('approval_status', null);
+                    })
+                    ->orDoesntHave('delivery');
+                })
+                ->limit(5)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'stats' => [
+                    'today' => [
+                        'count' => $todayCount,
+                        'total' => (float)$todayTotal
+                    ],
+                    'this_month' => [
+                        'count' => $thisMonthCount,
+                        'total' => (float)$thisMonthTotal
+                    ],
+                    'last_30_days' => [
+                        'count' => ArAdjustment::where('transaction_date', '>=', $thirtyDaysAgo)->count(),
+                        'total' => (float)ArAdjustment::where('transaction_date', '>=', $thirtyDaysAgo)->sum('amount')
+                    ]
+                ],
+                'recent_adjustments' => $recentAdjustments->map(function($adj) {
+                    return [
+                        'id' => $adj->id,
+                        'reference_number' => $adj->reference_number,
+                        'customer_name' => $adj->customer_name,
+                        'amount' => $adj->amount,
+                        'transaction_type' => $adj->formatted_type,
+                        'transaction_date' => $adj->transaction_date->format('M d, Y')
+                    ];
+                }),
+                'high_value_adjustments' => $highValueAdjustments->map(function($adj) {
+                    return [
+                        'id' => $adj->id,
+                        'reference_number' => $adj->reference_number,
+                        'customer_name' => $adj->customer_name,
+                        'amount' => $adj->amount,
+                        'transaction_type' => $adj->formatted_type,
+                        'transaction_date' => $adj->transaction_date->format('M d, Y')
+                    ];
+                }),
+                'top_customers' => $topCustomers,
+                'adjustments_by_type' => $adjustmentsByType,
+                'pending_approvals' => $pendingApprovals->map(function($adj) {
+                    return [
+                        'id' => $adj->id,
+                        'reference_number' => $adj->reference_number,
+                        'dr_no' => $adj->dr_no,
+                        'customer_name' => $adj->customer_name,
+                        'amount' => $adj->amount
+                    ];
+                })
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to get dashboard stats', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load dashboard statistics'
+            ], 500);
+        }
+    }
+
+    /**
      * Display adjustments for a specific customer
      */
     public function byCustomer($customerCode)
