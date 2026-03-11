@@ -1165,7 +1165,7 @@ function loadDeliveryList() {
                     <div class="font-semibold">${delivery.customer_name || 'N/A'}</div>
                     <div class="text-xs text-gray-400">${delivery.customer_code || 'N/A'}</div>
                 </td>
-                <td class="px-3 py-3 text-sm">${new Date(delivery.delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                <td class="px-3 py-3 text-sm">${new Date(delivery.request_delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                 <td class="px-3 py-3">
                     <span class="bg-${deliveryStatusColor}-900/30 border border-${deliveryStatusColor}-700/50 px-2 py-1 rounded text-xs">
                         ${delivery.status || 'N/A'}
@@ -1240,7 +1240,7 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
             deliveryHTML += '<div style="display: flex; flex-direction: column; gap: 10px;">';
 
             data.deliveries.forEach(delivery => {
-                const deliveryDate = new Date(delivery.delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const deliveryDate = new Date(delivery.request_delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 deliveryHTML += `
                     <button onclick="selectDeliveryAndRedirect('${delivery.dr_no.replace(/'/g, "\\'")}', '${customerCode.replace(/'/g, "\\'")}', '${customerName.replace(/'/g, "\\'")}')"
                             style="padding: 10px; background: #374151; border: 1px solid #4B5563; border-radius: 6px; color: #E5E7EB; cursor: pointer; text-align: left; transition: background 0.2s;"

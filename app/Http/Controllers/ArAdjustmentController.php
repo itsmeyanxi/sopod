@@ -782,7 +782,8 @@ public function store(Request $request)
                 'customer_code',
                 'customer_name',
                 'status',
-                'approval_status'
+                'approval_status',
+                'request_delivery_date'
             )
             ->where('status', 'Delivered')  // Only delivered orders
             ->where('is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
@@ -830,7 +831,7 @@ public function store(Request $request)
                 'customer_name',
                 'status',
                 'approval_status',
-                'delivery_date'
+                'request_delivery_date'
             )
             ->where('customer_code', $customerCode)
             ->where('status', 'Delivered')
@@ -840,7 +841,7 @@ public function store(Request $request)
                     ->from('ar_adjustments')
                     ->whereColumn('ar_adjustments.dr_no', '=', 'deliveries.dr_no');
             })
-            ->orderBy('delivery_date', 'desc')
+            ->orderBy('request_delivery_date', 'desc')
             ->get();
 
             return response()->json([
