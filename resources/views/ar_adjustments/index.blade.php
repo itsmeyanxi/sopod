@@ -1234,7 +1234,8 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
 
         if (data.success) {
             // Pre-populate the form with delivery information
-            document.getElementById('customer_search').value = drNo;
+            // Use customer name from the function parameter
+            document.getElementById('customer_search').value = customerName;
             document.getElementById('search_customer_btn').click();
         } else {
             Swal.fire({
