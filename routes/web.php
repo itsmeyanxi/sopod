@@ -132,6 +132,12 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     // Export adjustments
     Route::get('/export/csv', [ArAdjustmentController::class, 'export'])->name('export');
 
+    // ✅ NEW: Get pending deliveries without adjustments
+    Route::get('/deliveries/pending', [ArAdjustmentController::class, 'getPendingDeliveries'])->name('deliveries.pending');
+
+    // ✅ NEW: Get delivery information by DR number
+    Route::get('/delivery/{drNo}', [ArAdjustmentController::class, 'getDeliveryInfo'])->name('delivery.info');
+
     // ✅ NEW: View adjustments by customer (must be before /{id} route)
     Route::get('/customer/{customerCode}', [ArAdjustmentController::class, 'byCustomer'])->name('by_customer');
 

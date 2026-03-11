@@ -767,4 +767,96 @@ public function store(Request $request)
             'new_balance' => $record->net_ar_balance
         ]);
     }
+
+    /**
+     * Get pending deliveries without AR adjustments
+     */
+    public function getPendingDeliveries()
+    {
+        try {
+            // Get all deliveries and check which ones don't have adjustments
+            $deliveries = \App\Models\Deliveries::select(
+                'id',
+                'dr_no',
+                'customer_code',
+                'customer_name',
+                'delivery_date',
+                'status'
+            )
+            ->orderBy('delivery_date', 'desc')
+            ->get()
+            ->map(function ($delivery) {
+                // Check if this delivery has an adjustment
+                $hasAdjustment = ArAdjustment::where('dr_no', $delivery->dr_no)->exists();
+                $delivery->has_adjustment = $hasAdjustment;
+                return $delivery;
+            });
+
+            return response()->json([
+                'success' => true,
+                'deliveries' => $deliveries
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to load pending deliveries', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load deliveries'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get delivery information by DR number
+     */
+    public function getDeliveryInfo($drNo)
+    {
+        try {
+            $delivery = \App\Models\Deliveries::where('dr_no', $drNo)->first();
+
+            if (!$delivery) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Delivery not found'
+                ], 404);
+            }
+
+            // Check if adjustment already exists
+            $hasAdjustment = ArAdjustment::where('dr_no', $drNo)->exists();
+
+            if ($hasAdjustment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This delivery already has an AR adjustment'
+                ]);
+            }
+
+            // Get AR Aging record for this customer
+            $arAging = ArAging::where('customer_code', $delivery->customer_code)->first();
+
+            return response()->json([
+                'success' => true,
+                'delivery' => [
+                    'dr_no' => $delivery->dr_no,
+                    'customer_code' => $delivery->customer_code,
+                    'customer_name' => $delivery->customer_name,
+                    'delivery_date' => $delivery->delivery_date,
+                    'status' => $delivery->status
+                ],
+                'ar_balance' => $arAging ? $arAging->net_ar_balance : 0
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to get delivery information', [
+                'error' => $e->getMessage(),
+                'dr_no' => $drNo
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load delivery information'
+            ], 500);
+        }
+    }
 }

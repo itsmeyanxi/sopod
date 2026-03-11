@@ -16,13 +16,13 @@
                     <i class="fas fa-upload"></i>
                     <span>Import Bulk</span>
                 </button>
-                <a href="{{ route('ar_adjustments.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
-                    <i class="fas fa-plus"></i>
-                    <span>New Adjustment</span>
-                </a>
-                <button type="button" id="toggle_view_btn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
-                    <i class="fas fa-table"></i>
-                    <span id="toggle_btn_text">Adjustment List</span>
+                <button type="button" id="toggle_adjustments_btn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
+                    <i class="fas fa-list"></i>
+                    <span>Adjustments</span>
+                </button>
+                <button type="button" id="toggle_deliveries_btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
+                    <i class="fas fa-truck"></i>
+                    <span>Deliveries</span>
                 </button>
             </div>
         </div>
@@ -250,6 +250,41 @@
             <p class="text-gray-400">The customer or DR number you searched for does not exist. Please check and try again.</p>
         </div>
 
+        {{-- Delivery List View --}}
+        <div id="delivery_list_view" class="hidden bg-gray-700 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-semibold text-white">Pending Deliveries</h4>
+                <button type="button" onclick="reloadDeliveryList()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-2">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+
+            {{-- Delivery List Table --}}
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-gray-800 rounded-lg text-sm">
+                    <thead>
+                        <tr class="bg-gray-900 text-gray-300 text-xs">
+                            <th class="px-3 py-3 text-left">DR No.</th>
+                            <th class="px-3 py-3 text-left">Customer</th>
+                            <th class="px-3 py-3 text-left">Delivery Date</th>
+                            <th class="px-3 py-3 text-left">Delivery Status</th>
+                            <th class="px-3 py-3 text-left">AR Status</th>
+                            <th class="px-3 py-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="delivery_list_tbody" class="text-gray-300">
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <p>Loading deliveries...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         {{-- Import Modal --}}
         <div id="import_modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-gray-800 rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4">
@@ -343,31 +378,42 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ✅ Toggle between views
-document.getElementById('toggle_view_btn').addEventListener('click', function() {
-    if (currentView === 'adjustment_list') {
-        switchToAdjustmentEntries();
-    } else {
-        switchToAdjustmentList();
-    }
+document.getElementById('toggle_adjustments_btn').addEventListener('click', function() {
+    switchToAdjustmentList();
+});
+
+document.getElementById('toggle_deliveries_btn').addEventListener('click', function() {
+    switchToDeliveryList();
 });
 
 function switchToAdjustmentEntries() {
     document.getElementById('adjustment_list_view').classList.add('hidden');
     document.getElementById('adjustment_entries_view').classList.remove('hidden');
+    document.getElementById('delivery_list_view').classList.add('hidden');
     document.getElementById('no_results_message').classList.add('hidden');
-    document.getElementById('toggle_btn_text').textContent = 'Adjustment List';
     currentView = 'adjustment_entries';
 }
 
 function switchToAdjustmentList() {
     document.getElementById('adjustment_list_view').classList.remove('hidden');
     document.getElementById('adjustment_entries_view').classList.add('hidden');
+    document.getElementById('delivery_list_view').classList.add('hidden');
     document.getElementById('no_results_message').classList.add('hidden');
-    document.getElementById('toggle_btn_text').textContent = 'New Adjustment';
     currentView = 'adjustment_list';
 
     // Reload adjustment list
     loadAdjustmentList();
+}
+
+function switchToDeliveryList() {
+    document.getElementById('adjustment_list_view').classList.add('hidden');
+    document.getElementById('adjustment_entries_view').classList.add('hidden');
+    document.getElementById('delivery_list_view').classList.remove('hidden');
+    document.getElementById('no_results_message').classList.add('hidden');
+    currentView = 'delivery_list';
+
+    // Load delivery list
+    loadDeliveryList();
 }
 
 // ✅ Search customer or DR number
@@ -1056,6 +1102,150 @@ function viewDeliveryByDrNo(drNo) {
             icon: 'error',
             title: 'Error',
             text: 'Failed to find delivery record',
+            background: '#1f2937',
+            color: '#fff'
+        });
+    });
+}
+
+// ✅ Load delivery list
+function loadDeliveryList() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch('/ar-adjustments/deliveries/pending', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.getElementById('delivery_list_tbody');
+        tbody.innerHTML = '';
+
+        if (!data.deliveries || data.deliveries.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+                        <i class="fas fa-inbox text-4xl mb-2"></i>
+                        <p>No pending deliveries or all deliveries have AR adjustments</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        data.deliveries.forEach(delivery => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-gray-700 hover:bg-gray-750';
+
+            const deliveryStatusColor = {
+                'approved': 'green',
+                'pending': 'yellow',
+                'rejected': 'red',
+                'completed': 'blue',
+                'partial': 'orange'
+            }[delivery.status] || 'gray';
+
+            const arStatusDisplay = delivery.has_adjustment
+                ? '<span class="bg-green-900/30 border border-green-700/50 px-2 py-1 rounded text-xs">Has Adjustment</span>'
+                : '<span class="bg-yellow-900/30 border border-yellow-700/50 px-2 py-1 rounded text-xs">Pending Adjustment</span>';
+
+            row.innerHTML = `
+                <td class="px-3 py-3 font-mono text-sm">${delivery.dr_no || 'N/A'}</td>
+                <td class="px-3 py-3 text-sm">
+                    <div class="font-semibold">${delivery.customer_name || 'N/A'}</div>
+                    <div class="text-xs text-gray-400">${delivery.customer_code || 'N/A'}</div>
+                </td>
+                <td class="px-3 py-3 text-sm">${new Date(delivery.delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                <td class="px-3 py-3">
+                    <span class="bg-${deliveryStatusColor}-900/30 border border-${deliveryStatusColor}-700/50 px-2 py-1 rounded text-xs">
+                        ${delivery.status || 'N/A'}
+                    </span>
+                </td>
+                <td class="px-3 py-3">
+                    ${arStatusDisplay}
+                </td>
+                <td class="px-3 py-3 text-center">
+                    ${delivery.has_adjustment
+                        ? '<span class="text-gray-500 text-sm">—</span>'
+                        : `<button onclick="createAdjustmentFromDelivery('${delivery.dr_no}', '${delivery.customer_code}', '${delivery.customer_name}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="Create Adjustment">
+                            <i class="fas fa-plus"></i> Create
+                        </button>`
+                    }
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    })
+    .catch(error => {
+        console.error('Error loading deliveries:', error);
+        const tbody = document.getElementById('delivery_list_tbody');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-4 py-8 text-center text-red-400">
+                    <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                    <p>Failed to load deliveries</p>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+// ✅ Reload delivery list
+function reloadDeliveryList() {
+    loadDeliveryList();
+}
+
+// ✅ Create adjustment from delivery
+function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
+    // Fetch delivery info and pre-populate the adjustment form
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    Swal.fire({
+        title: 'Loading...',
+        text: 'Preparing adjustment form',
+        background: '#1f2937',
+        color: '#fff',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    fetch(`/ar-adjustments/delivery/${drNo}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        Swal.close();
+
+        if (data.success) {
+            // Pre-populate the form with delivery information
+            document.getElementById('customer_search').value = drNo;
+            document.getElementById('search_customer_btn').click();
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Failed to load delivery information',
+                background: '#1f2937',
+                color: '#fff'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.close();
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load delivery information',
             background: '#1f2937',
             color: '#fff'
         });

@@ -11,12 +11,12 @@
                 <p class="text-gray-400 text-sm mt-1">Last updated: {{ now()->format('M d, Y • h:i A') }}</p>
             </div>
             <div class="flex gap-3">
-                <a href="{{ route('ar_dashboard.export_summary') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2" title="Download CSV summary report" download>
+                <button onclick="downloadExport('{{ route('ar_dashboard.export_summary') }}')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2" title="Download CSV summary report">
                     <i class="fas fa-file-csv"></i> Export Summary
-                </a>
-                <a href="{{ route('ar_dashboard.export_details') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center gap-2" title="Download detailed CSV report" download>
+                </button>
+                <button onclick="downloadExport('{{ route('ar_dashboard.export_details') }}')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center gap-2" title="Download detailed CSV report">
                     <i class="fas fa-file-csv"></i> Export Details
-                </a>
+                </button>
             </div>
         </div>
 
@@ -145,4 +145,12 @@
         </div>
     </div>
 </div>
+
+<script>
+function downloadExport(url) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.click();
+}
+</script>
 @endsection
