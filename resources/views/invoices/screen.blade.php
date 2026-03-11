@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Export Summary
     exportSummaryBtn.addEventListener('click', function() {
         const weekEndDate = weekEndDateInput.value;
-        
+
         if (!weekEndDate) {
             Swal.fire({
                 icon: 'warning',
@@ -237,13 +237,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        window.location.href = `/aging-reports/export-ar-aging?filter_date=${weekEndDate}`;
+        performExport(`/aging-reports/export-ar-aging?filter_date=${weekEndDate}`, 'ar_aging_summary', exportSummaryBtn);
     });
 
     // Export Details
     exportDetailsBtn.addEventListener('click', function() {
         const weekEndDate = weekEndDateInput.value;
-        
+
         if (!weekEndDate) {
             Swal.fire({
                 icon: 'warning',
@@ -255,8 +255,69 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        window.location.href = `/aging-reports/export?filter_date=${weekEndDate}`;
+        performExport(`/aging-reports/export?filter_date=${weekEndDate}`, 'ar_aging_details', exportDetailsBtn);
     });
+
+    // Robust export function
+    function performExport(url, filename, btn) {
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Exporting...';
+        btn.disabled = true;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv'
+            },
+            credentials: 'include'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            // Create download link from blob
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+
+            // Generate filename with date
+            const date = new Date().toISOString().split('T')[0];
+            const ext = filename.includes('details') ? '.xlsx' : '.xlsx';
+            link.download = `${filename}_${date}${ext}`;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Export Successful!',
+                text: 'Your file has been downloaded.',
+                background: '#1f2937',
+                color: '#fff',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        })
+        .catch(error => {
+            console.error('Export error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Export Failed',
+                text: 'Failed to download file. Please try again or check your connection.',
+                background: '#1f2937',
+                color: '#fff'
+            });
+        })
+        .finally(() => {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        });
+    }
 
     // Load Dashboard Data
     function loadDashboardData(filterDate) {
