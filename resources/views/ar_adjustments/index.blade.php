@@ -1233,13 +1233,30 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
         Swal.close();
 
         if (data.success) {
-            // Redirect to create page with delivery info as query parameters
-            const params = new URLSearchParams({
-                dr_no: drNo,
-                customer_code: customerCode,
-                customer_name: customerName
+            // Show confirmation dialog before redirecting
+            Swal.fire({
+                icon: 'question',
+                title: 'Create Adjustment',
+                text: `Create adjustment for delivery ${drNo}?`,
+                background: '#1f2937',
+                color: '#fff',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Create',
+                confirmButtonColor: '#3b82f6',
+                cancelButtonText: 'Cancel',
+                cancelButtonColor: '#ef4444'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirect to create page with delivery info as query parameters
+                    const params = new URLSearchParams({
+                        dr_no: drNo,
+                        customer_code: customerCode,
+                        customer_name: customerName
+                    });
+                    window.location.href = `/ar-adjustments/create?${params.toString()}`;
+                }
+                // If cancelled, just close the dialog and stay on page
             });
-            window.location.href = `/ar-adjustments/create?${params.toString()}`;
         } else {
             Swal.fire({
                 icon: 'error',
