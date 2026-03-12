@@ -13,6 +13,11 @@
                 <p class="text-gray-400 text-sm">Customer Code: <span class="text-gray-300 font-mono">{{ $customerCode }}</span></p>
             </div>
             <div class="flex gap-3 flex-wrap justify-end">
+                <a href="{{ route('aging_reports.customer_summary', ['customer_code' => $customerCode, 'filter_date' => $filterDate, 'include' => $include]) }}"
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition flex items-center space-x-2">
+                    <i class="fas fa-list"></i>
+                    <span>View All Buckets</span>
+                </a>
                 <a href="{{ route('aging_reports.summary', ['filter_date' => $filterDate, 'include' => $include]) }}"
                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-arrow-left"></i>
