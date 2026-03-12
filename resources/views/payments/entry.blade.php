@@ -1678,19 +1678,18 @@ function fetchCustomerTaxAndCalculateNet(rowId, grossAmount) {
         return;
     }
 
-    // Use customer tax rate from currentCustomer global variable
+    // Use customer WHT rate from currentCustomer global variable
     if (currentCustomer && currentCustomer.whtrate) {
         const whtrate = parseFloat(currentCustomer.whtrate) || 0;
-        const taxAmount = (grossAmount * (whtrate / 100));
-        const netAmount = grossAmount - taxAmount;
+        const netAmount = grossAmount - (grossAmount * (whtrate / 100));
 
-        // ✅ Auto-populate the Tax field with customer's WHT rate
-        row.querySelector('[data-field="tax"]').value = taxAmount.toFixed(2);
+        // ✅ Auto-populate the Tax field with customer's WHT rate percentage (from customers table)
+        row.querySelector('[data-field="tax"]').value = whtrate.toFixed(2);
 
-        // Set the net field with calculated value
+        // ✅ Calculate and set Net = Gross - (Gross × Tax Rate %)
         row.querySelector('[data-field="net"]').value = netAmount.toFixed(2);
 
-        console.log(`✅ Tax auto-populated: Gross=₱${grossAmount.toFixed(2)}, Tax Rate=${whtrate}%, Tax Amount=₱${taxAmount.toFixed(2)}, Net=₱${netAmount.toFixed(2)}`);
+        console.log(`✅ Tax and Net auto-calculated: Gross=₱${grossAmount.toFixed(2)}, Tax Rate=${whtrate}%, Net=₱${netAmount.toFixed(2)}`);
     } else {
         console.warn('Customer data not available or no tax rate set');
         row.querySelector('[data-field="tax"]').value = '';
