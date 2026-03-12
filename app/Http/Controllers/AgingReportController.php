@@ -988,6 +988,83 @@ class AgingReportController extends Controller
     }
 
     /**
+     * ✅ NEW: Display all aging buckets for a customer with invoice counts
+     */
+    public function customerSummary(Request $request)
+    {
+        $customerCode = $request->route('customer_code');
+        $filterDate = $request->input('filter_date');
+        $include = $request->input('include', 'all');
+
+        // Get aging date (default to today)
+        $agingDate = $request->filled('aging_date')
+            ? Carbon::parse($request->aging_date)
+            : now();
+
+        // Fetch all records for this customer
+        $query = ArAging::where(function($q) use ($customerCode) {
+            $q->where('customer_code', $customerCode)
+              ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+        });
+
+        // Use agingDate for record_date filter
+        $query->whereDate('record_date', '<=', $agingDate);
+
+        if ($include !== 'all') {
+            $query->where('include_flag', $include);
+        }
+
+        $records = $query->get();
+
+        // Initialize bucket summary
+        $bucketSummary = [
+            'current' => ['count' => 0, 'total' => 0, 'label' => 'Current (Not Yet Due)'],
+            '1_30' => ['count' => 0, 'total' => 0, 'label' => '1-30 Days Overdue'],
+            '31_60' => ['count' => 0, 'total' => 0, 'label' => '31-60 Days Overdue'],
+            '61_90' => ['count' => 0, 'total' => 0, 'label' => '61-90 Days Overdue'],
+            '91_120' => ['count' => 0, 'total' => 0, 'label' => '91-120 Days Overdue'],
+            'over_120' => ['count' => 0, 'total' => 0, 'label' => 'More than 120 Days Overdue'],
+        ];
+
+        $totalInvoices = 0;
+        $totalOutstanding = 0;
+
+        // Process each record
+        foreach ($records as $record) {
+            // Calculate age based on due_date
+            $baseDate = Carbon::parse($record->due_date)->startOfDay();
+            $agingDateForCalc = $agingDate->copy()->startOfDay();
+            $age = $baseDate->diffInDays($agingDateForCalc, false);
+
+            // Get the bucket
+            $bucket = $this->getAgeBucket($age);
+            $netAR = $record->net_ar_balance ?? 0;
+
+            // Add to bucket totals
+            if ($netAR > 0) {
+                $bucketSummary[$bucket]['count']++;
+                $bucketSummary[$bucket]['total'] += $netAR;
+                $totalOutstanding += $netAR;
+            }
+
+            $totalInvoices++;
+        }
+
+        // Get customer name
+        $customerName = $records->first()?->client_name ?? $customerCode;
+
+        return view('aging_reports.customer_summary', compact(
+            'customerCode',
+            'customerName',
+            'bucketSummary',
+            'totalInvoices',
+            'totalOutstanding',
+            'filterDate',
+            'include'
+        ));
+    }
+
+    /**
      * ✅ NEW: Display all invoices for a customer in a specific aging bucket
      */
     public function detail(Request $request)
