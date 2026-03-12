@@ -222,17 +222,40 @@ async function submitImport() {
             body: formData
         });
 
-        const data = await response.json();
         Swal.close();
+
+        // Check if response is OK
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            Swal.fire({
+                icon: 'error',
+                title: 'Server Error',
+                text: `Server returned status ${response.status}. Check browser console for details.`,
+                background: '#1f2937',
+                color: '#fff'
+            });
+            return;
+        }
+
+        const data = await response.json();
 
         if (data.success) {
             closeImportModal();
+            let errorDetails = '';
+            if (data.errors && data.errors.length > 0) {
+                errorDetails = '<p style="color: #fca5a5; margin-top: 10px; text-align: left;"><strong>Issues:</strong><br>' +
+                               data.errors.slice(0, 5).join('<br>') +
+                               (data.errors.length > 5 ? '<br>... and ' + (data.errors.length - 5) + ' more' : '') +
+                               '</p>';
+            }
             Swal.fire({
                 icon: 'success',
                 title: 'Import Successful!',
                 html: `<p>Imported: <strong>${data.imported}</strong></p>
                        <p>Updated: <strong>${data.updated}</strong></p>
-                       <p>Skipped: <strong>${data.skipped}</strong></p>`,
+                       <p>Skipped: <strong>${data.skipped}</strong></p>
+                       ${errorDetails}`,
                 background: '#1f2937',
                 color: '#fff'
             }).then(() => {
@@ -249,11 +272,11 @@ async function submitImport() {
         }
     } catch (error) {
         Swal.close();
-        console.error('Error:', error);
+        console.error('Import error:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Failed to import file',
+            text: 'Failed to import file: ' + error.message,
             background: '#1f2937',
             color: '#fff'
         });

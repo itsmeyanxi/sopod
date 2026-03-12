@@ -1229,9 +1229,8 @@ private $arAdjustmentColumnMap = [
         ]);
         return redirect()->back()->with('error', 'Error importing file: ' . $e->getMessage());
     }
-}
 
-   public function importArAdjustments(Request $request)
+    public function importArAdjustments(Request $request)
 {
     $request->validate([
         'file' => 'required|mimes:xlsx,xls,csv|max:10240',
