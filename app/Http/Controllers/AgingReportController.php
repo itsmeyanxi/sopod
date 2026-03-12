@@ -1005,9 +1005,8 @@ class AgingReportController extends Controller
         // Fetch all records for this customer
         $query = ArAging::where('customer_code', $customerCode);
 
-        if ($filterDate) {
-            $query->whereDate('record_date', '<=', $filterDate);
-        }
+        // ✅ Use agingDate for record_date filter (same logic as summary)
+        $query->whereDate('record_date', '<=', $agingDate);
 
         if ($include !== 'all') {
             $query->where('include_flag', $include);
