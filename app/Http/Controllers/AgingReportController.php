@@ -914,6 +914,7 @@ class AgingReportController extends Controller
 
             if (!isset($agingSummary[$key])) {
                 $agingSummary[$key] = [
+                    'customer_code' => $record->customer_code, // ✅ NEW: Add customer code for detail page links
                     'client_name' => $clientName,
                     'se2' => $se2,
                     'current' => 0,
@@ -974,12 +975,171 @@ class AgingReportController extends Controller
             return strcmp($a['client_name'], $b['client_name']);
         });
 
+        // ✅ NEW: Fetch notifications for AR dashboard
+        $notifications = $this->getARNotifications($records, $agingDate);
+
         return view('aging_reports.summary', compact(
             'agingSummary',
             'grandTotals',
             'filterDate',
+            'include',
+            'notifications'
+        ));
+    }
+
+    /**
+     * ✅ NEW: Display all invoices for a customer in a specific aging bucket
+     */
+    public function detail(Request $request)
+    {
+        $customerCode = $request->route('customer_code');
+        $bucket = $request->route('bucket');
+        $filterDate = $request->input('filter_date');
+        $include = $request->input('include', 'all');
+
+        // Get aging date (default to today)
+        $agingDate = $request->filled('aging_date')
+            ? Carbon::parse($request->aging_date)
+            : now();
+
+        // Fetch all records for this customer
+        $query = ArAging::where('customer_code', $customerCode);
+
+        if ($filterDate) {
+            $query->whereDate('record_date', '<=', $filterDate);
+        }
+
+        if ($include !== 'all') {
+            $query->where('include_flag', $include);
+        }
+
+        $records = $query->orderBy('due_date', 'desc')->get();
+
+        // Filter records by aging bucket and get details
+        $invoices = [];
+        $totalAmount = 0;
+        $bucketLabel = $this->getBucketLabel($bucket);
+
+        foreach ($records as $record) {
+            // Calculate age based on due_date
+            $baseDate = Carbon::parse($record->due_date)->startOfDay();
+            $agingDateForCalc = $agingDate->copy()->startOfDay();
+            $age = $baseDate->diffInDays($agingDateForCalc, false);
+
+            // Check if this record belongs to the requested bucket
+            if ($this->getAgeBucket($age) === $bucket) {
+                $netAR = $record->net_ar_balance ?? 0;
+                if ($netAR > 0) {
+                    $invoices[] = [
+                        'invoice_no' => $record->invoice_no,
+                        'dr_no' => $record->dr_no,
+                        'po_no' => $record->po_no,
+                        'invoice_date' => $record->invoice_date,
+                        'due_date' => $record->due_date,
+                        'terms' => $record->terms,
+                        'days_overdue' => max(0, $age),
+                        'invoice_amount' => $record->invoice_amount,
+                        'settled_amount' => $record->settled_invoice_amount,
+                        'net_ar_balance' => $netAR,
+                        'status' => $record->status,
+                        'ar_class' => $record->ar_class,
+                        'branch' => $record->branch
+                    ];
+                    $totalAmount += $netAR;
+                }
+            }
+        }
+
+        // Get customer name
+        $customerName = $records->first()?->client_name ?? $customerCode;
+
+        return view('aging_reports.detail', compact(
+            'customerCode',
+            'customerName',
+            'bucket',
+            'bucketLabel',
+            'invoices',
+            'totalAmount',
+            'filterDate',
             'include'
         ));
+    }
+
+    /**
+     * Get label for aging bucket
+     */
+    private function getBucketLabel($bucket)
+    {
+        return match($bucket) {
+            'current' => 'Current (Not Yet Due)',
+            '1_30' => '1-30 Days Overdue',
+            '31_60' => '31-60 Days Overdue',
+            '61_90' => '61-90 Days Overdue',
+            '91_120' => '91-120 Days Overdue',
+            'over_120' => 'More than 120 Days Overdue',
+            default => 'Unknown'
+        };
+    }
+
+    /**
+     * ✅ NEW: Get AR notifications for dashboard alerts
+     */
+    private function getARNotifications($records, $agingDate)
+    {
+        $today = $agingDate->copy()->startOfDay();
+        $in5Days = $today->copy()->addDays(5);
+        $in7Days = $today->copy()->addDays(7);
+
+        $dueSoon = []; // Current bucket + due in 5-7 days
+        $justOverdue = []; // 1-30 days overdue
+        $seriouslyOverdue = []; // 61+ days overdue
+
+        foreach ($records as $record) {
+            $netAR = $record->net_ar_balance ?? 0;
+            if ($netAR <= 0) continue; // Skip settled invoices
+
+            $dueDate = Carbon::parse($record->due_date)->startOfDay();
+            $daysDiff = $dueDate->diffInDays($today, false); // Negative if future, positive if past
+
+            // Check if invoice is due soon (5-7 days from now)
+            if ($daysDiff >= -7 && $daysDiff <= -5 && count($dueSoon) < 5) {
+                $dueSoon[] = [
+                    'invoice_no' => $record->invoice_no,
+                    'customer' => $record->client_name ?? $record->customer_code,
+                    'due_date' => $dueDate,
+                    'amount' => $netAR,
+                    'days_until_due' => abs($daysDiff)
+                ];
+            }
+
+            // Check if invoice just became overdue (1-30 days)
+            if ($daysDiff >= 1 && $daysDiff <= 30 && count($justOverdue) < 5) {
+                $justOverdue[] = [
+                    'invoice_no' => $record->invoice_no,
+                    'customer' => $record->client_name ?? $record->customer_code,
+                    'due_date' => $dueDate,
+                    'amount' => $netAR,
+                    'days_overdue' => $daysDiff
+                ];
+            }
+
+            // Check if invoice is seriously overdue (61+ days)
+            if ($daysDiff >= 61 && count($seriouslyOverdue) < 5) {
+                $seriouslyOverdue[] = [
+                    'invoice_no' => $record->invoice_no,
+                    'customer' => $record->client_name ?? $record->customer_code,
+                    'due_date' => $dueDate,
+                    'amount' => $netAR,
+                    'days_overdue' => $daysDiff
+                ];
+            }
+        }
+
+        return [
+            'due_soon' => $dueSoon,
+            'just_overdue' => $justOverdue,
+            'seriously_overdue' => $seriouslyOverdue
+        ];
     }
 
 private function getEmptyAgingSummary()

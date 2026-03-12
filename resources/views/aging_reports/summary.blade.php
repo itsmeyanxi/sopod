@@ -42,6 +42,86 @@
             </div>
         </div>
 
+        <!-- ✅ NEW: AR Notifications Section -->
+        @if($notifications && (count($notifications['due_soon']) > 0 || count($notifications['just_overdue']) > 0 || count($notifications['seriously_overdue']) > 0))
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <!-- Due Soon Alert -->
+            @if(count($notifications['due_soon']) > 0)
+            <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-4 border-l-4 border-blue-400 shadow-lg">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center">
+                        <i class="fas fa-clock text-blue-200 text-2xl mr-2"></i>
+                        <div>
+                            <h4 class="text-white font-bold">Due Soon</h4>
+                            <p class="text-blue-100 text-sm">Next 5-7 days</p>
+                        </div>
+                    </div>
+                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold">{{ count($notifications['due_soon']) }}</span>
+                </div>
+                <div class="space-y-2 max-h-32 overflow-y-auto">
+                    @foreach($notifications['due_soon'] as $invoice)
+                    <div class="bg-blue-900 bg-opacity-40 p-2 rounded text-sm">
+                        <p class="text-blue-100 font-semibold">{{ $invoice['invoice_no'] }}</p>
+                        <p class="text-blue-200 text-xs">{{ $invoice['customer'] }} • {{ $invoice['days_until_due'] }} days</p>
+                        <p class="text-blue-100 font-bold">₱{{ number_format($invoice['amount'], 2) }}</p>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            <!-- Just Overdue Alert -->
+            @if(count($notifications['just_overdue']) > 0)
+            <div class="bg-gradient-to-br from-yellow-600 to-yellow-700 rounded-lg p-4 border-l-4 border-yellow-400 shadow-lg">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-yellow-200 text-2xl mr-2"></i>
+                        <div>
+                            <h4 class="text-white font-bold">Just Overdue</h4>
+                            <p class="text-yellow-100 text-sm">1-30 days past due</p>
+                        </div>
+                    </div>
+                    <span class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold">{{ count($notifications['just_overdue']) }}</span>
+                </div>
+                <div class="space-y-2 max-h-32 overflow-y-auto">
+                    @foreach($notifications['just_overdue'] as $invoice)
+                    <div class="bg-yellow-900 bg-opacity-40 p-2 rounded text-sm">
+                        <p class="text-yellow-100 font-semibold">{{ $invoice['invoice_no'] }}</p>
+                        <p class="text-yellow-200 text-xs">{{ $invoice['customer'] }} • {{ $invoice['days_overdue'] }} days overdue</p>
+                        <p class="text-yellow-100 font-bold">₱{{ number_format($invoice['amount'], 2) }}</p>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            <!-- Seriously Overdue Alert -->
+            @if(count($notifications['seriously_overdue']) > 0)
+            <div class="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-4 border-l-4 border-red-400 shadow-lg">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle text-red-200 text-2xl mr-2"></i>
+                        <div>
+                            <h4 class="text-white font-bold">⚠️ Seriously Overdue</h4>
+                            <p class="text-red-100 text-sm">61+ days past due</p>
+                        </div>
+                    </div>
+                    <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">{{ count($notifications['seriously_overdue']) }}</span>
+                </div>
+                <div class="space-y-2 max-h-32 overflow-y-auto">
+                    @foreach($notifications['seriously_overdue'] as $invoice)
+                    <div class="bg-red-900 bg-opacity-40 p-2 rounded text-sm">
+                        <p class="text-red-100 font-semibold">{{ $invoice['invoice_no'] }}</p>
+                        <p class="text-red-200 text-xs">{{ $invoice['customer'] }} • {{ $invoice['days_overdue'] }} days overdue</p>
+                        <p class="text-red-100 font-bold">₱{{ number_format($invoice['amount'], 2) }}</p>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+        </div>
+        @endif
+
         <!-- Summary Table -->
         <div class="bg-gray-700 rounded-lg overflow-hidden">
             <div class="overflow-x-auto">
@@ -66,42 +146,42 @@
                             <td class="px-4 py-3">{{ $row['se2'] }}</td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['current'] > 0)
-                                    <span class="text-green-400 font-semibold">₱{{ number_format($row['current'], 2) }}</span>
+                                    <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => 'current', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-green-400 font-semibold hover:underline cursor-pointer transition hover:text-green-300">₱{{ number_format($row['current'], 2) }}</a>
                                 @else
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['1_30'] > 0)
-                                    <span class="text-yellow-400 font-semibold">₱{{ number_format($row['1_30'], 2) }}</span>
+                                    <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => '1_30', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-yellow-400 font-semibold hover:underline cursor-pointer transition hover:text-yellow-300">₱{{ number_format($row['1_30'], 2) }}</a>
                                 @else
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['31_60'] > 0)
-                                    <span class="text-orange-400 font-semibold">₱{{ number_format($row['31_60'], 2) }}</span>
+                                    <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => '31_60', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-orange-400 font-semibold hover:underline cursor-pointer transition hover:text-orange-300">₱{{ number_format($row['31_60'], 2) }}</a>
                                 @else
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['61_90'] > 0)
-                                    <span class="text-red-400 font-semibold">₱{{ number_format($row['61_90'], 2) }}</span>
+                                    <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => '61_90', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-red-400 font-semibold hover:underline cursor-pointer transition hover:text-red-300">₱{{ number_format($row['61_90'], 2) }}</a>
                                 @else
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['91_120'] > 0)
-                                    <span class="text-red-500 font-semibold">₱{{ number_format($row['91_120'], 2) }}</span>
+                                    <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => '91_120', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-red-500 font-semibold hover:underline cursor-pointer transition hover:text-red-400">₱{{ number_format($row['91_120'], 2) }}</a>
                                 @else
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['over_120'] > 0)
-                                    <span class="text-red-600 font-bold">₱{{ number_format($row['over_120'], 2) }}</span>
+                                    <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => 'over_120', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-red-600 font-bold hover:underline cursor-pointer transition hover:text-red-500">₱{{ number_format($row['over_120'], 2) }}</a>
                                 @else
                                     <span class="text-gray-500">-</span>
                                 @endif

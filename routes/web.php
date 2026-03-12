@@ -107,9 +107,12 @@ Route::prefix('aging-reports')->name('aging_reports.')->group(function () {
     // Export AR Aging summary
     Route::get('/export-ar-aging', [AgingReportController::class, 'exportArAging'])->name('export_ar_aging');
     
+    // ✅ Detail view - Show all invoices for customer in an aging bucket
+    Route::get('/detail/{customer_code}/{bucket}', [AgingReportController::class, 'detail'])->name('detail');
+
     // ✅ AR PROFILE - View single customer profile
     Route::get('/ar-profile/{id}', [AgingReportController::class, 'showARProfile'])->name('ar_profile');
-    
+
     // ✅ AR PROFILE - Export single customer profile
     Route::get('/ar-profile/export', [AgingReportController::class, 'exportARProfile'])->name('ar_profile.export');
 });
