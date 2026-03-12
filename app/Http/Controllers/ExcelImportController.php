@@ -1484,5 +1484,124 @@ private $arAdjustmentColumnMap = [
             \Log::warning("Could not link to receiving report: " . $e->getMessage());
         }
     }
-}
+
+    /**
+     * Import GL Accounts from Excel/CSV
+     */
+    public function importGlAccounts(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            // Validate file
+            $request->validate([
+                'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+            ]);
+
+            $file = $request->file('file');
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+
+            if (empty($rows)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File is empty',
+                ], 400);
+            }
+
+            // Find header row (first row should have headers)
+            $headerRow = $rows[0];
+            $headerRowIndex = 0;
+
+            // Map headers to database columns (case-insensitive)
+            $columnMap = [
+                'account code' => 'account_code',
+                'account name' => 'account_name',
+                'fs line item' => 'fs_line_item',
+                'fs notes' => 'fs_notes',
+            ];
+
+            $mappedHeaders = [];
+            foreach ($headerRow as $index => $header) {
+                $headerLower = strtolower(trim((string)$header));
+                foreach ($columnMap as $searchKey => $dbColumn) {
+                    if (strpos($headerLower, $searchKey) !== false) {
+                        $mappedHeaders[$index] = $dbColumn;
+                        break;
+                    }
+                }
+            }
+
+            if (empty($mappedHeaders)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No recognized columns found in file header',
+                ], 400);
+            }
+
+            $imported = 0;
+            $updated = 0;
+            $skipped = 0;
+            $errors = [];
+
+            // Process data rows
+            for ($rowIndex = $headerRowIndex + 1; $rowIndex < count($rows); $rowIndex++) {
+                $row = $rows[$rowIndex];
+
+                // Skip empty rows
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                try {
+                    // Build data array from mapped columns
+                    $data = [];
+                    foreach ($mappedHeaders as $colIndex => $dbColumn) {
+                        $value = isset($row[$colIndex]) ? trim((string)$row[$colIndex]) : '';
+                        if (!empty($value)) {
+                            $data[$dbColumn] = $value;
+                        }
+                    }
+
+                    // Validate required fields
+                    if (empty($data['account_code']) || empty($data['account_name'])) {
+                        $skipped++;
+                        $errors[] = "Row " . ($rowIndex + 1) . ": Missing account code or name";
+                        continue;
+                    }
+
+                    // Set created_by
+                    $data['created_by'] = auth()->user()->name;
+
+                    // Upsert: update if exists by account_code, otherwise create
+                    $account = \App\Models\GlAccount::updateOrCreate(
+                        ['account_code' => $data['account_code']],
+                        $data
+                    );
+
+                    if ($account->wasRecentlyCreated) {
+                        $imported++;
+                    } else {
+                        $updated++;
+                    }
+                } catch (\Exception $e) {
+                    $errors[] = "Row " . ($rowIndex + 1) . ": " . $e->getMessage();
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'imported' => $imported,
+                'updated' => $updated,
+                'skipped' => $skipped,
+                'errors' => $errors,
+                'message' => "Import complete. Imported: {$imported}, Updated: {$updated}, Skipped: {$skipped}",
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to import GL accounts', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to import GL accounts: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

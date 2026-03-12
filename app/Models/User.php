@@ -540,6 +540,7 @@ class User extends Authenticatable
         'currency_rates'     => [6, 28, 29],                   // Purchasing, PR Approver, Procurement Approver
         'aging_reports'      => [26],                          // Accounting
         'ar_dashboard'       => [26],                          // Accounting
+        'gl_accounts'        => [26, 5],                       // Accounting, General Administration
         'payments'           => [26, 15],                      // Accounting, Credit & Collection
         'change_log'         => [15],                          // Credit & Collection
         'sales_analytics'    => [26, 16, 17, 18, 19, 20],     // Accounting, Executive

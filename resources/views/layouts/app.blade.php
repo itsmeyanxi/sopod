@@ -153,7 +153,7 @@
             <span>📋</span>
             <span class="sidebar-text">PO Summary</span>
         </a>
-        @endif
+        @endif 
 
         <!-- =================== RESTRICTED: Hide everything below for President/VP =================== -->
         @if(!auth()->user()->isPresidentOrVicePresident())
@@ -394,6 +394,22 @@
                         <a href="{{ route('payments.entry') }}" class="block hover:underline">Collection</a>
                     @endif
                     <a href="{{ route('ar_adjustments.index') }}" class="block hover:underline">AR Adjustments</a>
+                </div>
+            </div>
+        @endif
+
+        <!-- =================== ACCOUNTING =================== -->
+        @if(auth()->user()->canAccessModule('gl_accounts'))
+            <div>
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                    <span class="flex items-center space-x-2">
+                        <span>📒</span>
+                        <span class="sidebar-text">Accounting</span>
+                    </span>
+                    <span class="chevron">▼</span>
+                </button>
+                <div class="submenu ml-8 space-y-1 hidden">
+                    <a href="{{ route('gl_accounts.index') }}" class="block hover:underline">Chart of Accounts</a>
                 </div>
             </div>
         @endif

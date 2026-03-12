@@ -40,7 +40,8 @@ use App\Http\Controllers\{
     ReimbursementFormController,
     RoleController,
     WarehouseController,
-    CustomerARProfileController
+    CustomerARProfileController,
+    GlAccountController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -268,6 +269,23 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
 // ✅ NEW: AR Adjustments Import Route
 Route::post('/excel/import/ar-adjustments', [ExcelImportController::class, 'importArAdjustments'])
     ->name('excel.import.ar_adjustments')
+    ->middleware(['auth']);
+
+// ===================== GL ACCOUNTS / CHART OF ACCOUNTS =====================
+Route::prefix('accounting/gl-accounts')->name('gl_accounts.')->middleware('auth')->group(function () {
+    Route::get('/',             [GlAccountController::class, 'index'])->name('index');
+    Route::get('/create',       [GlAccountController::class, 'create'])->name('create');
+    Route::get('/get',          [GlAccountController::class, 'getAccounts'])->name('get');
+    Route::get('/export',       [GlAccountController::class, 'export'])->name('export');
+    Route::post('/',            [GlAccountController::class, 'store'])->name('store');
+    Route::get('/{id}',         [GlAccountController::class, 'show'])->name('show');
+    Route::get('/{id}/edit',    [GlAccountController::class, 'editForm'])->name('edit');
+    Route::put('/{id}',         [GlAccountController::class, 'update'])->name('update');
+    Route::delete('/{id}',      [GlAccountController::class, 'destroy'])->name('destroy');
+});
+
+Route::post('/excel/import/gl-accounts', [ExcelImportController::class, 'importGlAccounts'])
+    ->name('excel.import.gl_accounts')
     ->middleware(['auth']);
 
     // IMPORT ITEMS — only Admin, IT + Accounting roles
