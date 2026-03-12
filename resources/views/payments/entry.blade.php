@@ -207,6 +207,7 @@
                     <th class="px-2 py-2 text-left">Payment Option *</th>
                     <th class="px-2 py-2 text-right">Amount *</th>
                     <th class="px-2 py-2 text-right">Tax</th>
+                    <th class="px-2 py-2 text-right">Net</th>
                     <th class="px-2 py-2 text-left">Notes</th>
                     <th class="px-2 py-2 text-center w-12">Action</th>
                 </tr>
@@ -568,16 +569,25 @@ function addSelectedToPaymentTable() {
                    oninput="handlePaymentAmountChange(this)">
         </td>
         <td class="px-2 py-1.5">
-            <input type="number" 
-                   step="0.01" 
+            <input type="number"
+                   step="0.01"
                    min="0"
-                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500" 
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500"
                    placeholder="0.00"
                    data-field="tax">
         </td>
         <td class="px-2 py-1.5">
-            <input type="text" 
-                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500" 
+            <input type="number"
+                   step="0.01"
+                   min="0"
+                   class="w-full bg-gray-600 text-green-400 border border-gray-600 rounded px-2 py-1 text-xs text-right font-semibold"
+                   placeholder="0.00"
+                   data-field="net"
+                   readonly>
+        </td>
+        <td class="px-2 py-1.5">
+            <input type="text"
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
                    placeholder="Notes"
                    data-field="notes">
         </td>
@@ -590,8 +600,15 @@ function addSelectedToPaymentTable() {
             </button>
         </td>
     `;
-    
+
     tbody.appendChild(row);
+
+    // ✅ Calculate net for pre-filled data if invoice number exists
+    if (paymentData.invoice_no) {
+        const grossAmount = parseFloat(paymentData.check_amount || 0);
+        fetchCustomerTaxAndCalculateNet(paymentRowCounter, grossAmount);
+    }
+
     updateOutstandingBalance();
 }
 
@@ -832,16 +849,25 @@ function addPaymentRow() {
                    oninput="handlePaymentAmountChange(this)">
         </td>
         <td class="px-2 py-1.5">
-            <input type="number" 
-                   step="0.01" 
+            <input type="number"
+                   step="0.01"
                    min="0"
-                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500" 
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500"
                    placeholder="0.00"
                    data-field="tax">
         </td>
         <td class="px-2 py-1.5">
-            <input type="text" 
-                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500" 
+            <input type="number"
+                   step="0.01"
+                   min="0"
+                   class="w-full bg-gray-600 text-green-400 border border-gray-600 rounded px-2 py-1 text-xs text-right font-semibold"
+                   placeholder="0.00"
+                   data-field="net"
+                   readonly>
+        </td>
+        <td class="px-2 py-1.5">
+            <input type="text"
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
                    placeholder="Notes"
                    data-field="notes">
         </td>
@@ -919,6 +945,8 @@ function handleDRNumberChange(input) {
         // Clear auto-filled fields
         row.querySelector('[data-field="invoice_no"]').value = '';
         row.querySelector('[data-field="outstanding_balance"]').value = '';
+        row.querySelector('[data-field="tax"]').value = ''; // ✅ Clear auto-populated tax
+        row.querySelector('[data-field="net"]').value = '';
         return;
     }
     
@@ -932,15 +960,18 @@ function handleDRNumberChange(input) {
         // Auto-fill invoice number and outstanding balance
         row.querySelector('[data-field="invoice_no"]').value = invoiceInfo.invoice_no || '';
         row.querySelector('[data-field="outstanding_balance"]').value = '₱' + invoiceInfo.outstanding_balance.toLocaleString('en-PH', { minimumFractionDigits: 2 });
-        
+
         // Auto-fill amount with outstanding balance
         const amountInput = row.querySelector('[data-field="amount"]');
         amountInput.value = invoiceInfo.outstanding_balance.toFixed(2);
-        
+
+        // ✅ NEW: Fetch customer tax rate and calculate net
+        fetchCustomerTaxAndCalculateNet(rowId, invoiceInfo.outstanding_balance);
+
         // Highlight row as valid
         row.classList.remove('bg-red-900', 'bg-opacity-20');
         row.classList.add('bg-green-900', 'bg-opacity-10');
-        
+
         updateOutstandingBalance();
         
         Swal.fire({
@@ -1069,6 +1100,7 @@ function saveAllPayments() {
         const posting_date = row.querySelector('[data-field="posting_date"]')?.value;
         const amount = row.querySelector('[data-field="amount"]')?.value;
         const tax = row.querySelector('[data-field="tax"]')?.value;
+        const net = row.querySelector('[data-field="net"]')?.value; // ✅ NEW: Get net value
         const notes = row.querySelector('[data-field="notes"]')?.value;
 
         // Get the actual row ID from the row element
@@ -1086,6 +1118,7 @@ function saveAllPayments() {
             payment_means: paymentMeansData[rowId],
             amount: parseFloat(amount),
             tax: tax ? parseFloat(tax) : 0,
+            net: net ? parseFloat(net) : 0, // ✅ NEW: Include net amount
             payment_notes: notes
         });
     });
@@ -1631,6 +1664,38 @@ function copyBalanceDueToCash() {
     const balanceText = row.querySelector('[data-field="outstanding_balance"]').value;
     const balance = parseFloat(balanceText.replace(/[₱,]/g, '')) || 0;
     document.getElementById('cash_amount').value = balance.toFixed(2);
+}
+
+// ✅ NEW: Auto-populate tax and calculate net amount based on customer's tax rate (whtrate)
+function fetchCustomerTaxAndCalculateNet(rowId, grossAmount) {
+    const row = document.getElementById(`payment_row_${rowId}`);
+    const invoiceNo = row.querySelector('[data-field="invoice_no"]').value;
+
+    // Only calculate if there's an invoice number
+    if (!invoiceNo) {
+        row.querySelector('[data-field="tax"]').value = '';
+        row.querySelector('[data-field="net"]').value = '';
+        return;
+    }
+
+    // Use customer tax rate from currentCustomer global variable
+    if (currentCustomer && currentCustomer.whtrate) {
+        const whtrate = parseFloat(currentCustomer.whtrate) || 0;
+        const taxAmount = (grossAmount * (whtrate / 100));
+        const netAmount = grossAmount - taxAmount;
+
+        // ✅ Auto-populate the Tax field with customer's WHT rate
+        row.querySelector('[data-field="tax"]').value = taxAmount.toFixed(2);
+
+        // Set the net field with calculated value
+        row.querySelector('[data-field="net"]').value = netAmount.toFixed(2);
+
+        console.log(`✅ Tax auto-populated: Gross=₱${grossAmount.toFixed(2)}, Tax Rate=${whtrate}%, Tax Amount=₱${taxAmount.toFixed(2)}, Net=₱${netAmount.toFixed(2)}`);
+    } else {
+        console.warn('Customer data not available or no tax rate set');
+        row.querySelector('[data-field="tax"]').value = '';
+        row.querySelector('[data-field="net"]').value = grossAmount.toFixed(2);
+    }
 }
 
 // GL Account search for Check Payment

@@ -37,26 +37,29 @@ class PaymentController extends Controller
         Log::info('Searching for customer', ['search_term' => $search]);
 
         // Search in ar_aging table - only sum net_ar_balance where > 0 (outstanding)
+        // ✅ NEW: Join with customers table to get whtrate
         $customerData = DB::table('ar_aging')
+            ->leftJoin('customers', 'ar_aging.customer_code', '=', 'customers.customer_code')
             ->select(
-                'customer_code',
-                'client_name',
-                DB::raw('SUM(CASE WHEN COALESCE(net_ar_balance, 0) > 0 THEN COALESCE(net_ar_balance, 0) ELSE 0 END) as total_outstanding'),
-                DB::raw('SUM(COALESCE(gross_ar_balance, 0)) as gross_balance'),
-                DB::raw('SUM(COALESCE(invoice_amount, 0)) as total_invoice'),
-                DB::raw('SUM(COALESCE(settled_invoice_amount, 0)) as total_settled'),
-                DB::raw('MAX(branch) as branch'),
-                DB::raw('COALESCE(MAX(sales_executive), MAX(se2)) as sales_executive'),
-                DB::raw('MAX(terms) as terms'),
+                'ar_aging.customer_code',
+                'ar_aging.client_name',
+                DB::raw('SUM(CASE WHEN COALESCE(ar_aging.net_ar_balance, 0) > 0 THEN COALESCE(ar_aging.net_ar_balance, 0) ELSE 0 END) as total_outstanding'),
+                DB::raw('SUM(COALESCE(ar_aging.gross_ar_balance, 0)) as gross_balance'),
+                DB::raw('SUM(COALESCE(ar_aging.invoice_amount, 0)) as total_invoice'),
+                DB::raw('SUM(COALESCE(ar_aging.settled_invoice_amount, 0)) as total_settled'),
+                DB::raw('MAX(ar_aging.branch) as branch'),
+                DB::raw('COALESCE(MAX(ar_aging.sales_executive), MAX(ar_aging.se2)) as sales_executive'),
+                DB::raw('MAX(ar_aging.terms) as terms'),
                 DB::raw('COUNT(*) as invoice_count'),
-                DB::raw('COUNT(CASE WHEN COALESCE(net_ar_balance, 0) > 0 THEN 1 END) as outstanding_invoice_count')
+                DB::raw('COUNT(CASE WHEN COALESCE(ar_aging.net_ar_balance, 0) > 0 THEN 1 END) as outstanding_invoice_count'),
+                'customers.whtrate' // ✅ NEW: Get customer's tax rate
             )
             ->where(function($query) use ($search) {
-                $query->whereRaw('TRIM(customer_code) = ?', [trim($search)])
-                      ->orWhereRaw('TRIM(customer_code) LIKE ?', ['%' . trim($search) . '%'])
-                      ->orWhereRaw('TRIM(client_name) LIKE ?', ['%' . trim($search) . '%']);
+                $query->whereRaw('TRIM(ar_aging.customer_code) = ?', [trim($search)])
+                      ->orWhereRaw('TRIM(ar_aging.customer_code) LIKE ?', ['%' . trim($search) . '%'])
+                      ->orWhereRaw('TRIM(ar_aging.client_name) LIKE ?', ['%' . trim($search) . '%']);
             })
-            ->groupBy('customer_code', 'client_name')
+            ->groupBy('ar_aging.customer_code', 'ar_aging.client_name', 'customers.whtrate')
             ->first();
 
         Log::info('Search result', ['found' => $customerData ? 'yes' : 'no']);
@@ -113,6 +116,7 @@ class PaymentController extends Controller
                 'terms' => $customerData->terms ?? 'N/A',
                 'invoice_count' => $customerData->invoice_count,
                 'outstanding_invoice_count' => $customerData->outstanding_invoice_count,
+                'whtrate' => $customerData->whtrate ?? 0, // ✅ Tax rate for auto-calculation
             ],
             'outstanding_invoices' => $outstandingInvoices
         ]);
@@ -146,6 +150,7 @@ class PaymentController extends Controller
     'payment_posting_date' => 'required|date',
     'amount' => 'required|numeric|min:0.01',
     'tax' => 'nullable|numeric|min:0',
+    'net' => 'nullable|numeric|min:0', // ✅ NEW: Accept net amount
     'payment_means' => 'required|array', // ✅ NEW: Accept payment means data
     'payment_means.type' => 'required|in:check,bank_transfer,cash', // ✅ NEW
     'payment_notes' => 'nullable|string|max:1000',
@@ -182,6 +187,7 @@ class PaymentController extends Controller
     'payment_date' => $validated['payment_posting_date'],
     'amount' => $validated['amount'],
     'tax' => $validated['tax'] ?? 0,
+    'net' => $validated['net'] ?? null, // ✅ NEW: Save net amount
     // ✅ NEW: Store payment means data as JSON or separate fields
     'payment_method' => $validated['payment_means']['type'], // check, bank_transfer, or cash
     'payment_means_data' => json_encode($validated['payment_means']), // Store full data as JSON
@@ -363,6 +369,7 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                     'payment_date',
                     'amount',
                     'tax',
+                    'net', // ✅ NEW: Include net field
                     'payment_method',
                     'payment_option',
                     'payment_means_data',
@@ -403,6 +410,7 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                     'invoice_date as payment_date',
                     'invoice_amount as amount',
                     DB::raw('0 as tax'),
+                    DB::raw('NULL as net'), // ✅ NEW: Net not applicable for ar_aging
                     DB::raw('NULL as payment_method'),
                     DB::raw('NULL as payment_option'),
                     DB::raw('NULL as payment_means_data'),
@@ -501,6 +509,7 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                     'Payment Posting Date',
                     'Amount',
                     'Tax',
+                    'Net', // ✅ NEW: Add Net column
                     'Payment Option',
                     'Notes'
                 ]);
@@ -514,6 +523,7 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                         Carbon::parse($payment->payment_posting_date)->format('m/d/Y'),
                         number_format($payment->amount, 2, '.', ''),
                         number_format($payment->tax ?? 0, 2, '.', ''),
+                        number_format($payment->net ?? 0, 2, '.', ''), // ✅ NEW: Include net
                         $payment->payment_option,
                         $payment->payment_notes ?? '',
                     ]);

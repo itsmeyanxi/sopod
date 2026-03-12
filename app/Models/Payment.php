@@ -18,5 +18,6 @@ class Payment extends Model
         'payment_date' => 'date',
         'amount' => 'decimal:2',
         'tax' => 'decimal:2',
+        'net' => 'decimal:2',
     ];
 }
