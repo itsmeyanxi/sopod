@@ -103,12 +103,15 @@ class ARAdjustment extends Model
     public function getFormattedTypeAttribute()
 {
     return match($this->transaction_type) {
-        'atd' => 'ATD (Authority to Debit)',
+        'sales_return_allowances' => 'Sales Return and Allowances',
+        'price_adjustment' => 'Price Adjustment',
+        'rebates' => 'Rebates',
+        'distribution_fees' => 'Distribution Fees',
+        'penalty' => 'Penalty',
+        'promotional_expenses' => 'Promotional Expenses',
+        'small_balance_adjustment' => 'Small balance adjustment',
+        'atd' => 'ATD',
         'offset' => 'Offset',
-        'credit_memo' => 'Credit Memo',
-        'debit_memo' => 'Debit Memo',
-        'adjustment' => 'Adjustment',
-        'write_off' => 'Write-off',
         default => ucfirst(str_replace('_', ' ', $this->transaction_type))
     };
 }

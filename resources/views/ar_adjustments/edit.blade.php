@@ -45,12 +45,15 @@
                     <label class="block font-semibold text-gray-300 mb-2">Transaction Type: <span class="text-red-400">*</span></label>
                     <select name="transaction_type" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                         <option value="">-- Select Transaction Type --</option>
-                        <option value="atd" {{ old('transaction_type', $adjustment->transaction_type) == 'atd' ? 'selected' : '' }}>ATD (Authority to Debit)</option>
+                        <option value="sales_return_allowances" {{ old('transaction_type', $adjustment->transaction_type) == 'sales_return_allowances' ? 'selected' : '' }}>Sales Return and Allowances</option>
+                        <option value="price_adjustment" {{ old('transaction_type', $adjustment->transaction_type) == 'price_adjustment' ? 'selected' : '' }}>Price Adjustment</option>
+                        <option value="rebates" {{ old('transaction_type', $adjustment->transaction_type) == 'rebates' ? 'selected' : '' }}>Rebates</option>
+                        <option value="distribution_fees" {{ old('transaction_type', $adjustment->transaction_type) == 'distribution_fees' ? 'selected' : '' }}>Distribution Fees</option>
+                        <option value="penalty" {{ old('transaction_type', $adjustment->transaction_type) == 'penalty' ? 'selected' : '' }}>Penalty</option>
+                        <option value="promotional_expenses" {{ old('transaction_type', $adjustment->transaction_type) == 'promotional_expenses' ? 'selected' : '' }}>Promotional Expenses</option>
+                        <option value="small_balance_adjustment" {{ old('transaction_type', $adjustment->transaction_type) == 'small_balance_adjustment' ? 'selected' : '' }}>Small balance adjustment</option>
+                        <option value="atd" {{ old('transaction_type', $adjustment->transaction_type) == 'atd' ? 'selected' : '' }}>ATD</option>
                         <option value="offset" {{ old('transaction_type', $adjustment->transaction_type) == 'offset' ? 'selected' : '' }}>Offset</option>
-                        <option value="credit_memo" {{ old('transaction_type', $adjustment->transaction_type) == 'credit_memo' ? 'selected' : '' }}>Credit Memo</option>
-                        <option value="debit_memo" {{ old('transaction_type', $adjustment->transaction_type) == 'debit_memo' ? 'selected' : '' }}>Debit Memo</option>
-                        <option value="adjustment" {{ old('transaction_type', $adjustment->transaction_type) == 'adjustment' ? 'selected' : '' }}>Adjustment</option>
-                        <option value="write_off" {{ old('transaction_type', $adjustment->transaction_type) == 'write_off' ? 'selected' : '' }}>Write-off</option>
                     </select>
                 </div>
                 <div>
