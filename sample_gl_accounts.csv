@@ -1,0 +1,15 @@
+Account Code,Account Name,FS Line Item,FS Notes
+1000,Cash,Current Assets,Main cash account
+1010,Savings Account,Current Assets,Business savings
+1100,Accounts Receivable,Current Assets,Customer receivables
+1200,Inventory,Current Assets,Product inventory
+2000,Accounts Payable,Current Liabilities,Supplier payables
+2100,Short-term Debt,Current Liabilities,Short-term loans
+3000,Common Stock,Equity,Issued stock
+3100,Retained Earnings,Equity,Accumulated profits
+4000,Sales Revenue,Revenue,Product sales
+4100,Service Revenue,Revenue,Service income
+5000,Cost of Goods Sold,Expense,COGS
+5100,Salaries Expense,Expense,Employee salaries
+5200,Rent Expense,Expense,Office rent
+5300,Utilities Expense,Expense,Electric and water

@@ -1491,26 +1491,52 @@ private $arAdjustmentColumnMap = [
     public function importGlAccounts(Request $request): \Illuminate\Http\JsonResponse
     {
         try {
-            // Validate file
-            try {
-                $request->validate([
-                    'file' => 'required|mimes:xlsx,xls,csv|max:10240',
-                ]);
-            } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validate file exists
+            if (!$request->hasFile('file')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation error: ' . implode(', ', $e->errors()['file'] ?? ['Unknown error']),
-                ], 422);
+                    'message' => 'No file uploaded',
+                ], 400);
             }
 
             $file = $request->file('file');
-            if (!$file || !$file->isValid()) {
+
+            // Check file is valid
+            if (!$file->isValid()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'File upload failed or file is invalid',
+                    'message' => 'File upload failed: ' . $file->getErrorMessage(),
                 ], 400);
             }
-            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+
+            // Check file extension (more flexible than MIME type)
+            $extension = strtolower($file->getClientOriginalExtension());
+            $allowedExtensions = ['xlsx', 'xls', 'csv'];
+
+            if (!in_array($extension, $allowedExtensions)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Invalid file type. Allowed: CSV, XLS, XLSX. Received: {$extension}",
+                ], 400);
+            }
+
+            // Check file size (10MB max)
+            if ($file->getSize() > 10 * 1024 * 1024) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File too large. Maximum size: 10MB',
+                ], 400);
+            }
+
+            // Load the spreadsheet
+            try {
+                $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+            } catch (\Exception $loadError) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to read file: ' . $loadError->getMessage(),
+                ], 400);
+            }
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
 
