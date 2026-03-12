@@ -837,7 +837,11 @@ public function store(Request $request)
                 'request_delivery_date'
             )
             ->with('items')
-            ->where('customer_code', $customerCode)
+            ->where(function ($query) use ($customerCode) {
+                // Match by customer_code OR customer_name (trimmed)
+                $query->where('customer_code', $customerCode)
+                    ->orWhereRaw('TRIM(customer_name) = ?', [trim($customerCode)]);
+            })
             ->where('status', 'Delivered')
             ->where('is_pulled_out', '!=', 1)
             ->whereNotExists(function ($query) {
