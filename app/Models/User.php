@@ -522,7 +522,7 @@ class User extends Authenticatable
     // Each module maps to sub-department IDs that grant access
     const MODULE_SUB_DEPARTMENTS = [
         'sales_orders'       => [13, 15, 26],                    // Sales, Credit & Collection, Accounting
-        'customers'          => [15, 26],                      // Credit & Collection, Accounting
+        'customers'          => [15, 26, 12],                  // Credit & Collection, Accounting, IT Operations
         'suppliers'          => [6, 1, 2, 3, 4, 26],          // Purchasing, Supply Chain subs, Accounting
         'items'              => [15, 26],                      // Credit & Collection, Accounting
         'deliveries'         => [15, 25],                      // Credit & Collection, Delivery

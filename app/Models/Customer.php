@@ -59,5 +59,13 @@ class Customer extends Model
     {
         return $this->hasMany(ArAging::class, 'customer_code', 'customer_code');
     }
+
+    /**
+     * Get the terms change history for this customer
+     */
+    public function termsHistory()
+    {
+        return $this->hasMany(CustomerTermsHistory::class, 'customer_code', 'customer_code')->orderByDesc('created_at');
+    }
 }
 

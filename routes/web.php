@@ -143,6 +143,9 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     // ✅ NEW: Get all pending deliveries for a customer
     Route::get('/customer/{customerCode}/deliveries', [ArAdjustmentController::class, 'getCustomerDeliveries'])->name('customer.deliveries');
 
+    // ✅ NEW: Get GL accounts for dropdown (searchable)
+    Route::get('/gl-accounts', [ArAdjustmentController::class, 'getGlAccounts'])->name('gl_accounts');
+
     // ✅ NEW: View adjustments by customer (must be before /{id} route)
     Route::get('/customer/{customerCode}', [ArAdjustmentController::class, 'byCustomer'])->name('by_customer');
 
@@ -709,13 +712,24 @@ Route::prefix('items')->name('items.')->group(function () {
             return response()->json(['error' => 'Access denied'], 403);
         })->name('getByCode');
 
-        // ✅ Edit
-        Route::get('/{id}/edit', function ($id) {
+        // ✅ Edit (MUST come before generic /{id})
+        Route::get('/{id}/edit', [CustomerController::class, 'edit'])->where('id', '[0-9]+')->name('edit');
+
+        // ✅ Toggle Status (MUST come before generic /{id})
+        Route::patch('/{id}/toggle-status', function ($id) {
             if (auth()->user()->canEditCustomers()) {
-                return app(CustomerController::class)->edit($id);
+                return app(CustomerController::class)->toggleStatus($id);
             }
             return view('errors.noaccess');
-        })->name('edit');
+        })->where('id', '[0-9]+')->name('toggleStatus');
+
+        // ✅ Toggle Flag (MUST come before generic /{id})
+        Route::patch('/{id}/toggle-flag', function ($id) {
+            if (auth()->user()->canPerformInModule('can_manage', 'customers')) {
+                return app(CustomerController::class)->toggleFlag($id);
+            }
+            return view('errors.noaccess');
+        })->where('id', '[0-9]+')->name('toggleFlag');
 
         // ✅ Update
         Route::put('/{id}', function ($id) {
@@ -723,7 +737,7 @@ Route::prefix('items')->name('items.')->group(function () {
                 return app(CustomerController::class)->update(request(), $id);
             }
             return view('errors.noaccess');
-        })->name('update');
+        })->where('id', '[0-9]+')->name('update');
 
         // ✅ Delete
         Route::delete('/{id}', function ($id) {
@@ -731,31 +745,11 @@ Route::prefix('items')->name('items.')->group(function () {
                 return app(CustomerController::class)->destroy($id);
             }
             return view('errors.noaccess');
-        })->name('destroy');
+        })->where('id', '[0-9]+')->name('destroy');
 
-        // ✅ Toggle Status
-        Route::patch('/{id}/toggle-status', function ($id) {
-            if (auth()->user()->canEditCustomers()) {
-                return app(CustomerController::class)->toggleStatus($id);
-            }
-            return view('errors.noaccess');
-        })->name('toggleStatus');
-
-        // ✅ Toggle Flag
-        Route::patch('/{id}/toggle-flag', function ($id) {
-            if (auth()->user()->canPerformInModule('can_manage', 'customers')) {
-                return app(CustomerController::class)->toggleFlag($id);
-            }
-            return view('errors.noaccess');
-        })->name('toggleFlag');
-
-        // ✅ Show (MUST BE LAST because it catches any /{id})
-        Route::get('/{id}', function ($id) {
-            if (auth()->user()->canManageCustomers()) {
-                return app(CustomerController::class)->show($id);
-            }
-            return view('errors.noaccess');
-        })->name('show');
+        // ✅ Show (MUST BE LAST because it catches any GET /{id})
+        // Use direct controller method for better route matching
+        Route::get('/{id}', [CustomerController::class, 'show'])->where('id', '[0-9]+')->name('show');
     });
 
     // ===================== SUPPLIERS =====================

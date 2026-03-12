@@ -1229,6 +1229,7 @@ private $arAdjustmentColumnMap = [
         ]);
         return redirect()->back()->with('error', 'Error importing file: ' . $e->getMessage());
     }
+    }
 
     public function importArAdjustments(Request $request)
 {
@@ -1440,6 +1441,7 @@ private $arAdjustmentColumnMap = [
             'message' => 'Error importing file: ' . $e->getMessage()
         ], 500);
     }
+    }
 
     /**
      * ✅ Auto-approve delivery by DR number
@@ -1546,10 +1548,6 @@ private $arAdjustmentColumnMap = [
                 ], 400);
             }
 
-            // Find header row (first row should have headers)
-            $headerRow = $rows[0];
-            $headerRowIndex = 0;
-
             // Map headers to database columns (case-insensitive)
             $columnMap = [
                 'account code' => 'account_code',
@@ -1558,21 +1556,50 @@ private $arAdjustmentColumnMap = [
                 'fs notes' => 'fs_notes',
             ];
 
+            // Find the header row by looking for a row with recognized column names
+            $headerRow = null;
+            $headerRowIndex = 0;
             $mappedHeaders = [];
-            foreach ($headerRow as $index => $header) {
-                $headerLower = strtolower(trim((string)$header));
-                foreach ($columnMap as $searchKey => $dbColumn) {
-                    if (strpos($headerLower, $searchKey) !== false) {
-                        $mappedHeaders[$index] = $dbColumn;
-                        break;
+
+            foreach ($rows as $rowIndex => $row) {
+                // Skip completely empty rows
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                // Try to match this row as a header row
+                $tempMappedHeaders = [];
+                foreach ($row as $index => $header) {
+                    $headerLower = strtolower(trim((string)$header));
+                    foreach ($columnMap as $searchKey => $dbColumn) {
+                        if (strpos($headerLower, $searchKey) !== false) {
+                            $tempMappedHeaders[$index] = $dbColumn;
+                            break;
+                        }
                     }
+                }
+
+                // If this row has at least 2 recognized columns, it's our header row
+                if (count($tempMappedHeaders) >= 2) {
+                    $headerRow = $row;
+                    $headerRowIndex = $rowIndex;
+                    $mappedHeaders = $tempMappedHeaders;
+                    \Log::info('GL Import - Header row found', [
+                        'row_index' => $rowIndex,
+                        'headers' => $headerRow,
+                        'mapped' => $mappedHeaders
+                    ]);
+                    break;
                 }
             }
 
             if (empty($mappedHeaders)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No recognized columns found in file header',
+                    'message' => 'No recognized columns found in file. Expected columns: Account Code, Account Name, FS Line Item, FS Notes',
+                    'debug' => [
+                        'first_10_rows' => array_slice($rows, 0, 10)
+                    ]
                 ], 400);
             }
 
@@ -1600,26 +1627,31 @@ private $arAdjustmentColumnMap = [
                         }
                     }
 
-                    // Validate required fields
-                    if (empty($data['account_code']) || empty($data['account_name'])) {
+                    // Skip completely empty rows (no data at all)
+                    if (empty($data)) {
                         $skipped++;
-                        $errors[] = "Row " . ($rowIndex + 1) . ": Missing account code or name";
                         continue;
                     }
 
                     // Set created_by
                     $data['created_by'] = auth()->user()->name;
 
-                    // Upsert: update if exists by account_code, otherwise create
-                    $account = \App\Models\GlAccount::updateOrCreate(
-                        ['account_code' => $data['account_code']],
-                        $data
-                    );
-
-                    if ($account->wasRecentlyCreated) {
-                        $imported++;
+                    // If account_code exists, use upsert (update if exists, create if new)
+                    // If no account_code, just create a new record
+                    if (!empty($data['account_code'])) {
+                        $account = \App\Models\GlAccount::updateOrCreate(
+                            ['account_code' => $data['account_code']],
+                            $data
+                        );
+                        if ($account->wasRecentlyCreated) {
+                            $imported++;
+                        } else {
+                            $updated++;
+                        }
                     } else {
-                        $updated++;
+                        // No account code, just create a new record
+                        \App\Models\GlAccount::create($data);
+                        $imported++;
                     }
                 } catch (\Exception $e) {
                     $errors[] = "Row " . ($rowIndex + 1) . ": " . $e->getMessage();

@@ -191,7 +191,8 @@ public function store(Request $request)
             'customer_name' => 'required|string|max:255',
             'branch' => 'nullable|string|max:255',
             'amount' => 'required|string',
-            'gl_account' => 'required|string|max:255',
+            'gl_account' => 'nullable|string|max:255',
+            'gl_account_id' => 'nullable|exists:gl_accounts,id',
             'remarks' => 'nullable|string',
             'signed_by' => 'required|string|max:255',
         ]);
@@ -209,6 +210,15 @@ public function store(Request $request)
             $amount = abs($amount);
         }
 
+        // Get GL account code if ID is provided
+        $glAccountCode = null;
+        if (!empty($validated['gl_account_id'])) {
+            $glAccountRecord = \App\Models\GlAccount::find($validated['gl_account_id']);
+            if ($glAccountRecord) {
+                $glAccountCode = $glAccountRecord->account_code;
+            }
+        }
+
         // Create adjustment - MAKE SURE ALL FIELDS ARE INCLUDED
         $adjustment = ArAdjustment::create([
             'transaction_date' => $validated['transaction_date'],
@@ -221,7 +231,8 @@ public function store(Request $request)
             'branch' => $validated['branch'] ?? null,  // ✅ MAKE SURE THIS IS HERE
             'amount' => $amount,
             'is_decrease' => $isDecrease,
-            'gl_account' => $validated['gl_account'],
+            'gl_account' => $glAccountCode ?? $validated['gl_account'] ?? null,
+            'gl_account_id' => $validated['gl_account_id'] ?? null,
             'remarks' => $validated['remarks'] ?? null,
             'signed_by' => $validated['signed_by'],
             'created_by' => Auth::user()->name ?? 'System',
@@ -304,7 +315,8 @@ public function store(Request $request)
                 'customer_code' => 'nullable|string|max:255',
                 'customer_name' => 'required|string|max:255',
                 'amount' => 'required|string',
-                'gl_account' => 'required|string|max:255',
+                'gl_account' => 'nullable|string|max:255',
+                'gl_account_id' => 'nullable|exists:gl_accounts,id',
                 'remarks' => 'nullable|string',
                 'signed_by' => 'required|string|max:255',
             ]);
@@ -322,6 +334,15 @@ public function store(Request $request)
                 $amount = abs($amount);
             }
 
+            // Get GL account code if ID is provided
+            $glAccountCode = null;
+            if (!empty($validated['gl_account_id'])) {
+                $glAccountRecord = \App\Models\GlAccount::find($validated['gl_account_id']);
+                if ($glAccountRecord) {
+                    $glAccountCode = $glAccountRecord->account_code;
+                }
+            }
+
             // Update adjustment
             $adjustment->update([
                 'transaction_date' => $validated['transaction_date'],
@@ -332,7 +353,8 @@ public function store(Request $request)
                 'customer_code' => $validated['customer_code'] ?? null,
                 'customer_name' => $validated['customer_name'],
                 'amount' => $amount,
-                'gl_account' => $validated['gl_account'],
+                'gl_account' => $glAccountCode ?? $validated['gl_account'] ?? null,
+                'gl_account_id' => $validated['gl_account_id'] ?? null,
                 'remarks' => $validated['remarks'] ?? null,
                 'signed_by' => $validated['signed_by'],
             ]);
@@ -923,6 +945,47 @@ public function store(Request $request)
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load delivery information'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get GL accounts for dropdown with search
+     */
+    public function getGlAccounts(Request $request)
+    {
+        try {
+            $search = $request->get('search', '');
+
+            $query = \App\Models\GlAccount::query();
+
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('account_code', 'LIKE', "%{$search}%")
+                      ->orWhere('account_name', 'LIKE', "%{$search}%")
+                      ->orWhere('fs_line_item', 'LIKE', "%{$search}%");
+                });
+            }
+
+            $accounts = $query->orderBy('account_code')->take(50)->get();
+
+            return response()->json([
+                'success' => true,
+                'accounts' => $accounts->map(function($account) {
+                    return [
+                        'id' => $account->id,
+                        'code' => $account->account_code,
+                        'name' => $account->account_name,
+                        'display' => $account->account_code ? $account->account_code . ' - ' . $account->account_name : $account->account_name,
+                        'fs_line_item' => $account->fs_line_item
+                    ];
+                })
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch GL accounts', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load GL accounts'
             ], 500);
         }
     }

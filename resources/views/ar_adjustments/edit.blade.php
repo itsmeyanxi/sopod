@@ -95,7 +95,22 @@
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-300 mb-2">GL Account: <span class="text-red-400">*</span></label>
-                    <input type="text" name="gl_account" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('gl_account', $adjustment->gl_account) }}" required>
+                    <div class="relative">
+                        <input type="hidden" name="gl_account_id" id="glAccountId" value="{{ old('gl_account_id', $adjustment->gl_account_id) }}">
+                        <input type="hidden" name="gl_account" id="glAccountCode" value="{{ old('gl_account', $adjustment->gl_account) }}">
+                        @php
+                            $displayValue = '';
+                            if ($adjustment->glAccount) {
+                                $displayValue = ($adjustment->glAccount->account_code ?? '') . ' - ' . ($adjustment->glAccount->account_name ?? '');
+                            } else if ($adjustment->gl_account) {
+                                $displayValue = $adjustment->gl_account;
+                            }
+                        @endphp
+                        <input type="text" id="glAccountSearch" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Search GL Account (code/name)" value="{{ old('gl_account', $displayValue) }}" required>
+                        <div id="glAccountDropdown" class="absolute top-full left-0 right-0 bg-gray-900 border border-gray-700 rounded max-h-48 overflow-y-auto z-10 hidden mt-1">
+                            <!-- Dropdown options will be populated here -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -128,4 +143,62 @@
         </form>
     </div>
 </div>
+
+<script>
+// GL Account searchable dropdown
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('glAccountSearch');
+    const dropdown = document.getElementById('glAccountDropdown');
+    const idInput = document.getElementById('glAccountId');
+    let searchTimeout;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+
+            if (query.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            searchTimeout = setTimeout(async function() {
+                try {
+                    const response = await fetch(`/ar-adjustments/gl-accounts?search=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+
+                    if (data.success && data.accounts.length > 0) {
+                        dropdown.innerHTML = data.accounts.map(account => `
+                            <div class="px-3 py-2 hover:bg-purple-700 cursor-pointer text-white" onclick="selectGlAccount(${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')">
+                                <div class="font-semibold">${account.display}</div>
+                                <div class="text-xs text-gray-400">${account.fs_line_item || 'No FS Item'}</div>
+                            </div>
+                        `).join('');
+                        dropdown.classList.remove('hidden');
+                    } else {
+                        dropdown.innerHTML = '<div class="px-3 py-2 text-gray-400">No GL accounts found</div>';
+                        dropdown.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error fetching GL accounts:', error);
+                }
+            }, 300);
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target !== searchInput) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+});
+
+function selectGlAccount(id, display, code) {
+    document.getElementById('glAccountId').value = id;
+    document.getElementById('glAccountCode').value = code;
+    document.getElementById('glAccountSearch').value = display;
+    document.getElementById('glAccountDropdown').classList.add('hidden');
+}
+</script>
 @endsection

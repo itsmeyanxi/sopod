@@ -10,6 +10,20 @@ use Illuminate\Support\Facades\Log;
 
 class SalesOrderObserver
 {
+    /**
+     * Handle the SalesOrder "creating" event.
+     * Populate collection_terms from customer record
+     */
+    public function creating(SalesOrder $salesOrder)
+    {
+        if ($salesOrder->customer_id && !$salesOrder->collection_terms) {
+            $customer = \App\Models\Customer::find($salesOrder->customer_id);
+            if ($customer) {
+                $salesOrder->collection_terms = $customer->collection_terms;
+            }
+        }
+    }
+
     // protected $notificationService;
     // private static $isNotifying = false;
     // private static $processedUpdates = [];

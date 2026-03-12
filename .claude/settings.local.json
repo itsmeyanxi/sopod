@@ -46,7 +46,10 @@
       "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\sopod\\\\routes\\\\web.php\")",
       "Bash(php \"c:\\\\xampp\\\\htdocs\\\\sopod\\\\artisan\" tinker --execute=\"echo route\\(''ar.customer_profile'', ''CUST001''\\);\")",
       "Bash(php \"c:\\\\xampp\\\\htdocs\\\\sopod\\\\artisan\" tinker --execute=\":*)",
-      "Bash(git reset HEAD .claude/settings.local.json public/po_images/1773215105_Screenshot_2026-03-11_154947.png app/Http/Controllers/CustomerARProfileController.php)"
+      "Bash(git reset HEAD .claude/settings.local.json public/po_images/1773215105_Screenshot_2026-03-11_154947.png app/Http/Controllers/CustomerARProfileController.php)",
+      "Bash(php -l app/Http/Controllers/ExcelImportController.php)",
+      "Bash(php -l app/Http/Controllers/ArAdjustmentController.php)",
+      "Bash(php artisan tinker --execute=\":*)"
     ],
     "additionalDirectories": [
       "c:\\Windows\\System32\\drivers\\etc"

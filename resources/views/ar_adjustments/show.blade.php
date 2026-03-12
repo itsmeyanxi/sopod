@@ -130,9 +130,34 @@
             </div>
             <div>
                 <label class="block font-semibold text-gray-300 mb-1">GL Account:</label>
-                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200 font-semibold">{{ $adjustment->gl_account }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200 font-semibold">{{ $adjustment->gl_account ?? 'N/A' }}</p>
             </div>
         </div>
+
+        <!-- Linked GL Account Information -->
+        @if($adjustment->glAccount)
+        <div class="mb-6 p-4 bg-amber-900/20 border border-amber-700 rounded">
+            <h3 class="font-semibold text-amber-300 mb-3">📊 GL Account Details</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div>
+                    <p class="text-gray-400">Account Code</p>
+                    <p class="text-amber-300 font-semibold">{{ $adjustment->glAccount->account_code ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Account Name</p>
+                    <p class="text-amber-300 font-semibold">{{ $adjustment->glAccount->account_name ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">FS Line Item</p>
+                    <p class="text-amber-300 font-semibold">{{ $adjustment->glAccount->fs_line_item ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">FS Notes</p>
+                    <p class="text-amber-300 font-semibold">{{ $adjustment->glAccount->fs_notes ?? 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <!-- Signature -->
         <div class="mb-6">

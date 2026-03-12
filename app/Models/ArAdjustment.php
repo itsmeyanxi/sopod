@@ -20,6 +20,7 @@ class ARAdjustment extends Model
         'invoice_number',
         'dr_no',
         'gl_account',
+        'gl_account_id',
         'signed_by',
         'remarks',
         'created_by',
@@ -61,6 +62,14 @@ class ARAdjustment extends Model
     public function receivingReport()
     {
         return $this->belongsTo(ReceivingReport::class, 'dr_no', 'delivery_batch');
+    }
+
+    /**
+     * Get the GL account if linked
+     */
+    public function glAccount()
+    {
+        return $this->belongsTo(GlAccount::class, 'gl_account_id');
     }
 
     /**

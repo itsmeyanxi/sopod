@@ -181,17 +181,11 @@ class CustomerController extends Controller
     // Show edit form
     public function edit($id)
     {
-        if (!RoleHelper::canManageCustomers()) {
-            return RoleHelper::unauthorized();
+        if (!auth()->user()->canEditCustomers()) {
+            return response()->view('errors.noaccess', [], 403);
         }
 
         $customer = Customer::findOrFail($id);
-
-        if ($customer->is_locked) {
-            return redirect()->route('customers.show', $id)
-                ->with('error', 'This Customer is locked and cannot be edited.');
-        }
-
         return view('customers.edit', compact('customer'));
     }
 
@@ -203,11 +197,6 @@ class CustomerController extends Controller
         }
 
         $customer = Customer::findOrFail($id);
-
-        if ($customer->is_locked) {
-            return redirect()->route('customers.show', $id)
-                ->with('error', 'This Customer is locked and cannot be edited.');
-        }
 
         $validated = $request->validate([
             'customer_code' => 'required|string|max:50|unique:customers,customer_code,' . $id,
@@ -236,7 +225,21 @@ class CustomerController extends Controller
             'assigned_bank' => 'nullable|string|max:255',
         ]);
 
+        // Track if collection terms changed
+        $oldTerms = $customer->collection_terms;
+        $newTerms = $validated['collection_terms'] ?? null;
+
         $customer->update($validated);
+
+        // Log collection terms change if it occurred
+        if ($oldTerms !== $newTerms) {
+            \App\Models\CustomerTermsHistory::create([
+                'customer_code' => $customer->customer_code,
+                'old_terms' => $oldTerms,
+                'new_terms' => $newTerms,
+                'changed_by' => Auth::user()->name ?? 'System',
+            ]);
+        }
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
@@ -247,7 +250,7 @@ class CustomerController extends Controller
             'message' => 'Updated customer: ' . $customer->customer_name,
         ]);
 
-        return redirect()->route('customers.index')->with('success', 'Customer updated successfully!');
+        return redirect()->route('customers.edit', $customer->id)->with('success', 'Customer updated successfully!');
     }
 
     // Delete customer
@@ -258,11 +261,6 @@ class CustomerController extends Controller
         }
 
         $customer = Customer::findOrFail($id);
-
-        if ($customer->is_locked) {
-            return redirect()->back()
-                ->with('error', 'This Customer is locked and cannot be deleted.');
-        }
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
