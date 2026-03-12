@@ -1247,8 +1247,8 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
                 const siNo = delivery.sales_invoice_no ? `SI: ${delivery.sales_invoice_no}` : '';
 
                 deliveryHTML += `
-                    <button onclick="selectDeliveryAndRedirect('${delivery.dr_no.replace(/'/g, "\\'")}', '${customerCode.replace(/'/g, "\\'")}', '${customerName.replace(/'/g, "\\'")}'', '${(delivery.sales_invoice_no || '').replace(/'/g, "\\'")}')"
-                            style="padding: 12px; background: #374151; border: 1px solid #4B5563; border-radius: 6px; color: #E5E7EB; cursor: pointer; text-align: left; transition: background 0.2s;"
+                    <button class="delivery-select-btn" data-dr-no="${delivery.dr_no}" data-customer-code="${customerCode}" data-customer-name="${customerName}" data-sales-invoice="${delivery.sales_invoice_no || ''}"
+                            style="padding: 12px; background: #374151; border: 1px solid #4B5563; border-radius: 6px; color: #E5E7EB; cursor: pointer; text-align: left; transition: background 0.2s; width: 100%;"
                             onmouseover="this.style.background='#4B5563'"
                             onmouseout="this.style.background='#374151'">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -1278,7 +1278,20 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
                 confirmButtonText: 'Cancel',
                 confirmButtonColor: '#6B7280',
                 showConfirmButton: true,
-                allowOutsideClick: true
+                allowOutsideClick: true,
+                didOpen: () => {
+                    // Attach click handlers to delivery buttons
+                    document.querySelectorAll('.delivery-select-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const drNo = this.dataset.drNo;
+                            const customerCode = this.dataset.customerCode;
+                            const customerName = this.dataset.customerName;
+                            const salesInvoice = this.dataset.salesInvoice;
+                            selectDeliveryAndRedirect(drNo, customerCode, customerName, salesInvoice);
+                        });
+                    });
+                }
             });
         } else if (data.deliveries && data.deliveries.length === 0) {
             Swal.fire({
