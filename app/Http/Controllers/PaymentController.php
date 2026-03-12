@@ -39,7 +39,7 @@ class PaymentController extends Controller
         // Search in ar_aging table - only sum net_ar_balance where > 0 (outstanding)
         // ✅ NEW: Join with customers table to get whtrate
         $customerData = DB::table('ar_aging')
-            ->leftJoin('customers', 'ar_aging.customer_code', '=', 'customers.customer_code')
+            ->leftJoin('customers', DB::raw("CAST(ar_aging.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"), '=', DB::raw("CAST(customers.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"))
             ->select(
                 'ar_aging.customer_code',
                 'ar_aging.client_name',
