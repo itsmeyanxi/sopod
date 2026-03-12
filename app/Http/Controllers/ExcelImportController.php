@@ -1492,11 +1492,24 @@ private $arAdjustmentColumnMap = [
     {
         try {
             // Validate file
-            $request->validate([
-                'file' => 'required|mimes:xlsx,xls,csv|max:10240',
-            ]);
+            try {
+                $request->validate([
+                    'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+                ]);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation error: ' . implode(', ', $e->errors()['file'] ?? ['Unknown error']),
+                ], 422);
+            }
 
             $file = $request->file('file');
+            if (!$file || !$file->isValid()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File upload failed or file is invalid',
+                ], 400);
+            }
             $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
@@ -1597,7 +1610,10 @@ private $arAdjustmentColumnMap = [
                 'message' => "Import complete. Imported: {$imported}, Updated: {$updated}, Skipped: {$skipped}",
             ]);
         } catch (\Exception $e) {
-            \Log::error('Failed to import GL accounts', ['error' => $e->getMessage()]);
+            \Log::error('Failed to import GL accounts', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to import GL accounts: ' . $e->getMessage(),
