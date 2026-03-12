@@ -941,15 +941,9 @@ class AgingReportController extends Controller
             }
 
             if ($baseDate) {
-                // If aging_date is provided, use it; otherwise use the record's own record_date
-                if ($request->filled('aging_date')) {
-                    $agingDateForCalc = $agingDate->copy()->startOfDay();
-                } else {
-                    // Use record_date from the database record
-                    $agingDateForCalc = $record->record_date
-                        ? Carbon::parse($record->record_date)->startOfDay()
-                        : now()->startOfDay();
-                }
+                // ✅ FIXED: Always use $agingDate (defaults to today) for consistent calculations
+                // This matches the detail/customer summary logic
+                $agingDateForCalc = $agingDate->copy()->startOfDay();
 
                 // Age = days passed since base date (signed difference - can be negative if base date is in future)
                 $age = $baseDate->diffInDays($agingDateForCalc, false);
