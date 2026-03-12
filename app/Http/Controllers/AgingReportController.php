@@ -1002,8 +1002,12 @@ class AgingReportController extends Controller
             ? Carbon::parse($request->aging_date)
             : now();
 
-        // Fetch all records for this customer
-        $query = ArAging::where('customer_code', $customerCode);
+        // ✅ FIXED: Search by customer_code OR by first customer found with that code
+        // This handles cases where customer_code might be #N/A or different variants
+        $query = ArAging::where(function($q) use ($customerCode) {
+            $q->where('customer_code', $customerCode)
+              ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+        });
 
         // ✅ Use agingDate for record_date filter (same logic as summary)
         $query->whereDate('record_date', '<=', $agingDate);
@@ -1013,6 +1017,15 @@ class AgingReportController extends Controller
         }
 
         $records = $query->orderBy('due_date', 'desc')->get();
+
+        // If no records found with the first query, try searching by all records for this customer code
+        if ($records->isEmpty()) {
+            // Fallback: get all records without the record_date filter, then filter manually
+            $records = ArAging::where(function($q) use ($customerCode) {
+                $q->where('customer_code', $customerCode)
+                  ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+            })->get();
+        }
 
         // Filter records by aging bucket and get details
         $invoices = [];
@@ -1028,22 +1041,23 @@ class AgingReportController extends Controller
             // Check if this record belongs to the requested bucket
             if ($this->getAgeBucket($age) === $bucket) {
                 $netAR = $record->net_ar_balance ?? 0;
+                // Include all records, even with $0 balance to show complete history
+                $invoices[] = [
+                    'invoice_no' => $record->invoice_no,
+                    'dr_no' => $record->dr_no,
+                    'po_no' => $record->po_no,
+                    'invoice_date' => $record->invoice_date,
+                    'due_date' => $record->due_date,
+                    'terms' => $record->terms,
+                    'days_overdue' => max(0, $age),
+                    'invoice_amount' => $record->invoice_amount,
+                    'settled_amount' => $record->settled_invoice_amount,
+                    'net_ar_balance' => $netAR,
+                    'status' => $record->status,
+                    'ar_class' => $record->ar_class,
+                    'branch' => $record->branch
+                ];
                 if ($netAR > 0) {
-                    $invoices[] = [
-                        'invoice_no' => $record->invoice_no,
-                        'dr_no' => $record->dr_no,
-                        'po_no' => $record->po_no,
-                        'invoice_date' => $record->invoice_date,
-                        'due_date' => $record->due_date,
-                        'terms' => $record->terms,
-                        'days_overdue' => max(0, $age),
-                        'invoice_amount' => $record->invoice_amount,
-                        'settled_amount' => $record->settled_invoice_amount,
-                        'net_ar_balance' => $netAR,
-                        'status' => $record->status,
-                        'ar_class' => $record->ar_class,
-                        'branch' => $record->branch
-                    ];
                     $totalAmount += $netAR;
                 }
             }
