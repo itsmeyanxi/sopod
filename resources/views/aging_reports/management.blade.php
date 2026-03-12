@@ -286,8 +286,13 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">GL Account *</label>
-                    <input type="text" name="gl_account" required
-                           class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2">
+                    <div class="relative">
+                        <input type="hidden" name="gl_account_id" id="arMgmtGlAccountId">
+                        <input type="hidden" name="gl_account" id="arMgmtGlAccountCode">
+                        <input type="text" id="arMgmtGlAccountSearch" placeholder="Search GL Account (code/name)"
+                               class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500" required>
+                        <div id="arMgmtGlAccountDropdown" class="absolute top-full left-0 right-0 bg-gray-800 border border-gray-600 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
+                    </div>
                 </div>
 
                 <div>
@@ -494,6 +499,63 @@ function searchCustomer() {
     
     // Implement customer search
     console.log('Searching for:', customerCode);
+}
+
+// GL Account search in AR Adjustment modal
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('arMgmtGlAccountSearch');
+    const dropdown = document.getElementById('arMgmtGlAccountDropdown');
+    const idInput = document.getElementById('arMgmtGlAccountId');
+    const codeInput = document.getElementById('arMgmtGlAccountCode');
+    let searchTimeout;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+
+            if (query.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            searchTimeout = setTimeout(async function() {
+                try {
+                    const response = await fetch(`/ar-adjustments/gl-accounts?search=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+
+                    if (data.success && data.accounts.length > 0) {
+                        dropdown.innerHTML = data.accounts.map(account => `
+                            <div class="px-3 py-2 hover:bg-purple-700 cursor-pointer text-white" onclick="selectArMgmtGlAccount(${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')" >
+                                <div class="font-semibold">${account.display}</div>
+                                <div class="text-xs text-gray-400">${account.fs_line_item || 'No FS Item'}</div>
+                            </div>
+                        `).join('');
+                        dropdown.classList.remove('hidden');
+                    } else {
+                        dropdown.innerHTML = '<div class="px-3 py-2 text-gray-400">No GL accounts found</div>';
+                        dropdown.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error fetching GL accounts:', error);
+                }
+            }, 300);
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target !== searchInput) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+});
+
+function selectArMgmtGlAccount(id, display, code) {
+    document.getElementById('arMgmtGlAccountId').value = id;
+    document.getElementById('arMgmtGlAccountCode').value = code;
+    document.getElementById('arMgmtGlAccountSearch').value = display;
+    document.getElementById('arMgmtGlAccountDropdown').classList.add('hidden');
 }
 </script>
 @endsection

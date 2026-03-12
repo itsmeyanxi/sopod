@@ -268,7 +268,12 @@
             
             <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">G/L Account *</label>
-                <input type="text" id="check_gl_account" placeholder="e.g., 10210" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <div class="relative">
+                    <input type="hidden" id="check_gl_account_id">
+                    <input type="text" id="check_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                    <div id="check_gl_account_dropdown" class="absolute top-full left-0 right-0 bg-gray-800 border border-gray-600 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
+                </div>
+                <input type="hidden" id="check_gl_account">
                 <p class="text-xs text-gray-500 mt-1">For PDC, use Clearing Account - PDC</p>
             </div>
 
@@ -316,7 +321,12 @@
             
             <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">G/L Account *</label>
-                <input type="text" id="transfer_gl_account" placeholder="e.g., 10210" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <div class="relative">
+                    <input type="hidden" id="transfer_gl_account_id">
+                    <input type="text" id="transfer_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                    <div id="transfer_gl_account_dropdown" class="absolute top-full left-0 right-0 bg-gray-800 border border-gray-600 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
+                </div>
+                <input type="hidden" id="transfer_gl_account">
             </div>
 
             <div>
@@ -347,7 +357,12 @@
             
             <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">G/L Account *</label>
-                <input type="text" id="cash_gl_account" placeholder="e.g., 10110" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <div class="relative">
+                    <input type="hidden" id="cash_gl_account_id">
+                    <input type="text" id="cash_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                    <div id="cash_gl_account_dropdown" class="absolute top-full left-0 right-0 bg-gray-800 border border-gray-600 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
+                </div>
+                <input type="hidden" id="cash_gl_account">
             </div>
 
             <div>
@@ -1616,6 +1631,71 @@ function copyBalanceDueToCash() {
     const balanceText = row.querySelector('[data-field="outstanding_balance"]').value;
     const balance = parseFloat(balanceText.replace(/[₱,]/g, '')) || 0;
     document.getElementById('cash_amount').value = balance.toFixed(2);
+}
+
+// GL Account search for Check Payment
+setupGlAccountSearch('check_gl_account_search', 'check_gl_account_dropdown', 'check_gl_account_id', 'check_gl_account');
+
+// GL Account search for Bank Transfer
+setupGlAccountSearch('transfer_gl_account_search', 'transfer_gl_account_dropdown', 'transfer_gl_account_id', 'transfer_gl_account');
+
+// GL Account search for Cash Payment
+setupGlAccountSearch('cash_gl_account_search', 'cash_gl_account_dropdown', 'cash_gl_account_id', 'cash_gl_account');
+
+function setupGlAccountSearch(searchId, dropdownId, idInputId, codeInputId) {
+    const searchInput = document.getElementById(searchId);
+    const dropdown = document.getElementById(dropdownId);
+    const idInput = document.getElementById(idInputId);
+    const codeInput = document.getElementById(codeInputId);
+    let searchTimeout;
+
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+
+        if (query.length === 0) {
+            dropdown.classList.add('hidden');
+            return;
+        }
+
+        searchTimeout = setTimeout(async function() {
+            try {
+                const response = await fetch(`/ar-adjustments/gl-accounts?search=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (data.success && data.accounts.length > 0) {
+                    dropdown.innerHTML = data.accounts.map(account => `
+                        <div class="px-3 py-2 hover:bg-purple-700 cursor-pointer text-white" onclick="selectPaymentGlAccount('${searchId}', '${dropdownId}', '${idInputId}', '${codeInputId}', ${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')" >
+                            <div class="font-semibold">${account.display}</div>
+                            <div class="text-xs text-gray-400">${account.fs_line_item || 'No FS Item'}</div>
+                        </div>
+                    `).join('');
+                    dropdown.classList.remove('hidden');
+                } else {
+                    dropdown.innerHTML = '<div class="px-3 py-2 text-gray-400">No GL accounts found</div>';
+                    dropdown.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error fetching GL accounts:', error);
+            }
+        }, 300);
+    });
+
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target !== searchInput) {
+            dropdown.classList.add('hidden');
+        }
+    });
+}
+
+function selectPaymentGlAccount(searchId, dropdownId, idInputId, codeInputId, id, display, code) {
+    document.getElementById(idInputId).value = id;
+    document.getElementById(codeInputId).value = code;
+    document.getElementById(searchId).value = display;
+    document.getElementById(dropdownId).classList.add('hidden');
 }
 </script>
 @endsection
