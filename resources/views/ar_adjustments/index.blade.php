@@ -1244,6 +1244,7 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
                 const totalAmount = parseFloat(delivery.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 const itemCount = delivery.item_count || 0;
                 const poNumber = delivery.po_number ? `PO: ${delivery.po_number}` : '';
+                const siNo = delivery.sales_invoice_no ? `SI: ${delivery.sales_invoice_no}` : '';
 
                 deliveryHTML += `
                     <button onclick="selectDeliveryAndRedirect('${delivery.dr_no.replace(/'/g, "\\'")}', '${customerCode.replace(/'/g, "\\'")}', '${customerName.replace(/'/g, "\\'")}')"
@@ -1251,7 +1252,10 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
                             onmouseover="this.style.background='#4B5563'"
                             onmouseout="this.style.background='#374151'">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <strong style="font-size: 15px;">${delivery.dr_no}</strong>
+                            <div>
+                                <strong style="font-size: 15px;">${delivery.dr_no}</strong>
+                                ${siNo ? `<div style="font-size: 12px; color: #9CA3AF; margin-top: 2px;">${siNo}</div>` : ''}
+                            </div>
                             <span style="font-size: 13px; color: #9CA3AF;">₱${totalAmount}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9CA3AF;">

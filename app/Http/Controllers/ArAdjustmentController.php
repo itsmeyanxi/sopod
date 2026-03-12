@@ -827,6 +827,7 @@ public function store(Request $request)
             $deliveries = \App\Models\Deliveries::select(
                 'id',
                 'dr_no',
+                'sales_invoice_no',
                 'customer_code',
                 'customer_name',
                 'sales_order_number',
