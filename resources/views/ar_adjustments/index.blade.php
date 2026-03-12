@@ -1247,7 +1247,7 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
                 const siNo = delivery.sales_invoice_no ? `SI: ${delivery.sales_invoice_no}` : '';
 
                 deliveryHTML += `
-                    <button onclick="selectDeliveryAndRedirect('${delivery.dr_no.replace(/'/g, "\\'")}', '${customerCode.replace(/'/g, "\\'")}', '${customerName.replace(/'/g, "\\'")}')"
+                    <button onclick="selectDeliveryAndRedirect('${delivery.dr_no.replace(/'/g, "\\'")}', '${customerCode.replace(/'/g, "\\'")}', '${customerName.replace(/'/g, "\\'")}'', '${(delivery.sales_invoice_no || '').replace(/'/g, "\\'")}')"
                             style="padding: 12px; background: #374151; border: 1px solid #4B5563; border-radius: 6px; color: #E5E7EB; cursor: pointer; text-align: left; transition: background 0.2s;"
                             onmouseover="this.style.background='#4B5563'"
                             onmouseout="this.style.background='#374151'">
@@ -1312,12 +1312,15 @@ function createAdjustmentFromDelivery(drNo, customerCode, customerName) {
 }
 
 // ✅ Helper function to redirect after selecting a delivery
-function selectDeliveryAndRedirect(selectedDrNo, customerCode, customerName) {
+function selectDeliveryAndRedirect(selectedDrNo, customerCode, customerName, salesInvoiceNo) {
     const params = new URLSearchParams({
         dr_no: selectedDrNo,
         customer_code: customerCode,
         customer_name: customerName
     });
+    if (salesInvoiceNo) {
+        params.append('sales_invoice_no', salesInvoiceNo);
+    }
     window.location.href = `/ar-adjustments/create?${params.toString()}`;
 }
 </script>

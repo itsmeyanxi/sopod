@@ -133,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const drNo = params.get('dr_no');
     const customerCode = params.get('customer_code');
     const customerName = params.get('customer_name');
+    const salesInvoiceNo = params.get('sales_invoice_no');
 
     if (drNo) {
         document.querySelector('input[name="dr_no"]').value = drNo;
@@ -142,6 +143,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (customerName) {
         document.querySelector('input[name="customer_name"]').value = customerName;
+    }
+    if (salesInvoiceNo) {
+        document.querySelector('input[name="invoice_number"]').value = salesInvoiceNo;
     }
 });
 </script>
