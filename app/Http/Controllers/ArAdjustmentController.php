@@ -63,15 +63,13 @@ class ArAdjustmentController extends Controller
             });
 
             // ✅ NEW: Also search in Deliveries table (pending invoicing)
-            $deliveryRecords = Deliveries::leftJoin('customers', 'deliveries.customer_name', '=', 'customers.customer_name')
-            ->where(function($query) use ($search) {
-                $query->where('deliveries.customer_name', 'LIKE', "%{$search}%")
-                      ->orWhere('deliveries.dr_no', 'LIKE', "%{$search}%")
-                      ->orWhere('deliveries.customer_code', 'LIKE', "%{$search}%")
-                      ->orWhere('customers.customer_code', 'LIKE', "%{$search}%");
+            $deliveryRecords = Deliveries::where(function($query) use ($search) {
+                $query->where('customer_name', 'LIKE', "%{$search}%")
+                      ->orWhere('dr_no', 'LIKE', "%{$search}%")
+                      ->orWhere('customer_code', 'LIKE', "%{$search}%");
             })
-            ->where('deliveries.status', 'Delivered')
-            ->where('deliveries.is_pulled_out', '!=', 1)
+            ->where('status', 'Delivered')
+            ->where('is_pulled_out', '!=', 1)
             ->whereNotExists(function ($query) {
                 // Exclude deliveries that already have AR adjustments
                 // ✅ FIX: Add explicit COLLATE to handle collation mismatch
@@ -79,10 +77,10 @@ class ArAdjustmentController extends Controller
                     ->from('ar_aging')
                     ->whereRaw('CAST(ar_aging.dr_no AS CHAR) COLLATE utf8mb4_unicode_ci = CAST(deliveries.dr_no AS CHAR) COLLATE utf8mb4_unicode_ci');
             })
-            ->select('deliveries.id', 'deliveries.dr_no', DB::raw("'Pending Invoice' as invoice_no"), 'deliveries.customer_name',
-                     DB::raw("COALESCE(TRIM(deliveries.customer_code), customers.customer_code, '') as customer_code"),
+            ->select('id', 'dr_no', DB::raw("'Pending Invoice' as invoice_no"), 'customer_name',
+                     DB::raw("TRIM(IFNULL(customer_code, '')) as customer_code"),
                      DB::raw('0 as invoice_amount'), DB::raw('0 as net_ar_balance'))
-            ->orderBy('deliveries.dr_no', 'desc')
+            ->orderBy('dr_no', 'desc')
             ->get()
             ->map(function($record) {
                 $record->source = 'pending_invoice';
@@ -840,18 +838,17 @@ public function store(Request $request)
     {
         try {
             $query = \App\Models\Deliveries::select(
-                'deliveries.id',
-                'deliveries.dr_no',
-                DB::raw("COALESCE(TRIM(deliveries.customer_code), customers.customer_code, '') as customer_code"),
-                'deliveries.customer_name',
-                'deliveries.status',
-                'deliveries.approval_status',
-                'deliveries.request_delivery_date',
-                'deliveries.created_at'
+                'id',
+                'dr_no',
+                DB::raw("TRIM(IFNULL(customer_code, '')) as customer_code"),
+                'customer_name',
+                'status',
+                'approval_status',
+                'request_delivery_date',
+                'created_at'
             )
-            ->leftJoin('customers', 'deliveries.customer_name', '=', 'customers.customer_name')
-            ->where('deliveries.status', 'Delivered')  // Only delivered orders
-            ->where('deliveries.is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
+            ->where('status', 'Delivered')  // Only delivered orders
+            ->where('is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
             // ✅ REMOVED: Now showing ALL deliveries, including those without customer_code
             ->whereNotExists(function ($query) {
                 // Exclude deliveries that have a matching AR adjustment by DR number
@@ -862,14 +859,14 @@ public function store(Request $request)
 
             // ✅ Apply optional date filtering
             if ($request->filled('date_from')) {
-                $query->whereDate('deliveries.created_at', '>=', $request->date_from);
+                $query->whereDate('created_at', '>=', $request->date_from);
             }
 
             if ($request->filled('date_to')) {
-                $query->whereDate('deliveries.created_at', '<=', $request->date_to);
+                $query->whereDate('created_at', '<=', $request->date_to);
             }
 
-            $deliveries = $query->orderBy('deliveries.created_at', 'desc')  // Show newest first by creation date
+            $deliveries = $query->orderBy('created_at', 'desc')  // Show newest first by creation date
                 ->get()
                 ->map(function ($delivery) {
                     $delivery->has_adjustment = false;  // All these don't have adjustments
