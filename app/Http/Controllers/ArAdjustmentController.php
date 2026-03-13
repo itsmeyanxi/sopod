@@ -832,19 +832,18 @@ public function store(Request $request)
     /**
      * Get pending deliveries without AR adjustments
      */
-    public function getPendingDeliveries()
+    public function getPendingDeliveries(Request $request)
     {
         try {
-            // Get all deliveries that don't have matching AR adjustments
-            // Use whereNotExists() for proper SQL subquery matching
-            $deliveries = \App\Models\Deliveries::select(
+            $query = \App\Models\Deliveries::select(
                 'id',
                 'dr_no',
                 'customer_code',
                 'customer_name',
                 'status',
                 'approval_status',
-                'request_delivery_date'
+                'request_delivery_date',
+                'created_at'
             )
             ->where('status', 'Delivered')  // Only delivered orders
             ->where('is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
@@ -853,13 +852,23 @@ public function store(Request $request)
                 $query->select(DB::raw(1))
                     ->from('ar_adjustments')
                     ->whereColumn('ar_adjustments.dr_no', '=', 'deliveries.dr_no');
-            })
-            ->orderBy('created_at', 'desc')  // Show newest first by creation date
-            ->get()
-            ->map(function ($delivery) {
-                $delivery->has_adjustment = false;  // All these don't have adjustments
-                return $delivery;
             });
+
+            // ✅ Apply optional date filtering
+            if ($request->filled('date_from')) {
+                $query->whereDate('created_at', '>=', $request->date_from);
+            }
+
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->date_to);
+            }
+
+            $deliveries = $query->orderBy('created_at', 'desc')  // Show newest first by creation date
+                ->get()
+                ->map(function ($delivery) {
+                    $delivery->has_adjustment = false;  // All these don't have adjustments
+                    return $delivery;
+                });
 
             return response()->json([
                 'success' => true,

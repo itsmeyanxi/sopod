@@ -264,6 +264,29 @@
                 </button>
             </div>
 
+            {{-- ✅ NEW: Filter Section for Deliveries --}}
+            <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date From</label>
+                        <input type="date" id="delivery_filter_start_date" class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date To</label>
+                        <input type="date" id="delivery_filter_end_date" class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2">
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <button type="button" onclick="filterDeliveryList()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                            Apply Filter
+                        </button>
+                        <button type="button" onclick="viewAllDeliveries()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+                            View ALL
+                        </button>
+                    </div>
+                </div>
+                <p class="text-gray-400 text-xs mt-2 px-2">💡 Leave dates empty to show all records, or set specific date range to filter.</p>
+            </div>
+
             {{-- Delivery List Table --}}
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-gray-800 rounded-lg text-sm">
@@ -1215,6 +1238,115 @@ function loadDeliveryList() {
 // ✅ Reload delivery list
 function reloadDeliveryList() {
     loadDeliveryList();
+}
+
+// ✅ NEW: Filter deliveries by date range
+function filterDeliveryList() {
+    const startDate = document.getElementById('delivery_filter_start_date').value;
+    const endDate = document.getElementById('delivery_filter_end_date').value;
+
+    if (!startDate || !endDate) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Dates',
+            text: 'Please enter both start and end dates to filter.',
+            background: '#1f2937',
+            color: '#fff'
+        });
+        return;
+    }
+
+    filterDeliveriesByDate(startDate, endDate);
+}
+
+// ✅ NEW: View all deliveries without date filter
+function viewAllDeliveries() {
+    document.getElementById('delivery_filter_start_date').value = '';
+    document.getElementById('delivery_filter_end_date').value = '';
+    loadDeliveryList();
+}
+
+// ✅ NEW: Apply date filter to deliveries
+function filterDeliveriesByDate(startDate, endDate) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch(`/ar-adjustments/deliveries/pending?date_from=${startDate}&date_to=${endDate}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.getElementById('delivery_list_tbody');
+        tbody.innerHTML = '';
+
+        if (!data.deliveries || data.deliveries.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+                        <i class="fas fa-inbox text-4xl mb-2"></i>
+                        <p>No deliveries found for the selected date range</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        data.deliveries.forEach(delivery => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-gray-700 hover:bg-gray-750';
+
+            const deliveryStatusColor = {
+                'approved': 'green',
+                'pending': 'yellow',
+                'rejected': 'red',
+                'completed': 'blue',
+                'partial': 'orange'
+            }[delivery.status] || 'gray';
+
+            const arStatusDisplay = delivery.has_adjustment
+                ? '<span class="bg-green-900/30 border border-green-700/50 px-2 py-1 rounded text-xs">Has Adjustment</span>'
+                : '<span class="bg-yellow-900/30 border border-yellow-700/50 px-2 py-1 rounded text-xs">Pending Adjustment</span>';
+
+            row.innerHTML = `
+                <td class="px-3 py-3 font-mono text-sm">${delivery.dr_no || 'N/A'}</td>
+                <td class="px-3 py-3 text-sm">
+                    <div class="font-semibold">${delivery.customer_name || 'N/A'}</div>
+                    <div class="text-xs text-gray-400">${delivery.customer_code || 'N/A'}</div>
+                </td>
+                <td class="px-3 py-3 text-sm">${delivery.request_delivery_date ? new Date(delivery.request_delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
+                <td class="px-3 py-3">
+                    <span class="bg-${deliveryStatusColor}-900/30 border border-${deliveryStatusColor}-700/50 px-2 py-1 rounded text-xs">
+                        ${delivery.status || 'N/A'}
+                    </span>
+                </td>
+                <td class="px-3 py-3">
+                    ${arStatusDisplay}
+                </td>
+                <td class="px-3 py-3 text-center">
+                    ${delivery.has_adjustment
+                        ? '<span class="text-gray-500 text-sm">—</span>'
+                        : `<button onclick="createAdjustmentFromDelivery('${(delivery.dr_no || '').replace(/'/g, "\\'")}', '${(delivery.customer_code || '').replace(/'/g, "\\'")}', '${(delivery.customer_name || '').replace(/'/g, "\\'")}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="Create Adjustment">
+                            <i class="fas fa-plus"></i> Create
+                        </button>`
+                    }
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    })
+    .catch(error => {
+        console.error('Error filtering deliveries:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to filter deliveries.',
+            background: '#1f2937',
+            color: '#fff'
+        });
+    });
 }
 
 // ✅ Create adjustment from delivery - show list of customer's deliveries to choose from
