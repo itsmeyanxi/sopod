@@ -271,12 +271,13 @@ public function store(Request $request)
             'created_by' => Auth::user()->name ?? 'System',
         ]);
 
-        // Update AR Aging if invoice_number is provided
-        if (!empty($validated['invoice_number']) && !empty($validated['customer_code'])) {
+        // ✅ Update AR Aging by invoice_number OR dr_no
+        if (!empty($validated['customer_code']) && (!empty($validated['invoice_number']) || !empty($validated['dr_no']))) {
             $this->applyAdjustmentToAR(
                 $validated['customer_code'],
                 $amount,
-                $validated['invoice_number'],
+                $validated['invoice_number'] ?? null,
+                $validated['dr_no'] ?? null,
                 $validated['transaction_date'],
                 $validated['reference_number']
             );
@@ -432,12 +433,13 @@ public function store(Request $request)
             
             DB::beginTransaction();
 
-            // Reverse the adjustment in AR Aging if applicable
-            if (!empty($adjustment->invoice_number) && !empty($adjustment->customer_code)) {
+            // ✅ Reverse the adjustment in AR Aging if applicable
+            if (!empty($adjustment->customer_code) && (!empty($adjustment->invoice_number) || !empty($adjustment->dr_no))) {
                 $this->applyAdjustmentToAR(
                     $adjustment->customer_code,
                     -$adjustment->amount, // Reverse the amount
-                    $adjustment->invoice_number,
+                    $adjustment->invoice_number ?? null,
+                    $adjustment->dr_no ?? null,
                     now(),
                     'REVERSAL-' . $adjustment->reference_number
                 );
@@ -762,13 +764,16 @@ public function store(Request $request)
     /**
      * Apply adjustment to AR Aging records
      */
-    private function applyAdjustmentToAR($customerCode, $adjustmentAmount, $invoiceNumber, $transactionDate, $referenceNumber)
+    private function applyAdjustmentToAR($customerCode, $adjustmentAmount, $invoiceNumber = null, $drNo = null, $transactionDate, $referenceNumber)
     {
         $query = ArAging::where('customer_code', $customerCode);
 
-        // If specific invoice, adjust that one
+        // ✅ If specific invoice or DR, adjust that one
         if ($invoiceNumber) {
             $query->where('invoice_no', $invoiceNumber);
+        } elseif ($drNo) {
+            // Search by DR number if invoice number not provided
+            $query->where('dr_no', $drNo);
         } else {
             // Otherwise, adjust oldest outstanding invoice
             $query->where('net_ar_balance', '>', 0)
@@ -781,7 +786,8 @@ public function store(Request $request)
         if (!$record) {
             Log::warning('No matching AR record found for adjustment', [
                 'customer_code' => $customerCode,
-                'invoice_number' => $invoiceNumber
+                'invoice_number' => $invoiceNumber,
+                'dr_no' => $drNo
             ]);
             return;
         }
