@@ -483,9 +483,19 @@ document.getElementById('search_customer_btn').addEventListener('click', functio
         Swal.close();
 
         if (data.success && data.records && data.records.length > 0) {
-            // Display DR numbers for selection
-            displayDRSelection(data.records);
-            switchToAdjustmentEntries();
+            // ✅ If only one record, redirect directly to create form with DR pre-filled
+            if (data.records.length === 1) {
+                const record = data.records[0];
+                const drNo = encodeURIComponent(record.dr_no || '');
+                const invoiceNo = encodeURIComponent(record.invoice_no || '');
+                const customerCode = encodeURIComponent(record.customer_code || '');
+                const customerName = encodeURIComponent(record.client_name || '');
+                window.location.href = `/ar-adjustments/create?dr_no=${drNo}&sales_invoice_no=${invoiceNo}&customer_code=${customerCode}&customer_name=${customerName}`;
+            } else {
+                // ✅ If multiple records, show selection
+                displayDRSelection(data.records);
+                switchToAdjustmentEntries();
+            }
         } else {
             // Show no results message
             document.getElementById('adjustment_list_view').classList.add('hidden');
@@ -558,26 +568,16 @@ function displayDRSelection(records) {
     }
 }
 
-// ✅ Select DR record
+// ✅ Select DR record - Redirect to create form with pre-filled data
 function selectDRRecord(record) {
-    selectedArAging = record;
-    currentCustomer = {
-        name: record.client_name,
-        code: record.customer_code
-    };
+    // Build redirect URL with query parameters
+    const drNo = encodeURIComponent(record.dr_no || '');
+    const invoiceNo = encodeURIComponent(record.invoice_no || '');
+    const customerCode = encodeURIComponent(record.customer_code || '');
+    const customerName = encodeURIComponent(record.client_name || '');
 
-    // Hide DR selection
-    document.getElementById('dr_selection_container').classList.add('hidden');
-
-    // Update display
-    document.getElementById('display_customer_name').textContent = record.client_name || '—';
-    document.getElementById('display_dr_no').textContent = record.dr_no || '—';
-    document.getElementById('display_invoice_no').textContent = record.invoice_no || '—';
-    document.getElementById('display_ar_balance').textContent = '₱' + parseFloat(record.net_ar_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
-
-    // Show customer info and adjustment form
-    document.getElementById('customer_info_container').classList.remove('hidden');
-    document.getElementById('adjustment_table_container').classList.remove('hidden');
+    // Redirect to create form
+    window.location.href = `/ar-adjustments/create?dr_no=${drNo}&sales_invoice_no=${invoiceNo}&customer_code=${customerCode}&customer_name=${customerName}`;
 }
 
 // ✅ Save adjustment
