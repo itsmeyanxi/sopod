@@ -72,9 +72,10 @@ class ArAdjustmentController extends Controller
             ->where('is_pulled_out', '!=', 1)
             ->whereNotExists(function ($query) {
                 // Exclude deliveries that already have AR adjustments
+                // ✅ FIX: Add explicit COLLATE to handle collation mismatch
                 $query->select(DB::raw(1))
                     ->from('ar_aging')
-                    ->whereColumn('ar_aging.dr_no', '=', 'deliveries.dr_no');
+                    ->whereRaw('CAST(ar_aging.dr_no AS CHAR) COLLATE utf8mb4_unicode_ci = CAST(deliveries.dr_no AS CHAR) COLLATE utf8mb4_unicode_ci');
             })
             ->select('id', 'dr_no', DB::raw("'Pending Invoice' as invoice_no"), 'customer_name', 'customer_code', DB::raw('0 as invoice_amount'), DB::raw('0 as net_ar_balance'))
             ->orderBy('dr_no', 'desc')
