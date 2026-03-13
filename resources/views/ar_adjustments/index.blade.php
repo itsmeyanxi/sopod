@@ -482,17 +482,25 @@ document.getElementById('search_customer_btn').addEventListener('click', functio
     .then(data => {
         Swal.close();
 
+        // ✅ Debug: Log the response
+        console.log('Search response:', data);
+        console.log('Number of records:', data.records ? data.records.length : 0);
+
         if (data.success && data.records && data.records.length > 0) {
             // ✅ If only one record, redirect directly to create form with DR pre-filled
             if (data.records.length === 1) {
+                console.log('Single record found - redirecting to create form');
                 const record = data.records[0];
                 const drNo = encodeURIComponent(record.dr_no || '');
                 const invoiceNo = encodeURIComponent(record.invoice_no || '');
                 const customerCode = encodeURIComponent(record.customer_code || '');
                 const customerName = encodeURIComponent(record.client_name || '');
-                window.location.href = `/ar-adjustments/create?dr_no=${drNo}&sales_invoice_no=${invoiceNo}&customer_code=${customerCode}&customer_name=${customerName}`;
+                const redirectUrl = `/ar-adjustments/create?dr_no=${drNo}&sales_invoice_no=${invoiceNo}&customer_code=${customerCode}&customer_name=${customerName}`;
+                console.log('Redirect URL:', redirectUrl);
+                window.location.href = redirectUrl;
             } else {
                 // ✅ If multiple records, show selection
+                console.log('Multiple records found - showing selection');
                 displayDRSelection(data.records);
                 switchToAdjustmentEntries();
             }
