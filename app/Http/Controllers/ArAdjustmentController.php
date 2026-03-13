@@ -847,6 +847,8 @@ public function store(Request $request)
             )
             ->where('status', 'Delivered')  // Only delivered orders
             ->where('is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
+            ->whereNotNull('customer_code')  // ✅ Only include deliveries with customer_code
+            ->where('customer_code', '!=', '')  // ✅ Exclude empty customer codes
             ->whereNotExists(function ($query) {
                 // Exclude deliveries that have a matching AR adjustment by DR number
                 $query->select(DB::raw(1))
