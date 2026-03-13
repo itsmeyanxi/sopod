@@ -33,5 +33,10 @@ class Warehouse extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function storages()
+    {
+        return $this->hasMany(Storage::class);
+    }
+
     public function isActive(): bool { return $this->status === 'active'; }
 }

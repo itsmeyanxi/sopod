@@ -896,7 +896,8 @@ class AgingReportController extends Controller
             ? Carbon::parse($request->aging_date)
             : now();
 
-        // Build query with filters
+        // ✅ Build query with filters - Get AR Aging records only
+        // Note: Deliveries without invoices are searchable via DR number but not included in aging buckets
         $query = ArAging::query();
 
         $query->whereDate('record_date', '<=', $agingDate);

@@ -6,6 +6,7 @@ use App\Models\SupplierReceivingReport;
 use App\Models\SupplierReceivingReportItem;
 use App\Models\Supplier;
 use App\Models\PurchaseOrder;
+use App\Models\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -54,8 +55,10 @@ class SupplierReceivingReportController extends Controller
     {
         $srrCode = $this->generateSrrCode();
         $suppliers = Supplier::where('status', 'active')->orderBy('supplier_name')->get();
+        // ✅ NEW: Fetch storages from database instead of hardcoded list
+        $storages = Storage::where('status', 'active')->with('warehouse')->orderBy('storage_name')->get();
 
-        return view('supplier_receiving_reports.create', compact('srrCode', 'suppliers'));
+        return view('supplier_receiving_reports.create', compact('srrCode', 'suppliers', 'storages'));
     }
 
     public function store(Request $request)

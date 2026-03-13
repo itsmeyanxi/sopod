@@ -26,8 +26,25 @@ class WarehouseController extends Controller
 
     public function store(Request $request)
     {
+        // ✅ Generate warehouse code if not provided (auto-generated from frontend)
+        $warehouseCode = $request->warehouse_code;
+        if (!$warehouseCode || trim($warehouseCode) === '') {
+            // Fallback: Generate code server-side
+            $warehouseName = $request->warehouse_name;
+            $abbr = substr(
+                collect(explode(' ', $warehouseName))
+                    ->map(fn($word) => strtoupper(substr($word, 0, 1)))
+                    ->join(''),
+                0,
+                3
+            );
+
+            $timestamp = substr((string)time(), -6);
+            $warehouseCode = "WH-{$abbr}-{$timestamp}";
+        }
+
         $request->validate([
-            'warehouse_code' => 'required|string|unique:warehouses,warehouse_code',
+            'warehouse_code' => "nullable|string|unique:warehouses,warehouse_code",
             'warehouse_name' => 'required|string',
             'email'          => 'nullable|email',
             'documents.*'    => 'nullable|file|max:10240',
@@ -47,7 +64,7 @@ class WarehouseController extends Controller
         }
 
         $warehouse = Warehouse::create([
-            'warehouse_code' => $request->warehouse_code,
+            'warehouse_code' => $warehouseCode,
             'warehouse_name' => $request->warehouse_name,
             'address'        => $request->address,
             'email'          => $request->email,

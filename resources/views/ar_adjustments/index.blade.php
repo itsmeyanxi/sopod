@@ -1165,7 +1165,7 @@ function loadDeliveryList() {
                     <div class="font-semibold">${delivery.customer_name || 'N/A'}</div>
                     <div class="text-xs text-gray-400">${delivery.customer_code || 'N/A'}</div>
                 </td>
-                <td class="px-3 py-3 text-sm">${new Date(delivery.request_delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                <td class="px-3 py-3 text-sm">${delivery.request_delivery_date ? new Date(delivery.request_delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
                 <td class="px-3 py-3">
                     <span class="bg-${deliveryStatusColor}-900/30 border border-${deliveryStatusColor}-700/50 px-2 py-1 rounded text-xs">
                         ${delivery.status || 'N/A'}
@@ -1177,7 +1177,7 @@ function loadDeliveryList() {
                 <td class="px-3 py-3 text-center">
                     ${delivery.has_adjustment
                         ? '<span class="text-gray-500 text-sm">—</span>'
-                        : `<button onclick="createAdjustmentFromDelivery('${delivery.dr_no.replace(/'/g, "\\'")}', '${delivery.customer_code.replace(/'/g, "\\'")}', '${delivery.customer_name.replace(/'/g, "\\'")}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="Create Adjustment">
+                        : `<button onclick="createAdjustmentFromDelivery('${(delivery.dr_no || '').replace(/'/g, "\\'")}', '${(delivery.customer_code || '').replace(/'/g, "\\'")}', '${(delivery.customer_name || '').replace(/'/g, "\\'")}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="Create Adjustment">
                             <i class="fas fa-plus"></i> Create
                         </button>`
                     }

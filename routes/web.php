@@ -40,6 +40,7 @@ use App\Http\Controllers\{
     ReimbursementFormController,
     RoleController,
     WarehouseController,
+    StorageController,
     CustomerARProfileController,
     GlAccountController
 };
@@ -54,6 +55,9 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
 
     // ===================== Warehouse =====================
     Route::resource('warehouses', WarehouseController::class)->middleware('auth');
+
+    // ===================== Storage =====================
+    Route::resource('storages', StorageController::class)->middleware('auth');
 
     // ===================== AUTH (Public Routes) =====================
     Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');

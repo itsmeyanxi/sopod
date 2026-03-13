@@ -56,12 +56,16 @@
                         <label class="block text-sm font-medium text-gray-300 mb-2">Customer</label>
                         <input type="text" id="report_customer_filter" placeholder="Filter by customer" class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2">
                     </div>
-                    <div class="flex items-end">
-                        <button type="button" onclick="filterPaymentList()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                    <div class="flex items-end gap-2">
+                        <button type="button" onclick="filterPaymentList()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
                             Apply Filter
+                        </button>
+                        <button type="button" onclick="viewAllPayments()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+                            View ALL Records
                         </button>
                     </div>
                 </div>
+                <p class="text-gray-400 text-xs mt-2 px-2">💡 Leave dates empty to show all records, or set specific date range to filter.</p>
             </div>
 
             <!-- Payment List Table -->
@@ -1198,17 +1202,6 @@ function saveAllPayments() {
 
 // Load payment list
 function loadPaymentList() {
-    const today = new Date();
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-    
-    if (!document.getElementById('report_date_from').value) {
-        document.getElementById('report_date_from').valueAsDate = thirtyDaysAgo;
-    }
-    if (!document.getElementById('report_date_to').value) {
-        document.getElementById('report_date_to').valueAsDate = today;
-    }
-    
     const dateFrom = document.getElementById('report_date_from').value;
     const dateTo = document.getElementById('report_date_to').value;
     const customerFilter = document.getElementById('report_customer_filter').value;
@@ -1294,6 +1287,13 @@ function loadPaymentList() {
 }
 
 function filterPaymentList() {
+    loadPaymentList();
+}
+
+function viewAllPayments() {
+    document.getElementById('report_date_from').value = '';
+    document.getElementById('report_date_to').value = '';
+    document.getElementById('report_customer_filter').value = '';
     loadPaymentList();
 }
 

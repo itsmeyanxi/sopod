@@ -23,12 +23,16 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">WAREHOUSE CODE: <span class="text-red-400">*</span></label>
-                    <input type="text" name="warehouse_code" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('warehouse_code') }}" required>
+                    <label class="block font-semibold text-gray-300 mb-2">WAREHOUSE CODE: <span class="text-blue-400 text-xs">(Auto-Generated)</span></label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="warehouse_code_display" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none cursor-not-allowed" placeholder="Will be auto-generated" readonly>
+                        <input type="hidden" name="warehouse_code" id="warehouse_code_input">
+                    </div>
+                    <p class="text-gray-500 text-xs mt-1">Code will be automatically generated on save</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-300 mb-2">WAREHOUSE NAME: <span class="text-red-400">*</span></label>
-                    <input type="text" name="warehouse_name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('warehouse_name') }}" required>
+                    <input type="text" name="warehouse_name" id="warehouse_name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('warehouse_name') }}" required>
                 </div>
             </div>
 
@@ -106,6 +110,49 @@
     </div>
 </div>
 <script>
+// ✅ Auto-generate warehouse code on form submission
+document.querySelector('form').addEventListener('submit', function(e) {
+    const codeInput = document.getElementById('warehouse_code_input');
+    const codeDisplay = document.getElementById('warehouse_code_display');
+
+    // If code hasn't been set, generate it now
+    if (!codeInput.value || codeInput.value.trim() === '') {
+        const warehouseName = document.getElementById('warehouse_name').value;
+
+        // Generate code as: WH-NAMEABBR-TIMESTAMP
+        // Example: WH-ABC-20260313001
+        if (warehouseName.trim()) {
+            const abbr = warehouseName.split(' ')
+                .map(word => word.charAt(0).toUpperCase())
+                .join('')
+                .substring(0, 3);
+
+            const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+            const generatedCode = `WH-${abbr}-${timestamp}`;
+
+            codeInput.value = generatedCode;
+            codeDisplay.value = generatedCode;
+        } else {
+            alert('Please enter a warehouse name first');
+            e.preventDefault();
+            return false;
+        }
+    }
+});
+
+// ✅ Optional: Show preview of code format when name changes
+document.getElementById('warehouse_name').addEventListener('change', function() {
+    const name = this.value.trim();
+    if (name && !document.getElementById('warehouse_code_input').value) {
+        const abbr = name.split(' ')
+            .map(word => word.charAt(0).toUpperCase())
+            .join('')
+            .substring(0, 3);
+        const preview = `WH-${abbr}-XXXXXX (will be finalized on save)`;
+        document.getElementById('warehouse_code_display').placeholder = preview;
+    }
+});
+
 function addFileInput() {
     const container = document.getElementById('fileInputs');
     const div = document.createElement('div');

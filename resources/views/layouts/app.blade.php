@@ -265,6 +265,9 @@
             <div class="submenu ml-8 space-y-1 hidden">
                 <a href="{{ route('warehouses.create') }}" class="block hover:underline">Add Warehouse</a>
                 <a href="{{ route('warehouses.index') }}" class="block hover:underline">Warehouse List</a>
+                <hr class="my-2 border-gray-600">
+                <a href="{{ route('storages.create') }}" class="block hover:underline text-sm">Add Storage</a>
+                <a href="{{ route('storages.index') }}" class="block hover:underline text-sm">Storage List</a>
             </div>
         </div>
         @endif

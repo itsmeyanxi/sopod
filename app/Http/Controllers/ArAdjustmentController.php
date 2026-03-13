@@ -45,15 +45,45 @@ class ArAdjustmentController extends Controller
                 ], 400);
             }
 
-            // Search in AR Aging table by customer name or DR number
-            $records = ArAging::where(function($query) use ($search) {
+            // ✅ Search in AR Aging table by customer name or DR number
+            $arAgingRecords = ArAging::where(function($query) use ($search) {
                 $query->where('client_name', 'LIKE', "%{$search}%")
                       ->orWhere('dr_no', 'LIKE', "%{$search}%")
                       ->orWhere('customer_code', 'LIKE', "%{$search}%");
             })
             ->where('net_ar_balance', '>', 0) // Only show records with outstanding balance
+            ->select('id', 'dr_no', 'invoice_no', 'client_name as customer_name', 'customer_code', 'invoice_amount', 'net_ar_balance')
             ->orderBy('dr_no', 'desc')
-            ->get();
+            ->get()
+            ->map(function($record) {
+                $record->source = 'invoiced';
+                return $record;
+            });
+
+            // ✅ NEW: Also search in Deliveries table (pending invoicing)
+            $deliveryRecords = Deliveries::where(function($query) use ($search) {
+                $query->where('customer_name', 'LIKE', "%{$search}%")
+                      ->orWhere('dr_no', 'LIKE', "%{$search}%")
+                      ->orWhere('customer_code', 'LIKE', "%{$search}%");
+            })
+            ->where('status', 'Delivered')
+            ->where('is_pulled_out', '!=', 1)
+            ->whereNotExists(function ($query) {
+                // Exclude deliveries that already have AR adjustments
+                $query->select(DB::raw(1))
+                    ->from('ar_aging')
+                    ->whereColumn('ar_aging.dr_no', '=', 'deliveries.dr_no');
+            })
+            ->select('id', 'dr_no', DB::raw("'Pending Invoice' as invoice_no"), 'customer_name', 'customer_code', DB::raw('0 as invoice_amount'), DB::raw('0 as net_ar_balance'))
+            ->orderBy('dr_no', 'desc')
+            ->get()
+            ->map(function($record) {
+                $record->source = 'pending_invoice';
+                return $record;
+            });
+
+            // ✅ Combine both results
+            $records = $arAgingRecords->concat($deliveryRecords);
 
             if ($records->isEmpty()) {
                 return response()->json([
@@ -815,8 +845,7 @@ public function store(Request $request)
                     ->from('ar_adjustments')
                     ->whereColumn('ar_adjustments.dr_no', '=', 'deliveries.dr_no');
             })
-            ->orderBy('id', 'desc')  // Show newest first
-            ->limit(500)  // Limit to avoid loading too many
+            ->orderBy('created_at', 'desc')  // Show newest first by creation date
             ->get()
             ->map(function ($delivery) {
                 $delivery->has_adjustment = false;  // All these don't have adjustments

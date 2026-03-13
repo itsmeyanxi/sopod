@@ -66,16 +66,51 @@ class PaymentController extends Controller
 
         Log::info('Search result', ['found' => $customerData ? 'yes' : 'no']);
 
+        // ✅ NEW: If not found in ar_aging, try deliveries table (for pending invoicing)
         if (!$customerData) {
-            Log::warning('Customer not found in ar_aging', [
-                'search_term' => $search,
-                'trimmed' => trim($search)
-            ]);
-            
-            return response()->json([
-                'success' => false, 
-                'message' => 'Customer not found'
-            ], 404);
+            $delivery = DB::table('deliveries')
+                ->leftJoin('customers', DB::raw("CAST(deliveries.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"), '=', DB::raw("CAST(customers.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"))
+                ->select(
+                    'deliveries.customer_code',
+                    'deliveries.customer_name as client_name',
+                    DB::raw('0 as total_outstanding'),
+                    DB::raw('0 as gross_balance'),
+                    DB::raw('0 as total_invoice'),
+                    DB::raw('0 as total_settled'),
+                    DB::raw("COALESCE(deliveries.branch, 'N/A') as branch"),
+                    DB::raw("COALESCE(deliveries.sales_executive, 'N/A') as sales_executive"),
+                    DB::raw("NULL as terms"),
+                    DB::raw('0 as invoice_count'),
+                    DB::raw('0 as outstanding_invoice_count'),
+                    'customers.whtrate'
+                )
+                ->where(function($query) use ($search) {
+                    $query->whereRaw('TRIM(deliveries.customer_code) = ?', [trim($search)])
+                          ->orWhereRaw('TRIM(deliveries.customer_code) LIKE ?', ['%' . trim($search) . '%'])
+                          ->orWhereRaw('TRIM(deliveries.customer_name) LIKE ?', ['%' . trim($search) . '%'])
+                          ->orWhereRaw('TRIM(deliveries.dr_no) = ?', [trim($search)])
+                          ->orWhereRaw('TRIM(deliveries.dr_no) LIKE ?', ['%' . trim($search) . '%']);
+                })
+                ->first();
+
+            if ($delivery) {
+                $customerData = $delivery;
+                Log::info('Customer found in deliveries table (pending invoicing)', [
+                    'customer_code' => $customerData->customer_code,
+                    'delivery_date' => $delivery->request_delivery_date,
+                    'search_term' => $search
+                ]);
+            } else {
+                Log::warning('Customer not found in ar_aging or deliveries', [
+                    'search_term' => $search,
+                    'trimmed' => trim($search)
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Customer or delivery not found'
+                ], 404);
+            }
         }
 
         // ✅ FIX: Get outstanding invoices WITH dr_no field
@@ -438,9 +473,59 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                 });
             }
 
-            // Combine both queries using UNION
+            // ✅ Query 3: Get delivered items that don't have invoices yet
+            $deliveriesQuery = DB::table('deliveries')
+                ->select(
+                    DB::raw("'delivery' as source"),
+                    'id',
+                    'customer_code',
+                    'customer_name',
+                    'dr_no',
+                    DB::raw("'Pending Invoice' as invoice_no"),
+                    'dr_no as collection_receipt_number',
+                    'request_delivery_date as collection_receipt_date',
+                    'request_delivery_date as payment_posting_date',
+                    'request_delivery_date as payment_date',
+                    DB::raw('0 as amount'),
+                    DB::raw('0 as tax'),
+                    DB::raw('NULL as net'),
+                    DB::raw('NULL as payment_method'),
+                    DB::raw('NULL as payment_option'),
+                    DB::raw('NULL as payment_means_data'),
+                    'status as payment_notes',
+                    DB::raw('NULL as bank'),
+                    DB::raw('NULL as reference_no'),
+                    DB::raw("'System' as created_by"),
+                    'created_at'
+                )
+                ->where('status', 'Delivered')
+                ->where('is_pulled_out', '!=', 1)
+                ->whereNotExists(function ($query) {
+                    // Exclude deliveries that already have invoices
+                    $query->select(DB::raw(1))
+                        ->from('ar_aging')
+                        ->whereColumn('ar_aging.dr_no', '=', 'deliveries.dr_no');
+                });
+
+            if ($dateFrom) {
+                $deliveriesQuery->whereDate('request_delivery_date', '>=', $dateFrom);
+            }
+
+            if ($dateTo) {
+                $deliveriesQuery->whereDate('request_delivery_date', '<=', $dateTo);
+            }
+
+            if ($customerFilter) {
+                $deliveriesQuery->where(function($q) use ($customerFilter) {
+                    $q->where('customer_code', 'LIKE', '%' . $customerFilter . '%')
+                      ->orWhere('customer_name', 'LIKE', '%' . $customerFilter . '%');
+                });
+            }
+
+            // ✅ Combine all three queries using UNION
             $payments = $paymentsQuery
                 ->union($arAgingQuery)
+                ->union($deliveriesQuery)
                 ->orderBy('payment_posting_date', 'desc')
                 ->get();
 
@@ -469,24 +554,112 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
             $dateTo = $request->input('date_to');
             $customerFilter = $request->input('customer', '');
 
-            $query = DB::table('payments');
+            // ✅ Query 1: Manually entered payments
+            $paymentsQuery = DB::table('payments')
+                ->select(
+                    DB::raw("'manual' as source"),
+                    'customer_code',
+                    'customer_name',
+                    'dr_no',
+                    'invoice_no',
+                    'collection_receipt_number',
+                    'collection_receipt_date',
+                    'payment_posting_date',
+                    'amount',
+                    'tax',
+                    'net'
+                );
 
             if ($dateFrom) {
-                $query->whereDate('payment_posting_date', '>=', $dateFrom);
+                $paymentsQuery->whereDate('payment_posting_date', '>=', $dateFrom);
             }
 
             if ($dateTo) {
-                $query->whereDate('payment_posting_date', '<=', $dateTo);
+                $paymentsQuery->whereDate('payment_posting_date', '<=', $dateTo);
             }
 
             if ($customerFilter) {
-                $query->where(function($q) use ($customerFilter) {
+                $paymentsQuery->where(function($q) use ($customerFilter) {
                     $q->where('customer_code', 'LIKE', '%' . $customerFilter . '%')
                       ->orWhere('customer_name', 'LIKE', '%' . $customerFilter . '%');
                 });
             }
 
-            $payments = $query->orderBy('payment_posting_date', 'desc')->get();
+            // ✅ Query 2: AR Aging records (invoiced items)
+            $arAgingQuery = DB::table('ar_aging')
+                ->select(
+                    DB::raw("'invoiced' as source"),
+                    'customer_code',
+                    'client_name as customer_name',
+                    'dr_no',
+                    'invoice_no',
+                    DB::raw("CONCAT('AR-', invoice_no) as collection_receipt_number"),
+                    'invoice_date as collection_receipt_date',
+                    'invoice_date as payment_posting_date',
+                    'invoice_amount as amount',
+                    DB::raw('0 as tax'),
+                    DB::raw('NULL as net')
+                );
+
+            if ($dateFrom) {
+                $arAgingQuery->whereDate('invoice_date', '>=', $dateFrom);
+            }
+
+            if ($dateTo) {
+                $arAgingQuery->whereDate('invoice_date', '<=', $dateTo);
+            }
+
+            if ($customerFilter) {
+                $arAgingQuery->where(function($q) use ($customerFilter) {
+                    $q->where('customer_code', 'LIKE', '%' . $customerFilter . '%')
+                      ->orWhere('client_name', 'LIKE', '%' . $customerFilter . '%');
+                });
+            }
+
+            // ✅ Query 3: Delivered items pending invoicing
+            $deliveriesQuery = DB::table('deliveries')
+                ->select(
+                    DB::raw("'pending_invoice' as source"),
+                    'customer_code',
+                    'customer_name',
+                    'dr_no',
+                    DB::raw("'Pending Invoice' as invoice_no"),
+                    'dr_no as collection_receipt_number',
+                    'request_delivery_date as collection_receipt_date',
+                    'request_delivery_date as payment_posting_date',
+                    DB::raw('0 as amount'),
+                    DB::raw('0 as tax'),
+                    DB::raw('NULL as net')
+                )
+                ->where('status', 'Delivered')
+                ->where('is_pulled_out', '!=', 1)
+                ->whereNotExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('ar_aging')
+                        ->whereColumn('ar_aging.dr_no', '=', 'deliveries.dr_no');
+                });
+
+            if ($dateFrom) {
+                $deliveriesQuery->whereDate('request_delivery_date', '>=', $dateFrom);
+            }
+
+            if ($dateTo) {
+                $deliveriesQuery->whereDate('request_delivery_date', '<=', $dateTo);
+            }
+
+            if ($customerFilter) {
+                $deliveriesQuery->where(function($q) use ($customerFilter) {
+                    $q->where('customer_code', 'LIKE', '%' . $customerFilter . '%')
+                      ->orWhere('customer_name', 'LIKE', '%' . $customerFilter . '%');
+                });
+            }
+
+            // ✅ Combine all queries
+            $payments = $paymentsQuery
+                ->union($arAgingQuery)
+                ->union($deliveriesQuery)
+                ->orderBy('payment_posting_date', 'desc')
+                ->get();
 
             $filename = 'collection_report_' . now()->format('Y-m-d_H-i-s') . '.csv';
 
