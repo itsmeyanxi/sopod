@@ -52,8 +52,7 @@ class ArAdjustmentController extends Controller
                       ->orWhere('dr_no', 'LIKE', "%{$search}%")
                       ->orWhere('customer_code', 'LIKE', "%{$search}%");
             })
-            ->where('net_ar_balance', '>', 0) // Only show records with outstanding balance
-            ->select('id', 'dr_no', 'invoice_no', 'client_name as customer_name', 'customer_code', 'invoice_amount', 'net_ar_balance')
+            ->select('id', 'dr_no', 'invoice_no', 'client_name', 'customer_code', 'invoice_amount', 'net_ar_balance')
             ->orderBy('dr_no', 'desc')
             ->get()
             ->map(function($record) {
