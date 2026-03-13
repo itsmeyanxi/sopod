@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ArAdjustment;
 use App\Models\ArAging;
 use App\Models\Customer;
+use App\Models\Deliveries;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
