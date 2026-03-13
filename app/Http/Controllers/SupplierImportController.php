@@ -26,7 +26,10 @@ class SupplierImportController extends Controller
             $data = Excel::toArray([], $file)[0];
 
             if (empty($data)) {
-                return redirect()->back()->with('error', 'The uploaded file is empty.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The uploaded file is empty.'
+                ], 422);
             }
 
             // Get headers from first row
@@ -39,9 +42,10 @@ class SupplierImportController extends Controller
             $columnMap = $this->mapColumns($headers);
 
             if (empty($columnMap)) {
-                return redirect()->back()->with('error', 
-                    'No recognized columns found in the file. ' .
-                    'Please include at least one of: supplier, contact_person, email_address, company_address, terms, etc.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No recognized columns found in the file. Please include at least one of: supplier, contact_person, email_address, company_address, terms, etc.'
+                ], 422);
             }
 
             // ✅ GROUP ROWS BY SUPPLIER - Merge multi-row data
@@ -98,27 +102,24 @@ class SupplierImportController extends Controller
 
             DB::commit();
 
-            // Prepare success message
-            $message = "Import completed successfully!\n";
-            $message .= "✓ {$imported} supplier(s) imported\n";
-            if ($updated > 0) {
-                $message .= "✓ {$updated} supplier(s) updated\n";
-            }
-            if ($skipped > 0) {
-                $message .= "⚠ {$skipped} supplier(s) skipped\n";
-            }
-            if (!empty($errors)) {
-                $message .= "\nErrors:\n" . implode("\n", array_slice($errors, 0, 10));
-                if (count($errors) > 10) {
-                    $message .= "\n... and " . (count($errors) - 10) . " more errors";
-                }
-            }
-
-            return redirect()->back()->with('success', $message);
+            // Return JSON response with detailed feedback
+            return response()->json([
+                'success' => true,
+                'imported' => $imported,
+                'updated' => $updated,
+                'skipped' => $skipped,
+                'errors' => array_slice($errors, 0, 10),
+                'errors_count' => count($errors),
+                'total_errors' => count($errors),
+                'message' => "Imported: {$imported}, Updated: {$updated}, Skipped: {$skipped}"
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Import failed: ' . $e->getMessage()
+            ], 500);
         }
     }
 
