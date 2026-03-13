@@ -57,6 +57,8 @@ class ArAdjustmentController extends Controller
             ->get()
             ->map(function($record) {
                 $record->source = 'invoiced';
+                // ✅ Add payment status indicator
+                $record->payment_status = ($record->net_ar_balance > 0) ? 'Outstanding' : 'Fully Paid';
                 return $record;
             });
 

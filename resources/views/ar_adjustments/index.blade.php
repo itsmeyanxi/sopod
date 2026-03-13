@@ -508,10 +508,22 @@ function displayDRSelection(records) {
             const button = document.createElement('button');
             button.type = 'button';
             button.className = 'w-full bg-gray-600 hover:bg-gray-500 text-white px-4 py-3 rounded text-left transition flex justify-between items-center';
+
+            // ✅ Determine status badge color and icon
+            const isFullyPaid = parseFloat(record.net_ar_balance || 0) <= 0;
+            const statusBadgeClass = isFullyPaid ? 'bg-green-900/30 text-green-400' : 'bg-orange-900/30 text-orange-400';
+            const statusIcon = isFullyPaid ? 'fa-check-circle' : 'fa-exclamation-circle';
+            const statusText = isFullyPaid ? 'Fully Paid' : 'Outstanding';
+
             button.innerHTML = `
                 <div>
-                    <div class="font-semibold">${record.dr_no || 'N/A'}</div>
-                    <div class="text-xs text-gray-300">
+                    <div class="font-semibold flex items-center gap-2">
+                        ${record.dr_no || 'N/A'}
+                        <span class="text-xs px-2 py-1 rounded ${statusBadgeClass}">
+                            <i class="fas ${statusIcon} mr-1"></i>${statusText}
+                        </span>
+                    </div>
+                    <div class="text-xs text-gray-300 mt-1">
                         ${record.client_name} | Invoice: ${record.invoice_no || 'N/A'} | Balance: ₱${parseFloat(record.net_ar_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}
                     </div>
                 </div>
