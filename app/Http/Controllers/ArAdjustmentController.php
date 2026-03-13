@@ -868,6 +868,8 @@ public function store(Request $request)
                 ->get()
                 ->map(function ($delivery) {
                     $delivery->has_adjustment = false;  // All these don't have adjustments
+                    // ✅ Clean up whitespace in customer_code
+                    $delivery->customer_code = trim($delivery->customer_code ?? '');
                     return $delivery;
                 });
 

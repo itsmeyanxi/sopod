@@ -1187,6 +1187,11 @@ function loadDeliveryList() {
         }
 
         data.deliveries.forEach(delivery => {
+            // ✅ Debug: Log customer_code to identify empty values
+            if (!delivery.customer_code) {
+                console.log(`DR ${delivery.dr_no}: customer_code="${delivery.customer_code}" (type: ${typeof delivery.customer_code})`);
+            }
+
             const row = document.createElement('tr');
             row.className = 'border-b border-gray-700 hover:bg-gray-750';
 
@@ -1305,6 +1310,11 @@ function filterDeliveriesByDate(startDate, endDate) {
         }
 
         data.deliveries.forEach(delivery => {
+            // ✅ Debug: Log customer_code to identify empty values
+            if (!delivery.customer_code) {
+                console.log(`[filterDeliveriesByDate] DR ${delivery.dr_no}: customer_code="${delivery.customer_code}" (type: ${typeof delivery.customer_code})`);
+            }
+
             const row = document.createElement('tr');
             row.className = 'border-b border-gray-700 hover:bg-gray-750';
 
