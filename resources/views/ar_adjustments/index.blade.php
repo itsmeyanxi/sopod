@@ -494,7 +494,7 @@ document.getElementById('search_customer_btn').addEventListener('click', functio
                 const drNo = encodeURIComponent(record.dr_no || '');
                 const invoiceNo = encodeURIComponent(record.invoice_no || '');
                 const customerCode = encodeURIComponent(record.customer_code || '');
-                const customerName = encodeURIComponent(record.client_name || '');
+                const customerName = encodeURIComponent(record.customer_name || '');
                 const redirectUrl = `/ar-adjustments/create?dr_no=${drNo}&sales_invoice_no=${invoiceNo}&customer_code=${customerCode}&customer_name=${customerName}`;
                 console.log('Redirect URL:', redirectUrl);
                 window.location.href = redirectUrl;
@@ -565,7 +565,7 @@ function displayDRSelection(records) {
                         </span>
                     </div>
                     <div class="text-xs text-gray-300 mt-1">
-                        ${record.client_name} | Invoice: ${record.invoice_no || 'N/A'} | Balance: ₱${parseFloat(record.net_ar_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}
+                        ${record.customer_name} | Invoice: ${record.invoice_no || 'N/A'} | Balance: ₱${parseFloat(record.net_ar_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}
                     </div>
                 </div>
                 <i class="fas fa-chevron-right"></i>
@@ -582,7 +582,7 @@ function selectDRRecord(record) {
     const drNo = encodeURIComponent(record.dr_no || '');
     const invoiceNo = encodeURIComponent(record.invoice_no || '');
     const customerCode = encodeURIComponent(record.customer_code || '');
-    const customerName = encodeURIComponent(record.client_name || '');
+    const customerName = encodeURIComponent(record.customer_name || '');
 
     // Redirect to create form
     window.location.href = `/ar-adjustments/create?dr_no=${drNo}&sales_invoice_no=${invoiceNo}&customer_code=${customerCode}&customer_name=${customerName}`;

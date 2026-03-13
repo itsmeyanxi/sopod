@@ -52,7 +52,7 @@ class ArAdjustmentController extends Controller
                       ->orWhere('dr_no', 'LIKE', "%{$search}%")
                       ->orWhere('customer_code', 'LIKE', "%{$search}%");
             })
-            ->select('id', 'dr_no', 'invoice_no', 'client_name', 'customer_code', 'invoice_amount', 'net_ar_balance')
+            ->select('id', 'dr_no', 'invoice_no', DB::raw("client_name as customer_name"), 'customer_code', 'invoice_amount', 'net_ar_balance')
             ->orderBy('dr_no', 'desc')
             ->get()
             ->map(function($record) {
