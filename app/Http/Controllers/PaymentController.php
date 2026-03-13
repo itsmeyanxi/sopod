@@ -57,7 +57,9 @@ class PaymentController extends Controller
             ->where(function($query) use ($search) {
                 $query->whereRaw('TRIM(ar_aging.customer_code) = ?', [trim($search)])
                       ->orWhereRaw('TRIM(ar_aging.customer_code) LIKE ?', ['%' . trim($search) . '%'])
-                      ->orWhereRaw('TRIM(ar_aging.client_name) LIKE ?', ['%' . trim($search) . '%']);
+                      ->orWhereRaw('TRIM(ar_aging.client_name) LIKE ?', ['%' . trim($search) . '%'])
+                      ->orWhereRaw('TRIM(ar_aging.dr_no) = ?', [trim($search)]) // ✅ NEW: Search by DR number
+                      ->orWhereRaw('TRIM(ar_aging.dr_no) LIKE ?', ['%' . trim($search) . '%']); // ✅ NEW: Partial DR match
             })
             ->groupBy('ar_aging.customer_code', 'ar_aging.client_name', 'customers.whtrate')
             ->first();

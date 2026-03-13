@@ -18,9 +18,10 @@
         <!-- Search Section -->
         <div class="bg-gray-700 rounded-lg p-6 mb-6">
             <h3 class="text-lg font-semibold text-white mb-4">Search Customer</h3>
+            <p class="text-gray-400 text-sm mb-3">✅ Search by: Customer Name, Customer Code, or DR Number</p>
             <div class="flex items-center space-x-4">
                 <div class="flex-1">
-                    <input type="text" id="customer_search" placeholder="Enter Customer Name" 
+                    <input type="text" id="customer_search" placeholder="Enter Customer Name, Code, or DR Number"
                            class="w-full bg-gray-600 text-white border border-gray-500 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button type="button" id="search_customer_btn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded font-medium transition flex items-center space-x-2">
