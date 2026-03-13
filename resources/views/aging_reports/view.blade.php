@@ -10,21 +10,27 @@
         <div class="bg-gray-700 rounded-lg p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-white">Filters</h3>
-                <button type="submit" form="filter-form" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-medium transition whitespace-nowrap">
-                    Apply Filters & View Summary
-                </button>
+                <div class="flex gap-2">
+                    <a href="{{ route('aging_reports.summary') }}" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition whitespace-nowrap flex items-center space-x-2">
+                        <i class="fas fa-list"></i>
+                        <span>View ALL Records</span>
+                    </a>
+                    <button type="submit" form="filter-form" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-medium transition whitespace-nowrap">
+                        Apply Filters & View Summary
+                    </button>
+                </div>
             </div>
             <form id="filter-form" method="GET" action="{{ route('aging_reports.summary') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Record Date Filter (filters which records to show) -->
                 <div>
                     <label for="filter_date" class="block text-sm font-medium text-gray-300 mb-2">
                         Record Date (On or Before)
-                        <span class="text-xs text-gray-400 ml-1">(filters records by record_date)</span>
+                        <span class="text-xs text-gray-400 ml-1">(leave empty to show ALL records)</span>
                     </label>
                     <input type="date" id="filter_date" name="filter_date"
-                           value="{{ request('filter_date') }}"
+                           value="{{ request('filter_date') ?? now()->format('Y-m-d') }}"
                            class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           required>
+                           placeholder="Leave empty for all records">
                 </div>
             </form>
 
