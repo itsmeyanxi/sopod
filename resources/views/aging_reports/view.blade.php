@@ -79,8 +79,9 @@
                     <select id="search_type" class="bg-gray-600 text-white border border-gray-500 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="customer">Customer Name</option>
                         <option value="invoice">Invoice No</option>
+                        <option value="dr">DR Number</option>
                     </select>
-                    <input type="text" id="search_input" placeholder="Search for customers or invoice numbers..." 
+                    <input type="text" id="search_input" placeholder="Search by Customer Name, Invoice No, or DR Number..."
                            class="flex-1 bg-gray-600 text-white border border-gray-500 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button type="button" id="search_button" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
@@ -196,8 +197,10 @@
         const searchInput = document.getElementById('search_input');
         if (this.value === 'customer') {
             searchInput.placeholder = 'Search for customers...';
-        } else {
+        } else if (this.value === 'invoice') {
             searchInput.placeholder = 'Search for invoice numbers...';
+        } else if (this.value === 'dr') {
+            searchInput.placeholder = 'Search for DR numbers...'; // ✅ NEW: DR search placeholder
         }
     });
 
@@ -213,10 +216,11 @@
         const agingDate = document.getElementById('aging_date').value;
 
         if (searchValue.trim() === '') {
+            const searchTypeLabel = searchType === 'customer' ? 'customer name' : (searchType === 'invoice' ? 'invoice number' : 'DR number'); // ✅ NEW: DR type label
             Swal.fire({
                 icon: 'warning',
                 title: 'Empty Search',
-                text: `Please enter a ${searchType === 'customer' ? 'customer name' : 'invoice number'} to search.`,
+                text: `Please enter a ${searchTypeLabel} to search.`,
                 background: '#1f2937',
                 color: '#fff'
             });

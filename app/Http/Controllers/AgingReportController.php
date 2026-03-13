@@ -179,12 +179,13 @@ class AgingReportController extends Controller
 {
     $customerSearch = $request->input('customer');
     $invoiceSearch = $request->input('invoice');
+    $drSearch = $request->input('dr'); // ✅ NEW: Add DR number search parameter
 
     // Validate that at least one search parameter is provided
-    if (empty($customerSearch) && empty($invoiceSearch)) {
+    if (empty($customerSearch) && empty($invoiceSearch) && empty($drSearch)) {
         return response()->json([
             'success' => false,
-            'message' => 'Please enter a customer name or invoice number to search.'
+            'message' => 'Please enter a customer name, invoice number, or DR number to search.'
         ], 400);
     }
 
@@ -202,7 +203,7 @@ class AgingReportController extends Controller
         $query = ArAging::query();
 
         // Apply search filters based on what was provided
-        $query->where(function($q) use ($customerSearch, $invoiceSearch) {
+        $query->where(function($q) use ($customerSearch, $invoiceSearch, $drSearch) {
             if (!empty($customerSearch)) {
                 // Search by customer
                 $q->where('client_name', 'LIKE', "%{$customerSearch}%")
@@ -217,6 +218,17 @@ class AgingReportController extends Controller
                 } else {
                     // If only invoice search is provided
                     $q->where('invoice_no', 'LIKE', "%{$invoiceSearch}%");
+                }
+            }
+
+            // ✅ NEW: Add DR number search
+            if (!empty($drSearch)) {
+                if (!empty($customerSearch) || !empty($invoiceSearch)) {
+                    // If other searches are provided, use OR logic
+                    $q->orWhere('dr_no', 'LIKE', "%{$drSearch}%");
+                } else {
+                    // If only DR search is provided
+                    $q->where('dr_no', 'LIKE', "%{$drSearch}%");
                 }
             }
         });
