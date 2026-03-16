@@ -157,6 +157,7 @@ class PaymentController extends Controller
                 ->select(
                     'deliveries.customer_code',
                     'deliveries.customer_name as client_name',
+                    'deliveries.request_delivery_date',
                     DB::raw('0 as total_outstanding'),
                     DB::raw('0 as gross_balance'),
                     DB::raw('0 as total_invoice'),
@@ -166,7 +167,7 @@ class PaymentController extends Controller
                     DB::raw("NULL as terms"),
                     DB::raw('0 as invoice_count'),
                     DB::raw('0 as outstanding_invoice_count'),
-                    'customers.whtrate'
+                    DB::raw("COALESCE(customers.whtrate, 0) as whtrate")
                 )
                 ->where('deliveries.status', 'Delivered')  // ✅ Only find delivered orders
                 ->where('deliveries.is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
@@ -183,7 +184,7 @@ class PaymentController extends Controller
                 $customerData = $delivery;
                 Log::info('Customer found in deliveries table (pending invoicing)', [
                     'customer_code' => $customerData->customer_code,
-                    'delivery_date' => $delivery->request_delivery_date,
+                    'delivery_date' => $customerData->request_delivery_date ?? 'N/A',
                     'search_term' => $search
                 ]);
             } else {
