@@ -759,12 +759,20 @@ document.getElementById('search_customer_btn').addEventListener('click', functio
 
             // ✅ If search was for a specific DR number, auto-fill first payment row with that DR
             const searchValue = document.getElementById('customer_search').value.trim();
-            if (searchValue && /^\d+$/.test(searchValue) && outstandingInvoices[searchValue]) {
-                // Search was for a DR number and we found it - auto-fill the first row
-                const drInput = document.querySelector('[data-field="dr_number"]');
-                if (drInput) {
-                    drInput.value = searchValue;
-                    drInput.dispatchEvent(new Event('change'));
+            if (searchValue && /^\d+$/.test(searchValue)) {
+                console.log('🔍 Numeric search detected:', searchValue);
+                console.log('📋 Available DRs in outstandingInvoices:', Object.keys(outstandingInvoices));
+
+                if (outstandingInvoices[searchValue]) {
+                    // Search was for a DR number and we found it - auto-fill the first row
+                    const drInput = document.querySelector('[data-field="dr_number"]');
+                    if (drInput) {
+                        console.log('✅ Auto-filling DR field with:', searchValue);
+                        drInput.value = searchValue;
+                        drInput.dispatchEvent(new Event('change'));
+                    }
+                } else {
+                    console.warn('⚠️ DR number searched but not in outstanding invoices:', searchValue);
                 }
             }
         } else {
