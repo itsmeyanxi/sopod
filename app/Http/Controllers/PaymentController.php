@@ -123,10 +123,12 @@ class PaymentController extends Controller
         $customerData = null;
 
         // ✅ CRITICAL FIX: Always try exact DR match FIRST before any other search
+        // ✅ FETCH AMOUNT FROM DELIVERY ITEMS (sum of item amounts), NOT SALES ORDER
         $exactDrMatch = DB::table('deliveries')
             ->leftJoin('customers', DB::raw("CAST(deliveries.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"), '=', DB::raw("CAST(customers.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"))
-            ->leftJoin('sales_orders', 'deliveries.sales_order_number', '=', 'sales_orders.sales_order_number')
+            ->leftJoin('delivery_items', 'deliveries.id', '=', 'delivery_items.delivery_id')
             ->select(
+                'deliveries.id',
                 'deliveries.customer_code',
                 'deliveries.customer_name as client_name',
                 'deliveries.request_delivery_date',
@@ -141,16 +143,27 @@ class PaymentController extends Controller
                 DB::raw('0 as invoice_count'),
                 DB::raw('0 as outstanding_invoice_count'),
                 DB::raw("COALESCE(customers.whtrate, 0) as whtrate"),
-                DB::raw("COALESCE(sales_orders.total_amount, 0) as delivery_amount")
+                DB::raw("SUM(COALESCE(delivery_items.total_amount, 0)) as delivery_amount")
             )
             ->where('deliveries.status', 'Delivered')
             ->where('deliveries.is_pulled_out', '!=', 1)
             ->whereRaw('deliveries.dr_no = ?', [trim($search)])
+            ->groupBy('deliveries.id', 'deliveries.customer_code', 'deliveries.customer_name', 'deliveries.request_delivery_date', 'deliveries.dr_no', 'deliveries.branch', 'deliveries.sales_executive', 'customers.whtrate')
             ->first();
 
         if ($exactDrMatch) {
             $customerData = $exactDrMatch;
-            Log::info('✅ Found exact DR match in deliveries', ['dr_no' => trim($search)]);
+            Log::info('✅ Found exact DR match in deliveries', [
+                'dr_no' => trim($search),
+                'delivery_amount' => $exactDrMatch->delivery_amount ?? 'NULL',
+                'customer_name' => $exactDrMatch->client_name
+            ]);
+        } else {
+            Log::warning('⚠️ Exact DR match NOT found in deliveries', [
+                'search_term' => trim($search),
+                'expected_status' => 'Delivered',
+                'excluded_if' => 'is_pulled_out = 1'
+            ]);
         }
 
         // If no exact DR match found, search in ar_aging table
@@ -187,11 +200,13 @@ class PaymentController extends Controller
         }
 
         // ✅ NEW: If not found in either search, try deliveries table with broader criteria
+        // ✅ FETCH AMOUNT FROM DELIVERY ITEMS (sum of item amounts), NOT SALES ORDER
         if (!$customerData) {
             $delivery = DB::table('deliveries')
                 ->leftJoin('customers', DB::raw("CAST(deliveries.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"), '=', DB::raw("CAST(customers.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"))
-                ->leftJoin('sales_orders', 'deliveries.sales_order_number', '=', 'sales_orders.sales_order_number')
+                ->leftJoin('delivery_items', 'deliveries.id', '=', 'delivery_items.delivery_id')
                 ->select(
+                    'deliveries.id',
                     'deliveries.customer_code',
                     'deliveries.customer_name as client_name',
                     'deliveries.request_delivery_date',
@@ -206,7 +221,7 @@ class PaymentController extends Controller
                     DB::raw('0 as invoice_count'),
                     DB::raw('0 as outstanding_invoice_count'),
                     DB::raw("COALESCE(customers.whtrate, 0) as whtrate"),
-                    DB::raw("COALESCE(sales_orders.total_amount, 0) as delivery_amount")
+                    DB::raw("SUM(COALESCE(delivery_items.total_amount, 0)) as delivery_amount")
                 )
                 ->where('deliveries.status', 'Delivered')  // ✅ Only find delivered orders
                 ->where('deliveries.is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
@@ -217,6 +232,7 @@ class PaymentController extends Controller
                           ->orWhereRaw('TRIM(deliveries.dr_no) = ?', [trim($search)])
                           ->orWhereRaw('TRIM(deliveries.dr_no) LIKE ?', ['%' . trim($search) . '%']);
                 })
+                ->groupBy('deliveries.id', 'deliveries.customer_code', 'deliveries.customer_name', 'deliveries.request_delivery_date', 'deliveries.dr_no', 'deliveries.branch', 'deliveries.sales_executive', 'customers.whtrate')
                 ->first();
 
             if ($delivery) {
