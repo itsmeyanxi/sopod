@@ -756,6 +756,17 @@ document.getElementById('search_customer_btn').addEventListener('click', functio
             document.getElementById('payment_entries_tbody').innerHTML = '';
             paymentRowCounter = 0;
             addPaymentRow();
+
+            // ✅ If search was for a specific DR number, auto-fill first payment row with that DR
+            const searchValue = document.getElementById('customer_search').value.trim();
+            if (searchValue && /^\d+$/.test(searchValue) && outstandingInvoices[searchValue]) {
+                // Search was for a DR number and we found it - auto-fill the first row
+                const drInput = document.querySelector('[data-field="dr_number"]');
+                if (drInput) {
+                    drInput.value = searchValue;
+                    drInput.dispatchEvent(new Event('change'));
+                }
+            }
         } else {
             document.getElementById('payment_list_view').classList.add('hidden');
             document.getElementById('payment_entries_view').classList.add('hidden');
