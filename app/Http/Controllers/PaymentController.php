@@ -308,12 +308,15 @@ class PaymentController extends Controller
             'sample_dr_numbers' => $outstandingInvoices->take(3)->pluck('dr_no')->toArray()
         ]);
 
+        // ✅ Calculate actual outstanding balance from invoices (handles pending deliveries)
+        $actualOutstandingBalance = $outstandingInvoices->sum('net_ar_balance');
+
         return response()->json([
             'success' => true,
             'customer' => [
                 'code' => $customerData->customer_code,
                 'name' => $customerData->client_name,
-                'outstanding_balance' => number_format($customerData->total_outstanding, 2, '.', ''),
+                'outstanding_balance' => number_format($actualOutstandingBalance, 2, '.', ''),
                 'gross_balance' => number_format($customerData->gross_balance, 2, '.', ''),
                 'total_invoice' => number_format($customerData->total_invoice, 2, '.', ''),
                 'total_settled' => number_format($customerData->total_settled, 2, '.', ''),
