@@ -651,7 +651,9 @@ function updateOutstandingBalance() {
     rows.forEach(row => {
         const amountInput = row.querySelector('[data-field="amount"]');
         if (amountInput && amountInput.value) {
-            totalPayments += parseFloat(amountInput.value) || 0;
+            // Remove ₱ symbol and commas before parsing
+            const cleanAmount = amountInput.value.replace(/₱|,/g, '');
+            totalPayments += parseFloat(cleanAmount) || 0;
         }
     });
     
@@ -1085,7 +1087,9 @@ function saveAllPayments() {
         const rowId = parseInt(row.id.replace('payment_row_', ''));
 
         // Validate required fields
-        if (!dr_number || !receipt_number || !receipt_date || !posting_date || !amount || parseFloat(amount) <= 0) {
+        // Remove ₱ symbol and commas before parsing
+        const cleanAmount = amount ? parseFloat(amount.toString().replace(/₱|,/g, '')) : 0;
+        if (!dr_number || !receipt_number || !receipt_date || !posting_date || !amount || cleanAmount <= 0) {
             hasErrors = true;
             row.classList.add('bg-red-900', 'bg-opacity-20');
         } else if (!paymentMeansData[rowId]) {
@@ -1126,6 +1130,11 @@ function saveAllPayments() {
         const rowId = parseInt(row.id.replace('payment_row_', ''));
 
         // Add to payments array (we already know all rows are valid)
+        // Remove ₱ symbol and commas before parsing
+        const cleanAmountValue = parseFloat(amount.toString().replace(/₱|,/g, '')) || 0;
+        const cleanTaxValue = tax ? parseFloat(tax.toString().replace(/₱|,/g, '')) : 0;
+        const cleanNetValue = net ? parseFloat(net.toString().replace(/₱|,/g, '')) : 0;
+
         payments.push({
             customer_code: currentCustomer.code,
             customer_name: currentCustomer.name,
@@ -1135,9 +1144,9 @@ function saveAllPayments() {
             collection_receipt_date: receipt_date,
             payment_posting_date: posting_date,
             payment_means: paymentMeansData[rowId],
-            amount: parseFloat(amount),
-            tax: tax ? parseFloat(tax) : 0,
-            net: net ? parseFloat(net) : 0, // ✅ NEW: Include net amount
+            amount: cleanAmountValue,
+            tax: cleanTaxValue,
+            net: cleanNetValue, // ✅ NEW: Include net amount
             payment_notes: notes
         });
     });
@@ -1639,7 +1648,9 @@ function savePaymentMeans() {
     const row = document.getElementById(`payment_row_${currentEditingRowId}`);
     const amountInput = row.querySelector('[data-field="amount"]');
     if (amountInput && !amountInput.value) {
-        amountInput.value = parseFloat(paymentData.amount).toFixed(2);
+        // Format with currency symbol and thousands separator
+        const formattedAmount = '₱' + parseFloat(paymentData.amount).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+        amountInput.value = formattedAmount;
         updateOutstandingBalance();
     }
     
