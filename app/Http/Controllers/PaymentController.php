@@ -234,8 +234,26 @@ class PaymentController extends Controller
             }
         }
 
-        // ✅ FIX: Get outstanding invoices WITH dr_no field
-        $outstandingInvoices = DB::table('ar_aging')
+        // ✅ If a delivery was found (pending invoicing), create a synthetic invoice entry for it
+        $outstandingInvoices = collect();
+        if (isset($customerData->dr_no) && $customerData->total_outstanding == 0) {
+            // This is a delivery from the deliveries table - create a display entry
+            $outstandingInvoices->push((object)[
+                'dr_no' => $customerData->dr_no,
+                'invoice_no' => 'PENDING',
+                'invoice_date' => $customerData->request_delivery_date,
+                'invoice_amount' => 0,  // Pending delivery amount (user will enter)
+                'settled_invoice_amount' => 0,
+                'net_ar_balance' => 0,  // User will set this
+                'gross_ar_balance' => 0,
+                'terms' => 'TBD',
+                'age' => 0,
+                'due_date' => null,
+                'status' => 'Pending Invoice'
+            ]);
+        } else {
+            // Get outstanding invoices from ar_aging
+            $outstandingInvoices = DB::table('ar_aging')
             ->select(
                 'dr_no',           // ✅ Added this!
                 'invoice_no',
@@ -258,9 +276,10 @@ class PaymentController extends Controller
         }
 
         $outstandingInvoices = $outstandingInvoices
-            ->orderBy('invoice_date', 'desc')
-            ->limit(100)  // Increased limit to get more outstanding invoices
-            ->get();
+                ->orderBy('invoice_date', 'desc')
+                ->limit(100)  // Increased limit to get more outstanding invoices
+                ->get();
+        }
 
         Log::info('Outstanding invoices loaded', [
             'count' => $outstandingInvoices->count(),
