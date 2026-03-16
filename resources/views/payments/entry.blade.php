@@ -863,14 +863,12 @@ function addPaymentRow() {
     </button>
 </td>
         <td class="px-2 py-1.5">
-            <input type="number" 
-                   step="0.01" 
-                   min="0"
-                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500" 
-                   placeholder="0.00"
+            <input type="text"
+                   class="w-full bg-gray-600 text-orange-400 border border-gray-600 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500 font-semibold"
+                   placeholder="₱0.00"
                    data-field="amount"
                    data-row-id="${paymentRowCounter}"
-                   oninput="handlePaymentAmountChange(this)">
+                   readonly>
         </td>
         <td class="px-2 py-1.5">
             <input type="number"
@@ -969,6 +967,7 @@ function handleDRNumberChange(input) {
         // Clear auto-filled fields
         row.querySelector('[data-field="invoice_no"]').value = '';
         row.querySelector('[data-field="outstanding_balance"]').value = '';
+        row.querySelector('[data-field="amount"]').value = ''; // ✅ Clear amount
         row.querySelector('[data-field="tax"]').value = ''; // ✅ Clear auto-populated tax
         row.querySelector('[data-field="net"]').value = '';
         return;
@@ -985,9 +984,9 @@ function handleDRNumberChange(input) {
         row.querySelector('[data-field="invoice_no"]').value = invoiceInfo.invoice_no || '';
         row.querySelector('[data-field="outstanding_balance"]').value = '₱' + invoiceInfo.outstanding_balance.toLocaleString('en-PH', { minimumFractionDigits: 2 });
 
-        // Auto-fill amount with outstanding balance
+        // Auto-fill amount with outstanding balance (formatted with currency symbol)
         const amountInput = row.querySelector('[data-field="amount"]');
-        amountInput.value = invoiceInfo.outstanding_balance.toFixed(2);
+        amountInput.value = '₱' + invoiceInfo.outstanding_balance.toLocaleString('en-PH', { minimumFractionDigits: 2 });
 
         // ✅ NEW: Fetch customer tax rate and calculate net
         fetchCustomerTaxAndCalculateNet(rowId, invoiceInfo.outstanding_balance);
