@@ -80,6 +80,7 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     Route::get('/collection-report', [PaymentController::class, 'collectionReport'])->name('collectionReport');
     Route::get('/export', [PaymentController::class, 'export'])->name('export');
     Route::get('/duplicate-cr', [PaymentController::class, 'viewDuplicateCR'])->name('duplicateCR');
+    Route::get('/debug-delivery/{drNo}', [PaymentController::class, 'debugDeliverySearch'])->name('debugDelivery');
 });
     // ===================== CHANGE LOG & NOTIFICATIONS =====================
     Route::get('/changelog', [ChangeLogController::class, 'index'])->name('changelog.index');

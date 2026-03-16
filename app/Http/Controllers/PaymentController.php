@@ -20,6 +20,48 @@ class PaymentController extends Controller
     }
 
     /**
+     * ✅ DEBUG: Check why a delivery is not showing in search results
+     */
+    public function debugDeliverySearch($drNo)
+    {
+        $delivery = DB::table('deliveries')
+            ->select('dr_no', 'customer_code', 'customer_name', 'status', 'is_pulled_out', 'created_at')
+            ->where('dr_no', $drNo)
+            ->first();
+
+        if (!$delivery) {
+            return response()->json([
+                'found' => false,
+                'message' => "DR {$drNo} not found in deliveries table"
+            ]);
+        }
+
+        // Check why it might not be returned
+        $reasons = [];
+        if ($delivery->status !== 'Delivered') {
+            $reasons[] = "Status is '{$delivery->status}', not 'Delivered'";
+        }
+        if ($delivery->is_pulled_out == 1) {
+            $reasons[] = "is_pulled_out = 1 (excluded)";
+        }
+        if (!$delivery->customer_code) {
+            $reasons[] = "No customer_code";
+        }
+
+        // Check if it's in ar_aging
+        $inArAging = DB::table('ar_aging')->where('dr_no', $drNo)->first();
+
+        return response()->json([
+            'found' => true,
+            'delivery' => $delivery,
+            'in_ar_aging' => $inArAging ? true : false,
+            'reasons_not_shown' => $reasons,
+            'would_show' => $delivery->status === 'Delivered' && $delivery->is_pulled_out != 1,
+            'debug_info' => "If status=Delivered, not pulled out, and customer_code exists, it should show in search"
+        ]);
+    }
+
+    /**
      * Search for a customer in ar_aging table
      */
     public function searchCustomer(Request $request)
