@@ -120,42 +120,38 @@ class PaymentController extends Controller
 
         Log::info('Searching for customer', ['search_term' => $search]);
 
-        // ✅ NEW: If search is numeric (DR number), search deliveries FIRST
-        $isNumericSearch = is_numeric(trim($search));
         $customerData = null;
 
-        if ($isNumericSearch) {
-            // Search deliveries first for numeric searches (likely DR numbers)
-            $delivery = DB::table('deliveries')
-                ->leftJoin('customers', DB::raw("CAST(deliveries.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"), '=', DB::raw("CAST(customers.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"))
-                ->select(
-                    'deliveries.customer_code',
-                    'deliveries.customer_name as client_name',
-                    'deliveries.request_delivery_date',
-                    'deliveries.dr_no',
-                    DB::raw('0 as total_outstanding'),
-                    DB::raw('0 as gross_balance'),
-                    DB::raw('0 as total_invoice'),
-                    DB::raw('0 as total_settled'),
-                    DB::raw("COALESCE(deliveries.branch, 'N/A') as branch"),
-                    DB::raw("COALESCE(deliveries.sales_executive, 'N/A') as sales_executive"),
-                    DB::raw("NULL as terms"),
-                    DB::raw('0 as invoice_count'),
-                    DB::raw('0 as outstanding_invoice_count'),
-                    DB::raw("COALESCE(customers.whtrate, 0) as whtrate")
-                )
-                ->where('deliveries.status', 'Delivered')
-                ->where('deliveries.is_pulled_out', '!=', 1)
-                ->whereRaw('TRIM(deliveries.dr_no) = ?', [trim($search)])
-                ->first();
+        // ✅ CRITICAL FIX: Always try exact DR match FIRST before any other search
+        $exactDrMatch = DB::table('deliveries')
+            ->leftJoin('customers', DB::raw("CAST(deliveries.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"), '=', DB::raw("CAST(customers.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"))
+            ->select(
+                'deliveries.customer_code',
+                'deliveries.customer_name as client_name',
+                'deliveries.request_delivery_date',
+                'deliveries.dr_no',
+                DB::raw('0 as total_outstanding'),
+                DB::raw('0 as gross_balance'),
+                DB::raw('0 as total_invoice'),
+                DB::raw('0 as total_settled'),
+                DB::raw("COALESCE(deliveries.branch, 'N/A') as branch"),
+                DB::raw("COALESCE(deliveries.sales_executive, 'N/A') as sales_executive"),
+                DB::raw("NULL as terms"),
+                DB::raw('0 as invoice_count'),
+                DB::raw('0 as outstanding_invoice_count'),
+                DB::raw("COALESCE(customers.whtrate, 0) as whtrate")
+            )
+            ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.is_pulled_out', '!=', 1)
+            ->whereRaw('deliveries.dr_no = ?', [trim($search)])
+            ->first();
 
-            if ($delivery) {
-                $customerData = $delivery;
-                Log::info('Found delivery by DR number', ['dr_no' => $delivery->dr_no]);
-            }
+        if ($exactDrMatch) {
+            $customerData = $exactDrMatch;
+            Log::info('✅ Found exact DR match in deliveries', ['dr_no' => trim($search)]);
         }
 
-        // If not found (or non-numeric search), search in ar_aging table
+        // If no exact DR match found, search in ar_aging table
         if (!$customerData) {
             // Search in ar_aging table - only sum net_ar_balance where > 0 (outstanding)
             // ✅ NEW: Join with customers table to get whtrate
