@@ -125,6 +125,7 @@ class PaymentController extends Controller
         // ✅ CRITICAL FIX: Always try exact DR match FIRST before any other search
         $exactDrMatch = DB::table('deliveries')
             ->leftJoin('customers', DB::raw("CAST(deliveries.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"), '=', DB::raw("CAST(customers.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"))
+            ->leftJoin('sales_orders', 'deliveries.sales_order_number', '=', 'sales_orders.sales_order_number')
             ->select(
                 'deliveries.customer_code',
                 'deliveries.customer_name as client_name',
@@ -139,7 +140,8 @@ class PaymentController extends Controller
                 DB::raw("NULL as terms"),
                 DB::raw('0 as invoice_count'),
                 DB::raw('0 as outstanding_invoice_count'),
-                DB::raw("COALESCE(customers.whtrate, 0) as whtrate")
+                DB::raw("COALESCE(customers.whtrate, 0) as whtrate"),
+                DB::raw("COALESCE(sales_orders.total_amount, 0) as delivery_amount")
             )
             ->where('deliveries.status', 'Delivered')
             ->where('deliveries.is_pulled_out', '!=', 1)
@@ -188,10 +190,12 @@ class PaymentController extends Controller
         if (!$customerData) {
             $delivery = DB::table('deliveries')
                 ->leftJoin('customers', DB::raw("CAST(deliveries.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"), '=', DB::raw("CAST(customers.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci"))
+                ->leftJoin('sales_orders', 'deliveries.sales_order_number', '=', 'sales_orders.sales_order_number')
                 ->select(
                     'deliveries.customer_code',
                     'deliveries.customer_name as client_name',
                     'deliveries.request_delivery_date',
+                    'deliveries.dr_no',
                     DB::raw('0 as total_outstanding'),
                     DB::raw('0 as gross_balance'),
                     DB::raw('0 as total_invoice'),
@@ -201,7 +205,8 @@ class PaymentController extends Controller
                     DB::raw("NULL as terms"),
                     DB::raw('0 as invoice_count'),
                     DB::raw('0 as outstanding_invoice_count'),
-                    DB::raw("COALESCE(customers.whtrate, 0) as whtrate")
+                    DB::raw("COALESCE(customers.whtrate, 0) as whtrate"),
+                    DB::raw("COALESCE(sales_orders.total_amount, 0) as delivery_amount")
                 )
                 ->where('deliveries.status', 'Delivered')  // ✅ Only find delivered orders
                 ->where('deliveries.is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
@@ -238,14 +243,15 @@ class PaymentController extends Controller
         $outstandingInvoices = collect();
         if (isset($customerData->dr_no) && $customerData->total_outstanding == 0) {
             // This is a delivery from the deliveries table - create a display entry
+            $deliveryAmount = isset($customerData->delivery_amount) ? floatval($customerData->delivery_amount) : 0;
             $outstandingInvoices->push((object)[
                 'dr_no' => $customerData->dr_no,
                 'invoice_no' => 'PENDING',
                 'invoice_date' => $customerData->request_delivery_date,
-                'invoice_amount' => 0,  // Pending delivery amount (user will enter)
+                'invoice_amount' => $deliveryAmount,  // ✅ Use actual delivery gross amount
                 'settled_invoice_amount' => 0,
-                'net_ar_balance' => 0,  // User will set this
-                'gross_ar_balance' => 0,
+                'net_ar_balance' => $deliveryAmount,  // ✅ Full amount is outstanding
+                'gross_ar_balance' => $deliveryAmount,  // ✅ Use actual delivery amount
                 'terms' => 'TBD',
                 'age' => 0,
                 'due_date' => null,
