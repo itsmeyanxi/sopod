@@ -216,7 +216,14 @@ class PaymentController extends Controller
                 'status'
             )
             ->where('customer_code', $customerData->customer_code)
-            ->where('net_ar_balance', '>', 0)
+            ->where('net_ar_balance', '>', 0);
+
+        // ✅ If search was for a specific DR, only show that DR's invoices
+        if (isset($customerData->dr_no)) {
+            $outstandingInvoices->where('dr_no', $customerData->dr_no);
+        }
+
+        $outstandingInvoices = $outstandingInvoices
             ->orderBy('invoice_date', 'desc')
             ->limit(100)  // Increased limit to get more outstanding invoices
             ->get();
