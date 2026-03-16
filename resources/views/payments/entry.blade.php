@@ -1705,14 +1705,14 @@ function fetchCustomerTaxAndCalculateNet(rowId, grossAmount) {
         // ✅ Auto-populate the Tax field with customer's WHT rate percentage (from customers table)
         row.querySelector('[data-field="tax"]').value = whtrate.toFixed(2);
 
-        // ✅ Calculate and set Net = Gross - (Gross × Tax Rate %)
-        row.querySelector('[data-field="net"]').value = netAmount.toFixed(2);
+        // ✅ Calculate and set Net = Gross - (Gross × Tax Rate %) - formatted with currency symbol
+        row.querySelector('[data-field="net"]').value = '₱' + netAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 });
 
-        console.log(`✅ Tax and Net auto-calculated: Gross=₱${grossAmount.toFixed(2)}, Tax Rate=${whtrate}%, Net=₱${netAmount.toFixed(2)}`);
+        console.log(`✅ Tax and Net auto-calculated: Gross=₱${grossAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}, Tax Rate=${whtrate}%, Net=₱${netAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`);
     } else {
         console.warn('Customer data not available or no tax rate set');
         row.querySelector('[data-field="tax"]').value = '';
-        row.querySelector('[data-field="net"]').value = grossAmount.toFixed(2);
+        row.querySelector('[data-field="net"]').value = '₱' + grossAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 });
     }
 }
 
