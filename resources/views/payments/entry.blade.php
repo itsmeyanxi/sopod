@@ -582,11 +582,9 @@ function addSelectedToPaymentTable() {
                    data-field="tax">
         </td>
         <td class="px-2 py-1.5">
-            <input type="number"
-                   step="0.01"
-                   min="0"
+            <input type="text"
                    class="w-full bg-gray-600 text-green-400 border border-gray-600 rounded px-2 py-1 text-xs text-right font-semibold"
-                   placeholder="0.00"
+                   placeholder="₱0.00"
                    data-field="net"
                    readonly>
         </td>
@@ -879,11 +877,9 @@ function addPaymentRow() {
                    data-field="tax">
         </td>
         <td class="px-2 py-1.5">
-            <input type="number"
-                   step="0.01"
-                   min="0"
+            <input type="text"
                    class="w-full bg-gray-600 text-green-400 border border-gray-600 rounded px-2 py-1 text-xs text-right font-semibold"
-                   placeholder="0.00"
+                   placeholder="₱0.00"
                    data-field="net"
                    readonly>
         </td>
