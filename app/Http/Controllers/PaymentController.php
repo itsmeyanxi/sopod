@@ -84,6 +84,8 @@ class PaymentController extends Controller
                     DB::raw('0 as outstanding_invoice_count'),
                     'customers.whtrate'
                 )
+                ->where('deliveries.status', 'Delivered')  // ✅ Only find delivered orders
+                ->where('deliveries.is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
                 ->where(function($query) use ($search) {
                     $query->whereRaw('TRIM(deliveries.customer_code) = ?', [trim($search)])
                           ->orWhereRaw('TRIM(deliveries.customer_code) LIKE ?', ['%' . trim($search) . '%'])
