@@ -20,6 +20,48 @@ class PaymentController extends Controller
     }
 
     /**
+     * ✅ DEBUG: Detailed search debugging - shows what each query finds
+     */
+    public function debugSearch($search)
+    {
+        // Check ar_aging
+        $arAgingResult = DB::table('ar_aging')
+            ->select('customer_code', 'client_name', 'dr_no')
+            ->where(function($query) use ($search) {
+                $query->whereRaw('TRIM(ar_aging.customer_code) = ?', [trim($search)])
+                      ->orWhereRaw('TRIM(ar_aging.customer_code) LIKE ?', ['%' . trim($search) . '%'])
+                      ->orWhereRaw('TRIM(ar_aging.client_name) LIKE ?', ['%' . trim($search) . '%'])
+                      ->orWhereRaw('TRIM(ar_aging.dr_no) = ?', [trim($search)])
+                      ->orWhereRaw('TRIM(ar_aging.dr_no) LIKE ?', ['%' . trim($search) . '%']);
+            })
+            ->first();
+
+        // Check deliveries
+        $deliveryResult = DB::table('deliveries')
+            ->select('customer_code', 'customer_name', 'dr_no', 'status', 'is_pulled_out')
+            ->where('status', 'Delivered')
+            ->where('is_pulled_out', '!=', 1)
+            ->where(function($query) use ($search) {
+                $query->whereRaw('TRIM(deliveries.customer_code) = ?', [trim($search)])
+                      ->orWhereRaw('TRIM(deliveries.customer_code) LIKE ?', ['%' . trim($search) . '%'])
+                      ->orWhereRaw('TRIM(deliveries.customer_name) LIKE ?', ['%' . trim($search) . '%'])
+                      ->orWhereRaw('TRIM(deliveries.dr_no) = ?', [trim($search)])
+                      ->orWhereRaw('TRIM(deliveries.dr_no) LIKE ?', ['%' . trim($search) . '%']);
+            })
+            ->first();
+
+        return response()->json([
+            'search_term' => $search,
+            'trimmed' => trim($search),
+            'found_in_ar_aging' => $arAgingResult ? true : false,
+            'ar_aging_result' => $arAgingResult,
+            'found_in_deliveries' => $deliveryResult ? true : false,
+            'deliveries_result' => $deliveryResult,
+            'which_would_be_used' => $arAgingResult ? 'ar_aging' : ($deliveryResult ? 'deliveries' : 'neither')
+        ]);
+    }
+
+    /**
      * ✅ DEBUG: Check why a delivery is not showing in search results
      */
     public function debugDeliverySearch($drNo)
