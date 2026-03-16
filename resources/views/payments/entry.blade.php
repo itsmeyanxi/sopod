@@ -564,14 +564,12 @@ function addSelectedToPaymentTable() {
             </button>
         </td>
         <td class="px-2 py-1.5">
-            <input type="number" 
-                   step="0.01" 
-                   min="0"
-                   value="${parseFloat(paymentData.check_amount || 0).toFixed(2)}"
-                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500" 
+            <input type="text"
+                   value="₱${parseFloat(paymentData.check_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}"
+                   class="w-full bg-gray-600 text-orange-400 border border-gray-600 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500 font-semibold"
                    data-field="amount"
                    data-row-id="${paymentRowCounter}"
-                   oninput="handlePaymentAmountChange(this)">
+                   readonly>
         </td>
         <td class="px-2 py-1.5">
             <input type="number"
