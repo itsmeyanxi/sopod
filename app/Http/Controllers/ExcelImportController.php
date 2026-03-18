@@ -770,10 +770,10 @@ private $arAdjustmentColumnMap = [
                 
                 // Look for any common AR Aging columns to identify header row
                 $hasAgingDate = in_array('aging date', $cleanedRow) || in_array('agingdate', $cleanedRow);
-                $hasInvoiceNo = in_array('invoice no', $cleanedRow) || in_array('invoice no.', $cleanedRow);
-                $hasCustomerCode = in_array('customer code', $cleanedRow) || in_array('customercode', $cleanedRow);
-                $hasNetAR = in_array('net ar', $cleanedRow) || in_array('netar', $cleanedRow);
-                
+                $hasInvoiceNo = in_array('invoice no', $cleanedRow) || in_array('invoice no.', $cleanedRow) || in_array('sales invoice no', $cleanedRow) || in_array('sales invoice no.', $cleanedRow);
+                $hasCustomerCode = in_array('customer code', $cleanedRow) || in_array('customercode', $cleanedRow) || in_array('sopod code', $cleanedRow);
+                $hasNetAR = in_array('net ar', $cleanedRow) || in_array('netar', $cleanedRow) || in_array('dr number', $cleanedRow) || in_array('dr no', $cleanedRow);
+
                 // If we find any of these common columns, assume it's the header
                 if ($hasAgingDate || $hasInvoiceNo || $hasCustomerCode || $hasNetAR) {
                     $headerRow = $row;
@@ -803,29 +803,46 @@ private $arAdjustmentColumnMap = [
                 'record_date' => 'record_date', 'recorddate' => 'record_date',
                 'due_date' => 'due_date', 'duedate' => 'due_date',
                 'invoice_no' => 'invoice_no', 'invoiceno' => 'invoice_no',
-                'po_no' => 'po_no', 'pono' => 'po_no',
+                'sales_invoice_no' => 'invoice_no', 'salesinvoiceno' => 'invoice_no',
+                'po_no' => 'po_no', 'pono' => 'po_no', 'po_no' => 'po_no',
                 'dr_no' => 'dr_no', 'drno' => 'dr_no',
+                'dr_number' => 'dr_no', 'drnumber' => 'dr_no',
                 'customer_code' => 'customer_code', 'customercode' => 'customer_code',
+                'sopod_code' => 'customer_code', 'sopodcode' => 'customer_code',
                 'client_name' => 'client_name', 'clientname' => 'client_name',
+                'customer_name' => 'client_name', 'customername' => 'client_name',
                 'branch' => 'branch',
                 'sales_executive' => 'sales_executive', 'salesexecutive' => 'sales_executive',
                 'se2' => 'se2',
-                'terms' => 'terms',
+                'terms' => 'terms', 'payment_terms' => 'terms', 'paymentterms' => 'terms',
                 'sales_week_no' => 'sales_week_no', 'salesweekno' => 'sales_week_no',
                 'age' => 'age',
                 'age_category' => 'age_category', 'agecategory' => 'age_category',
                 'invoice_amount' => 'invoice_amount', 'invoiceamount' => 'invoice_amount',
                 'ar_adjustments' => 'ar_adjustments', 'aradjustments' => 'ar_adjustments',
+                'adjustments' => 'ar_adjustments',
                 'settled_invoice_amount' => 'settled_invoice_amount', 'settledinvoiceamount' => 'settled_invoice_amount',
                 'gross_ar_balance' => 'gross_ar_balance', 'grossarbalance' => 'gross_ar_balance',
                 'net_ar' => 'net_ar', 'netar' => 'net_ar',
                 'cwt' => 'cwt',
                 'net_of_cwt' => 'net_of_cwt', 'netofcwt' => 'net_of_cwt', 'net_of_cwtx' => 'net_of_cwt', 'netofcwtx' => 'net_of_cwt',
+                'ar_net_of_cwt' => 'net_of_cwt', 'arnetofcwt' => 'net_of_cwt',
                 'net_ar_balance' => 'net_ar_balance', 'netarbalance' => 'net_ar_balance',
+                'final_ar_amount' => 'net_ar_balance', 'finararamount' => 'net_ar_balance',
                 'factored_ar_amount' => 'factored_ar_amount', 'factoredaramount' => 'factored_ar_amount',
+                'ewt' => 'ewt',
+                'annual' => 'annual',
+                'factoring' => 'factoring',
+                'factoring_interest' => 'factoring_interest', 'factoringinterest' => 'factoring_interest',
+                'others__particulars' => 'others_particulars', 'othersparticulars' => 'others_particulars',
+                'others__particulars_1' => 'others_particulars',
+                'others' => 'others_amount',
+                'check_amount' => 'check_amount', 'checkamount' => 'check_amount',
                 'status' => 'status',
                 'include' => 'include_flag', 'include_flag' => 'include_flag', 'includeflag' => 'include_flag',
                 'ar_class' => 'ar_class', 'arclass' => 'ar_class',
+                // Columns to skip (map to null/ignore)
+                'adjusted_aging' => '_skip', 'adjustedaging' => '_skip',
             ];
 
             $mappedHeaders = [];
@@ -869,11 +886,13 @@ private $arAdjustmentColumnMap = [
                 $allFields = [
                     'customer_code', 'invoice_no', 'invoice_date', 'net_ar',
                     'aging_date', 'counter_date', 'record_date', 'due_date',
-                    'po_no', 'dr_no', 'client_name', 'branch', 
+                    'po_no', 'dr_no', 'client_name', 'branch',
                     'sales_executive', 'se2', 'terms', 'sales_week_no',
                     'age', 'age_category', 'invoice_amount', 'ar_adjustments',
                     'settled_invoice_amount', 'gross_ar_balance', 'cwt',
                     'net_of_cwt', 'net_ar_balance', 'factored_ar_amount',
+                    'ewt', 'annual', 'factoring', 'factoring_interest',
+                    'others_particulars', 'others_amount', 'check_amount',
                     'status', 'include_flag', 'ar_class'
                 ];
 
@@ -893,9 +912,11 @@ private $arAdjustmentColumnMap = [
                             }
                         }
                         // Clean numeric fields
-                        elseif (in_array($field, ['invoice_amount', 'ar_adjustments', 'settled_invoice_amount', 
-                                            'gross_ar_balance', 'cwt', 'net_of_cwt', 'net_ar_balance', 
-                                            'factored_ar_amount', 'age', 'net_ar'])) {
+                        elseif (in_array($field, ['invoice_amount', 'ar_adjustments', 'settled_invoice_amount',
+                                            'gross_ar_balance', 'cwt', 'net_of_cwt', 'net_ar_balance',
+                                            'factored_ar_amount', 'age', 'net_ar',
+                                            'ewt', 'annual', 'factoring', 'factoring_interest',
+                                            'others_amount', 'check_amount'])) {
                             $value = str_replace([',', ' ', '-'], '', $value);
                             $value = is_numeric($value) ? (float) $value : 0;
                         }
