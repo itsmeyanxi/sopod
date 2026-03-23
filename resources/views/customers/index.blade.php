@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6 bg-gray-900 min-h-screen text-white">
+<div class="p-6 bg-gray-50 min-h-screen text-gray-800">
     <h1 class="text-2xl font-bold mb-6">Customers</h1>
 
     <!-- 🔍 Search, Filters & Create -->
@@ -20,7 +20,7 @@
             <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                 <!-- Flag Filter -->
                 <select name="flag_filter" 
-                        class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        class="border border-gray-200 bg-white text-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         onchange="document.getElementById('filterForm').submit()">
                     <option value="">All Flag Status</option>
                     <option value="flagged" {{ request('flag_filter') === 'flagged' ? 'selected' : '' }}>🚩 Flagged</option>
@@ -29,7 +29,7 @@
 
                 <!-- Status Filter -->
                 <select name="status_filter" 
-                        class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        class="border border-gray-200 bg-white text-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         onchange="document.getElementById('filterForm').submit()">
                     <option value="">All Status</option>
                     <option value="enabled" {{ request('status_filter') === 'enabled' ? 'selected' : '' }}>🟢 Enabled</option>
@@ -42,13 +42,13 @@
                     type="text" 
                     placeholder="Search customer code / name" 
                     value="{{ request('search') }}"
-                    class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="border border-gray-200 bg-white text-gray-200 rounded px-3 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
 
                 <!-- Clear Filters Button -->
                 @if(request()->hasAny(['flag_filter', 'status_filter', 'search']))
                     <a href="{{ route('customers.index') }}" 
-                       class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition whitespace-nowrap">
+                       class="bg-gray-100 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded transition whitespace-nowrap">
                        Clear Filters
                     </a>
                 @endif
@@ -56,7 +56,7 @@
                 <!-- Create Customer Button -->
                 @if(auth()->user()->canManageCustomers())
                     <a href="{{ route('customers.create') }}" 
-                       class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition whitespace-nowrap">
+                       class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-gray-800 px-4 py-2 rounded transition whitespace-nowrap">
                        Create Customer
                     </a>
                 @endif
@@ -65,9 +65,9 @@
     </form>
 
     <!-- 📋 Responsive Table -->
-    <div class="overflow-x-auto bg-gray-800 rounded-lg shadow border border-gray-700">
+    <div class="overflow-x-auto bg-white rounded-lg shadow border border-gray-200">
         <table id="customersTable" class="min-w-full divide-y divide-gray-700 text-sm">
-            <thead class="bg-gray-700 text-gray-300 uppercase text-xs tracking-wider">
+            <thead class="bg-gray-100 text-gray-500 uppercase text-xs tracking-wider">
                 <tr>
                     <th class="px-4 py-3 text-left">ID</th>
                     <th class="px-4 py-3 text-left">Code</th>
@@ -82,9 +82,9 @@
                 </tr>
             </thead>
 
-            <tbody class="divide-y divide-gray-700 text-gray-300">
+            <tbody class="divide-y divide-gray-700 text-gray-500">
                 @forelse($customers as $customer)
-                    <tr class="hover:bg-gray-700/40 transition">
+                    <tr class="hover:bg-gray-100/40 transition">
                         <td class="px-4 py-3">{{ $customer->id }}</td>
                         <td class="px-4 py-3">{{ $customer->customer_code }}</td>
                         <td class="px-4 py-3">{{ $customer->customer_name }}</td>
@@ -115,7 +115,7 @@
                                     <!-- ✏️ Edit -->
                                     @if(auth()->user()->canEditCustomers())
                                         <a href="{{ route('customers.edit', $customer->id) }}" 
-                                           class="bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-medium px-3 py-1.5 rounded transition">
+                                           class="bg-yellow-600 hover:bg-yellow-700 text-gray-800 text-xs font-medium px-3 py-1.5 rounded transition">
                                            Edit
                                         </a>
                                     @endif
@@ -126,9 +126,9 @@
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" 
-                                                    class="text-white text-xs font-medium px-3 py-1.5 rounded transition
+                                                    class="text-gray-800 text-xs font-medium px-3 py-1.5 rounded transition
                                                            {{ $customer->status === 'enabled' 
-                                                              ? 'bg-gray-600 hover:bg-gray-700' 
+                                                              ? 'bg-gray-600 hover:bg-gray-100' 
                                                               : 'bg-green-600 hover:bg-green-700' }}">
                                                 {{ $customer->status === 'enabled' ? 'Disable' : 'Enable' }}
                                             </button>
@@ -141,7 +141,7 @@
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" 
-                                                    class="text-white text-xs font-medium px-3 py-1.5 rounded transition
+                                                    class="text-gray-800 text-xs font-medium px-3 py-1.5 rounded transition
                                                            {{ $customer->is_flagged 
                                                               ? 'bg-orange-600 hover:bg-orange-700' 
                                                               : 'bg-blue-600 hover:bg-blue-700' }}"

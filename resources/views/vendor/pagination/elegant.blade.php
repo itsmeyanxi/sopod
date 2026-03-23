@@ -3,10 +3,10 @@
 
         {{-- Previous --}}
         @if ($paginator->onFirstPage())
-            <span class="px-3 py-1.5 rounded-lg bg-gray-700 text-gray-400 cursor-not-allowed">‹</span>
+            <span class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed">‹</span>
         @else
             <a href="{{ $paginator->previousPageUrl() }}"
-               class="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 transition">
+               class="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-100 text-gray-200 transition">
                 ‹
             </a>
         @endif
@@ -25,7 +25,7 @@
                         </span>
                     @else
                         <a href="{{ $url }}"
-                           class="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 transition">
+                           class="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-100 text-gray-200 transition">
                             {{ $page }}
                         </a>
                     @endif
@@ -36,11 +36,11 @@
         {{-- Next --}}
         @if ($paginator->hasMorePages())
             <a href="{{ $paginator->nextPageUrl() }}"
-               class="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 transition">
+               class="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-100 text-gray-200 transition">
                 ›
             </a>
         @else
-            <span class="px-3 py-1.5 rounded-lg bg-gray-700 text-gray-400 cursor-not-allowed">›</span>
+            <span class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed">›</span>
         @endif
     </nav>
 @endif

@@ -50,29 +50,31 @@
             display: none !important;
         }
 
-        /* Active state styling for sidebar links - matches gray-700 hover */
+        /* Active state styling for sidebar links */
         .sidebar nav a.active {
-            background-color: #374151;
-            border-left: 3px solid #60a5fa;
+            background-color: #eff6ff;
+            border-left: 3px solid #3b82f6;
+            color: #1d4ed8;
         }
 
         .sidebar nav .submenu a.active {
-            background-color: #4b5563;
-            border-left: 3px solid #93c5fd;
+            background-color: #dbeafe;
+            border-left: 3px solid #60a5fa;
+            color: #1d4ed8;
             font-weight: 500;
         }
 
         .sidebar nav button.parent-active {
-            background-color: #374151;
+            background-color: #f3f4f6;
         }
 
         /* Hover states */
         .sidebar nav a:hover:not(.active) {
-            background-color: #374151;
+            background-color: #f3f4f6;
         }
 
         .sidebar nav .submenu a:hover:not(.active) {
-            background-color: #4b5563;
+            background-color: #f3f4f6;
         }
 
         /* Fix collapsed sidebar - make it completely invisible/minimal */
@@ -123,11 +125,11 @@
 
     </style>
 </head>
-<body class="flex bg-gray-900 text-white overflow-x-hidden">
+<body class="flex bg-gray-50 text-gray-800 overflow-x-hidden">
 
 @auth
 <!-- =================== SIDEBAR =================== -->
-<div id="sidebar" class="sidebar bg-gray-900 text-white w-64 min-h-screen transition-all duration-300 ease-in-out md:relative">
+<div id="sidebar" class="sidebar bg-white text-gray-700 w-64 min-h-screen border-r border-gray-200 transition-all duration-300 ease-in-out md:relative">
     <div class="flex items-center justify-center p-4 sidebar-header">
         <h2 class="text-lg font-bold sidebar-text">NOMSUITE</h2>
         <span class="text-2xl hidden collapsed-icon">☰</span>
@@ -135,25 +137,31 @@
 
     <nav class="mt-4 space-y-2">
         <!-- Dashboard -->
-        <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+        <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100">
             <span>📊</span>
             <span class="sidebar-text">Dashboard</span>
         </a>
 
         <!-- PO Dashboard -->
         @if(auth()->user()->navAccess('po_dashboard', fn() => auth()->user()->canAccessModule('po_dashboard')))
-        <a href="{{ route('po_dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+        <a href="{{ route('po_dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100">
             <span>💰</span>
             <span class="sidebar-text">PO Dashboard</span>
         </a>
         @endif
 
         @if(auth()->user()->navAccess('po_summary', fn() => auth()->user()->canAccessModule('po_dashboard')))
-        <a href="{{ route('po_summary') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+        <a href="{{ route('po_summary') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100">
             <span>📋</span>
             <span class="sidebar-text">PO Summary</span>
         </a>
         @endif
+
+        <!-- AP Dashboard -->
+        <a href="{{ route('ap_dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100">
+            <span>📑</span>
+            <span class="sidebar-text">AP Dashboard</span>
+        </a>
 
         <!-- =================== RESTRICTED: Hide everything below for President/VP =================== -->
         @if(!auth()->user()->isPresidentOrVicePresident())
@@ -161,7 +169,7 @@
         <!-- =================== PO CREATOR ROLE (LIMITED ACCESS) =================== -->
         @if(auth()->user()->isPOCreatorRole())
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>📦</span>
                         <span class="sidebar-text">Purchase Order</span>
@@ -176,7 +184,7 @@
         <!-- =================== SALES ORDERS =================== -->
         @if(auth()->user()->canManageSalesOrders())
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>📄</span>
                         <span class="sidebar-text">Sales Orders</span>
@@ -200,7 +208,7 @@
         <!-- =================== CUSTOMERS =================== -->
         @if(auth()->user()->canManageCustomers())
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>👥</span>
                         <span class="sidebar-text">Customers</span>
@@ -231,7 +239,7 @@
         @endphp
         @if($canSeeSupplyChain)
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>🏢</span>
                         <span class="sidebar-text">Supply Chain</span>
@@ -256,6 +264,10 @@
                         @if(auth()->user()->navAccess('supply_chain.issue_slips', fn() => true))
                             <a href="{{ route('issue_slips.index') }}" class="block hover:underline">Issue Slips</a>
                         @endif
+                    @endif
+                    <!-- SCM Role - Supply Chain Module Links -->
+                    @if(auth()->user()->hasRole(['SCM']))
+                        <hr class="my-2 border-gray-300">
                     @endif
                     @if(auth()->user()->canManagePurchaseRequests())
                         @if(auth()->user()->navAccess('supply_chain.purchase_requests', fn() => true))
@@ -289,7 +301,7 @@
         <!-- =================== STORAGE / WAREHOUSE =================== -->
         @if(auth()->user()->canAccessModule('warehouse'))
         <div>
-            <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+            <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                 <span class="flex items-center space-x-2">
                     <span>🏭</span>
                     <span class="sidebar-text">Storage / Warehouse</span>
@@ -306,10 +318,28 @@
         </div>
         @endif
 
+        <!-- =================== BOM =================== -->
+        @if(auth()->user()->canAccessModule('inhouse_bom'))
+<div>
+    <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
+        <span class="flex items-center space-x-2">
+            <span>🐔</span>
+            <span class="sidebar-text">In-House BOM</span>
+        </span>
+        <span class="chevron">▼</span>
+    </button>
+    <div class="submenu ml-8 space-y-1 hidden">
+    <a href="{{ route('inhouse_bom.index') }}" class="block hover:underline">BOM List</a>
+    <a href="{{ route('inhouse_bom.create') }}" class="block hover:underline">New BOM</a>
+
+</div>
+</div>
+@endif
+
         <!-- =================== ITEMS =================== -->
         @if(auth()->user()->canManageItems())
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>📦</span>
                         <span class="sidebar-text">Items</span>
@@ -330,7 +360,7 @@
         <!-- =================== DELIVERIES =================== -->
         @if(auth()->user()->canManageDeliveries())
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>🚚</span>
                         <span class="sidebar-text">Deliveries</span>
@@ -351,7 +381,7 @@
         <!-- =================== RECEIVING REPORTS (BACKLOAD) =================== -->
         @if(auth()->user()->canAccessReceivingReports())
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>🔄</span>
                         <span class="sidebar-text">Receiving Reports</span>
@@ -382,7 +412,7 @@
         @endphp
         @if($canSeeFinance)
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>💰</span>
                         <span class="sidebar-text">Finance</span>
@@ -411,6 +441,12 @@
                     @if(auth()->user()->canAccessModule('cv'))
                         <a href="{{ route('check_vouchers.index') }}" class="block hover:underline">Check Voucher (CV)</a>
                     @endif
+                    <a href="{{ route('debit_memos.index') }}" class="block hover:underline">Debit Memos (DM)</a>
+                    <a href="{{ route('payment_terms.index') }}" class="block hover:underline">Payment Terms</a>
+                    <a href="{{ route('ap_ledger.index') }}" class="block hover:underline">AP Ledger</a>
+
+                    <hr class="my-2 border-gray-300">
+
                     @if(auth()->user()->canAccessModule('cash_advance'))
                         <a href="{{ route('cash_advance_requests.index') }}" class="block hover:underline">Cash Advance Request (CAR)</a>
                     @endif
@@ -434,7 +470,7 @@
         <!-- =================== CREDITS & COLLECTION =================== -->
         @if(auth()->user()->canAccessAgingReports() || auth()->user()->canAccessCollections())
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>📅</span>
                         <span class="sidebar-text">Credits & Collection</span>
@@ -477,7 +513,7 @@
         <!-- =================== CHANGE LOG =================== -->
         @if(auth()->user()->canAccessChangelog())
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>📝</span>
                         <span class="sidebar-text">Change Log</span>
@@ -492,7 +528,7 @@
 
         <!-- =================== SALES ANALYTICS =================== -->
         @if(auth()->user()->canAccessSalesAnalytics())
-            <a href="{{ route('sales.dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+            <a href="{{ route('sales.dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100">
                 <span>📈</span>
                 <span class="sidebar-text">Sales Analytics</span>
             </a>
@@ -500,7 +536,7 @@
 
         <!-- =================== RECORDS =================== -->
         @if(auth()->user()->canAccessRecords())
-            <a href="{{ route('records.index') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+            <a href="{{ route('records.index') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100">
                 <span>📁</span>
                 <span class="sidebar-text">Records</span>
             </a>
@@ -508,7 +544,7 @@
 
         <!-- =================== EXCEL IMPORT =================== -->
         @if(auth()->user()->canAccessExcelImport())
-            <a href="{{ route('excel.import') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+            <a href="{{ route('excel.import') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100">
                 <span>📊</span>
                 <span class="sidebar-text">Excel Import</span>
             </a>
@@ -516,7 +552,7 @@
 
         <!-- =================== RECORD LOCK =================== -->
         @if(auth()->user()->canAccessModule('record_lock'))
-            <a href="{{ route('lock.index') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
+            <a href="{{ route('lock.index') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100">
                 <span>🔒</span>
                 <span class="sidebar-text">Record Lock</span>
             </a>
@@ -529,9 +565,9 @@
 <div class="flex-1 min-h-screen bg-gray-100 flex flex-col w-full md:w-auto">
 
     <!-- Top Bar -->
-    <div class="bg-gray-800 shadow p-4 flex items-center justify-between text-white">
+    <div class="bg-white shadow border-b border-gray-200 p-4 flex items-center justify-between text-gray-800">
         <div class="flex items-center space-x-2 md:space-x-4">
-            <button id="toggle-btn" class="text-white text-xl">☰</button>
+            <button id="toggle-btn" class="text-gray-600 text-xl">☰</button>
             <h1 class="text-lg md:text-xl font-semibold truncate">@yield('title', 'Dashboard')</h1>
         </div>
 
@@ -539,7 +575,7 @@
             <!-- Create New Dropdown -->
             @if(auth()->user()->canCreateSalesOrders() || auth()->user()->canAddCustomers() || auth()->user()->canAddItems() || auth()->user()->canManageUsers())
                 <div class="relative hidden md:block">
-                    <button id="createNewButton" class="flex items-center space-x-1 hover:text-gray-300">
+                    <button id="createNewButton" class="flex items-center space-x-1 hover:text-gray-500">
                         <span class="text-sm md:text-base">Create New</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -564,7 +600,7 @@
 
         <!-- User Dropdown -->
             <div class="relative">
-                <button id="userDropdownButton" class="flex items-center space-x-1 md:space-x-2 focus:outline-none hover:text-gray-300">
+                <button id="userDropdownButton" class="flex items-center space-x-1 md:space-x-2 focus:outline-none hover:text-gray-500">
                     <span class="text-sm md:text-base truncate max-w-[100px] md:max-w-none">{{ Auth::user()->name }}</span>
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -605,7 +641,7 @@
     </div>
 
     <!-- Page Content -->
-    <div class="bg-gray-900 p-4 md:p-6 flex-1 text-white overflow-x-auto">
+    <div class="bg-gray-50 p-4 md:p-6 flex-1 text-gray-800 overflow-x-auto">
         @yield('content')
     </div>
 </div>
@@ -613,7 +649,7 @@
 
 @guest
 <!-- Simple Layout for Login/Register -->
-<div class="flex-1 flex items-center justify-center bg-gray-900 text-white min-h-screen">
+<div class="flex-1 flex items-center justify-center bg-gray-50 text-gray-800 min-h-screen">
     @yield('content')
 </div>
 @endguest

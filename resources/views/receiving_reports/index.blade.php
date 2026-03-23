@@ -2,9 +2,9 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <div class="bg-gray-900 rounded-xl shadow-lg p-6 border border-gray-800">
+    <div class="bg-gray-50 rounded-xl shadow-lg p-6 border border-gray-800">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-white">📦 Receiving Reports (Backload)</h2>
+            <h2 class="text-2xl font-bold text-gray-800">📦 Receiving Reports (Backload)</h2>
             
             <button onclick="window.location.href='{{ route('receiving-reports.export') }}?{{ http_build_query(request()->all()) }}'" 
                     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
@@ -16,22 +16,22 @@
         </div>
 
         {{-- Filters --}}
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-gray-800/50 p-4 rounded-lg">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-white/50 p-4 rounded-lg">
             <div>
                 <label class="block text-sm text-gray-400 mb-1">Date From</label>
                 <input type="date" name="date_from" value="{{ request('date_from') }}" 
-                       class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2">
+                       class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2">
             </div>
             
             <div>
                 <label class="block text-sm text-gray-400 mb-1">Date To</label>
                 <input type="date" name="date_to" value="{{ request('date_to') }}" 
-                       class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2">
+                       class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2">
             </div>
             
             <div>
                 <label class="block text-sm text-gray-400 mb-1">Status</label>
-                <select name="status" class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2">
+                <select name="status" class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2">
                     <option value="">All Statuses</option>
                     <option value="Received" {{ request('status') == 'Received' ? 'selected' : '' }}>Received</option>
                     <option value="Processing" {{ request('status') == 'Processing' ? 'selected' : '' }}>Processing</option>
@@ -44,7 +44,7 @@
                 <div class="flex gap-2">
                     <input type="text" name="search" value="{{ request('search') }}" 
                            placeholder="RR No, SO, Customer..." 
-                           class="flex-1 bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2">
+                           class="flex-1 bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
                         Search
                     </button>
@@ -54,8 +54,8 @@
 
         {{-- Table --}}
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-gray-300">
-                <thead class="bg-gray-800 text-gray-400 uppercase text-xs">
+            <table class="w-full text-sm text-gray-500">
+                <thead class="bg-white text-gray-400 uppercase text-xs">
                     <tr>
                         <th class="px-4 py-3 text-left">RR Number</th>
                         <th class="px-4 py-3 text-left">Sales Order</th>
@@ -69,7 +69,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-700">
                     @forelse($receivingReports as $rr)
-                    <tr class="hover:bg-gray-800/50">
+                    <tr class="hover:bg-white/50">
                         <td class="px-4 py-3 font-mono text-blue-400">{{ $rr->rr_number }}</td>
                         <td class="px-4 py-3">{{ $rr->sales_order_number }}</td>
                         <td class="px-4 py-3">{{ $rr->customer_name ?? '—' }}</td>

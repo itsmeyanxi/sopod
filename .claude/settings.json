@@ -21,10 +21,23 @@
       "Bash(git pull origin main --rebase)",
       "Bash(git stash)",
       "Bash(git stash pop)",
-      "Bash(git checkout --theirs app/Models/User.php)",
-      "Bash(git rebase --continue)",
-      "Bash(GIT_EDITOR=true git rebase --continue)",
-      "Bash(git -c core.editor=true rebase --continue)"
+      "Bash(git pull --rebase)",
+      "Read(//z/erp/**)",
+      "Bash(pip --version)",
+      "Bash(xargs ls -la)",
+      "Bash(php -l database/migrations/2026_03_09_000001_create_payment_terms_table.php)",
+      "Bash(php -l database/migrations/2026_03_09_000002_create_debit_memos_table.php)",
+      "Bash(php -l database/migrations/2026_03_09_000003_create_ap_ledger_entries_table.php)",
+      "Bash(php -l app/Models/PaymentTerm.php)",
+      "Bash(php -l app/Models/DebitMemo.php)",
+      "Bash(php -l app/Models/ApLedgerEntry.php)",
+      "Bash(php -l app/Http/Controllers/PaymentTermController.php)",
+      "Bash(php -l app/Http/Controllers/DebitMemoController.php)",
+      "Bash(php -l app/Http/Controllers/ApLedgerController.php)",
+      "Bash(php -l app/Http/Controllers/ApDashboardController.php)",
+      "Bash(php -l app/Http/Controllers/ApReportController.php)",
+      "Bash(php -r \"require ''c:/sopod/vendor/autoload.php''; $app = require_once ''c:/sopod/bootstrap/app.php''; $kernel = $app->make\\(Illuminate\\\\Contracts\\\\Console\\\\Kernel::class\\); $kernel->bootstrap\\(\\); echo implode\\('','', \\\\App\\\\Models\\\\RequestForPayment::select\\(''company''\\)->distinct\\(\\)->pluck\\(''company''\\)->toArray\\(\\)\\);\")",
+      "Bash(git stash:*)"
     ],
     "additionalDirectories": [
       "c:\\xampp\\apache\\conf\\extra"

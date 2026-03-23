@@ -4,10 +4,10 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
 
-        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold text-white">Currency Exchange Rates</h1>
+        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+            <h1 class="text-2xl font-bold text-gray-800">Currency Exchange Rates</h1>
             <p class="text-gray-400 text-sm">Rates are used to convert foreign currencies to Philippine Peso (PHP) in Purchase Orders.</p>
         </div>
 
@@ -20,12 +20,12 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($currencies as $currency)
-            <div class="bg-gray-900 border border-gray-700 rounded-lg p-5">
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-5">
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-3">
                         <span class="text-2xl font-bold text-purple-400">{{ $currency->symbol }}</span>
                         <div>
-                            <div class="font-bold text-white text-lg">{{ $currency->code }}</div>
+                            <div class="font-bold text-gray-800 text-lg">{{ $currency->code }}</div>
                             <div class="text-gray-400 text-sm">{{ $currency->name }}</div>
                         </div>
                     </div>
@@ -36,7 +36,7 @@
 
                 <div class="mb-3">
                     <div class="text-gray-400 text-xs mb-1">Current Rate (1 {{ $currency->code }} = ? PHP)</div>
-                    <div class="text-white text-xl font-bold">
+                    <div class="text-gray-800 text-xl font-bold">
                         ₱{{ number_format($currency->rate_to_php, 4) }}
                     </div>
                     @if($currency->updater)
@@ -61,7 +61,7 @@
                                step="0.0001"
                                min="0.0001"
                                value="{{ number_format($currency->rate_to_php, 4, '.', '') }}"
-                               class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                               class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                                required>
                     </div>
                     <button type="submit"
@@ -76,29 +76,29 @@
 
         <!-- Quick Reference Table -->
         <div class="mt-8">
-            <h2 class="text-lg font-semibold text-white mb-3">Quick Reference</h2>
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">Quick Reference</h2>
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse text-sm">
-                    <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
+                    <thead class="bg-gray-100 text-gray-500 uppercase text-xs">
                         <tr>
-                            <th class="border border-gray-600 px-4 py-2 text-left">Currency</th>
-                            <th class="border border-gray-600 px-4 py-2 text-right">1 Unit = PHP</th>
-                            <th class="border border-gray-600 px-4 py-2 text-right">100 Units = PHP</th>
-                            <th class="border border-gray-600 px-4 py-2 text-right">1,000 Units = PHP</th>
-                            <th class="border border-gray-600 px-4 py-2 text-left">Last Updated</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">Currency</th>
+                            <th class="border border-gray-300 px-4 py-2 text-right">1 Unit = PHP</th>
+                            <th class="border border-gray-300 px-4 py-2 text-right">100 Units = PHP</th>
+                            <th class="border border-gray-300 px-4 py-2 text-right">1,000 Units = PHP</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">Last Updated</th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-300">
+                    <tbody class="text-gray-500">
                         @foreach($currencies as $currency)
-                        <tr class="hover:bg-gray-700/30">
-                            <td class="border border-gray-700 px-4 py-2">
+                        <tr class="hover:bg-gray-100/30">
+                            <td class="border border-gray-200 px-4 py-2">
                                 <span class="font-bold text-purple-400">{{ $currency->code }}</span>
                                 <span class="text-gray-400 ml-2">{{ $currency->name }}</span>
                             </td>
-                            <td class="border border-gray-700 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php, 4) }}</td>
-                            <td class="border border-gray-700 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php * 100, 2) }}</td>
-                            <td class="border border-gray-700 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php * 1000, 2) }}</td>
-                            <td class="border border-gray-700 px-4 py-2 text-gray-400 text-xs">{{ $currency->updated_at->format('M d, Y h:i A') }}</td>
+                            <td class="border border-gray-200 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php, 4) }}</td>
+                            <td class="border border-gray-200 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php * 100, 2) }}</td>
+                            <td class="border border-gray-200 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php * 1000, 2) }}</td>
+                            <td class="border border-gray-200 px-4 py-2 text-gray-400 text-xs">{{ $currency->updated_at->format('M d, Y h:i A') }}</td>
                         </tr>
                         @endforeach
                     </tbody>

@@ -4,13 +4,13 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold text-white">EDIT REIMBURSEMENT FORM</h1>
+        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+            <h1 class="text-2xl font-bold text-gray-800">EDIT REIMBURSEMENT FORM</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-300">RI NO:</label>
-                <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $reimbursement->ri_no }}</span>
+                <label class="font-semibold text-gray-500">RI NO:</label>
+                <span class="ml-2 px-4 py-1 bg-gray-50 border border-gray-200 text-gray-800 rounded">{{ $reimbursement->ri_no }}</span>
             </div>
         </div>
 
@@ -31,41 +31,41 @@
             <!-- Department and Date Applied -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">DEPARTMENT: <span class="text-red-400">*</span></label>
-                    <input type="text" name="department" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('department', $reimbursement->department) }}" required placeholder="Enter department name">
+                    <label class="block font-semibold text-gray-500 mb-2">DEPARTMENT: <span class="text-red-400">*</span></label>
+                    <input type="text" name="department" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('department', $reimbursement->department) }}" required placeholder="Enter department name">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">DATE APPLIED: <span class="text-red-400">*</span></label>
-                    <input type="date" name="date_applied" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_applied', $reimbursement->date_applied->format('Y-m-d')) }}" required>
+                    <label class="block font-semibold text-gray-500 mb-2">DATE APPLIED: <span class="text-red-400">*</span></label>
+                    <input type="date" name="date_applied" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_applied', $reimbursement->date_applied->format('Y-m-d')) }}" required>
                 </div>
             </div>
 
             <!-- Line Items Table -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-3">EXPENSE ITEMS:</label>
+                <label class="block font-semibold text-gray-500 mb-3">EXPENSE ITEMS:</label>
                 <div class="overflow-x-auto">
-                    <table class="w-full border-collapse border border-gray-700" id="itemsTable">
-                        <thead class="bg-gray-700 text-gray-300 uppercase text-sm">
+                    <table class="w-full border-collapse border border-gray-200" id="itemsTable">
+                        <thead class="bg-gray-100 text-gray-500 uppercase text-sm">
                             <tr>
-                                <th class="border border-gray-700 px-4 py-3" style="width: 20%;">DATE</th>
-                                <th class="border border-gray-700 px-4 py-3" style="width: 50%;">PARTICULARS</th>
-                                <th class="border border-gray-700 px-4 py-3" style="width: 20%;">COST</th>
-                                <th class="border border-gray-700 px-4 py-3" style="width: 10%;">ACTION</th>
+                                <th class="border border-gray-200 px-4 py-3" style="width: 20%;">DATE</th>
+                                <th class="border border-gray-200 px-4 py-3" style="width: 50%;">PARTICULARS</th>
+                                <th class="border border-gray-200 px-4 py-3" style="width: 20%;">COST</th>
+                                <th class="border border-gray-200 px-4 py-3" style="width: 10%;">ACTION</th>
                             </tr>
                         </thead>
                         <tbody id="itemsBody">
                             @foreach($reimbursement->items as $index => $item)
                                 <tr>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="date" name="items[{{ $index }}][date]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('items.'.$index.'.date', $item->date ? \Carbon\Carbon::parse($item->date)->format('Y-m-d') : '') }}">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="date" name="items[{{ $index }}][date]" class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('items.'.$index.'.date', $item->date ? \Carbon\Carbon::parse($item->date)->format('Y-m-d') : '') }}">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="text" name="items[{{ $index }}][particulars]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter description" value="{{ old('items.'.$index.'.particulars', $item->particulars) }}">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="text" name="items[{{ $index }}][particulars]" class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter description" value="{{ old('items.'.$index.'.particulars', $item->particulars) }}">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[{{ $index }}][cost]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm text-right focus:outline-none focus:ring-2 focus:ring-purple-500 item-cost" placeholder="0.00" value="{{ old('items.'.$index.'.cost', $item->cost) }}" oninput="calculateTotal()">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="number" step="0.01" name="items[{{ $index }}][cost]" class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-800 text-sm text-right focus:outline-none focus:ring-2 focus:ring-purple-500 item-cost" placeholder="0.00" value="{{ old('items.'.$index.'.cost', $item->cost) }}" oninput="calculateTotal()">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2 text-center">
+                                    <td class="border border-gray-200 px-2 py-2 text-center">
                                         <button type="button" onclick="removeRow(this)" class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 transition">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -74,12 +74,12 @@
                             @endforeach
                         </tbody>
                         <tfoot>
-                            <tr class="bg-gray-900">
-                                <td colspan="2" class="border border-gray-700 px-4 py-3 text-right font-bold text-white">TOTAL AMOUNT SPENT:</td>
-                                <td class="border border-gray-700 px-4 py-3 text-right font-bold text-green-400 text-lg">
+                            <tr class="bg-gray-50">
+                                <td colspan="2" class="border border-gray-200 px-4 py-3 text-right font-bold text-gray-800">TOTAL AMOUNT SPENT:</td>
+                                <td class="border border-gray-200 px-4 py-3 text-right font-bold text-green-400 text-lg">
                                     <span id="totalDisplay">{{ number_format($reimbursement->total_amount_spent, 2) }}</span>
                                 </td>
-                                <td class="border border-gray-700 px-2 py-2"></td>
+                                <td class="border border-gray-200 px-2 py-2"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -87,25 +87,25 @@
                 <input type="hidden" name="total_amount_spent" id="totalAmountSpent" value="{{ $reimbursement->total_amount_spent }}">
 
                 <div class="mt-3">
-                    <button type="button" id="addRowBtn" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition text-sm">
+                    <button type="button" id="addRowBtn" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-4 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition text-sm">
                         <i class="fas fa-plus mr-1"></i> Add Row
                     </button>
                 </div>
             </div>
 
             <!-- Amount to be Reimbursed -->
-            <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-                <label class="block font-semibold text-gray-300 mb-2">AMOUNT TO BE REIMBURSED: <span class="text-red-400">*</span></label>
+            <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
+                <label class="block font-semibold text-gray-500 mb-2">AMOUNT TO BE REIMBURSED: <span class="text-red-400">*</span></label>
                 <div class="relative">
                     <span class="absolute left-3 top-2.5 text-gray-400">&#8369;</span>
-                    <input type="number" step="0.01" name="amount_to_be_reimbursed" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount_to_be_reimbursed', $reimbursement->amount_to_be_reimbursed) }}" required placeholder="0.00">
+                    <input type="number" step="0.01" name="amount_to_be_reimbursed" class="w-full bg-white border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount_to_be_reimbursed', $reimbursement->amount_to_be_reimbursed) }}" required placeholder="0.00">
                 </div>
             </div>
 
             <!-- Submitted By -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-2">SUBMITTED BY:</label>
-                <input type="text" name="submitted_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('submitted_by', $reimbursement->submitted_by) }}" placeholder="Name of person submitting">
+                <label class="block font-semibold text-gray-500 mb-2">SUBMITTED BY:</label>
+                <input type="text" name="submitted_by" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('submitted_by', $reimbursement->submitted_by) }}" placeholder="Name of person submitting">
             </div>
 
             <!-- Proof Documents -->
@@ -141,12 +141,12 @@
 
             <!-- Remarks -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-2">REMARKS:</label>
-                <textarea name="remarks" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Optional remarks...">{{ old('remarks', $reimbursement->remarks) }}</textarea>
+                <label class="block font-semibold text-gray-500 mb-2">REMARKS:</label>
+                <textarea name="remarks" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Optional remarks...">{{ old('remarks', $reimbursement->remarks) }}</textarea>
             </div>
 
             <!-- Footer Note -->
-            <div class="mb-6 p-3 bg-gray-900 border border-gray-700 rounded">
+            <div class="mb-6 p-3 bg-gray-50 border border-gray-200 rounded">
                 <p class="text-gray-400 text-sm italic">
                     <i class="fas fa-info-circle mr-1 text-yellow-400"></i>
                     Please attach invoices, Official receipts (OR), and other supporting documents.
@@ -155,10 +155,10 @@
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-4">
-                <a href="{{ route('reimbursement_forms.show', $reimbursement->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
+                <a href="{{ route('reimbursement_forms.show', $reimbursement->id) }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
+                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                     <i class="fas fa-save mr-1"></i> Update Reimbursement Form
                 </button>
             </div>
@@ -173,16 +173,16 @@ document.getElementById('addRowBtn').addEventListener('click', function() {
     const tbody = document.getElementById('itemsBody');
     const tr = document.createElement('tr');
     tr.innerHTML = `
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="date" name="items[${rowIndex}][date]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="date" name="items[${rowIndex}][date]" class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
         </td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="text" name="items[${rowIndex}][particulars]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter description">
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="text" name="items[${rowIndex}][particulars]" class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter description">
         </td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="number" step="0.01" name="items[${rowIndex}][cost]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm text-right focus:outline-none focus:ring-2 focus:ring-purple-500 item-cost" placeholder="0.00" oninput="calculateTotal()">
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="number" step="0.01" name="items[${rowIndex}][cost]" class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-800 text-sm text-right focus:outline-none focus:ring-2 focus:ring-purple-500 item-cost" placeholder="0.00" oninput="calculateTotal()">
         </td>
-        <td class="border border-gray-700 px-2 py-2 text-center">
+        <td class="border border-gray-200 px-2 py-2 text-center">
             <button type="button" onclick="removeRow(this)" class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 transition">
                 <i class="fas fa-trash"></i>
             </button>

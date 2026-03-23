@@ -3,7 +3,7 @@
 @section('title', 'My Profile')
 
 @section('content')
-<div class="max-w-3xl mx-auto bg-gray-800 text-white p-8 rounded-lg mt-8 shadow-md">
+<div class="max-w-3xl mx-auto bg-white text-gray-800 p-8 rounded-lg mt-8 shadow-md">
     <h2 class="text-2xl font-bold mb-6">My Profile</h2>
 
     @if ($errors->any())
@@ -23,18 +23,18 @@
         <div class="mb-4">
             <label class="block text-sm mb-1">Name</label>
             <input type="text" name="name" value="{{ old('name', auth()->user()->name) }}" 
-                   class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-blue-500" required>
+                   class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 text-gray-800 focus:ring-blue-500" required>
         </div>
 
         <div class="mb-4">
             <label class="block text-sm mb-1">Email</label>
             <input type="email" name="email" value="{{ old('email', auth()->user()->email) }}" 
-                   class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-blue-500" required>
+                   class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 text-gray-800 focus:ring-blue-500" required>
         </div>
 
         <div class="mb-4">
             <label class="block text-sm mb-1">Departments</label>
-            <div class="w-full bg-gray-600 border border-gray-600 rounded-lg p-2 text-gray-300">
+            <div class="w-full bg-gray-600 border border-gray-300 rounded-lg p-2 text-gray-500">
                 @php $userRoles = auth()->user()->userRoles()->with('subDepartment.department')->get(); @endphp
                 @forelse($userRoles as $ur)
                     <span class="inline-block bg-blue-600 text-white px-2 py-1 rounded text-xs mr-1 mb-1">{{ $ur->subDepartment->department->name }} - {{ $ur->subDepartment->name }}</span>
@@ -54,11 +54,11 @@
                 <input type="password" 
                        name="password" 
                        id="password"
-                       class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 pr-12 text-white focus:ring-blue-500"
+                       class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 pr-12 text-gray-800 focus:ring-blue-500"
                        placeholder="Enter new password (min. 6 characters)">
                 <button type="button" 
                         id="togglePassword"
-                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded">
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-600 hover:bg-gray-500 text-gray-800 px-3 py-1 rounded">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
@@ -71,18 +71,18 @@
                 <input type="password" 
                        name="password_confirmation" 
                        id="password_confirmation"
-                       class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 pr-12 text-white focus:ring-blue-500"
+                       class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 pr-12 text-gray-800 focus:ring-blue-500"
                        placeholder="Confirm new password">
                 <button type="button" 
                         id="togglePasswordConfirm"
-                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded">
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-600 hover:bg-gray-500 text-gray-800 px-3 py-1 rounded">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
         </div>
 
         <div class="flex justify-end space-x-3 mt-6">
-            <a href="{{ route('dashboard') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">Cancel</a>
+            <a href="{{ route('dashboard') }}" class="bg-gray-600 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg">Cancel</a>
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Update Profile</button>
         </div>
     </form>
@@ -134,8 +134,8 @@ document.addEventListener('DOMContentLoaded', function() {
         text: '{{ session('success') }}',
         showConfirmButton: false,
         timer: 2000,
-        background: '#1f2937',
-        color: '#fff'
+        background: '#ffffff',
+        color: '#1f2937'
     });
 @endif
 
@@ -146,8 +146,8 @@ document.addEventListener('DOMContentLoaded', function() {
         title: 'Error!',
         text: '{{ session('error') }}',
         showConfirmButton: true,
-        background: '#1f2937',
-        color: '#fff'
+        background: '#ffffff',
+        color: '#1f2937'
     });
 @endif
 </script>

@@ -3,10 +3,10 @@
 @section('title', 'User List')
 
 @section('content')
-<div class="max-w-7xl mx-auto bg-gray-800 text-white p-8 rounded-lg mt-8 shadow-md">
+<div class="max-w-7xl mx-auto bg-white text-gray-800 p-8 rounded-lg mt-8 shadow-md">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">User Management</h2>
-        <a href="{{ route('admin.users.create') }}" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition w-full sm:w-auto text-center">
+        <a href="{{ route('admin.users.create') }}" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-gray-800 px-4 py-2 rounded transition w-full sm:w-auto text-center">
             <i class="fas fa-plus"></i> Add New User
         </a>
     </div>
@@ -17,13 +17,13 @@
             id="searchInput" 
             type="text" 
             placeholder="Search name / email / role" 
-            class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            class="border border-gray-200 bg-white text-gray-200 rounded px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
     </div>
 
     <div class="overflow-x-auto">
         <table class="w-full text-left" id="usersTable">
-            <thead class="bg-gray-700">
+            <thead class="bg-gray-100">
                 <tr>
                     <th class="px-4 py-3">ID</th>
                     <th class="px-4 py-3">Name</th>
@@ -37,7 +37,7 @@
             </thead>
             <tbody id="userTableBody">
                 @foreach($users as $user)
-                <tr class="border-b border-gray-700 hover:bg-gray-700 user-row">
+                <tr class="border-b border-gray-200 hover:bg-gray-100 user-row">
                     <td class="px-4 py-3">{{ $user->id }}</td>
                     <td class="px-4 py-3">{{ $user->name }}</td>
                     <td class="px-4 py-3">{{ $user->email }}</td>
@@ -103,10 +103,10 @@
                         <div class="flex items-center gap-2">
                             <input type="password" 
                                    value="{{ $user->password }}" 
-                                   class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-white font-mono text-sm w-48" 
+                                   class="bg-gray-100 border border-gray-300 rounded px-3 py-1 text-gray-800 font-mono text-sm w-48" 
                                    id="password-{{ $user->id }}"
                                    readonly>
-                            <button class="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded toggle-password" 
+                            <button class="bg-gray-600 hover:bg-gray-500 text-gray-800 px-3 py-1 rounded toggle-password" 
                                     data-target="password-{{ $user->id }}"
                                     type="button"
                                     title="Show/Hide Hash">
@@ -142,7 +142,7 @@
                                     @else
                                         {{-- Show LOCK button when account is active --}}
                                         <button type="submit" 
-                                                class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded text-sm"
+                                                class="bg-orange-600 hover:bg-orange-700 text-gray-800 px-3 py-1 rounded text-sm"
                                                 title="Lock Account"
                                                 data-user-name="{{ $user->name }}"
                                                 data-action="lock">
@@ -261,8 +261,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     cancelButtonColor: '#6b7280',
                     confirmButtonText: '🔒 Yes, lock it!',
                     cancelButtonText: 'Cancel',
-                    background: '#1f2937',
-                    color: '#fff'
+                    background: '#ffffff',
+                    color: '#1f2937'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         form.submit();
@@ -286,8 +286,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     cancelButtonColor: '#6b7280',
                     confirmButtonText: '🔓 Yes, unlock it!',
                     cancelButtonText: 'Cancel',
-                    background: '#1f2937',
-                    color: '#fff'
+                    background: '#ffffff',
+                    color: '#1f2937'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         form.submit();
@@ -314,8 +314,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Yes, reset it!',
                 cancelButtonText: 'Cancel',
-                background: '#1f2937',
-                color: '#fff'
+                background: '#ffffff',
+                color: '#1f2937'
             }).then((result) => {
                 if (result.isConfirmed) {
                     form.submit();
@@ -338,8 +338,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Yes, delete it!',
                 cancelButtonText: 'Cancel',
-                background: '#1f2937',
-                color: '#fff'
+                background: '#ffffff',
+                color: '#1f2937'
             }).then((result) => {
                 if (result.isConfirmed) {
                     form.submit();
@@ -356,8 +356,8 @@ document.addEventListener('DOMContentLoaded', function() {
             text: '{{ session('success') }}',
             showConfirmButton: false,
             timer: 2500,
-            background: '#1f2937',
-            color: '#fff'
+            background: '#ffffff',
+            color: '#1f2937'
         });
     @endif
 
@@ -368,8 +368,8 @@ document.addEventListener('DOMContentLoaded', function() {
             title: 'Error!',
             text: '{{ session('error') }}',
             showConfirmButton: true,
-            background: '#1f2937',
-            color: '#fff'
+            background: '#ffffff',
+            color: '#1f2937'
         });
     @endif
 });

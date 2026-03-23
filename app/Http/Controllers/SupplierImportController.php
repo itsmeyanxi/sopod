@@ -202,7 +202,7 @@ class SupplierImportController extends Controller
                 }
 
                 // For address, terms, and other single-value fields, only update if current row has data
-                foreach (['address', 'tin', 'bank', 'account_name', 'account_number', 'terms'] as $field) {
+                foreach (['address', 'tin', 'bank', 'account_name', 'account_number', 'bank2', 'account_name2', 'account_number2', 'terms'] as $field) {
                     if (!empty($rowData[$field]) && empty($groupedSuppliers[$currentSupplierKey][$field])) {
                         $groupedSuppliers[$currentSupplierKey][$field] = $rowData[$field];
                     }
@@ -248,6 +248,9 @@ class SupplierImportController extends Controller
             'bank' => ['bank', 'bank_name', 'bank name'],
             'account_name' => ['account_name', 'account name', 'bank_account_name'],
             'account_number' => ['account_number', 'account number', 'bank_account_number', 'account_no'],
+            'bank2' => ['bank2', 'bank 2', 'bank_2', 'second bank', '2nd bank'],
+            'account_name2' => ['account_name2', 'account name 2', 'account_name_2', '2nd account name'],
+            'account_number2' => ['account_number2', 'account number 2', 'account_number_2', '2nd account number'],
         ];
 
         foreach ($headers as $index => $header) {
@@ -319,6 +322,18 @@ class SupplierImportController extends Controller
         
         if (isset($columnMap['terms'])) {
             $data['terms'] = $this->getColumnValue($row, $columnMap, 'terms');
+        }
+
+        if (isset($columnMap['bank2'])) {
+            $data['bank2'] = $this->getColumnValue($row, $columnMap, 'bank2');
+        }
+
+        if (isset($columnMap['account_name2'])) {
+            $data['account_name2'] = $this->getColumnValue($row, $columnMap, 'account_name2');
+        }
+
+        if (isset($columnMap['account_number2'])) {
+            $data['account_number2'] = $this->getColumnValue($row, $columnMap, 'account_number2');
         }
 
         // Filter out null/empty values

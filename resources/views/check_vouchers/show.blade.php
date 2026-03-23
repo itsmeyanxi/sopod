@@ -4,10 +4,10 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
         <!-- Action Buttons -->
         <div class="flex justify-between items-center mb-6">
-            <a href="{{ route('check_vouchers.index') }}" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
+            <a href="{{ route('check_vouchers.index') }}" class="bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-100 transition">
                 <i class="fas fa-arrow-left mr-1"></i> Back to List
             </a>
             <div class="flex gap-2">
@@ -255,24 +255,24 @@
         </div>
 
         <!-- Approval Trail -->
-        <div class="mb-6 mt-6 p-4 bg-gray-900 border border-gray-700 rounded">
-            <h3 class="text-lg font-semibold text-white mb-4">Approval Trail</h3>
+        <div class="mb-6 mt-6 p-4 bg-gray-50 border border-gray-200 rounded">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Approval Trail</h3>
             <div class="space-y-3">
                 <!-- Accounting Manager Review -->
-                <div class="flex items-start gap-4 p-3 bg-gray-800 rounded">
+                <div class="flex items-start gap-4 p-3 bg-white rounded">
                     <div class="flex-shrink-0">
                         @if($voucher->accounting_reviewed_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-600">
-                                <i class="fas fa-check text-white"></i>
+                                <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-300"></i>
+                                <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-300">
+                        <p class="text-gray-500">
                             <span class="font-semibold">Accounting Manager Review</span>
                             @if($voucher->accounting_reviewed_by && $voucher->accountingReviewer)
                                 <span class="text-green-400">✓ Reviewed</span>
@@ -289,24 +289,24 @@
                 </div>
 
                 <!-- ODM/FDM Final Approval -->
-                <div class="flex items-start gap-4 p-3 bg-gray-800 rounded">
+                <div class="flex items-start gap-4 p-3 bg-white rounded">
                     <div class="flex-shrink-0">
                         @if($voucher->status === 'approved' && $voucher->approvalUser)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-600">
-                                <i class="fas fa-check text-white"></i>
+                                <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @elseif($voucher->accounting_reviewed_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-300"></i>
+                                <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @else
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
                                 <i class="fas fa-lock text-gray-400"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-300">
+                        <p class="text-gray-500">
                             <span class="font-semibold">ODM/FDM Approval</span>
                             @if($voucher->status === 'approved' && $voucher->approvalUser)
                                 <span class="text-green-400">✓ Approved</span>
@@ -329,7 +329,7 @@
                     <div class="flex items-start gap-4 p-3 bg-red-900/20 border border-red-700 rounded">
                         <div class="flex-shrink-0">
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-red-600">
-                                <i class="fas fa-times text-white"></i>
+                                <i class="fas fa-times text-gray-800"></i>
                             </div>
                         </div>
                         <div class="flex-1">
@@ -337,7 +337,7 @@
                                 <span class="font-semibold">Rejected</span>
                             </p>
                             @if($voucher->rejection_reason)
-                                <p class="text-gray-300 mt-2">
+                                <p class="text-gray-500 mt-2">
                                     <strong>Reason:</strong> {{ $voucher->rejection_reason }}
                                 </p>
                             @endif
@@ -374,22 +374,22 @@
 
 <!-- Accounting Manager Approval Modal -->
 <div id="approveAccountingModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-gray-800 rounded-lg p-6 w-96">
-        <h3 class="text-xl font-bold text-white mb-4">Approve as Accounting Manager</h3>
+    <div class="bg-white rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Approve as Accounting Manager</h3>
         <form action="{{ route('check_vouchers.approve_accounting', $voucher->id) }}" method="POST">
             @csrf
             <input type="hidden" name="latitude" id="acct_latitude">
             <input type="hidden" name="longitude" id="acct_longitude">
             <input type="hidden" name="location" id="acct_location">
             <div class="mb-4">
-                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
                 <div id="acct_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveAccountingModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                <button type="button" onclick="closeApproveAccountingModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
-                <button type="submit" id="acct_submit_btn" class="bg-gray-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
+                <button type="submit" id="acct_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
                     <i class="fas fa-spinner fa-spin mr-1"></i> Waiting for location...
                 </button>
             </div>
@@ -399,22 +399,22 @@
 
 <!-- ODM/FDM Approval Modal -->
 <div id="approveODMModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-gray-800 rounded-lg p-6 w-96">
-        <h3 class="text-xl font-bold text-white mb-4">Approve as ODM/FDM</h3>
+    <div class="bg-white rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Approve as ODM/FDM</h3>
         <form action="{{ route('check_vouchers.approve', $voucher->id) }}" method="POST">
             @csrf
             <input type="hidden" name="latitude" id="odm_latitude">
             <input type="hidden" name="longitude" id="odm_longitude">
             <input type="hidden" name="location" id="odm_location">
             <div class="mb-4">
-                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
                 <div id="odm_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveODMModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                <button type="button" onclick="closeApproveODMModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
-                <button type="submit" id="odm_submit_btn" class="bg-gray-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
+                <button type="submit" id="odm_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
                     <i class="fas fa-spinner fa-spin mr-1"></i> Waiting for location...
                 </button>
             </div>
@@ -424,16 +424,16 @@
 
 <!-- Reject Modal -->
 <div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-gray-800 rounded-lg p-6 w-96">
-        <h3 class="text-xl font-bold text-white mb-4">Reject Check Voucher</h3>
+    <div class="bg-white rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Reject Check Voucher</h3>
         <form action="{{ route('check_vouchers.reject', $voucher->id) }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-300 mb-2">Rejection Reason (Optional):</label>
-                <textarea name="rejection_reason" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" rows="4"></textarea>
+                <label class="block text-gray-500 mb-2">Rejection Reason (Optional):</label>
+                <textarea name="rejection_reason" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeRejectModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                <button type="button" onclick="closeRejectModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
@@ -567,7 +567,7 @@ function getLocationName(lat, lng, prefix) {
         width: 100%;
         background: white;
     }
-    .bg-gray-800, .bg-gray-700, .bg-gray-600 {
+    .bg-white, .bg-gray-100, .bg-gray-600 {
         background-color: white !important;
     }
     button, .no-print {
@@ -579,14 +579,14 @@ function getLocationName(lat, lng, prefix) {
 <!-- Delete Confirmation Modal -->
 @if(auth()->user()->canApproveAPVAsDH() || auth()->user()->canApproveCV())
 <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-gray-800 rounded-lg p-6 w-96">
-        <h3 class="text-xl font-bold text-white mb-4">Delete Check Voucher</h3>
-        <p class="text-gray-300 mb-4">Are you sure you want to delete check voucher <strong>{{ $voucher->cv_no }}</strong>? This action cannot be undone.</p>
+    <div class="bg-white rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Delete Check Voucher</h3>
+        <p class="text-gray-500 mb-4">Are you sure you want to delete check voucher <strong>{{ $voucher->cv_no }}</strong>? This action cannot be undone.</p>
         <form action="{{ route('check_vouchers.destroy', $voucher->id) }}" method="POST">
             @csrf
             @method('DELETE')
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeDeleteModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                <button type="button" onclick="closeDeleteModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">

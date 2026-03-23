@@ -101,6 +101,28 @@ class PurchaseOrderController extends Controller
                     $orderedQty          = PurchaseOrderItem::where('purchase_request_item_id', $item->id)->sum('qty');
                     $item->ordered_qty   = $orderedQty;
                     $item->remaining_qty = max(0, $item->qty - $orderedQty);
+
+                    // Auto-fill item_code if missing
+                    if (empty($item->item_code) && !empty($item->description)) {
+                        // Try to find existing item code from masterdata
+                        $existing = \App\Models\NonTradeItem::where('name', $item->description)
+                            ->whereNotNull('item_code')
+                            ->first();
+                        if (!$existing) {
+                            $existing = \App\Models\TradeItem::where('name', $item->description)
+                                ->whereNotNull('item_code')
+                                ->first();
+                        }
+                        if ($existing) {
+                            $item->item_code = $existing->item_code;
+                        }
+                    }
+
+                    // Auto-fill date_needed from PR header if item has none
+                    if (empty($item->date_needed) && !empty($item->purchaseRequest->date_needed)) {
+                        $item->date_needed = $item->purchaseRequest->date_needed;
+                    }
+
                     return $item;
                 })->filter(fn($item) => $item->remaining_qty > 0)->values();
             }
@@ -800,23 +822,21 @@ class PurchaseOrderController extends Controller
             return response()->json(['item_code' => $existing2->item_code]);
         }
 
-        $cleanDesc = preg_replace('/[^a-zA-Z\s]/', '', $description);
-        $words = preg_split('/\s+/', trim($cleanDesc));
-        $words = array_filter($words, fn($w) => strlen($w) > 0);
-        $abbr  = count($words) === 1
-            ? strtoupper(substr(reset($words), 0, 2))
-            : strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), $words)));
+        // Format: description-number-supplier
+        $descPart = trim($description);
+        if (strlen($descPart) > 50) {
+            $descPart = substr($descPart, 0, 50);
+        }
 
-        $supplierCode = 'GEN';
+        $supplierName = 'GEN';
         if ($supplierId) {
             $supplier = Supplier::find($supplierId);
             if ($supplier && $supplier->supplier_name) {
-                $sWords = preg_split('/\s+/', trim($supplier->supplier_name));
-                $supplierCode = strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), $sWords)));
+                $supplierName = $supplier->supplier_name;
             }
         }
 
-        $pattern = '/^[A-Z]+-(\d+)-[A-Z]+$/';
+        $pattern = '/-(\d{3,})-/';
         $allCodes = array_merge(
             PurchaseOrderItem::whereNotNull('item_code')->pluck('item_code')->toArray(),
             \App\Models\PurchaseRequestItem::whereNotNull('item_code')->pluck('item_code')->toArray(),
@@ -833,7 +853,7 @@ class PurchaseOrderController extends Controller
 
         $seq = str_pad($maxSeq + 1, 3, '0', STR_PAD_LEFT);
 
-        return response()->json(['item_code' => "{$abbr}-{$seq}-{$supplierCode}"]);
+        return response()->json(['item_code' => "{$descPart}-{$seq}-{$supplierName}"]);
     }
 
     /**

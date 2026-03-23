@@ -21,9 +21,12 @@ class Supplier extends Model
         'account_number',
         'status',
         'created_by',
-        'contact_person',  // ✅ ADD THIS - for storing contact person from Excel
-        'terms',           // ✅ ADD THIS - for storing payment/delivery terms from Excel
+        'contact_person',
+        'terms',
         'storage',
+        'bank2',
+        'account_name2',
+        'account_number2',
     ];
 
     /**

@@ -11,28 +11,24 @@ class NonTradeItemController extends Controller
 {
     private function generateItemCode($description, $supplierId = null)
     {
-        // Abbreviate item name: first letter of each word (letters only)
-        $cleanDesc = preg_replace('/[^a-zA-Z\s]/', '', $description);
-        $words = preg_split('/\s+/', trim($cleanDesc));
-        $words = array_filter($words, fn($w) => strlen($w) > 0);
-        if (count($words) === 1) {
-            $abbr = strtoupper(substr(reset($words), 0, 2));
-        } else {
-            $abbr = strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), $words)));
+        // Format: description-number-supplier
+        // e.g., "Office Chair-001-BPI Trading"
+        $descPart = trim($description);
+        if (strlen($descPart) > 50) {
+            $descPart = substr($descPart, 0, 50);
         }
 
-        // Get supplier abbreviation from supplier name (first letter of each word)
-        $supplierCode = 'GEN';
+        // Get supplier name
+        $supplierName = 'GEN';
         if ($supplierId) {
             $supplier = Supplier::find($supplierId);
             if ($supplier && $supplier->supplier_name) {
-                $sWords = preg_split('/\s+/', trim($supplier->supplier_name));
-                $supplierCode = strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), $sWords)));
+                $supplierName = $supplier->supplier_name;
             }
         }
 
-        // Get next global sequence number
-        $pattern = '/^[A-Z]+-(\d+)-[A-Z]+$/';
+        // Get next sequence number - search across all item code tables
+        $pattern = '/-(\d{3,})-/';
         $allCodes = array_merge(
             \App\Models\PurchaseOrderItem::whereNotNull('item_code')->pluck('item_code')->toArray(),
             \App\Models\PurchaseRequestItem::whereNotNull('item_code')->pluck('item_code')->toArray(),
@@ -48,7 +44,7 @@ class NonTradeItemController extends Controller
 
         $seq = str_pad($maxSeq + 1, 3, '0', STR_PAD_LEFT);
 
-        return "{$abbr}-{$seq}-{$supplierCode}";
+        return "{$descPart}-{$seq}-{$supplierName}";
     }
 
     public function index(Request $request)
@@ -102,6 +98,11 @@ class NonTradeItemController extends Controller
             'supplier_id' => 'nullable|exists:suppliers,id',
             'unit' => 'nullable|string|max:100',
             'item_code' => 'nullable|string|max:100',
+            'group' => 'nullable|string|max:200',
+            'brand' => 'nullable|string|max:200',
+            'trading_uom' => 'nullable|string|max:100',
+            'conversion' => 'nullable|string|max:100',
+            'status' => 'nullable|string|max:50',
         ]);
 
         $exists = NonTradeItem::where('name', $request->name)
@@ -120,6 +121,11 @@ class NonTradeItemController extends Controller
             'supplier_id' => $request->supplier_id ?: null,
             'unit' => $request->unit ?: null,
             'item_code' => $itemCode,
+            'group' => $request->group ?: null,
+            'brand' => $request->brand ?: null,
+            'trading_uom' => $request->trading_uom ?: null,
+            'conversion' => $request->conversion ?: null,
+            'status' => $request->status ?: 'active',
         ]);
 
         return redirect()->route('non_trade_items.index')
@@ -158,14 +164,16 @@ class NonTradeItemController extends Controller
 
         // Read rows from file
         $rows = [];
+        $headers = [];
 
         if (in_array($extension, ['xlsx', 'xls'])) {
             $spreadsheet = IOFactory::load($file->getRealPath());
             $data = $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
-            // Skip header row if first cell looks like a header
             if (!empty($data)) {
+                // Detect header row
                 $col0 = strtolower(trim($data[0][0] ?? ''));
-                if (in_array($col0, ['supplier', 'name', 'item', 'description'])) {
+                if (in_array($col0, ['supplier', 'name', 'item', 'description', 'item code', 'item_code'])) {
+                    $headers = array_map(fn($h) => strtolower(trim($h ?? '')), $data[0]);
                     array_shift($data);
                 }
             }
@@ -177,7 +185,8 @@ class NonTradeItemController extends Controller
                 if ($firstRow) {
                     $firstRow = false;
                     $col0 = strtolower(trim($row[0] ?? ''));
-                    if (in_array($col0, ['supplier', 'name', 'item', 'description'])) {
+                    if (in_array($col0, ['supplier', 'name', 'item', 'description', 'item code', 'item_code'])) {
+                        $headers = array_map(fn($h) => strtolower(trim($h ?? '')), $row);
                         continue;
                     }
                 }
@@ -186,18 +195,41 @@ class NonTradeItemController extends Controller
             fclose($handle);
         }
 
+        // Map header columns to field names
+        $colMap = $this->mapImportColumns($headers);
+
         $imported = 0;
         $updated = 0;
         $skipped = 0;
         $supplierCache = [];
 
         foreach ($rows as $row) {
-            $supplierName = trim($row[0] ?? '');
-            $itemName = trim($row[1] ?? '');
+            // Use column map if headers detected, otherwise fallback to old format (col0=supplier, col1=item)
+            if (!empty($colMap)) {
+                $itemCode    = trim($row[$colMap['item_code'] ?? -1] ?? '');
+                $itemName    = trim($row[$colMap['description'] ?? -1] ?? '');
+                $group       = trim($row[$colMap['group'] ?? -1] ?? '');
+                $brand       = trim($row[$colMap['brand'] ?? -1] ?? '');
+                $uom         = trim($row[$colMap['uom'] ?? -1] ?? '');
+                $tradingUom  = trim($row[$colMap['trading_uom'] ?? -1] ?? '');
+                $conversion  = trim($row[$colMap['conversion'] ?? -1] ?? '');
+                $status      = trim($row[$colMap['status'] ?? -1] ?? '');
+                $supplierName = trim($row[$colMap['supplier'] ?? -1] ?? '');
+            } else {
+                // Legacy format: Column A = Supplier, Column B = Item Description
+                $supplierName = trim($row[0] ?? '');
+                $itemName     = trim($row[1] ?? '');
+                $itemCode = $group = $brand = $uom = $tradingUom = $conversion = $status = '';
+            }
 
-            if (empty($itemName)) {
+            if (empty($itemName) && empty($itemCode)) {
                 $skipped++;
                 continue;
+            }
+
+            // If no item name but has item code, use item code as name
+            if (empty($itemName) && !empty($itemCode)) {
+                $itemName = $itemCode;
             }
 
             // Resolve supplier_id by name — auto-create if not found
@@ -225,31 +257,39 @@ class NonTradeItemController extends Controller
                 $supplierId = $supplierCache[$supplierName];
             }
 
-            // Check if item already exists (same name + supplier)
-            $existing = NonTradeItem::where('name', $itemName)
-                ->where('supplier_id', $supplierId)
-                ->first();
+            // Check if item already exists (same item_code or same name + supplier)
+            $existing = null;
+            if (!empty($itemCode)) {
+                $existing = NonTradeItem::where('item_code', $itemCode)->first();
+            }
+            if (!$existing) {
+                $existing = NonTradeItem::where('name', $itemName)
+                    ->where('supplier_id', $supplierId)
+                    ->first();
+            }
+
+            $itemData = array_filter([
+                'name'        => $itemName,
+                'supplier_id' => $supplierId,
+                'unit'        => $uom ?: null,
+                'group'       => $group ?: null,
+                'brand'       => $brand ?: null,
+                'trading_uom' => $tradingUom ?: null,
+                'conversion'  => $conversion ?: null,
+                'status'      => $status ?: 'active',
+            ], fn($v) => $v !== null);
 
             if ($existing) {
-                // Update existing record — refresh supplier and generate item_code if missing
-                $updateData = ['supplier_id' => $supplierId];
-                if (!$existing->item_code) {
-                    $updateData['item_code'] = $this->generateItemCode($itemName, $supplierId);
+                if (!$existing->item_code && !empty($itemCode)) {
+                    $itemData['item_code'] = $itemCode;
+                } elseif (!$existing->item_code) {
+                    $itemData['item_code'] = $this->generateItemCode($itemName, $supplierId);
                 }
-                $existing->update($updateData);
+                $existing->update($itemData);
                 $updated++;
             } else {
-                $newItem = NonTradeItem::create([
-                    'name' => $itemName,
-                    'supplier_id' => $supplierId,
-                ]);
-
-                // Auto-generate item code
-                if (!$newItem->item_code) {
-                    $itemCode = $this->generateItemCode($itemName, $supplierId);
-                    $newItem->update(['item_code' => $itemCode]);
-                }
-
+                $itemData['item_code'] = $itemCode ?: $this->generateItemCode($itemName, $supplierId);
+                NonTradeItem::create($itemData);
                 $imported++;
             }
         }
@@ -260,5 +300,35 @@ class NonTradeItemController extends Controller
 
         return redirect()->route('non_trade_items.index')
             ->with('success', $message . '.');
+    }
+
+    private function mapImportColumns(array $headers): array
+    {
+        if (empty($headers)) return [];
+
+        $map = [];
+        $mappings = [
+            'item_code'   => ['item code', 'item_code', 'code', 'itemcode'],
+            'description' => ['item description', 'item_description', 'description', 'name', 'item name', 'item'],
+            'group'       => ['group', 'item group', 'category'],
+            'brand'       => ['brand', 'item brand'],
+            'uom'         => ['uom', 'unit', 'unit of measure'],
+            'trading_uom' => ['trading uom', 'trading_uom', 'trading unit'],
+            'conversion'  => ['conversion', 'conv', 'conversion factor'],
+            'status'      => ['status', 'item status'],
+            'supplier'    => ['supplier', 'supplier name', 'supplier_name'],
+        ];
+
+        foreach ($headers as $index => $header) {
+            if (empty($header)) continue;
+            foreach ($mappings as $field => $variations) {
+                if (in_array($header, $variations) && !isset($map[$field])) {
+                    $map[$field] = $index;
+                    break;
+                }
+            }
+        }
+
+        return $map;
     }
 }

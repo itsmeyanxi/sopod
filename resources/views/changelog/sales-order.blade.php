@@ -3,7 +3,7 @@
 @section('title', 'Change History')
 
 @section('content')
-<div class="bg-gray-900 text-gray-100 min-h-screen p-8">
+<div class="bg-gray-50 text-gray-100 min-h-screen p-8">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
         <div>
@@ -11,7 +11,7 @@
                 ← Back to Change Log
             </a>
             <h1 class="text-3xl font-bold">📜 Change History</h1>
-            <p class="text-gray-400 mt-2">Sales Order: <span class="text-white font-semibold">{{ $salesOrder->sales_order_number }}</span></p>
+            <p class="text-gray-400 mt-2">Sales Order: <span class="text-gray-800 font-semibold">{{ $salesOrder->sales_order_number }}</span></p>
         </div>
         <a href="{{ route('sales_orders.show', $salesOrder->id) }}" 
            class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">
@@ -20,14 +20,14 @@
     </div>
 
     <!-- Sales Order Info Card -->
-    <div class="bg-gray-800 p-6 rounded-lg mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white p-6 rounded-lg mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
             <p class="text-gray-400 text-sm">Customer</p>
-            <p class="text-white font-semibold">{{ $salesOrder->customer_name ?? 'N/A' }}</p>
+            <p class="text-gray-800 font-semibold">{{ $salesOrder->customer_name ?? 'N/A' }}</p>
         </div>
         <div>
             <p class="text-gray-400 text-sm">Status</p>
-            <p class="text-white font-semibold">
+            <p class="text-gray-800 font-semibold">
                 <span class="px-3 py-1 rounded-full text-sm 
                     @if($salesOrder->status === 'Approved') bg-green-600
                     @elseif($salesOrder->status === 'Pending') bg-yellow-600
@@ -38,12 +38,12 @@
         </div>
         <div>
             <p class="text-gray-400 text-sm">Total Amount</p>
-            <p class="text-white font-semibold">₱{{ number_format($salesOrder->total_amount ?? 0, 2) }}</p>
+            <p class="text-gray-800 font-semibold">₱{{ number_format($salesOrder->total_amount ?? 0, 2) }}</p>
         </div>
     </div>
 
     <!-- Timeline -->
-    <div class="bg-gray-800 rounded-lg p-6">
+    <div class="bg-white rounded-lg p-6">
         <h2 class="text-xl font-bold mb-6">Change Timeline</h2>
         
         @if($changes->isEmpty())
@@ -74,16 +74,16 @@
                     <!-- Timeline Icon -->
                     <div class="flex flex-col items-center">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center {{ $config['bg'] }}">
-                            <i class="fas {{ $config['icon'] }} text-white"></i>
+                            <i class="fas {{ $config['icon'] }} text-gray-800"></i>
                         </div>
                         @if(!$loop->last)
-                            <div class="w-0.5 h-full bg-gray-700 flex-1 mt-2"></div>
+                            <div class="w-0.5 h-full bg-gray-100 flex-1 mt-2"></div>
                         @endif
                     </div>
 
                     <!-- Change Content -->
                     <div class="flex-1 pb-8">
-                        <div class="bg-gray-700 p-5 rounded-lg">
+                        <div class="bg-gray-100 p-5 rounded-lg">
                             <!-- Header -->
                             <div class="flex justify-between items-start mb-4">
                                 <div class="flex items-center gap-2">
@@ -132,8 +132,8 @@
                                     </div>
                                 @elseif($isJson)
                                     <!-- For Item Updates - Show what changed in summary -->
-                                    <div class="bg-gray-800 rounded p-3 mb-3 text-sm">
-                                        <p class="text-gray-300">
+                                    <div class="bg-white rounded p-3 mb-3 text-sm">
+                                        <p class="text-gray-500">
                                             <i class="fas fa-info-circle text-blue-400 mr-2"></i>
                                             <strong>What Changed:</strong>
                                             @php
@@ -312,10 +312,10 @@
                             @endif
 
                             <!-- Changed By Footer -->
-                            <div class="pt-3 border-t border-gray-600 flex justify-between items-center">
+                            <div class="pt-3 border-t border-gray-300 flex justify-between items-center">
                                 <p class="text-gray-400 text-xs">
                                     <i class="fas fa-user-circle mr-1"></i>
-                                    Changed by: <span class="text-white font-semibold">{{ $change->user->name ?? 'System' }}</span>
+                                    Changed by: <span class="text-gray-800 font-semibold">{{ $change->user->name ?? 'System' }}</span>
                                 </p>
                                 <p class="text-gray-500 text-xs">
                                     <i class="far fa-clock mr-1"></i>

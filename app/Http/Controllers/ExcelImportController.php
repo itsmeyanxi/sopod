@@ -12,6 +12,7 @@ use App\Models\ARAging;
 use App\Models\Payment; 
 use App\Models\ArAdjustment; 
 use App\Models\User;
+use App\Models\BomMaterial;
 use Illuminate\Support\Facades\Mail;
 
 class ExcelImportController extends Controller
@@ -1730,6 +1731,217 @@ private $arAdjustmentColumnMap = [
                 'success' => false,
                 'message' => 'Failed to import GL accounts: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    // ======================== BOM MATERIALS IMPORT ========================
+
+    private $bomColumnMap = [
+        'item code'        => 'item_code',
+        'item_code'        => 'item_code',
+        'code'             => 'item_code',
+        'item description' => 'item_description',
+        'item_description' => 'item_description',
+        'description'      => 'item_description',
+        'name'             => 'item_description',
+        'uom'              => 'uom',
+        'unit'             => 'uom',
+        'unit of measure'  => 'uom',
+        'category'         => 'category',
+        'type'             => 'category',
+        'group'            => 'category',
+        'default cost'     => 'default_cost',
+        'default_cost'     => 'default_cost',
+        'cost'             => 'default_cost',
+        'unit cost'        => 'default_cost',
+        'unit_cost'        => 'default_cost',
+        'price'            => 'default_cost',
+        'notes'            => 'notes',
+        'note'             => 'notes',
+        'remarks'          => 'notes',
+    ];
+
+    private $categoryKeywords = [
+        'feed'       => ['feed', 'feeds'],
+        'supplement' => ['supplement', 'supplements', 'vitamins'],
+        'vaccine'    => ['vaccine', 'vaccines', 'medication', 'vaccine & medication', 'vaccines & medication'],
+        'cleaning'   => ['cleaning', 'disinfectant', 'disinfectants', 'cleaning & disinfectant'],
+        'supply'     => ['supply', 'supplies', 'poultry lifter', 'poultry lifter / supplies', 'poultry supplies'],
+        'labor'      => ['labor', 'labour', 'manpower'],
+        'overhead'   => ['overhead', 'overheads', 'utilities'],
+    ];
+
+    public function importBomMaterials(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $extension = strtolower($file->getClientOriginalExtension());
+
+            $rows = [];
+            $headers = [];
+
+            if (in_array($extension, ['xlsx', 'xls'])) {
+                $spreadsheet = IOFactory::load($file->getRealPath());
+                $data = $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
+                if (!empty($data)) {
+                    $firstRow = array_map(fn($h) => strtolower(trim($h ?? '')), $data[0]);
+                    $isHeader = false;
+                    foreach ($firstRow as $cell) {
+                        if (isset($this->bomColumnMap[$cell])) {
+                            $isHeader = true;
+                            break;
+                        }
+                    }
+                    if ($isHeader) {
+                        $headers = $firstRow;
+                        array_shift($data);
+                    }
+                }
+                $rows = $data;
+            } else {
+                $handle = fopen($file->getRealPath(), 'r');
+                $firstRow = true;
+                while (($row = fgetcsv($handle)) !== false) {
+                    if ($firstRow) {
+                        $firstRow = false;
+                        $normalized = array_map(fn($h) => strtolower(trim($h ?? '')), $row);
+                        $isHeader = false;
+                        foreach ($normalized as $cell) {
+                            if (isset($this->bomColumnMap[$cell])) {
+                                $isHeader = true;
+                                break;
+                            }
+                        }
+                        if ($isHeader) {
+                            $headers = $normalized;
+                            continue;
+                        }
+                    }
+                    $rows[] = $row;
+                }
+                fclose($handle);
+            }
+
+            // Build column index map
+            $colMap = [];
+            foreach ($headers as $index => $header) {
+                if (empty($header)) continue;
+                if (isset($this->bomColumnMap[$header]) && !isset($colMap[$this->bomColumnMap[$header]])) {
+                    $colMap[$this->bomColumnMap[$header]] = $index;
+                }
+            }
+
+            // If no headers detected, assume: col0=item_code, col1=item_description, col2=uom
+            if (empty($colMap)) {
+                $colMap = ['item_code' => 0, 'item_description' => 1, 'uom' => 2];
+            }
+
+            $imported = 0;
+            $updated = 0;
+            $skipped = 0;
+            $currentCategory = null;
+
+            foreach ($rows as $row) {
+                $itemCode    = trim($row[$colMap['item_code'] ?? -1] ?? '');
+                $description = trim($row[$colMap['item_description'] ?? -1] ?? '');
+                $uom         = trim($row[$colMap['uom'] ?? -1] ?? '');
+                $category    = trim($row[$colMap['category'] ?? -1] ?? '');
+                $cost        = $row[$colMap['default_cost'] ?? -1] ?? null;
+                $notes       = trim($row[$colMap['notes'] ?? -1] ?? '');
+
+                // Detect section header rows (e.g. row with only description like "FEEDS")
+                if (empty($itemCode) && !empty($description) && empty($uom)) {
+                    $descLower = strtolower($description);
+                    foreach ($this->categoryKeywords as $cat => $keywords) {
+                        foreach ($keywords as $kw) {
+                            if ($descLower === $kw || str_contains($descLower, $kw)) {
+                                $currentCategory = $cat;
+                                break 2;
+                            }
+                        }
+                    }
+                    $skipped++;
+                    continue;
+                }
+
+                // Skip empty rows
+                if (empty($itemCode) && empty($description)) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Use auto-detected category if none provided
+                if (empty($category) && $currentCategory) {
+                    $category = $currentCategory;
+                }
+
+                // Clean cost value
+                $costValue = null;
+                if ($cost !== null && $cost !== '') {
+                    $costValue = (float) preg_replace('/[^0-9.]/', '', $cost);
+                    if ($costValue == 0) $costValue = null;
+                }
+
+                // Upsert by item_code
+                if (!empty($itemCode)) {
+                    $existing = BomMaterial::where('item_code', $itemCode)->first();
+                    $data = array_filter([
+                        'item_code'        => $itemCode,
+                        'item_description' => $description ?: null,
+                        'uom'              => $uom ?: null,
+                        'category'         => $category ?: null,
+                        'default_cost'     => $costValue,
+                        'notes'            => $notes ?: null,
+                    ], fn($v) => $v !== null);
+
+                    if ($existing) {
+                        $existing->update($data);
+                        $updated++;
+                    } else {
+                        if (empty($data['item_description'])) {
+                            $skipped++;
+                            continue;
+                        }
+                        BomMaterial::create($data);
+                        $imported++;
+                    }
+                } else {
+                    // No item code — try to match by description
+                    if (empty($description)) {
+                        $skipped++;
+                        continue;
+                    }
+                    $existing = BomMaterial::where('item_description', $description)->first();
+                    if ($existing) {
+                        $existing->update(array_filter([
+                            'uom'          => $uom ?: null,
+                            'category'     => $category ?: null,
+                            'default_cost' => $costValue,
+                            'notes'        => $notes ?: null,
+                        ], fn($v) => $v !== null));
+                        $updated++;
+                    } else {
+                        $skipped++;
+                    }
+                }
+            }
+
+            $message = "{$imported} material(s) imported";
+            if ($updated > 0) $message .= ", {$updated} updated";
+            if ($skipped > 0) $message .= ", {$skipped} skipped";
+
+            return redirect()->back()->with('success', $message . '.');
+
+        } catch (\Exception $e) {
+            \Log::error('BOM Materials import failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Error importing BOM materials: ' . $e->getMessage());
         }
     }
 }

@@ -4,13 +4,13 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold text-white">CREATE SUPPLY RECEIVING REPORT</h1>
+        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+            <h1 class="text-2xl font-bold text-gray-800">CREATE SUPPLY RECEIVING REPORT</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-300">SRR CODE:</label>
-                <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $srrCode }}</span>
+                <label class="font-semibold text-gray-500">SRR CODE:</label>
+                <span class="ml-2 px-4 py-1 bg-gray-50 border border-gray-200 text-gray-800 rounded">{{ $srrCode }}</span>
             </div>
         </div>
 
@@ -32,14 +32,14 @@
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">DATE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">DATE: <span class="text-red-400">*</span></label>
                         <input type="date" name="report_date" value="{{ old('report_date', date('Y-m-d')) }}" required
-                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">SUPPLY:</label>
+                        <label class="block font-semibold text-gray-500 mb-1">SUPPLY:</label>
                         <select name="supplier_id" id="supplier_id"
-                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                             <option value="">-- Select Supply --</option>
                             @foreach($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
@@ -49,16 +49,16 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">CV NO:</label>
+                        <label class="block font-semibold text-gray-500 mb-1">CV NO:</label>
                         <input type="text" name="cv_no" value="{{ old('cv_no') }}" placeholder="Check Voucher Number"
-                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
                 </div>
                 <!-- Right Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">STORAGE:</label>
-                        <select name="storage" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <label class="block font-semibold text-gray-500 mb-1">STORAGE:</label>
+                        <select name="storage" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                             <option value="">-- Select Storage --</option>
                             @foreach($storages as $storage)
                                 <option value="{{ $storage->storage_name }}" {{ old('storage') == $storage->storage_name ? 'selected' : '' }}>
@@ -71,36 +71,36 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">PO NO:</label>
+                        <label class="block font-semibold text-gray-500 mb-1">PO NO:</label>
                         <div class="relative">
                             <input type="text" name="po_no" id="po_no" value="{{ old('po_no') }}" placeholder="Search or type PO number..."
-                                class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" autocomplete="off">
-                            <div id="poSearchResults" class="hidden absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded max-h-48 overflow-y-auto shadow-lg">
+                                class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" autocomplete="off">
+                            <div id="poSearchResults" class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded max-h-48 overflow-y-auto shadow-lg">
                             </div>
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-2">TYPE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-2">TYPE: <span class="text-red-400">*</span></label>
                         <div class="flex flex-wrap gap-4">
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="report_type" value="purchased" {{ old('report_type', 'purchased') == 'purchased' ? 'checked' : '' }}
                                     class="text-purple-500 focus:ring-purple-500">
-                                <span class="text-gray-300">Purchased</span>
+                                <span class="text-gray-500">Purchased</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="report_type" value="stock_transfer" {{ old('report_type') == 'stock_transfer' ? 'checked' : '' }}
                                     class="text-purple-500 focus:ring-purple-500">
-                                <span class="text-gray-300">Stock Transfer</span>
+                                <span class="text-gray-500">Stock Transfer</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="report_type" value="backload" {{ old('report_type') == 'backload' ? 'checked' : '' }}
                                     class="text-purple-500 focus:ring-purple-500">
-                                <span class="text-gray-300">Backload</span>
+                                <span class="text-gray-500">Backload</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="report_type" value="returned" {{ old('report_type') == 'returned' ? 'checked' : '' }}
                                     class="text-purple-500 focus:ring-purple-500">
-                                <span class="text-gray-300">Returned</span>
+                                <span class="text-gray-500">Returned</span>
                             </label>
                         </div>
                     </div>
@@ -110,74 +110,74 @@
             <!-- Items Table -->
             <div class="mb-6">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold text-lg text-gray-300">ITEMS</h3>
+                    <h3 class="font-semibold text-lg text-gray-500">ITEMS</h3>
                     <button type="button" onclick="addRow()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm hover:bg-purple-700 transition">
                         <i class="fas fa-plus mr-1"></i> Add Row
                     </button>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full border-collapse border border-gray-700" id="itemsTable">
-                        <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
+                    <table class="w-full border-collapse border border-gray-200" id="itemsTable">
+                        <thead class="bg-gray-100 text-gray-500 uppercase text-xs">
                             <tr>
-                                <th class="border border-gray-700 px-2 py-2 w-10">#</th>
-                                <th class="border border-gray-700 px-2 py-2">ITEM CODE</th>
-                                <th class="border border-gray-700 px-2 py-2">ITEM DESCRIPTION <span class="text-red-400">*</span></th>
-                                <th class="border border-gray-700 px-2 py-2">BRAND</th>
-                                <th class="border border-gray-700 px-2 py-2 w-28">NO. OF BOXES</th>
-                                <th class="border border-gray-700 px-2 py-2 w-32">NET WEIGHT</th>
-                                <th class="border border-gray-700 px-2 py-2 w-28">PRODUCTION DATE</th>
-                                <th class="border border-gray-700 px-2 py-2 w-36">EXPIRATION DATE</th>
-                                <th class="border border-gray-700 px-2 py-2">PALLET NO.</th>
-                                <th class="border border-gray-700 px-2 py-2">REMARKS</th>
-                                <th class="border border-gray-700 px-2 py-2 w-12"></th>
+                                <th class="border border-gray-200 px-2 py-2 w-10">#</th>
+                                <th class="border border-gray-200 px-2 py-2">ITEM CODE</th>
+                                <th class="border border-gray-200 px-2 py-2">ITEM DESCRIPTION <span class="text-red-400">*</span></th>
+                                <th class="border border-gray-200 px-2 py-2">BRAND</th>
+                                <th class="border border-gray-200 px-2 py-2 w-28">NO. OF BOXES</th>
+                                <th class="border border-gray-200 px-2 py-2 w-32">NET WEIGHT</th>
+                                <th class="border border-gray-200 px-2 py-2 w-28">PRODUCTION DATE</th>
+                                <th class="border border-gray-200 px-2 py-2 w-36">EXPIRATION DATE</th>
+                                <th class="border border-gray-200 px-2 py-2">PALLET NO.</th>
+                                <th class="border border-gray-200 px-2 py-2">REMARKS</th>
+                                <th class="border border-gray-200 px-2 py-2 w-12"></th>
                             </tr>
                         </thead>
                         <tbody id="itemsBody">
                             <tr class="item-row">
-                                <td class="border border-gray-700 px-2 py-2 text-center row-number">1</td>
-                                <td class="border border-gray-700 px-1 py-1">
-                                    <input type="text" name="items[0][item_code]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+                                <td class="border border-gray-200 px-2 py-2 text-center row-number">1</td>
+                                <td class="border border-gray-200 px-1 py-1">
+                                    <input type="text" name="items[0][item_code]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
                                 </td>
-                                <td class="border border-gray-700 px-1 py-1">
+                                <td class="border border-gray-200 px-1 py-1">
                                     <div class="relative">
-                                        <input type="text" name="items[0][item_description]" required class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded srr-desc-input" autocomplete="off">
-                                        <div class="srr-desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                                        <input type="text" name="items[0][item_description]" required class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded srr-desc-input" autocomplete="off">
+                                        <div class="srr-desc-dropdown hidden absolute z-20 left-0 right-0 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
                                     </div>
                                 </td>
-                                <td class="border border-gray-700 px-1 py-1">
-                                    <input type="text" name="items[0][brand]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+                                <td class="border border-gray-200 px-1 py-1">
+                                    <input type="text" name="items[0][brand]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
                                 </td>
-                                <td class="border border-gray-700 px-1 py-1">
-                                    <input type="number" name="items[0][no_of_boxes]" value="0" min="0" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded boxes-input" onchange="calculateTotals()">
+                                <td class="border border-gray-200 px-1 py-1">
+                                    <input type="number" name="items[0][no_of_boxes]" value="0" min="0" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded boxes-input" onchange="calculateTotals()">
                                 </td>
-                                <td class="border border-gray-700 px-1 py-1">
-                                    <input type="number" name="items[0][net_weight]" value="0" min="0" step="0.01" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded weight-input" onchange="calculateTotals()">
+                                <td class="border border-gray-200 px-1 py-1">
+                                    <input type="number" name="items[0][net_weight]" value="0" min="0" step="0.01" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded weight-input" onchange="calculateTotals()">
                                 </td>
-                                <td class="border border-gray-700 px-1 py-1">
-                                    <input type="date" name="items[0][pd]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+                                <td class="border border-gray-200 px-1 py-1">
+                                    <input type="date" name="items[0][pd]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
                                 </td>
-                                <td class="border border-gray-700 px-1 py-1">
-                                    <input type="date" name="items[0][expiry_date]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+                                <td class="border border-gray-200 px-1 py-1">
+                                    <input type="date" name="items[0][expiry_date]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
                                 </td>
-                                <td class="border border-gray-700 px-1 py-1">
-                                    <input type="text" name="items[0][pallet_no]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+                                <td class="border border-gray-200 px-1 py-1">
+                                    <input type="text" name="items[0][pallet_no]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
                                 </td>
-                                <td class="border border-gray-700 px-1 py-1">
-                                    <input type="text" name="items[0][remarks]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+                                <td class="border border-gray-200 px-1 py-1">
+                                    <input type="text" name="items[0][remarks]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
                                 </td>
-                                <td class="border border-gray-700 px-2 py-2 text-center">
+                                <td class="border border-gray-200 px-2 py-2 text-center">
                                     <button type="button" onclick="removeRow(this)" class="text-red-400 hover:text-red-300">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>
                         </tbody>
-                        <tfoot class="bg-gray-700">
+                        <tfoot class="bg-gray-100">
                             <tr>
-                                <td colspan="4" class="border border-gray-700 px-4 py-2 text-right font-semibold text-gray-300">TOTALS:</td>
-                                <td class="border border-gray-700 px-4 py-2 text-center font-semibold text-white" id="totalBoxes">0</td>
-                                <td class="border border-gray-700 px-4 py-2 text-center font-semibold text-white" id="totalWeight">0.00</td>
-                                <td colspan="5" class="border border-gray-700"></td>
+                                <td colspan="4" class="border border-gray-200 px-4 py-2 text-right font-semibold text-gray-500">TOTALS:</td>
+                                <td class="border border-gray-200 px-4 py-2 text-center font-semibold text-gray-800" id="totalBoxes">0</td>
+                                <td class="border border-gray-200 px-4 py-2 text-center font-semibold text-gray-800" id="totalWeight">0.00</td>
+                                <td colspan="5" class="border border-gray-200"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -186,45 +186,45 @@
 
             <!-- Note -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-1">NOTE:</label>
+                <label class="block font-semibold text-gray-500 mb-1">NOTE:</label>
                 <textarea name="note" rows="3" placeholder="Additional notes..."
-                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('note') }}</textarea>
+                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('note') }}</textarea>
             </div>
 
             <!-- Signature Fields -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-1">PREPARED BY:</label>
+                    <label class="block font-semibold text-gray-500 mb-1">PREPARED BY:</label>
                     <input type="text" value="{{ auth()->user()->name }}" readonly
-                        class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-300 cursor-not-allowed">
+                        class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-gray-500 cursor-not-allowed">
                     <input type="hidden" name="prepared_by" value="{{ auth()->user()->name }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-1">CHECKED BY:</label>
+                    <label class="block font-semibold text-gray-500 mb-1">CHECKED BY:</label>
                     <input type="text" name="checked_by" value="{{ old('checked_by') }}"
-                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-1">RECEIVED BY:</label>
+                    <label class="block font-semibold text-gray-500 mb-1">RECEIVED BY:</label>
                     <input type="text" name="received_by" value="{{ old('received_by') }}"
-                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-1">VERIFIED BY:</label>
+                    <label class="block font-semibold text-gray-500 mb-1">VERIFIED BY:</label>
                     <input type="text" name="verified_by" value="{{ old('verified_by') }}"
-                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
             </div>
 
             <!-- Submit Buttons -->
-            <div class="flex justify-end gap-3 border-t border-gray-700 pt-4">
+            <div class="flex justify-end gap-3 border-t border-gray-200 pt-4">
                 <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-500 transition">
                     Cancel
                 </a>
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     <i class="fas fa-save mr-1"></i> Save as Draft
                 </button>
-                <button type="submit" name="save_final" value="1" class="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-2 rounded hover:from-green-700 hover:to-green-800 transition">
+                <button type="submit" name="save_final" value="1" class="bg-gradient-to-r from-green-600 to-green-700 text-gray-800 px-6 py-2 rounded hover:from-green-700 hover:to-green-800 transition">
                     <i class="fas fa-check mr-1"></i> Save
                 </button>
             </div>
@@ -241,35 +241,35 @@ function addRow() {
     const row = document.createElement('tr');
     row.className = 'item-row';
     row.innerHTML = `
-        <td class="border border-gray-700 px-2 py-2 text-center row-number">${index + 1}</td>
-        <td class="border border-gray-700 px-1 py-1">
-            <input type="text" name="items[${index}][item_code]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+        <td class="border border-gray-200 px-2 py-2 text-center row-number">${index + 1}</td>
+        <td class="border border-gray-200 px-1 py-1">
+            <input type="text" name="items[${index}][item_code]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
         </td>
-        <td class="border border-gray-700 px-1 py-1">
-            <div class="relative"><input type="text" name="items[${index}][item_description]" required class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded srr-desc-input" autocomplete="off"><div class="srr-desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div></div>
+        <td class="border border-gray-200 px-1 py-1">
+            <div class="relative"><input type="text" name="items[${index}][item_description]" required class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded srr-desc-input" autocomplete="off"><div class="srr-desc-dropdown hidden absolute z-20 left-0 right-0 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div></div>
         </td>
-        <td class="border border-gray-700 px-1 py-1">
-            <input type="text" name="items[${index}][brand]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+        <td class="border border-gray-200 px-1 py-1">
+            <input type="text" name="items[${index}][brand]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
         </td>
-        <td class="border border-gray-700 px-1 py-1">
-            <input type="number" name="items[${index}][no_of_boxes]" value="0" min="0" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded boxes-input" onchange="calculateTotals()">
+        <td class="border border-gray-200 px-1 py-1">
+            <input type="number" name="items[${index}][no_of_boxes]" value="0" min="0" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded boxes-input" onchange="calculateTotals()">
         </td>
-        <td class="border border-gray-700 px-1 py-1">
-            <input type="number" name="items[${index}][net_weight]" value="0" min="0" step="0.01" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded weight-input" onchange="calculateTotals()">
+        <td class="border border-gray-200 px-1 py-1">
+            <input type="number" name="items[${index}][net_weight]" value="0" min="0" step="0.01" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded weight-input" onchange="calculateTotals()">
         </td>
-        <td class="border border-gray-700 px-1 py-1">
-            <input type="date" name="items[${index}][pd]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+        <td class="border border-gray-200 px-1 py-1">
+            <input type="date" name="items[${index}][pd]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
         </td>
-        <td class="border border-gray-700 px-1 py-1">
-            <input type="date" name="items[${index}][expiry_date]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+        <td class="border border-gray-200 px-1 py-1">
+            <input type="date" name="items[${index}][expiry_date]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
         </td>
-        <td class="border border-gray-700 px-1 py-1">
-            <input type="text" name="items[${index}][pallet_no]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+        <td class="border border-gray-200 px-1 py-1">
+            <input type="text" name="items[${index}][pallet_no]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
         </td>
-        <td class="border border-gray-700 px-1 py-1">
-            <input type="text" name="items[${index}][remarks]" class="w-full bg-gray-900 border-0 px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
+        <td class="border border-gray-200 px-1 py-1">
+            <input type="text" name="items[${index}][remarks]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
         </td>
-        <td class="border border-gray-700 px-2 py-2 text-center">
+        <td class="border border-gray-200 px-2 py-2 text-center">
             <button type="button" onclick="removeRow(this)" class="text-red-400 hover:text-red-300">
                 <i class="fas fa-trash"></i>
             </button>
@@ -355,8 +355,8 @@ poInput.addEventListener('input', function() {
 
             let html = '<div class="divide-y divide-gray-700">';
             pos.forEach(po => {
-                html += `<div class="p-3 hover:bg-gray-700 cursor-pointer text-sm" onclick="selectPO('${po.po_no}')">
-                    <span class="font-semibold text-white">${po.po_no}</span>
+                html += `<div class="p-3 hover:bg-gray-100 cursor-pointer text-sm" onclick="selectPO('${po.po_no}')">
+                    <span class="font-semibold text-gray-800">${po.po_no}</span>
                     <span class="text-gray-400 ml-2">${po.supplier || ''}</span>
                 </div>`;
             });
@@ -411,7 +411,7 @@ function attachSrrDescAutocomplete(input) {
                 const items = await res.json();
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(name =>
-                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 srr-desc-option">${name}</div>`
+                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 srr-desc-option">${name}</div>`
                 ).join('');
                 positionDropdown();
                 dropdown.classList.remove('hidden');

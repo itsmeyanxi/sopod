@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto">
-    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-white rounded-lg shadow-lg p-6">
         <h2 class="text-2xl font-bold mb-6">Import Customers from Excel</h2>
 
         @if(session('success'))
@@ -40,11 +40,11 @@
                     name="file" 
                     accept=".xlsx,.xls,.csv"
                     required
-                    class="block w-full text-sm text-gray-300
+                    class="block w-full text-sm text-gray-500
                         file:mr-4 file:py-2 file:px-4
                         file:rounded file:border-0
                         file:text-sm file:font-semibold
-                        file:bg-blue-600 file:text-white
+                        file:bg-blue-600 file:text-gray-800
                         hover:file:bg-blue-700
                         cursor-pointer"
                 >
@@ -61,7 +61,7 @@
                 
                 <a 
                     href="{{ route('customers.index') }}" 
-                    class="text-gray-400 hover:text-white transition"
+                    class="text-gray-400 hover:text-gray-800 transition"
                 >
                     Cancel
                 </a>
@@ -69,10 +69,10 @@
         </form>
 
         <!-- Instructions -->
-        <div class="mt-8 bg-gray-700 p-4 rounded">
+        <div class="mt-8 bg-gray-100 p-4 rounded">
             <h3 class="font-semibold mb-3">📋 Excel File Format Guidelines</h3>
-            <p class="text-sm text-gray-300 mb-2">Your Excel file should have the following columns:</p>
-            <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
+            <p class="text-sm text-gray-500 mb-2">Your Excel file should have the following columns:</p>
+            <ul class="text-sm text-gray-500 space-y-1 list-disc list-inside">
                 <li><strong>name</strong> - Customer name (required)</li>
                 <li><strong>email</strong> - Email address (optional)</li>
                 <li><strong>phone</strong> - Phone number (optional)</li>
@@ -80,7 +80,7 @@
                 <li><strong>company</strong> - Company name (optional)</li>
             </ul>
             
-            <div class="mt-4 pt-4 border-t border-gray-600">
+            <div class="mt-4 pt-4 border-t border-gray-300">
                 <a 
                     href="{{ route('import.customers.template') }}" 
                     class="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm"

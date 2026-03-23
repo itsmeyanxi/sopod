@@ -2,11 +2,11 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <div class="bg-gray-900 rounded-xl shadow-lg border border-gray-800">
+    <div class="bg-gray-50 rounded-xl shadow-lg border border-gray-800">
         <!-- Header -->
-        <div class="bg-gray-800 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
+        <div class="bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <div>
-                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
                     🔄 Receiving Report Details
                 </h2>
                 <p class="text-sm text-gray-400 mt-1">RR Number: <span class="text-blue-400 font-mono">{{ $receivingReport->rr_number }}</span></p>
@@ -20,7 +20,7 @@
                     Print
                 </a>
                 <a href="{{ route('receiving-reports.index') }}"
-                   class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                   class="bg-gray-100 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
@@ -44,8 +44,8 @@
             </div>
 
             <!-- Sales Order Information -->
-            <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
-                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <div class="bg-white/50 rounded-lg p-6 border border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
@@ -92,8 +92,8 @@
             </div>
 
             <!-- Receiving Details -->
-            <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
-                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <div class="bg-white/50 rounded-lg p-6 border border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                     </svg>
@@ -127,14 +127,14 @@
                 </div>
 
                 @if($receivingReport->additional_instructions)
-                <div class="mt-4 pt-4 border-t border-gray-700">
+                <div class="mt-4 pt-4 border-t border-gray-200">
                     <label class="block text-xs text-gray-400 mb-2">Additional Instructions</label>
-                    <p class="text-gray-200 bg-gray-900/50 p-3 rounded">{{ $receivingReport->additional_instructions }}</p>
+                    <p class="text-gray-200 bg-gray-50/50 p-3 rounded">{{ $receivingReport->additional_instructions }}</p>
                 </div>
                 @endif
 
                 @if($receivingReport->attachment)
-                <div class="mt-4 pt-4 border-t border-gray-700">
+                <div class="mt-4 pt-4 border-t border-gray-200">
                     <label class="block text-xs text-gray-400 mb-2">Attachment</label>
                     <a href="{{ asset('receiving_report_attachments/' . $receivingReport->attachment) }}" target="_blank" 
                        class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300">
@@ -148,9 +148,9 @@
             </div>
 
             <!-- Items Table -->
-            <div class="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden">
-                <div class="px-6 py-4 bg-gray-800 border-b border-gray-700">
-                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+            <div class="bg-white/50 rounded-lg border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 bg-white border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                         </svg>
@@ -160,7 +160,7 @@
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-900 text-gray-400 uppercase text-xs">
+                        <thead class="bg-gray-50 text-gray-400 uppercase text-xs">
                             <tr>
                                 <th class="px-4 py-3 text-left">#</th>
                                 <th class="px-4 py-3 text-left">Item Code</th>
@@ -177,7 +177,7 @@
                         <tbody class="divide-y divide-gray-700">
                             @php $totalAmount = 0; @endphp
                             @forelse($receivingReport->items as $index => $item)
-                            <tr class="text-gray-300 hover:bg-gray-800/50">
+                            <tr class="text-gray-500 hover:bg-white/50">
                                 <td class="px-4 py-3">{{ $index + 1 }}</td>
                                 <td class="px-4 py-3 font-mono text-blue-400">{{ $item->item_code }}</td>
                                 <td class="px-4 py-3">{{ $item->item_description ?? '—' }}</td>
@@ -192,7 +192,7 @@
                             @php $totalAmount += $item->total_amount; @endphp
 
                             @if($item->notes)
-                            <tr class="bg-gray-900/30">
+                            <tr class="bg-gray-50/30">
                                 <td colspan="10" class="px-4 py-2">
                                     <span class="text-xs text-gray-500">Note:</span>
                                     <span class="text-xs text-gray-400">{{ $item->notes }}</span>
@@ -207,9 +207,9 @@
                             </tr>
                             @endforelse
                         </tbody>
-                        <tfoot class="bg-gray-900 font-semibold">
+                        <tfoot class="bg-gray-50 font-semibold">
                             <tr>
-                                <td colspan="9" class="px-4 py-3 text-right text-gray-300">Grand Total:</td>
+                                <td colspan="9" class="px-4 py-3 text-right text-gray-500">Grand Total:</td>
                                 <td class="px-4 py-3 text-right text-green-400 text-lg">₱{{ number_format($totalAmount, 2) }}</td>
                             </tr>
                         </tfoot>
@@ -218,7 +218,7 @@
             </div>
 
             <!-- Timestamps -->
-            <div class="flex justify-between text-xs text-gray-500 pt-4 border-t border-gray-700">
+            <div class="flex justify-between text-xs text-gray-500 pt-4 border-t border-gray-200">
                 <div>
                     <span>Created:</span>
                     <span class="text-gray-400">{{ $receivingReport->created_at->format('M d, Y h:i A') }}</span>

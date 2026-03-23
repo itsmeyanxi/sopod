@@ -4,11 +4,11 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-white rounded-lg shadow-lg p-6">
 
         {{-- Header --}}
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-white">AR Adjustments</h2>
+            <h2 class="text-2xl font-bold text-gray-800">AR Adjustments</h2>
 
             {{-- Action Buttons --}}
             <div class="flex items-center gap-3">
@@ -32,37 +32,37 @@
         </div>
 
         {{-- Quick Stats Dashboard --}}
-        <div id="stats_dashboard" class="bg-gray-700 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+        <div id="stats_dashboard" class="bg-gray-100 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="fas fa-chart-bar mr-2"></i> Quick Statistics
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-blue-900 rounded p-4">
                     <p class="text-gray-400 text-sm">Today's Adjustments</p>
-                    <p class="text-2xl font-bold text-blue-300" id="stat_today_count">—</p>
-                    <p class="text-gray-500 text-xs" id="stat_today_total">₱0.00</p>
+                    <p class="text-2xl font-bold text-blue-300" id="stat_today_count">-</p>
+                    <p class="text-gray-500 text-xs" id="stat_today_total">P0.00</p>
                 </div>
                 <div class="bg-green-900 rounded p-4">
                     <p class="text-gray-400 text-sm">This Month</p>
-                    <p class="text-2xl font-bold text-green-300" id="stat_month_count">—</p>
-                    <p class="text-gray-500 text-xs" id="stat_month_total">₱0.00</p>
+                    <p class="text-2xl font-bold text-green-300" id="stat_month_count">-</p>
+                    <p class="text-gray-500 text-xs" id="stat_month_total">P0.00</p>
                 </div>
                 <div class="bg-purple-900 rounded p-4">
                     <p class="text-gray-400 text-sm">Last 30 Days</p>
-                    <p class="text-2xl font-bold text-purple-300" id="stat_30day_count">—</p>
-                    <p class="text-gray-500 text-xs" id="stat_30day_total">₱0.00</p>
+                    <p class="text-2xl font-bold text-purple-300" id="stat_30day_count">-</p>
+                    <p class="text-gray-500 text-xs" id="stat_30day_total">P0.00</p>
                 </div>
                 <div class="bg-orange-900 rounded p-4">
                     <p class="text-gray-400 text-sm">Pending Approvals</p>
-                    <p class="text-2xl font-bold text-orange-300" id="stat_pending_count">—</p>
+                    <p class="text-2xl font-bold text-orange-300" id="stat_pending_count">-</p>
                     <p class="text-gray-500 text-xs">Needs DR approval</p>
                 </div>
             </div>
         </div>
 
         {{-- Search Section --}}
-        <div class="bg-gray-700 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-white mb-4">Search Customer / DR Number</h3>
+        <div class="bg-gray-100 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Search Customer / DR Number</h3>
             <div class="flex items-center space-x-4">
                 <div class="flex-1">
                     <input type="text" id="customer_search" placeholder="Enter Customer Name or DR Number"
@@ -76,9 +76,9 @@
         </div>
 
         {{-- Adjustment List View (shown initially) --}}
-        <div id="adjustment_list_view" class="bg-gray-700 rounded-lg p-4">
+        <div id="adjustment_list_view" class="bg-gray-100 rounded-lg p-4">
             <div class="flex justify-between items-center mb-4">
-                <h4 class="text-lg font-semibold text-white">Adjustment List</h4>
+                <h4 class="text-lg font-semibold text-gray-800">Adjustment List</h4>
                 <button type="button" onclick="exportAdjustmentList()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-2">
                     <i class="fas fa-file-excel"></i>
                     <span>Export to Excel</span>
@@ -86,18 +86,18 @@
             </div>
 
             {{-- Filter Section --}}
-            <div class="bg-gray-800 rounded-lg p-4 mb-4">
+            <div class="bg-white rounded-lg p-4 mb-4">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Date From</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Date From</label>
                         <input type="date" id="filter_start_date" class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Date To</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Date To</label>
                         <input type="date" id="filter_end_date" class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Type</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Type</label>
                         <select id="filter_transaction_type" class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2">
                             <option value="">All Types</option>
                             <option value="atd">ATD (Authority to Debit)</option>
@@ -118,9 +118,9 @@
 
             {{-- Adjustment List Table --}}
             <div class="overflow-x-auto">
-                <table class="min-w-full bg-gray-800 rounded-lg text-sm">
+                <table class="min-w-full bg-white rounded-lg text-sm">
                     <thead>
-                        <tr class="bg-gray-900 text-gray-300 text-xs">
+                        <tr class="bg-gray-50 text-gray-500 text-xs">
                             <th class="px-3 py-3 text-left">Date</th>
                             <th class="px-3 py-3 text-left">Ref No.</th>
                             <th class="px-3 py-3 text-left">Type</th>
@@ -134,7 +134,7 @@
                             <th class="px-3 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="adjustment_list_tbody" class="text-gray-300">
+                    <tbody id="adjustment_list_tbody" class="text-gray-500">
                         <tr>
                             <td colspan="15" class="px-4 py-8 text-center text-gray-400">
                                 <i class="fas fa-file-invoice text-4xl mb-2"></i>
@@ -149,8 +149,8 @@
         {{-- Adjustment Entries View (shown after search) --}}
         <div id="adjustment_entries_view" class="hidden">
             {{-- DR Selection --}}
-            <div id="dr_selection_container" class="bg-gray-700 rounded-lg p-4 mb-4">
-                <h4 class="text-sm font-semibold text-white mb-3 flex items-center">
+            <div id="dr_selection_container" class="bg-gray-100 rounded-lg p-4 mb-4">
+                <h4 class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
                     <i class="fas fa-file-invoice mr-2"></i>
                     Select DR Number
                 </h4>
@@ -160,23 +160,23 @@
             </div>
 
             {{-- Customer & DR Information --}}
-            <div id="customer_info_container" class="bg-gray-700 rounded-lg p-4 mb-4">
-                <h4 class="text-sm font-semibold text-white mb-3 flex items-center">
+            <div id="customer_info_container" class="bg-gray-100 rounded-lg p-4 mb-4">
+                <h4 class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
                     <i class="fas fa-user mr-2"></i>
                     Customer & DR Information
                 </h4>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
                     <div>
                         <label class="block text-gray-400 text-xs mb-1">Customer Name</label>
-                        <p class="text-white font-semibold" id="display_customer_name">—</p>
+                        <p class="text-gray-800 font-semibold" id="display_customer_name">—</p>
                     </div>
                     <div>
                         <label class="block text-gray-400 text-xs mb-1">DR Number</label>
-                        <p class="text-white font-semibold" id="display_dr_no">—</p>
+                        <p class="text-gray-800 font-semibold" id="display_dr_no">—</p>
                     </div>
                     <div>
                         <label class="block text-gray-400 text-xs mb-1">Invoice Number</label>
-                        <p class="text-white font-semibold" id="display_invoice_no">—</p>
+                        <p class="text-gray-800 font-semibold" id="display_invoice_no">—</p>
                     </div>
                     <div>
                         <label class="block text-gray-400 text-xs mb-1">Current AR Balance</label>
@@ -186,9 +186,9 @@
             </div>
 
             {{-- Adjustment Entry Form --}}
-            <div id="adjustment_table_container" class="bg-gray-700 rounded-lg p-4">
+            <div id="adjustment_table_container" class="bg-gray-100 rounded-lg p-4">
                 <div class="flex justify-between items-center mb-3">
-                    <h4 class="text-sm font-semibold text-white">New AR Adjustment</h4>
+                    <h4 class="text-sm font-semibold text-gray-800">New AR Adjustment</h4>
                     <button type="button" onclick="saveAdjustment()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-1">
                         <i class="fas fa-save"></i>
                         <span>Save Adjustment</span>
@@ -197,18 +197,18 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Date *</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Date *</label>
                         <input type="date" id="transaction_date" required
                                class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Reference Number *</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Reference Number *</label>
                         <input type="text" id="reference_number" required
                                placeholder="e.g., ADJ-2026-001"
                                class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Type *</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Type *</label>
                         <select id="transaction_type" required
                                 class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select Type</option>
@@ -219,26 +219,26 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Amount *</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Amount *</label>
                         <input type="text" id="amount" required
                                placeholder="Enter amount (e.g., -100 to decrease AR by 100)"
                                class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <p class="text-xs text-gray-400 mt-1">Use negative value (e.g., -100) to decrease AR</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">GL Account *</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-2">GL Account *</label>
                         <input type="text" id="gl_account" required
                                placeholder="e.g., 1200-AR"
                                class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Signed By *</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Signed By *</label>
                         <input type="text" id="signed_by" required
                                placeholder="e.g., John Doe"
                                class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Remarks</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Remarks</label>
                         <textarea id="remarks" rows="3"
                                   placeholder="Optional remarks or notes"
                                   class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
@@ -248,9 +248,9 @@
         </div>
 
         {{-- No Results Message --}}
-        <div id="no_results_message" class="hidden bg-gray-700 rounded-lg p-8 text-center">
+        <div id="no_results_message" class="hidden bg-gray-100 rounded-lg p-8 text-center">
             <i class="fas fa-user-slash text-5xl text-gray-500 mb-4"></i>
-            <h3 class="text-xl font-semibold text-white mb-2">No Results Found</h3>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">No Results Found</h3>
             <p class="text-gray-400">The customer or DR number you searched for does not exist. Please check and try again.</p>
         </div>
 
@@ -452,8 +452,8 @@ document.getElementById('search_customer_btn').addEventListener('click', functio
             icon: 'warning',
             title: 'Empty Search',
             text: 'Please enter a customer name or DR number.',
-            background: '#1f2937',
-            color: '#fff'
+            background: '#ffffff',
+            color: '#1f2937'
         });
         return;
     }
@@ -461,8 +461,8 @@ document.getElementById('search_customer_btn').addEventListener('click', functio
     Swal.fire({
         title: 'Searching...',
         text: 'Looking up customer information',
-        background: '#1f2937',
-        color: '#fff',
+        background: '#ffffff',
+        color: '#1f2937',
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
@@ -518,8 +518,8 @@ document.getElementById('search_customer_btn').addEventListener('click', functio
             icon: 'error',
             title: 'Error',
             text: 'Failed to search. Please try again.',
-            background: '#1f2937',
-            color: '#fff'
+            background: '#ffffff',
+            color: '#1f2937'
         });
     });
 });
@@ -548,7 +548,7 @@ function displayDRSelection(records) {
         records.forEach(record => {
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = 'w-full bg-gray-600 hover:bg-gray-500 text-white px-4 py-3 rounded text-left transition flex justify-between items-center';
+            button.className = 'w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded text-left transition flex justify-between items-center';
 
             // ✅ Determine status badge color and icon
             const isFullyPaid = parseFloat(record.net_ar_balance || 0) <= 0;
@@ -564,7 +564,7 @@ function displayDRSelection(records) {
                             <i class="fas ${statusIcon} mr-1"></i>${statusText}
                         </span>
                     </div>
-                    <div class="text-xs text-gray-300 mt-1">
+                    <div class="text-xs text-gray-500 mt-1">
                         ${record.customer_name} | Invoice: ${record.invoice_no || 'N/A'} | Balance: ₱${parseFloat(record.net_ar_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}
                     </div>
                 </div>
@@ -595,8 +595,8 @@ function saveAdjustment() {
             icon: 'error',
             title: 'No DR Selected',
             text: 'Please search and select a DR number first.',
-            background: '#1f2937',
-            color: '#fff'
+            background: '#ffffff',
+            color: '#1f2937'
         });
         return;
     }
@@ -614,8 +614,8 @@ function saveAdjustment() {
             icon: 'error',
             title: 'Validation Error',
             text: 'Please fill in all required fields.',
-            background: '#1f2937',
-            color: '#fff'
+            background: '#ffffff',
+            color: '#1f2937'
         });
         return;
     }
@@ -623,8 +623,8 @@ function saveAdjustment() {
     Swal.fire({
         title: 'Saving...',
         text: 'Creating AR adjustment',
-        background: '#1f2937',
-        color: '#fff',
+        background: '#ffffff',
+        color: '#1f2937',
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
@@ -666,8 +666,8 @@ function saveAdjustment() {
                 icon: 'success',
                 title: 'Success!',
                 text: data.message,
-                background: '#1f2937',
-                color: '#fff'
+                background: '#ffffff',
+                color: '#1f2937'
             }).then(() => {
                 // Clear form
                 document.getElementById('reference_number').value = '';
@@ -685,8 +685,8 @@ function saveAdjustment() {
                 icon: 'error',
                 title: 'Error',
                 text: data.message || 'Failed to save adjustment',
-                background: '#1f2937',
-                color: '#fff'
+                background: '#ffffff',
+                color: '#1f2937'
             });
         }
     })
@@ -697,8 +697,8 @@ function saveAdjustment() {
             icon: 'error',
             title: 'Error',
             text: 'Failed to save adjustment. Please try again.',
-            background: '#1f2937',
-            color: '#fff'
+            background: '#ffffff',
+            color: '#1f2937'
         });
     });
 }
@@ -793,7 +793,7 @@ function filterAdjustmentList() {
 
             data.adjustments.forEach(adj => {
                 const row = document.createElement('tr');
-                row.className = 'border-b border-gray-700 hover:bg-gray-750';
+                row.className = 'border-b border-gray-200 hover:bg-gray-750';
 
                 const typeColor = {
                     'atd': 'blue',
@@ -842,7 +842,7 @@ function filterAdjustmentList() {
                     </td>
                     <td class="px-3 py-3">${drStatusDisplay}</td>
                     <td class="px-3 py-3">
-                        <span class="bg-gray-700 px-2 py-1 rounded text-xs">
+                        <span class="bg-gray-100 px-2 py-1 rounded text-xs">
                             ${adj.invoice_number || 'N/A'}
                         </span>
                     </td>
@@ -889,8 +889,8 @@ function exportAdjustmentList() {
         icon: 'info',
         title: 'Export Started',
         text: 'Adjustment list will be downloaded shortly.',
-        background: '#1f2937',
-        color: '#fff',
+        background: '#ffffff',
+        color: '#1f2937',
         timer: 2000,
         showConfirmButton: false
     });
@@ -914,8 +914,8 @@ function deleteAdjustment(id) {
         cancelButtonColor: '#6b7280',
         confirmButtonText: 'Yes, delete it!',
         cancelButtonText: 'Cancel',
-        background: '#1f2937',
-        color: '#fff'
+        background: '#ffffff',
+        color: '#1f2937'
     }).then((result) => {
         if (result.isConfirmed) {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -933,8 +933,8 @@ function deleteAdjustment(id) {
                         icon: 'success',
                         title: 'Deleted!',
                         text: data.message,
-                        background: '#1f2937',
-                        color: '#fff',
+                        background: '#ffffff',
+                        color: '#1f2937',
                         timer: 2000,
                         showConfirmButton: false
                     });
@@ -945,8 +945,8 @@ function deleteAdjustment(id) {
                         icon: 'error',
                         title: 'Error',
                         text: data.message,
-                        background: '#1f2937',
-                        color: '#fff'
+                        background: '#ffffff',
+                        color: '#1f2937'
                     });
                 }
             })
@@ -955,8 +955,8 @@ function deleteAdjustment(id) {
                     icon: 'error',
                     title: 'Error',
                     text: 'Failed to delete adjustment',
-                    background: '#1f2937',
-                    color: '#fff'
+                    background: '#ffffff',
+                    color: '#1f2937'
                 });
             });
         }

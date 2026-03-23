@@ -4,10 +4,10 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-white">TRADE ITEMS LIBRARY</h1>
+                <h1 class="text-2xl font-bold text-gray-800">TRADE ITEMS LIBRARY</h1>
                 <p class="text-gray-400 text-sm mt-1">Trade items linked to suppliers (Local or Import). Used for autocomplete in Purchase Orders — filtered by selected supplier.</p>
             </div>
             <div class="flex gap-2">
@@ -33,9 +33,9 @@
         <!-- Search & Filter -->
         <form method="GET" action="{{ route('trade_items.index') }}" class="mb-4 flex gap-3">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search items..."
-                class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                class="flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
             <select name="account"
-                class="bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                class="bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                 <option value="">— All Accounts —</option>
                 @foreach($accounts as $acc)
                     <option value="{{ $acc }}" {{ request('account') == $acc ? 'selected' : '' }}>{{ $acc }}</option>
@@ -51,47 +51,47 @@
 
         <!-- Table -->
         <div class="overflow-x-auto">
-            <table class="w-full border-collapse border border-gray-700">
-                <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
+            <table class="w-full border-collapse border border-gray-200">
+                <thead class="bg-gray-100 text-gray-500 uppercase text-xs">
                     <tr>
-                        <th class="border border-gray-700 px-4 py-3 text-left">#</th>
-                        <th class="border border-gray-700 px-4 py-3 text-left">ITEM CODE</th>
-                        <th class="border border-gray-700 px-4 py-3 text-left">ITEM DESCRIPTION</th>
-                        <th class="border border-gray-700 px-4 py-3 text-left">SUPPLIER</th>
-                        <th class="border border-gray-700 px-4 py-3 text-left">ACCOUNT</th>
-                        <th class="border border-gray-700 px-4 py-3 text-left">VENDOR CODE</th>
-                        <th class="border border-gray-700 px-4 py-3 text-center">TYPE</th>
-                        <th class="border border-gray-700 px-4 py-3 text-left">DATE ADDED</th>
-                        <th class="border border-gray-700 px-4 py-3 text-center">ACTION</th>
+                        <th class="border border-gray-200 px-4 py-3 text-left">#</th>
+                        <th class="border border-gray-200 px-4 py-3 text-left">ITEM CODE</th>
+                        <th class="border border-gray-200 px-4 py-3 text-left">ITEM DESCRIPTION</th>
+                        <th class="border border-gray-200 px-4 py-3 text-left">SUPPLIER</th>
+                        <th class="border border-gray-200 px-4 py-3 text-left">ACCOUNT</th>
+                        <th class="border border-gray-200 px-4 py-3 text-left">VENDOR CODE</th>
+                        <th class="border border-gray-200 px-4 py-3 text-center">TYPE</th>
+                        <th class="border border-gray-200 px-4 py-3 text-left">DATE ADDED</th>
+                        <th class="border border-gray-200 px-4 py-3 text-center">ACTION</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-300">
+                <tbody class="text-gray-500">
                     @forelse($items as $item)
-                        <tr class="hover:bg-gray-700/40">
-                            <td class="border border-gray-700 px-4 py-3 text-gray-500">{{ $items->firstItem() + $loop->index }}</td>
-                            <td class="border border-gray-700 px-4 py-3">
+                        <tr class="hover:bg-gray-100/40">
+                            <td class="border border-gray-200 px-4 py-3 text-gray-500">{{ $items->firstItem() + $loop->index }}</td>
+                            <td class="border border-gray-200 px-4 py-3">
                                 <form action="{{ route('trade_items.update', $item->id) }}" method="POST" class="flex items-center gap-1">
                                     @csrf
                                     @method('PUT')
                                     <input type="text" name="item_code" value="{{ $item->item_code }}"
-                                        class="w-32 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        class="w-32 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                                         placeholder="—">
                                     <button type="submit" class="text-green-400 hover:text-green-300 text-xs" title="Save">
                                         <i class="fas fa-check"></i>
                                     </button>
                                 </form>
                             </td>
-                            <td class="border border-gray-700 px-4 py-3">{{ $item->name }}</td>
-                            <td class="border border-gray-700 px-4 py-3">
+                            <td class="border border-gray-200 px-4 py-3">{{ $item->name }}</td>
+                            <td class="border border-gray-200 px-4 py-3">
                                 @if($item->supplier)
                                     <span class="text-purple-300">{{ $item->supplier->supplier_name }}</span>
                                 @else
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
-                            <td class="border border-gray-700 px-4 py-3 text-sm">{{ $item->account ?? '-' }}</td>
-                            <td class="border border-gray-700 px-4 py-3 text-sm">{{ $item->vendor_code ?? '-' }}</td>
-                            <td class="border border-gray-700 px-4 py-3 text-center">
+                            <td class="border border-gray-200 px-4 py-3 text-sm">{{ $item->account ?? '-' }}</td>
+                            <td class="border border-gray-200 px-4 py-3 text-sm">{{ $item->vendor_code ?? '-' }}</td>
+                            <td class="border border-gray-200 px-4 py-3 text-center">
                                 @if($item->local_or_import)
                                     <span class="px-2 py-1 rounded text-xs {{ $item->local_or_import === 'Local' ? 'bg-blue-600' : 'bg-orange-600' }}">
                                         {{ $item->local_or_import }}
@@ -100,8 +100,8 @@
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
-                            <td class="border border-gray-700 px-4 py-3">{{ $item->created_at->format('M d, Y') }}</td>
-                            <td class="border border-gray-700 px-4 py-3 text-center">
+                            <td class="border border-gray-200 px-4 py-3">{{ $item->created_at->format('M d, Y') }}</td>
+                            <td class="border border-gray-200 px-4 py-3 text-center">
                                 <form action="{{ route('trade_items.destroy', $item->id) }}" method="POST" class="inline"
                                     onsubmit="return confirm('Remove this item from the library?')">
                                     @csrf
@@ -114,7 +114,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
+                            <td colspan="9" class="border border-gray-200 px-4 py-8 text-center text-gray-400">
                                 No trade items in the library yet. Import a CSV or Excel file to populate.
                             </td>
                         </tr>
@@ -132,8 +132,8 @@
 
 <!-- Import Modal -->
 <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-    <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-        <h3 class="text-lg font-bold text-white mb-2">Import Trade Items from CSV</h3>
+    <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-bold text-gray-800 mb-2">Import Trade Items from CSV</h3>
         <p class="text-gray-400 text-sm mb-4">
             <strong>Format:</strong><br>
             • Column A = Supplier Name<br>
@@ -148,9 +148,9 @@
         <form action="{{ route('trade_items.import') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-300 mb-2">Select CSV or Excel File:</label>
+                <label class="block text-gray-500 mb-2">Select CSV or Excel File:</label>
                 <input type="file" name="csv_file" accept=".csv,.txt,.xlsx,.xls" required
-                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm">
+                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm">
             </div>
             <div class="flex justify-end gap-3">
                 <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')"
@@ -167,26 +167,26 @@
 
 <!-- Add Item Modal -->
 <div id="addItemModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-    <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-        <h3 class="text-lg font-bold text-white mb-4">Add New Trade Item</h3>
+    <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Add New Trade Item</h3>
         <form action="{{ route('trade_items.store') }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-300 text-sm mb-1">Item Description <span class="text-red-400">*</span></label>
+                <label class="block text-gray-500 text-sm mb-1">Item Description <span class="text-red-400">*</span></label>
                 <input type="text" name="name" required maxlength="500"
-                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g. Electrical Materials">
             </div>
             <div class="mb-4">
-                <label class="block text-gray-300 text-sm mb-1">Item Code <span class="text-gray-500">(auto-generated if blank)</span></label>
+                <label class="block text-gray-500 text-sm mb-1">Item Code <span class="text-gray-500">(auto-generated if blank)</span></label>
                 <input type="text" name="item_code" maxlength="100"
-                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Leave blank to auto-generate">
             </div>
             <div class="mb-4">
-                <label class="block text-gray-300 text-sm mb-1">Supplier</label>
+                <label class="block text-gray-500 text-sm mb-1">Supplier</label>
                 <select name="supplier_id"
-                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="">— No specific supplier —</option>
                     @foreach($suppliers as $supplier)
                         <option value="{{ $supplier->id }}">{{ $supplier->supplier_name }}</option>
@@ -194,21 +194,21 @@
                 </select>
             </div>
             <div class="mb-4">
-                <label class="block text-gray-300 text-sm mb-1">Account</label>
+                <label class="block text-gray-500 text-sm mb-1">Account</label>
                 <input type="text" name="account" maxlength="100"
-                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g. Accounts Payable - Trade - Local">
             </div>
             <div class="mb-4">
-                <label class="block text-gray-300 text-sm mb-1">Vendor Code</label>
+                <label class="block text-gray-500 text-sm mb-1">Vendor Code</label>
                 <input type="text" name="vendor_code" maxlength="100"
-                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g. VND001">
             </div>
             <div class="mb-4">
-                <label class="block text-gray-300 text-sm mb-1">Type</label>
+                <label class="block text-gray-500 text-sm mb-1">Type</label>
                 <select name="local_or_import"
-                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="">— Select Type —</option>
                     <option value="Local">Local</option>
                     <option value="Import">Import</option>

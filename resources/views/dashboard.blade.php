@@ -3,7 +3,7 @@
 @section('title', 'Dashboard')
 
 @section('content')
-<div class="bg-gray-800 p-6">
+<div class="bg-white p-6">
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-yellow text-2xl font-bold">Dashboard</h1>
     </div>
@@ -13,24 +13,24 @@
     {{-- ========================================================= --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
 
-        <div class="bg-gray-700 p-6 rounded shadow">
-            <h3 class="text-white text-lg font-semibold">Sales Order</h3>
-            <p class="text-3xl text-white font-bold mt-2">{{ $totalSoThisMonth }}</p>
+        <div class="bg-gray-100 p-6 rounded shadow">
+            <h3 class="text-gray-800 text-lg font-semibold">Sales Order</h3>
+            <p class="text-3xl text-gray-800 font-bold mt-2">{{ $totalSoThisMonth }}</p>
         </div>
 
-        <div class="bg-gray-700 p-6 rounded shadow">
-            <h3 class="text-white text-lg font-semibold">Delivered</h3>
-            <p class="text-3xl text-white font-bold mt-2">{{ $totalDelivered }}</p>
+        <div class="bg-gray-100 p-6 rounded shadow">
+            <h3 class="text-gray-800 text-lg font-semibold">Delivered</h3>
+            <p class="text-3xl text-gray-800 font-bold mt-2">{{ $totalDelivered }}</p>
         </div>
 
-        <div class="bg-gray-700 p-6 rounded shadow">
-            <h3 class="text-white text-lg font-semibold">Pending SO</h3>
-            <p class="text-3xl text-white font-bold mt-2">{{ $totalPending }}</p>
+        <div class="bg-gray-100 p-6 rounded shadow">
+            <h3 class="text-gray-800 text-lg font-semibold">Pending SO</h3>
+            <p class="text-3xl text-gray-800 font-bold mt-2">{{ $totalPending }}</p>
         </div>
 
-        <div class="bg-gray-700 p-6 rounded shadow">
-            <h3 class="text-white text-lg font-semibold">Declined SO</h3>
-            <p class="text-3xl text-white font-bold mt-2">{{ $totalDeclined }}</p>
+        <div class="bg-gray-100 p-6 rounded shadow">
+            <h3 class="text-gray-800 text-lg font-semibold">Declined SO</h3>
+            <p class="text-3xl text-gray-800 font-bold mt-2">{{ $totalDeclined }}</p>
         </div>
 
     </div>
@@ -41,35 +41,35 @@
     {{-- ========================================================= --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
 
-        <div class="bg-gray-700 p-6 shadow rounded">
-            <a href="{{ route('sales_orders.index') }}" class="text-white text-xl font-semibold mb-2 block">
+        <div class="bg-gray-100 p-6 shadow rounded">
+            <a href="{{ route('sales_orders.index') }}" class="text-gray-800 text-xl font-semibold mb-2 block">
                 Sales Orders
             </a>
-            <p class="text-white mb-4">Quick stats about your orders...</p>
+            <p class="text-gray-800 mb-4">Quick stats about your orders...</p>
             <a href="{{ route('sales_orders.index') }}" class="text-gray-50 text-sm hover:underline">View all</a>
         </div>
 
-        <div class="bg-gray-700 p-6 shadow rounded">
-            <a href="{{ route('customers.index') }}" class="text-white text-xl font-semibold mb-2 block">
+        <div class="bg-gray-100 p-6 shadow rounded">
+            <a href="{{ route('customers.index') }}" class="text-gray-800 text-xl font-semibold mb-2 block">
                 Customers
             </a>
-            <p class="text-white mb-4">Track your customer base...</p>
+            <p class="text-gray-800 mb-4">Track your customer base...</p>
             <a href="{{ route('customers.index') }}" class="text-gray-50 text-sm hover:underline">View all</a>
         </div>
 
-        <div class="bg-gray-700 p-6 shadow rounded">
-            <a href="{{ route('items.index') }}" class="text-white text-xl font-semibold mb-2 block">
+        <div class="bg-gray-100 p-6 shadow rounded">
+            <a href="{{ route('items.index') }}" class="text-gray-800 text-xl font-semibold mb-2 block">
                 Items
             </a>
-            <p class="text-white mb-4">Manage your inventory...</p>
+            <p class="text-gray-800 mb-4">Manage your inventory...</p>
             <a href="{{ route('items.index') }}" class="text-gray-50 text-sm hover:underline">View all</a>
         </div>
 
-        <div class="bg-gray-700 p-6 shadow rounded">
-            <a href="{{ route('deliveries.index') }}" class="text-white text-xl font-semibold mb-2 block">
+        <div class="bg-gray-100 p-6 shadow rounded">
+            <a href="{{ route('deliveries.index') }}" class="text-gray-800 text-xl font-semibold mb-2 block">
                 Deliveries
             </a>
-            <p class="text-white mb-4">Track and manage deliveries...</p>
+            <p class="text-gray-800 mb-4">Track and manage deliveries...</p>
             <a href="{{ route('deliveries.index') }}" class="text-gray-50 text-sm hover:underline">View all</a>
         </div>
 
@@ -82,14 +82,14 @@
         $recentActivities = $recentActivities ?? collect();
     @endphp
 
-    <div class="bg-gray-700 shadow rounded p-6 border border-gray-600">
-        <h2 class="text-white font-semibold mb-4">Recent Activity</h2>
+    <div class="bg-gray-100 shadow rounded p-6 border border-gray-300">
+        <h2 class="text-gray-800 font-semibold mb-4">Recent Activity</h2>
 
         @if($recentActivities->isEmpty())
-            <p class="text-white text-sm">No recent activities yet 💤</p>
+            <p class="text-gray-800 text-sm">No recent activities yet 💤</p>
         @else
             <div class="overflow-x-auto">
-                <table class="min-w-full text-sm text-left text-white">
+                <table class="min-w-full text-sm text-left text-gray-800">
                     <thead class="text-xs uppercase bg-gray-600 text-white">
                         <tr>
                             <th class="px-4 py-2">Date</th>
@@ -99,7 +99,7 @@
                     </thead>
                     <tbody>
                         @foreach($recentActivities as $activity)
-                            <tr class="border-b hover:bg-gray-600">
+                            <tr class="border-b hover:bg-gray-100">
                                 <td class="px-4 py-2">{{ $activity->created_at->format('Y-m-d H:i') }}</td>
                                 <td class="px-4 py-2">{{ $activity->message }}</td>
                                 <td class="px-4 py-2">
@@ -122,7 +122,7 @@
 
         <div class="text-center mt-4">
             <a href="{{ route('recent_activities.index', ['module' => 'sales']) }}"
-               class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
+               class="bg-gray-100 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded">
                 View All
             </a>
         </div>

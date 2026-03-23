@@ -181,36 +181,44 @@ class RoleController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|min:6',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => $e->validator->errors()->first()], 422);
+        }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password,
-            'roles' => ['User'],
-            'role' => 'User',
-            'login_attempts' => 0,
-        ]);
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => $request->password,
+                'roles' => ['User'],
+                'role' => 'User',
+                'login_attempts' => 0,
+            ]);
 
-        Activity::create([
-            'user_name' => auth()->user()->name,
-            'action' => 'Created',
-            'item' => $user->name,
-            'target' => 'User Account',
-            'type' => 'User Management',
-            'message' => "User account created",
-        ]);
+            Activity::create([
+                'user_name' => auth()->user()->name,
+                'action' => 'Created',
+                'item' => $user->name,
+                'target' => 'User Account',
+                'type' => 'User Management',
+                'message' => "User account created",
+            ]);
 
-        $user->load(['userRoles.subDepartment.department', 'lockedBy']);
+            $user->load(['userRoles.subDepartment.department', 'lockedBy']);
 
-        return response()->json([
-            'success' => true,
-            'user' => $user,
-        ]);
+            return response()->json([
+                'success' => true,
+                'user' => $user,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create user: ' . $e->getMessage()], 500);
+        }
     }
 
     public function updateUser(Request $request, $id)
@@ -219,38 +227,46 @@ class RoleController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
-            'password' => 'nullable|min:6',
-        ]);
-
-        $user = User::findOrFail($id);
-        $user->name = $request->name;
-        $user->email = $request->email;
-
-        if ($request->filled('password')) {
-            $user->password = $request->password;
-            $user->login_attempts = 0;
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . $id,
+                'password' => 'nullable|min:6',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => $e->validator->errors()->first()], 422);
         }
 
-        $user->save();
+        try {
+            $user = User::findOrFail($id);
+            $user->name = $request->name;
+            $user->email = $request->email;
 
-        Activity::create([
-            'user_name' => auth()->user()->name,
-            'action' => 'Updated',
-            'item' => $user->name,
-            'target' => 'User Account',
-            'type' => 'User Management',
-            'message' => "User account updated",
-        ]);
+            if ($request->filled('password')) {
+                $user->password = $request->password;
+                $user->login_attempts = 0;
+            }
 
-        $user->load(['userRoles.subDepartment.department', 'lockedBy']);
+            $user->save();
 
-        return response()->json([
-            'success' => true,
-            'user' => $user,
-        ]);
+            Activity::create([
+                'user_name' => auth()->user()->name,
+                'action' => 'Updated',
+                'item' => $user->name,
+                'target' => 'User Account',
+                'type' => 'User Management',
+                'message' => "User account updated",
+            ]);
+
+            $user->load(['userRoles.subDepartment.department', 'lockedBy']);
+
+            return response()->json([
+                'success' => true,
+                'user' => $user,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update user: ' . $e->getMessage()], 500);
+        }
     }
 
     public function destroyUser(Request $request, $id)
@@ -259,25 +275,29 @@ class RoleController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $user = User::findOrFail($id);
+        try {
+            $user = User::findOrFail($id);
 
-        if ($user->id === Auth::id()) {
-            return response()->json(['error' => 'You cannot delete your own account'], 422);
+            if ($user->id === Auth::id()) {
+                return response()->json(['error' => 'You cannot delete your own account'], 422);
+            }
+
+            $userName = $user->name;
+            $user->delete();
+
+            Activity::create([
+                'user_name' => auth()->user()->name,
+                'action' => 'Deleted',
+                'item' => $userName,
+                'target' => 'User Account',
+                'type' => 'User Management',
+                'message' => "User account deleted by " . auth()->user()->name,
+            ]);
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete user: ' . $e->getMessage()], 500);
         }
-
-        $userName = $user->name;
-        $user->delete();
-
-        Activity::create([
-            'user_name' => auth()->user()->name,
-            'action' => 'Deleted',
-            'item' => $userName,
-            'target' => 'User Account',
-            'type' => 'User Management',
-            'message' => "User account deleted by " . auth()->user()->name,
-        ]);
-
-        return response()->json(['success' => true]);
     }
 
     public function toggleLockUser(Request $request, $id)

@@ -17,8 +17,8 @@
 
     /* ── KPI Cards ── */
     .kpi-card {
-        background: #111827;
-        border: 1px solid #1f2937;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
         border-radius: 8px;
         padding: 1.25rem 1.5rem;
         position: relative;
@@ -32,7 +32,7 @@
         width: 3px;
         height: 100%;
     }
-    .kpi-card:hover { transform: translateY(-2px); border-color: #374151; }
+    .kpi-card:hover { transform: translateY(-2px); border-color: #d1d5db; }
     .kpi-card.accent-blue::before  { background: #3b82f6; }
     .kpi-card.accent-green::before { background: #22c55e; }
     .kpi-card.accent-amber::before { background: #f59e0b; }
@@ -43,7 +43,7 @@
         font-family: 'IBM Plex Mono', monospace;
         font-size: 1.6rem;
         font-weight: 600;
-        color: #f9fafb;
+        color: #111827;
         line-height: 1.2;
     }
     .kpi-label {
@@ -83,14 +83,14 @@
 
     /* ── Panels ── */
     .panel {
-        background: #111827;
-        border: 1px solid #1f2937;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
         border-radius: 8px;
         overflow: hidden;
     }
     .panel-header {
         padding: 0.9rem 1.25rem;
-        border-bottom: 1px solid #1f2937;
+        border-bottom: 1px solid #e5e7eb;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -110,14 +110,14 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.55rem 1.25rem;
-        border-bottom: 1px solid #1a2030;
+        border-bottom: 1px solid #f3f4f6;
         transition: background 0.15s;
     }
     .bar-row:last-child { border-bottom: none; }
-    .bar-row:hover { background: #0f172a; }
+    .bar-row:hover { background: #f3f4f6; }
     .bar-track {
         height: 6px;
-        background: #1f2937;
+        background: #e5e7eb;
         border-radius: 3px;
         overflow: hidden;
     }
@@ -136,7 +136,7 @@
     .bar-amount {
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.72rem;
-        color: #d1d5db;
+        color: #4b5563;
         text-align: right;
     }
 
@@ -149,22 +149,22 @@
         letter-spacing: 0.1em;
         text-transform: uppercase;
         color: #4b5563;
-        background: #0f172a;
+        background: #f3f4f6;
         text-align: left;
-        border-bottom: 1px solid #1f2937;
+        border-bottom: 1px solid #e5e7eb;
         position: sticky;
         top: 0;
         z-index: 5;
     }
     .po-table tbody tr {
-        border-bottom: 1px solid #1a2030;
+        border-bottom: 1px solid #e5e7eb;
         transition: background 0.12s;
     }
-    .po-table tbody tr:hover { background: #0f172a; }
+    .po-table tbody tr:hover { background: #f3f4f6; }
     .po-table tbody td {
         padding: 0.6rem 1rem;
         font-size: 0.8rem;
-        color: #d1d5db;
+        color: #4b5563;
     }
     .po-table tbody td.mono-col {
         font-family: 'IBM Plex Mono', monospace;
@@ -174,8 +174,8 @@
 
     /* ── Filters ── */
     .filter-select {
-        background: #0f172a;
-        border: 1px solid #1f2937;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
         border-radius: 4px;
         color: #9ca3af;
         font-size: 0.75rem;
@@ -184,13 +184,13 @@
         cursor: pointer;
         font-family: 'IBM Plex Sans', sans-serif;
     }
-    .filter-select:focus { border-color: #3b82f6; color: #f9fafb; }
+    .filter-select:focus { border-color: #3b82f6; color: #111827; }
 
     .search-input {
-        background: #0f172a;
-        border: 1px solid #1f2937;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
         border-radius: 4px;
-        color: #d1d5db;
+        color: #4b5563;
         font-size: 0.75rem;
         padding: 0.35rem 0.75rem;
         outline: none;
@@ -199,7 +199,7 @@
         transition: border-color 0.15s, width 0.3s;
     }
     .search-input:focus { border-color: #3b82f6; width: 260px; }
-    .search-input::placeholder { color: #374151; }
+    .search-input::placeholder { color: #9ca3af; }
 
     /* ── Company tabs ── */
     .company-tab {
@@ -214,7 +214,7 @@
         background: transparent;
         font-family: 'IBM Plex Sans', sans-serif;
     }
-    .company-tab:hover { color: #d1d5db; background: #1f2937; }
+    .company-tab:hover { color: #4b5563; background: #e5e7eb; }
     .company-tab.active {
         color: #60a5fa;
         background: rgba(59,130,246,0.1);
@@ -252,19 +252,19 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.55rem 1.25rem;
-        border-bottom: 1px solid #1a2030;
+        border-bottom: 1px solid #e5e7eb;
     }
     .status-row:last-child { border-bottom: none; }
     .status-name { width: 9rem; font-size: 0.72rem; color: #9ca3af; }
-    .status-bar-wrap { flex: 1; height: 6px; background: #1f2937; border-radius: 3px; overflow: hidden; }
+    .status-bar-wrap { flex: 1; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
     .status-count-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #6b7280; width: 2.5rem; text-align: right; }
-    .status-amount-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #d1d5db; width: 8rem; text-align: right; }
+    .status-amount-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #4b5563; width: 8rem; text-align: right; }
 
     /* ── Table scroll wrapper ── */
     .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 420px; }
     .table-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
     .table-scroll::-webkit-scrollbar-track { background: transparent; }
-    .table-scroll::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }
+    .table-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
 
     /* ── Divider badge ── */
     .section-badge {
@@ -282,7 +282,7 @@
         display: block;
         width: 12px;
         height: 1px;
-        background: #374151;
+        background: #d1d5db;
     }
 
     /* ── Stagger animations ── */
@@ -300,7 +300,7 @@
 
     /* Loading shimmer */
     .shimmer {
-        background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
+        background: linear-gradient(90deg, #e5e7eb 25%, #d1d5db 50%, #e5e7eb 75%);
         background-size: 200% 100%;
         animation: shimmer 1.5s infinite;
         border-radius: 4px;
@@ -313,12 +313,12 @@
     {{-- ── Header ── --}}
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-white font-semibold text-xl tracking-tight">PO Summary Monitor</h1>
+            <h1 class="text-gray-800 font-semibold text-xl tracking-tight">PO Summary Monitor</h1>
             <p class="text-gray-500 text-xs mt-0.5 mono">{{ now()->format('l, F j Y · H:i') }} · Real-time snapshot</p>
         </div>
         <div class="flex items-center gap-2">
             {{-- Company filter tabs --}}
-            <div class="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-md p-1">
+            <div class="flex items-center gap-1 bg-gray-50 border border-gray-800 rounded-md p-1">
                 <button class="company-tab" :class="{ active: activeCompany === 'all' }" @click="setCompany('all')">All</button>
                 <button class="company-tab" :class="{ active: activeCompany === 'NBC' }" @click="setCompany('NBC')">NBC</button>
                 <button class="company-tab" :class="{ active: activeCompany === 'PMAI' }" @click="setCompany('PMAI')">PMAI</button>
@@ -367,7 +367,7 @@
         <div class="panel">
             <div class="panel-header">
                 <span class="panel-title">Payment Status</span>
-                <span class="mono" style="font-size:0.65rem; color:#374151;" x-text="kpis.totalPOCount + ' total POs'"></span>
+                <span class="mono" style="font-size:0.65rem; color:#9ca3af;" x-text="kpis.totalPOCount + ' total POs'"></span>
             </div>
             <template x-for="s in statuses" :key="s.key">
                 <div class="status-row">
@@ -390,7 +390,7 @@
             </div>
             <div class="donut-wrap" x-show="!loading">
                 <svg class="donut-svg" width="100" height="100" viewBox="0 0 42 42">
-                    <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#1f2937" stroke-width="5"/>
+                    <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#e5e7eb" stroke-width="5"/>
                     <template x-for="(seg, i) in donutSegments" :key="i">
                         <circle
                             cx="21" cy="21" r="15.915"
@@ -407,7 +407,7 @@
                         <div class="donut-legend-item">
                             <span class="donut-dot" :style="'background:' + c.color"></span>
                             <span x-text="c.key"></span>
-                            <span class="mono ml-auto pl-3" style="color:#d1d5db; font-size:0.68rem;" x-text="formatPHP(c.amount)"></span>
+                            <span class="mono ml-auto pl-3" style="color:#4b5563; font-size:0.68rem;" x-text="formatPHP(c.amount)"></span>
                         </div>
                     </template>
                 </div>
@@ -441,12 +441,12 @@
         <div class="panel">
             <div class="panel-header">
                 <span class="panel-title">Top Suppliers</span>
-                <span class="mono" style="font-size:0.65rem;color:#374151;">by PO amount</span>
+                <span class="mono" style="font-size:0.65rem;color:#9ca3af;">by PO amount</span>
             </div>
             <template x-for="(sup, i) in topSuppliers" :key="sup.name">
                 <div class="bar-row">
                     <span class="bar-label">
-                        <span class="mono" style="color:#374151;" x-text="(i+1).toString().padStart(2,'0') + '. '"></span>
+                        <span class="mono" style="color:#9ca3af;" x-text="(i+1).toString().padStart(2,'0') + '. '"></span>
                         <span x-text="sup.name"></span>
                     </span>
                     <div class="bar-track">
@@ -515,7 +515,7 @@
                                 <td x-text="po.category" style="font-size:0.72rem; color:#9ca3af;"></td>
                                 <td x-text="po.gl_type" style="font-size:0.7rem; color:#6b7280;"></td>
                                 <td>
-                                    <span class="mono" style="font-size:0.68rem; padding:0.1rem 0.4rem; background:#0f172a; border:1px solid #1f2937; border-radius:3px; color:#60a5fa;" x-text="po.company"></span>
+                                    <span class="mono" style="font-size:0.68rem; padding:0.1rem 0.4rem; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:3px; color:#60a5fa;" x-text="po.company"></span>
                                 </td>
                                 <td class="mono-col text-right" x-text="formatPHP(po.po_amount)"></td>
                                 <td class="mono-col text-right" x-text="formatPHP(po.invoice_amount)"></td>
@@ -527,8 +527,8 @@
                     </tbody>
                 </table>
             </div>
-            <div class="panel-header" style="border-top:1px solid #1f2937; border-bottom:none; justify-content:flex-end;">
-                <span class="mono" style="font-size:0.65rem; color:#374151;" x-text="'Showing ' + Math.min(filteredPOs.length, 60) + ' of ' + filteredPOs.length + ' records'"></span>
+            <div class="panel-header" style="border-top:1px solid #e5e7eb; border-bottom:none; justify-content:flex-end;">
+                <span class="mono" style="font-size:0.65rem; color:#9ca3af;" x-text="'Showing ' + Math.min(filteredPOs.length, 60) + ' of ' + filteredPOs.length + ' records'"></span>
             </div>
         </div>
 

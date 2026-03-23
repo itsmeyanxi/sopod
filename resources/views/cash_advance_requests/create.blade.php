@@ -4,13 +4,13 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold text-white">CASH ADVANCE REQUEST</h1>
+        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+            <h1 class="text-2xl font-bold text-gray-800">CASH ADVANCE REQUEST</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-300">CAR NO:</label>
-                <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $carNo }}</span>
+                <label class="font-semibold text-gray-500">CAR NO:</label>
+                <span class="ml-2 px-4 py-1 bg-gray-50 border border-gray-200 text-gray-800 rounded">{{ $carNo }}</span>
             </div>
         </div>
 
@@ -30,61 +30,61 @@
             <!-- Main Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">PAYEE: <span class="text-red-400">*</span></label>
-                    <input type="text" name="payee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee') }}" required>
+                    <label class="block font-semibold text-gray-500 mb-2">PAYEE: <span class="text-red-400">*</span></label>
+                    <input type="text" name="payee" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee') }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">DEPARTMENT: <span class="text-red-400">*</span></label>
-                    <input type="text" name="department" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('department') }}" required>
+                    <label class="block font-semibold text-gray-500 mb-2">DEPARTMENT: <span class="text-red-400">*</span></label>
+                    <input type="text" name="department" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('department') }}" required>
                 </div>
             </div>
 
             <!-- Purpose -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-2">PURPOSE: <span class="text-red-400">*</span></label>
-                <textarea name="purpose" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter purpose of cash advance..." required>{{ old('purpose') }}</textarea>
+                <label class="block font-semibold text-gray-500 mb-2">PURPOSE: <span class="text-red-400">*</span></label>
+                <textarea name="purpose" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter purpose of cash advance..." required>{{ old('purpose') }}</textarea>
             </div>
 
             <!-- Dates and Amount -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">DATE REQUESTED: <span class="text-red-400">*</span></label>
-                    <input type="date" name="date_requested" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_requested', date('Y-m-d')) }}" required>
+                    <label class="block font-semibold text-gray-500 mb-2">DATE REQUESTED: <span class="text-red-400">*</span></label>
+                    <input type="date" name="date_requested" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_requested', date('Y-m-d')) }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">DATE NEEDED: <span class="text-red-400">*</span></label>
-                    <input type="date" name="date_needed" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_needed') }}" required>
+                    <label class="block font-semibold text-gray-500 mb-2">DATE NEEDED: <span class="text-red-400">*</span></label>
+                    <input type="date" name="date_needed" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_needed') }}" required>
                 </div>
             </div>
 
             <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-2">AMOUNT ADVANCED: <span class="text-red-400">*</span></label>
+                <label class="block font-semibold text-gray-500 mb-2">AMOUNT ADVANCED: <span class="text-red-400">*</span></label>
                 <div class="relative">
                     <span class="absolute left-3 top-2.5 text-gray-400">&#8369;</span>
-                    <input type="number" step="0.01" name="amount_advanced" class="w-full bg-gray-900 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount_advanced') }}" required>
+                    <input type="number" step="0.01" name="amount_advanced" class="w-full bg-gray-50 border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount_advanced') }}" required>
                 </div>
             </div>
 
             <!-- Signature Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">REQUESTED BY:</label>
-                    <input type="text" name="requested_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('requested_by') }}">
+                    <label class="block font-semibold text-gray-500 mb-2">REQUESTED BY:</label>
+                    <input type="text" name="requested_by" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('requested_by') }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">CHECKED BY (Department Head):</label>
-                    <input type="text" name="checked_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('checked_by') }}">
+                    <label class="block font-semibold text-gray-500 mb-2">CHECKED BY (Department Head):</label>
+                    <input type="text" name="checked_by" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('checked_by') }}">
                 </div>
             </div>
 
             <!-- Remarks -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-2">REMARKS:</label>
-                <textarea name="remarks" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Optional remarks...">{{ old('remarks') }}</textarea>
+                <label class="block font-semibold text-gray-500 mb-2">REMARKS:</label>
+                <textarea name="remarks" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Optional remarks...">{{ old('remarks') }}</textarea>
             </div>
 
             <!-- Fine Print -->
-            <div class="mb-6 p-4 bg-gray-900 border border-gray-700 rounded">
+            <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded">
                 <p class="text-gray-400 text-sm italic">
                     I hereby acknowledge receipt of the above sum of money and hereby agree to liquidate in 5 calendar days after the cash advance serve its purpose and provide receipts to document the expenditures.
                 </p>
@@ -92,10 +92,10 @@
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-4">
-                <a href="{{ route('cash_advance_requests.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
+                <a href="{{ route('cash_advance_requests.index') }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
+                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                     <i class="fas fa-save mr-1"></i> Create Cash Advance Request
                 </button>
             </div>

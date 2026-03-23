@@ -4,12 +4,12 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-white rounded-lg shadow-lg p-6">
 
         <!-- Filters Section -->
-        <div class="bg-gray-700 rounded-lg p-6 mb-6">
+        <div class="bg-gray-100 rounded-lg p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-white">Filters</h3>
+                <h3 class="text-lg font-semibold text-gray-800">Filters</h3>
                 <div class="flex gap-2">
                     <a href="{{ route('aging_reports.summary') }}" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition whitespace-nowrap flex items-center space-x-2">
                         <i class="fas fa-list"></i>
@@ -23,7 +23,7 @@
             <form id="filter-form" method="GET" action="{{ route('aging_reports.summary') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Record Date Filter (filters which records to show) -->
                 <div>
-                    <label for="filter_date" class="block text-sm font-medium text-gray-300 mb-2">
+                    <label for="filter_date" class="block text-sm font-medium text-gray-500 mb-2">
                         Record Date (On or Before)
                         <span class="text-xs text-gray-400 ml-1">(leave empty to show ALL records)</span>
                     </label>
@@ -37,7 +37,7 @@
             {{-- Active Filters Display --}}
             @if(request()->has('filter_date') || request()->has('aging_date'))
             <div class="mt-4 flex items-center gap-2 flex-wrap">
-                <span class="text-sm text-gray-300">Active filters:</span>
+                <span class="text-sm text-gray-500">Active filters:</span>
 
                 @if(request()->has('filter_date'))
                 <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs flex items-center gap-2">
@@ -60,10 +60,10 @@
         </div>
 
         <!-- Search and Table Section -->
-        <div class="bg-gray-700 rounded-lg p-6">
+        <div class="bg-gray-100 rounded-lg p-6">
             <!-- Aging Date Filter (calculates age dynamically) -->
             <div class="mb-4">
-                <label for="aging_date" class="block text-sm font-medium text-gray-300 mb-2">
+                <label for="aging_date" class="block text-sm font-medium text-gray-500 mb-2">
                     Aging Date (As of Date)
                     <span class="text-xs text-yellow-400 ml-1">⚡ (age = days since counter date; leave empty to use each record's own record date)</span>
                 </label>
@@ -88,7 +88,7 @@
                     <i class="fas fa-search"></i>
                     <span>Search</span>
                 </button>
-                <button type="button" id="export_excel_btn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
+                <button type="button" id="export_excel_btn" class="bg-emerald-600 hover:bg-emerald-700 text-gray-800 px-6 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-file-excel"></i>
                     <span>Export to Excel</span>
                 </button>
@@ -97,7 +97,7 @@
             {{-- Record count --}}
             @if(isset($agingReports) && count($agingReports) > 0)
             <div class="mb-4">
-                <p class="text-gray-300 text-sm">
+                <p class="text-gray-500 text-sm">
                     <i class="fas fa-info-circle mr-1"></i>
                     Showing <strong>{{ count($agingReports) }}</strong> record(s)
                     @if(request('filter_date'))
@@ -109,9 +109,9 @@
 
             <!-- Table -->
             <div class="overflow-x-auto">
-                <table class="min-w-full bg-gray-800 rounded-lg">
+                <table class="min-w-full bg-white rounded-lg">
                     <thead>
-                        <tr class="bg-gray-900 text-gray-300 text-sm">
+                        <tr class="bg-gray-50 text-gray-500 text-sm">
                             <th class="px-4 py-3 text-left">Aging Date</th>
                             <th class="px-4 py-3 text-left">Counter Date</th>
                             <th class="px-4 py-3 text-left">Invoice Date</th>
@@ -125,10 +125,10 @@
                             <th class="px-4 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-300">
+                    <tbody class="text-gray-500">
                         @if(isset($agingReports) && count($agingReports) > 0)
                             @foreach($agingReports as $report)
-                            <tr class="border-b border-gray-700 hover:bg-gray-750">
+                            <tr class="border-b border-gray-200 hover:bg-gray-750">
                                 <td class="px-4 py-3">{{ $report['aging_date'] ?? 'N/A' }}</td>
                                 <td class="px-4 py-3">{{ $report['counter_date'] ?? 'N/A' }}</td>
                                 <td class="px-4 py-3">{{ $report['invoice_date'] ?? 'N/A' }}</td>
@@ -136,7 +136,7 @@
                                 <td class="px-4 py-3">{{ $report['sales_executive'] ?? 'N/A' }}</td>
                                 <td class="px-4 py-3">{{ $report['customer_name'] ?? 'N/A' }}</td>
                                 <td class="px-4 py-3 text-center">
-                                    <span class="bg-gray-700 px-2 py-1 rounded text-xs">
+                                    <span class="bg-gray-100 px-2 py-1 rounded text-xs">
                                         {{ $report['invoice_no'] ?? 'N/A' }}
                                     </span>
                                 </td>
@@ -221,8 +221,8 @@
                 icon: 'warning',
                 title: 'Empty Search',
                 text: `Please enter a ${searchTypeLabel} to search.`,
-                background: '#1f2937',
-                color: '#fff'
+                background: '#ffffff',
+                color: '#1f2937'
             });
             return;
         }
@@ -244,8 +244,8 @@
                         icon: 'success',
                         title: 'Search Complete',
                         text: `Found ${data.data.length} record(s)`,
-                        background: '#1f2937',
-                        color: '#fff',
+                        background: '#ffffff',
+                        color: '#1f2937',
                         timer: 2000,
                         showConfirmButton: false
                     });
@@ -254,8 +254,8 @@
                         icon: 'error',
                         title: 'Search Failed',
                         text: data.message,
-                        background: '#1f2937',
-                        color: '#fff'
+                        background: '#ffffff',
+                        color: '#1f2937'
                     });
                 }
             })
@@ -265,8 +265,8 @@
                     icon: 'error',
                     title: 'Error',
                     text: 'Failed to search. Please try again.',
-                    background: '#1f2937',
-                    color: '#fff'
+                    background: '#ffffff',
+                    color: '#1f2937'
                 });
             });
     });
@@ -308,8 +308,8 @@
                 icon: 'warning',
                 title: 'Missing Filter',
                 text: 'Please select a record date filter before exporting.',
-                background: '#1f2937',
-                color: '#fff'
+                background: '#ffffff',
+                color: '#1f2937'
             });
             return;
         }
@@ -318,8 +318,8 @@
             icon: 'success',
             title: 'Exporting...',
             text: 'Your Excel file will be downloaded shortly',
-            background: '#1f2937',
-            color: '#fff',
+            background: '#ffffff',
+            color: '#1f2937',
             timer: 2000,
             showConfirmButton: false
         });
@@ -368,7 +368,7 @@
             const viewUrl = reportId ? generateArProfileUrl(reportId) : '#';
 
             rows += `
-                <tr class="border-b border-gray-700 hover:bg-gray-750">
+                <tr class="border-b border-gray-200 hover:bg-gray-750">
                     <td class="px-4 py-3">${report.aging_date || 'N/A'}</td>
                     <td class="px-4 py-3">${report.counter_date || 'N/A'}</td>
                     <td class="px-4 py-3">${report.invoice_date || 'N/A'}</td>
@@ -376,7 +376,7 @@
                     <td class="px-4 py-3">${report.sales_executive || 'N/A'}</td>
                     <td class="px-4 py-3">${report.customer_name || 'N/A'}</td>
                     <td class="px-4 py-3 text-center">
-                        <span class="bg-gray-700 px-2 py-1 rounded text-xs">
+                        <span class="bg-gray-100 px-2 py-1 rounded text-xs">
                             ${report.invoice_no || 'N/A'}
                         </span>
                     </td>

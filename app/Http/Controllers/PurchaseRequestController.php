@@ -48,6 +48,23 @@ class PurchaseRequestController extends Controller
     }
 
     /**
+     * Redirect to existing PO (if linked) or PO creation page
+     */
+    public function goToPO($id)
+    {
+        $pr = PurchaseRequest::findOrFail($id);
+
+        // Check if a PO already exists for this PR
+        $existingPO = \App\Models\PurchaseOrder::where('purchase_request_id', $pr->id)->first();
+
+        if ($existingPO) {
+            return redirect()->route('purchase_orders.show', $existingPO->id);
+        }
+
+        return redirect()->route('purchase_orders.create', ['pr_id' => $pr->id]);
+    }
+
+    /**
      * Show the form for creating a new purchase request
      */
     public function create()

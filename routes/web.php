@@ -42,7 +42,13 @@ use App\Http\Controllers\{
     WarehouseController,
     StorageController,
     CustomerARProfileController,
-    GlAccountController
+    GlAccountController,
+    PaymentTermController,
+    DebitMemoController,
+    ApLedgerController,
+    ApDashboardController,
+    ApReportController,
+    InHouseBomController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -234,6 +240,8 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     Route::get('/', [AgingReportController::class, 'adjustments'])->name('index');
 });
 
+
+
     //===================== SALES ANALYTICS =====================
         Route::get('/sales/dashboard', function () {
             $user = auth()->user();
@@ -261,6 +269,46 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
         ->name('customers.export')
         ->middleware('auth');
 
+    // ===================== IN HOUSE BOM =====================
+    Route::middleware('auth')->prefix('inhouse-bom')->name('inhouse_bom.')->group(function () {
+        Route::get('/', function () {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->index(request());
+        })->name('index');
+        Route::get('/create', function () {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->create();
+        })->name('create');
+        Route::post('/', function () {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->store(request());
+        })->name('store');
+        Route::get('/{inhouseBom}', function ($inhouseBom) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->show(\App\Models\InHouseBom::findOrFail($inhouseBom));
+        })->name('show');
+        Route::get('/{inhouseBom}/edit', function ($inhouseBom) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->edit(\App\Models\InHouseBom::findOrFail($inhouseBom));
+        })->name('edit');
+        Route::put('/{inhouseBom}', function ($inhouseBom) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->update(request(), \App\Models\InHouseBom::findOrFail($inhouseBom));
+        })->name('update');
+        Route::delete('/{inhouseBom}', function ($inhouseBom) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->destroy(\App\Models\InHouseBom::findOrFail($inhouseBom));
+        })->name('destroy');
+        Route::patch('/{inhouseBom}/status', function ($inhouseBom) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->updateStatus(request(), \App\Models\InHouseBom::findOrFail($inhouseBom));
+        })->name('updateStatus');
+        Route::get('/{inhouseBom}/export', function ($inhouseBom) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->exportExcel(\App\Models\InHouseBom::findOrFail($inhouseBom));
+        })->name('export');
+    });
+
     // ===================== BATCH PRINT =====================
     Route::post('/records/sales-orders/batch-print',
     [RecordsController::class, 'batchPrintSalesOrders']
@@ -280,6 +328,8 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     Route::post('/excel/import/collections', [ExcelImportController::class, 'importCollections'])
     ->name('excel.import.collections')
     ->middleware(['auth']);
+
+Route::post('/excel/import/bom-materials', [ExcelImportController::class, 'importBomMaterials'])->name('excel.import.bom_materials');
 
 // ✅ NEW: AR Adjustments Import Route
 Route::post('/excel/import/ar-adjustments', [ExcelImportController::class, 'importArAdjustments'])
@@ -1260,6 +1310,15 @@ Route::prefix('items')->name('items.')->group(function () {
             }
             return response()->json([]);
         })->name('search_items');
+
+        // Go to PO (smart redirect: existing PO view or PO creation)
+        Route::get('/{id}/go-to-po', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseRequests()) {
+                return app(PurchaseRequestController::class)->goToPO($id);
+            }
+            return view('errors.noaccess');
+        })->name('go_to_po');
 
         // Index
         Route::get('/', function () {
@@ -2535,4 +2594,30 @@ Route::get('/test-ar-data/{customerCode}', function($customerCode) {
     ]);
 });
 
+// ===================== PAYMENT TERMS =====================
+Route::middleware('auth')->group(function () {
+    Route::resource('payment_terms', PaymentTermController::class)->except(['show']);
+});
+
+// ===================== DEBIT MEMOS =====================
+Route::middleware('auth')->group(function () {
+    Route::resource('debit_memos', DebitMemoController::class);
+});
+
+// ===================== AP LEDGER =====================
+Route::middleware('auth')->group(function () {
+    Route::get('/ap-ledger', [ApLedgerController::class, 'index'])->name('ap_ledger.index');
+});
+
+// ===================== AP DASHBOARD =====================
+Route::middleware('auth')->group(function () {
+    Route::get('/ap-dashboard', [ApDashboardController::class, 'index'])->name('ap_dashboard');
+});
+
+// ===================== AP REPORTS =====================
+Route::middleware('auth')->prefix('ap-reports')->name('ap_reports.')->group(function () {
+    Route::get('/aging', [ApReportController::class, 'aging'])->name('aging');
+    Route::get('/cash-forecast', [ApReportController::class, 'cashForecast'])->name('cash_forecast');
+    Route::get('/spend-analysis', [ApReportController::class, 'spendAnalysis'])->name('spend_analysis');
+});
 

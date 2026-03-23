@@ -1,31 +1,31 @@
 @extends('layouts.app')
 @section('title', $pageTitle ?? 'All Recent Activities')
 @section('content')
-<div class="max-w-7xl mx-auto bg-gray-800 p-8 rounded-lg shadow-md mt-8">
+<div class="max-w-7xl mx-auto bg-white p-8 rounded-lg shadow-md mt-8">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-white">{{ $pageTitle ?? 'All Recent Activities' }}</h1>
+        <h1 class="text-2xl font-bold text-gray-800">{{ $pageTitle ?? 'All Recent Activities' }}</h1>
         <a href="{{ $backRoute ?? route('dashboard') }}"
-           class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded-lg">
+           class="bg-gray-600 hover:bg-gray-100 text-gray-800 text-sm px-4 py-2 rounded-lg">
             ← Back to Dashboard
         </a>
     </div>
     @if($recentActivities->isEmpty())
-        <p class="text-gray-300">No recent activities found 💤</p>
+        <p class="text-gray-500">No recent activities found 💤</p>
     @else
         <div class="overflow-x-auto">
-            <table class="min-w-full border border-gray-700 text-sm text-left text-white">
-                <thead class="bg-gray-700 text-xs uppercase text-gray-200">
+            <table class="min-w-full border border-gray-200 text-sm text-left text-gray-800">
+                <thead class="bg-gray-100 text-xs uppercase text-gray-200">
                     <tr>
-                        <th class="px-4 py-3 border-b border-gray-600">Date</th>
-                        <th class="px-4 py-3 border-b border-gray-600">Activity</th>
-                        <th class="px-4 py-3 border-b border-gray-600">Type</th>
-                        <th class="px-4 py-3 border-b border-gray-600">Item</th>
-                        <th class="px-4 py-3 border-b border-gray-600">User</th>
+                        <th class="px-4 py-3 border-b border-gray-300">Date</th>
+                        <th class="px-4 py-3 border-b border-gray-300">Activity</th>
+                        <th class="px-4 py-3 border-b border-gray-300">Type</th>
+                        <th class="px-4 py-3 border-b border-gray-300">Item</th>
+                        <th class="px-4 py-3 border-b border-gray-300">User</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($recentActivities as $activity)
-                        <tr class="hover:bg-gray-700 border-b border-gray-700">
+                        <tr class="hover:bg-gray-100 border-b border-gray-200">
                             <td class="px-4 py-2 whitespace-nowrap">
                                 {{ \Carbon\Carbon::parse($activity->created_at)->format('Y-m-d H:i') }}
                             </td>

@@ -86,6 +86,11 @@ class RbacSeeder extends Seeder
                 'color' => '#CA8A04',
                 'subs'  => ['Requisitioner', 'PR Approver', 'Procurement Approver', 'PO Creator'],
             ],
+            [
+                'name'  => 'Operations NBC',
+                'color' => '#D97706',
+                'subs'  => ['Operations NBC'],
+            ],
         ];
 
         foreach ($departments as $dept) {

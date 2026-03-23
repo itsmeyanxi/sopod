@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto">
-    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-white rounded-lg shadow-lg p-6">
         <h2 class="text-2xl font-bold mb-6">Import Items from Excel</h2>
 
         @if(session('success'))
@@ -40,11 +40,11 @@
                     name="file" 
                     accept=".xlsx,.xls,.csv"
                     required
-                    class="block w-full text-sm text-gray-300
+                    class="block w-full text-sm text-gray-500
                         file:mr-4 file:py-2 file:px-4
                         file:rounded file:border-0
                         file:text-sm file:font-semibold
-                        file:bg-blue-600 file:text-white
+                        file:bg-blue-600 file:text-gray-800
                         hover:file:bg-blue-700
                         cursor-pointer"
                 >
@@ -61,7 +61,7 @@
                 
                 <a 
                     href="{{ route('items.index') }}" 
-                    class="text-gray-400 hover:text-white transition"
+                    class="text-gray-400 hover:text-gray-800 transition"
                 >
                     Cancel
                 </a>
@@ -69,10 +69,10 @@
         </form>
 
         <!-- Instructions -->
-        <div class="mt-8 bg-gray-700 p-4 rounded">
+        <div class="mt-8 bg-gray-100 p-4 rounded">
             <h3 class="font-semibold mb-3">📋 Excel File Format Guidelines</h3>
-            <p class="text-sm text-gray-300 mb-2">Your Excel file can have the following columns (all optional):</p>
-            <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
+            <p class="text-sm text-gray-500 mb-2">Your Excel file can have the following columns (all optional):</p>
+            <ul class="text-sm text-gray-500 space-y-1 list-disc list-inside">
                 <li><strong>item_code</strong> - Item code/SKU</li>
                 <li><strong>item_description</strong> - Item description</li>
                 <li><strong>item_group</strong> - Item category/group</li>
@@ -81,7 +81,7 @@
                 <li><strong>unit_price</strong> - Price per unit</li>
             </ul>
             
-            <div class="mt-4 pt-4 border-t border-gray-600">
+            <div class="mt-4 pt-4 border-t border-gray-300">
                 <a 
                     href="{{ route('import.items.template') }}" 
                     class="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm"

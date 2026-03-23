@@ -576,6 +576,12 @@ class User extends Authenticatable
         'cash_advance'       => [],                            // All users
         'liquidation'        => [],                            // All users
         'reimbursement'      => [],                            // All users
+        'debit_memos'        => [22, 26, 24],                  // FAS Trade, Accounting, Treasury
+        'payment_terms'      => [22, 26, 24],                  // FAS Trade, Accounting, Treasury
+        'ap_ledger'          => [22, 26, 24],                  // FAS Trade, Accounting, Treasury
+        'ap_dashboard'       => [22, 26, 24, 5, 6, 16, 17, 18, 19, 20], // FAS Trade, Accounting, Treasury, Admin, Purchasing, Executive
+        'ap_reports'         => [22, 26, 24, 16, 17, 18, 19, 20],       // FAS Trade, Accounting, Treasury, Executive
+        'inhouse_bom'        => [30],                                     // Operations NBC
     ];
 
     // Sub-departments that can perform actions (create/edit/etc.) in a module.

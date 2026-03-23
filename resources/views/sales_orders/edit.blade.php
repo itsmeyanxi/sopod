@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-900 text-white p-8">
-    <h1 class="text-2xl font-bold mb-6 border-b border-gray-700 pb-2">
+<div class="min-h-screen bg-gray-50 text-gray-800 p-8">
+    <h1 class="text-2xl font-bold mb-6 border-b border-gray-200 pb-2">
         ✏️ Edit Sales Order
     </h1>
 
@@ -67,18 +67,18 @@
         <!-- General Info -->
         <div class="grid md:grid-cols-2 gap-6 mb-8">
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Customer</label>
+                <label class="block text-sm mb-1 text-gray-500">Customer</label>
                 <input type="text" 
                     value="{{ $salesOrder->customer->customer_name }}" 
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400" readonly>
+                    class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-400" readonly>
                 <input type="hidden" name="customer_id" value="{{ $salesOrder->customer_id }}">
             </div>
 
             <div>
-                <label class="block text-sm mb-1 text-gray-300">PO Number</label>
+                <label class="block text-sm mb-1 text-gray-500">PO Number</label>
                 <input type="text" name="po_number" id="po_number"
                     value="{{ old('po_number', $salesOrder->po_number) }}"
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2"
+                    class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2"
                     placeholder="Enter PO Number"
                     data-has-po-image="{{ $salesOrder->po_image ? 'true' : 'false' }}"
                     data-original-value="{{ $salesOrder->po_number }}">
@@ -92,24 +92,24 @@
             </div>
 
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Request Delivery Date *</label>
+                <label class="block text-sm mb-1 text-gray-500">Request Delivery Date *</label>
                 <input type="date" name="request_delivery_date" 
                     value="{{ old('request_delivery_date', $salesOrder->request_delivery_date) }}"
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2" required>
+                    class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2" required>
             </div>
 
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Sales Representative</label>
+                <label class="block text-sm mb-1 text-gray-500">Sales Representative</label>
                 <input type="text" name="sales_rep"
                     value="{{ old('sales_rep', $salesOrder->sales_rep) }}"
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400" readonly>
+                    class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-400" readonly>
             </div>
 
             <div>
-    <label class="block text-sm mb-1 text-gray-300">Shipping Address</label>
+    <label class="block text-sm mb-1 text-gray-500">Shipping Address</label>
     <textarea name="shipping_address" 
               rows="3"
-              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white
+              class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-800
                      focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
                      placeholder-gray-400"
               placeholder="Enter shipping address...">{{ old('shipping_address', $salesOrder->shipping_address ?? $salesOrder->customer->shipping_address) }}</textarea>
@@ -120,14 +120,14 @@
 
             {{-- ✅ PO Image Upload Section --}}
             <div class="col-span-2" id="po_image_container">
-                <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-4">
-                    <label class="block text-sm mb-2 text-gray-300 font-semibold">
+                <div class="bg-white/60 border border-gray-200 rounded-lg p-4">
+                    <label class="block text-sm mb-2 text-gray-500 font-semibold">
                         📸 PO Proof / Order Evidence
                     </label>
 
                     {{-- Current PO Image Display --}}
                     @if($salesOrder->po_image)
-                        <div class="mb-3 bg-gray-900/50 border border-gray-700 rounded-lg p-3">
+                        <div class="mb-3 bg-gray-50/50 border border-gray-200 rounded-lg p-3">
                             <p class="text-xs text-gray-400 mb-2">Current PO Proof:</p>
                             @if(Str::endsWith($salesOrder->po_image, '.pdf'))
                                 <a href="{{ asset('po_images/' . $salesOrder->po_image) }}"
@@ -144,7 +144,7 @@
                                    class="block">
                                     <img src="{{ asset('po_images/' . $salesOrder->po_image) }}"
                                         alt="Current PO Proof"
-                                        class="max-w-xs rounded border border-gray-600 hover:border-blue-500 transition-all cursor-pointer">
+                                        class="max-w-xs rounded border border-gray-300 hover:border-blue-500 transition-all cursor-pointer">
                                 </a>
                                 <p class="text-xs text-gray-400 mt-2">Click to view full size</p>
                             @endif
@@ -162,9 +162,9 @@
                             @endif
                         </label>
                         <input type="file" id="po_image" name="po_image" accept="image/*,application/pdf"
-                            class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded px-3 py-2
                                 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0
-                                file:bg-blue-600 file:text-white hover:file:bg-blue-500">
+                                file:bg-blue-600 file:text-gray-800 hover:file:bg-blue-500">
                         <p class="text-xs text-gray-400 mt-2">
                             Accepts JPG, PNG, or PDF (max 4MB).
                             @if($salesOrder->po_image)
@@ -178,7 +178,7 @@
                         <div id="po_image_preview" class="mt-3 hidden">
                             <p class="text-xs text-gray-400 mb-2">New upload preview:</p>
                             <img id="po_image_preview_img" src="" alt="New PO Preview"
-                                class="max-w-xs rounded border border-gray-700">
+                                class="max-w-xs rounded border border-gray-200">
                         </div>
                     </div>
 
@@ -189,7 +189,7 @@
                                 <i class="fas fa-info-circle mr-1"></i>
                                 <strong>Want to use PO Number instead?</strong>
                             </p>
-                            <p class="text-xs text-gray-300">
+                            <p class="text-xs text-gray-500">
                                 Enter a PO Number in the field above to switch from image to number. The image will be removed automatically.
                             </p>
                         </div>
@@ -200,13 +200,13 @@
 
         {{-- ✅ Additional Delivery Instructions Section --}}
 <div class="col-span-2">
-    <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-4">
-        <label class="block text-sm mb-2 text-gray-300 font-semibold">
+    <div class="bg-white/60 border border-gray-200 rounded-lg p-4">
+        <label class="block text-sm mb-2 text-gray-500 font-semibold">
             📋 Additional Delivery Instructions
         </label>
         <textarea name="additional_instructions" 
                   rows="4"
-                  class="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 
+                  class="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-lg px-3 py-2 
                          focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
                          placeholder-gray-500"
                   placeholder="Enter any special delivery instructions, requirements, or notes for this order...">{{ old('additional_instructions', $salesOrder->additional_instructions) }}</textarea>
@@ -227,9 +227,9 @@
 
         <div id="items-container" class="space-y-4 mb-6">
             @foreach($salesOrder->items as $item)
-                <div class="item-row border border-gray-700 rounded-lg p-4 bg-gray-800/50" data-index="{{ $loop->index }}">
+                <div class="item-row border border-gray-200 rounded-lg p-4 bg-white/50" data-index="{{ $loop->index }}">
                     <div class="flex justify-between items-start mb-4">
-                        <h4 class="text-sm font-semibold text-gray-300">Item #{{ $loop->index + 1 }}</h4>
+                        <h4 class="text-sm font-semibold text-gray-500">Item #{{ $loop->index + 1 }}</h4>
                         <button type="button" onclick="removeItem(this)" 
                             class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition">
                             🗑️ Remove
@@ -238,9 +238,9 @@
 
                     <!-- Item Selection -->
                     <div class="mb-4">
-                        <label class="block text-sm mb-1 text-gray-300">Select Item *</label>
+                        <label class="block text-sm mb-1 text-gray-500">Select Item *</label>
                         <select name="items[{{ $loop->index }}][item_id]" 
-                            class="item-select select2-items w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" 
+                            class="item-select select2-items w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" 
                             onchange="updateItemDetails(this)"
                             data-placeholder="Search for an item..."
                             required>
@@ -261,73 +261,73 @@
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm mb-1 text-gray-300">Item Code</label>
+                            <label class="block text-sm mb-1 text-gray-500">Item Code</label>
                             <input type="text" name="items[{{ $loop->index }}][item_code]"
                                 value="{{ old('items.' . $loop->index . '.item_code', $item->item_code) }}" 
-                                class="item-code w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
+                                class="item-code w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-300">Item Description</label>
+                            <label class="block text-sm mb-1 text-gray-500">Item Description</label>
                             <input type="text" name="items[{{ $loop->index }}][item_description]"
                                 value="{{ old('items.' . $loop->index . '.item_description', $item->item_description) }}" 
-                                class="item-description w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
+                                class="item-description w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-300">Category</label>
+                            <label class="block text-sm mb-1 text-gray-500">Category</label>
                             <input type="text" name="items[{{ $loop->index }}][item_category]"
                                 value="{{ old('items.' . $loop->index . '.item_category', $item->item_category) }}" 
-                                class="item-category w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
+                                class="item-category w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-300">Brand</label>
+                            <label class="block text-sm mb-1 text-gray-500">Brand</label>
                             <input type="text" name="items[{{ $loop->index }}][brand]"
                                 value="{{ old('items.' . $loop->index . '.brand', $item->brand) }}" 
-                                class="item-brand w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
+                                class="item-brand w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" readonly>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm mb-1 text-gray-300">Quantity *</label>
+                            <label class="block text-sm mb-1 text-gray-500">Quantity *</label>
                             <input type="number" name="items[{{ $loop->index }}][quantity]" 
                                    value="{{ old('items.' . $loop->index . '.quantity', $item->quantity) }}" 
                                    step="any" 
-                                   class="item-quantity w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" 
+                                   class="item-quantity w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" 
                                    oninput="calculateTotal(this)" required>
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-300">Unit</label>
+                            <label class="block text-sm mb-1 text-gray-500">Unit</label>
                             <input type="text" name="items[{{ $loop->index }}][unit]"
                                    value="{{ old('items.' . $loop->index . '.unit', $item->unit) }}" 
-                                   class="item-unit w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
+                                   class="item-unit w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-300">Unit Price *</label>
+                            <label class="block text-sm mb-1 text-gray-500">Unit Price *</label>
                             <input type="number" name="items[{{ $loop->index }}][unit_price]" 
                                    value="{{ old('items.' . $loop->index . '.unit_price', $item->unit_price) }}" 
                                    step="any"
-                                   class="item-price w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
+                                   class="item-price w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2"
                                    oninput="calculateTotal(this)" required>
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-300">Total Amount</label>
+                            <label class="block text-sm mb-1 text-gray-500">Total Amount</label>
                             <input type="text" name="items[{{ $loop->index }}][total_amount]" 
                                    value="{{ old('items.' . $loop->index . '.total_amount', $item->total_amount) }}" 
-                                   class="item-total w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-400" readonly>
+                                   class="item-total w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-gray-400" readonly>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm mb-1 text-gray-300">Note</label>
+                        <label class="block text-sm mb-1 text-gray-500">Note</label>
                         <textarea name="items[{{ $loop->index }}][note]" 
                                   rows="2"
-                                  class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
+                                  class="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2"
                                   placeholder="Add any notes for this item...">{{ old('items.' . $loop->index . '.note', $item->note) }}</textarea>
                     </div>
                 </div>
@@ -351,19 +351,19 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
-{{-- Select2 Dark Theme CSS --}}
+{{-- Select2 Light Theme CSS --}}
 <style>
-/* Select2 Dark Theme Customization */
+/* Select2 Light Theme Customization */
 .select2-container--default .select2-selection--single {
-    background-color: #374151 !important;
-    border: 1px solid #4b5563 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #d1d5db !important;
     border-radius: 0.5rem !important;
     height: 42px !important;
     padding: 0.5rem !important;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__rendered {
-    color: white !important;
+    color: #1f2937 !important;
     line-height: 26px !important;
     padding-left: 0 !important;
 }
@@ -377,15 +377,15 @@
 }
 
 .select2-dropdown {
-    background-color: #1f2937 !important;
-    border: 1px solid #4b5563 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #d1d5db !important;
     border-radius: 0.5rem !important;
 }
 
 .select2-container--default .select2-search--dropdown .select2-search__field {
-    background-color: #374151 !important;
-    border: 1px solid #4b5563 !important;
-    color: white !important;
+    background-color: #f9fafb !important;
+    border: 1px solid #d1d5db !important;
+    color: #1f2937 !important;
     border-radius: 0.375rem !important;
     padding: 0.5rem !important;
 }
@@ -395,8 +395,8 @@
 }
 
 .select2-container--default .select2-results__option {
-    background-color: #1f2937 !important;
-    color: white !important;
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
     padding: 0.75rem !important;
 }
 
@@ -537,7 +537,7 @@ document.getElementById('po_image').addEventListener('change', function(e) {
 function addNewItem() {
     const container = document.getElementById('items-container');
     const newRow = document.createElement('div');
-    newRow.className = 'item-row border border-gray-700 rounded-lg p-4 bg-gray-800/50';
+    newRow.className = 'item-row border border-gray-200 rounded-lg p-4 bg-white/50';
     newRow.dataset.index = itemIndex;
     
     let optionsHtml = '<option value=""></option>';
@@ -554,7 +554,7 @@ function addNewItem() {
     
     newRow.innerHTML = `
         <div class="flex justify-between items-start mb-4">
-            <h4 class="text-sm font-semibold text-gray-300">Item #${itemIndex + 1}</h4>
+            <h4 class="text-sm font-semibold text-gray-500">Item #${itemIndex + 1}</h4>
             <button type="button" onclick="removeItem(this)" 
                 class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition">
                 🗑️ Remove
@@ -562,9 +562,9 @@ function addNewItem() {
         </div>
 
         <div class="mb-4">
-            <label class="block text-sm mb-1 text-gray-300">Select Item *</label>
+            <label class="block text-sm mb-1 text-gray-500">Select Item *</label>
             <select name="items[${itemIndex}][item_id]" 
-                class="item-select select2-items w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" 
+                class="item-select select2-items w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" 
                 onchange="updateItemDetails(this)"
                 data-placeholder="Search for an item..."
                 required>
@@ -574,56 +574,56 @@ function addNewItem() {
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Item Code</label>
+                <label class="block text-sm mb-1 text-gray-500">Item Code</label>
                 <input type="text" name="items[${itemIndex}][item_code]" 
-                    class="item-code w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
+                    class="item-code w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" readonly>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Item Description</label>
+                <label class="block text-sm mb-1 text-gray-500">Item Description</label>
                 <input type="text" name="items[${itemIndex}][item_description]" 
-                    class="item-description w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
+                    class="item-description w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" readonly>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Category</label>
+                <label class="block text-sm mb-1 text-gray-500">Category</label>
                 <input type="text" name="items[${itemIndex}][item_category]" 
-                    class="item-category w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
+                    class="item-category w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" readonly>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Brand</label>
+                <label class="block text-sm mb-1 text-gray-500">Brand</label>
                 <input type="text" name="items[${itemIndex}][brand]" 
-                    class="item-brand w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
+                    class="item-brand w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" readonly>
             </div>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Quantity *</label>
+                <label class="block text-sm mb-1 text-gray-500">Quantity *</label>
                 <input type="number" name="items[${itemIndex}][quantity]" step="any" 
-                    class="item-quantity w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" 
+                    class="item-quantity w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" 
                     oninput="calculateTotal(this)" required>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Unit</label>
+                <label class="block text-sm mb-1 text-gray-500">Unit</label>
                 <input type="text" name="items[${itemIndex}][unit]" 
-                    class="item-unit w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
+                    class="item-unit w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" readonly>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Unit Price *</label>
+                <label class="block text-sm mb-1 text-gray-500">Unit Price *</label>
                 <input type="number" name="items[${itemIndex}][unit_price]" step="any" 
-                    class="item-price w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
+                    class="item-price w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2"
                     oninput="calculateTotal(this)" required>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Total Amount</label>
+                <label class="block text-sm mb-1 text-gray-500">Total Amount</label>
                 <input type="text" name="items[${itemIndex}][total_amount]" 
-                    class="item-total w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-400" readonly>
+                    class="item-total w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-gray-400" readonly>
             </div>
         </div>
 
         <div>
-            <label class="block text-sm mb-1 text-gray-300">Note</label>
+            <label class="block text-sm mb-1 text-gray-500">Note</label>
             <textarea name="items[${itemIndex}][note]" rows="2"
-                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
+                class="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2"
                 placeholder="Add any notes for this item..."></textarea>
         </div>
     `;

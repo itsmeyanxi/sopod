@@ -4,18 +4,18 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-white rounded-lg shadow-lg p-6">
         {{-- Header Section --}}
-        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
             <div>
-                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-user-circle text-blue-400"></i>
                      Customer AR Profile
                 </h2>
-                <p class="text-gray-300 text-sm mt-1">Complete AR History: Invoices + Collections + Adjustments</p>
+                <p class="text-gray-500 text-sm mt-1">Complete AR History: Invoices + Collections + Adjustments</p>
             </div>
             <a href="{{ route('aging_reports.view') }}" 
-               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition flex items-center gap-2">
+               class="bg-gray-600 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded transition flex items-center gap-2">
                 <i class="fas fa-arrow-left"></i>
                 Back to Reports
             </a>
@@ -27,25 +27,25 @@
             <div class="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border border-blue-700/50 rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-blue-300 mb-3">Customer Details</h3>
                 <div class="space-y-2 text-sm">
-                    <div><span class="text-gray-300">Name:</span> <span class="text-white font-medium">{{ $customerInfo['customer_name'] }}</span></div>
-                    <div><span class="text-gray-300">Code:</span> <span class="text-gray-200">{{ $customerInfo['customer_code'] }}</span></div>
-                    <div><span class="text-gray-300">Branch:</span> <span class="text-gray-200">{{ $customerInfo['branch'] }}</span></div>
+                    <div><span class="text-gray-500">Name:</span> <span class="text-gray-800 font-medium">{{ $customerInfo['customer_name'] }}</span></div>
+                    <div><span class="text-gray-500">Code:</span> <span class="text-gray-200">{{ $customerInfo['customer_code'] }}</span></div>
+                    <div><span class="text-gray-500">Branch:</span> <span class="text-gray-200">{{ $customerInfo['branch'] }}</span></div>
                 </div>
             </div>
 
             <div class="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border border-purple-700/50 rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-purple-300 mb-3">Sales Information</h3>
                 <div class="space-y-2 text-sm">
-                    <div><span class="text-gray-300">SE:</span> <span class="text-white font-medium">{{ $customerInfo['sales_executive'] }}</span></div>
-                    <div><span class="text-gray-300">SE2:</span> <span class="text-gray-200">{{ $customerInfo['se2'] }}</span></div>
-                    <div><span class="text-gray-300">Terms:</span> <span class="text-gray-200">{{ $customerInfo['terms'] }}</span></div>
+                    <div><span class="text-gray-500">SE:</span> <span class="text-gray-800 font-medium">{{ $customerInfo['sales_executive'] }}</span></div>
+                    <div><span class="text-gray-500">SE2:</span> <span class="text-gray-200">{{ $customerInfo['se2'] }}</span></div>
+                    <div><span class="text-gray-500">Terms:</span> <span class="text-gray-200">{{ $customerInfo['terms'] }}</span></div>
                 </div>
             </div>
 
             <div class="bg-gradient-to-br from-green-900/30 to-green-800/20 border border-green-700/50 rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-green-300 mb-3">Current AR Balance</h3>
-                <p class="text-white font-bold text-3xl">₱{{ number_format($totalAR ?? 0, 2) }}</p>
-                <p class="text-gray-300 text-xs mt-1">{{ $recordCount ?? 0 }} record(s)</p>
+                <p class="text-gray-800 font-bold text-3xl">₱{{ number_format($totalAR ?? 0, 2) }}</p>
+                <p class="text-gray-500 text-xs mt-1">{{ $recordCount ?? 0 }} record(s)</p>
             </div>
         </div>
         @endif
@@ -53,14 +53,14 @@
         {{-- AR Calculation Summary (How we got to current balance) --}}
         @if(isset($financialSummary))
         <div class="bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-700/50 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <i class="fas fa-calculator text-indigo-400"></i>
                 How We Got to Current AR Balance
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
                 <div class="text-center">
-                    <p class="text-gray-300 text-xs mb-2">Starting: Invoices</p>
-                    <p class="text-white text-2xl font-bold">₱{{ number_format($financialSummary['original_invoice_amount'], 2) }}</p>
+                    <p class="text-gray-500 text-xs mb-2">Starting: Invoices</p>
+                    <p class="text-gray-800 text-2xl font-bold">₱{{ number_format($financialSummary['original_invoice_amount'], 2) }}</p>
                     <p class="text-green-400 text-sm mt-1">What they owe</p>
                 </div>
                 
@@ -69,7 +69,7 @@
                 </div>
                 
                 <div class="text-center">
-                    <p class="text-gray-300 text-xs mb-2">Collections</p>
+                    <p class="text-gray-500 text-xs mb-2">Collections</p>
                     <p class="text-green-400 text-2xl font-bold">₱{{ number_format($financialSummary['total_collections'], 2) }}</p>
                     <p class="text-gray-400 text-xs mt-1">Check: ₱{{ number_format($financialSummary['total_collections'] + $financialSummary['ewt_total'], 2) }}</p>
                     <p class="text-orange-400 text-xs">Less EWT: ₱{{ number_format($financialSummary['ewt_total'], 2) }}</p>
@@ -88,7 +88,7 @@
                 </div>
                 
                 <div class="text-center">
-                    <p class="text-gray-300 text-xs mb-2">Adjustments</p>
+                    <p class="text-gray-500 text-xs mb-2">Adjustments</p>
                     <p class="text-{{ $financialSummary['net_adjustments'] >= 0 ? 'yellow' : 'red' }}-400 text-2xl font-bold">
                         {{ $financialSummary['net_adjustments'] >= 0 ? '+' : '' }}₱{{ number_format(abs($financialSummary['net_adjustments']), 2) }}
                     </p>
@@ -98,8 +98,8 @@
             </div>
             
             <div class="mt-6 pt-6 border-t border-indigo-700/50 text-center">
-                <p class="text-gray-300 text-sm mb-2">= Current AR Balance</p>
-                <p class="text-white text-4xl font-bold">₱{{ number_format($financialSummary['net_ar_balance'], 2) }}</p>
+                <p class="text-gray-500 text-sm mb-2">= Current AR Balance</p>
+                <p class="text-gray-800 text-4xl font-bold">₱{{ number_format($financialSummary['net_ar_balance'], 2) }}</p>
                 <p class="text-gray-400 text-xs mt-2">
                     (Invoices - Collections {{ $financialSummary['net_adjustments'] >= 0 ? '+' : '-' }} Adjustments)
                 </p>
@@ -108,18 +108,18 @@
         @endif
 
         {{-- Tabbed Interface --}}
-        <div class="bg-gray-700 rounded-lg p-6 mb-6">
-            <div class="flex border-b border-gray-600 mb-4 overflow-x-auto">
-                <button onclick="showTab('transaction_history')" id="tab_transaction_history" class="tab-button px-6 py-3 text-white font-semibold border-b-2 border-blue-500 whitespace-nowrap">
+        <div class="bg-gray-100 rounded-lg p-6 mb-6">
+            <div class="flex border-b border-gray-300 mb-4 overflow-x-auto">
+                <button onclick="showTab('transaction_history')" id="tab_transaction_history" class="tab-button px-6 py-3 text-gray-800 font-semibold border-b-2 border-blue-500 whitespace-nowrap">
                     <i class="fas fa-history mr-2"></i>Complete History ({{ isset($transactionHistory) ? count($transactionHistory) : 0 }})
                 </button>
-                <button onclick="showTab('ar_records')" id="tab_ar_records" class="tab-button px-6 py-3 text-gray-400 hover:text-white whitespace-nowrap">
+                <button onclick="showTab('ar_records')" id="tab_ar_records" class="tab-button px-6 py-3 text-gray-400 hover:text-gray-800 whitespace-nowrap">
                     <i class="fas fa-file-invoice mr-2"></i>Invoices ({{ $recordCount ?? 0 }})
                 </button>
-                <button onclick="showTab('collections')" id="tab_collections" class="tab-button px-6 py-3 text-gray-400 hover:text-white whitespace-nowrap">
+                <button onclick="showTab('collections')" id="tab_collections" class="tab-button px-6 py-3 text-gray-400 hover:text-gray-800 whitespace-nowrap">
                     <i class="fas fa-money-bill-wave mr-2"></i>Collections ({{ isset($collections) ? count($collections) : 0 }})
                 </button>
-                <button onclick="showTab('adjustments')" id="tab_adjustments" class="tab-button px-6 py-3 text-gray-400 hover:text-white whitespace-nowrap">
+                <button onclick="showTab('adjustments')" id="tab_adjustments" class="tab-button px-6 py-3 text-gray-400 hover:text-gray-800 whitespace-nowrap">
                     <i class="fas fa-edit mr-2"></i>Adjustments ({{ isset($adjustments) ? count($adjustments) : 0 }})
                 </button>
             </div>
@@ -134,9 +134,9 @@
                 </div> -->
                 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-gray-800 rounded-lg text-xs">
+                    <table class="min-w-full bg-white rounded-lg text-xs">
                         <thead>
-                            <tr class="bg-gray-900 text-gray-200">
+                            <tr class="bg-gray-50 text-gray-200">
                                 <th class="px-3 py-2 text-left">Date</th>
                                 <th class="px-3 py-2 text-left">Type</th>
                                 <th class="px-3 py-2 text-left">Reference</th>
@@ -149,7 +149,7 @@
                         </thead>
                         <tbody class="text-gray-200">
                             @forelse($transactionHistory as $trans)
-                            <tr class="border-b border-gray-700 hover:bg-gray-750">
+                            <tr class="border-b border-gray-200 hover:bg-gray-750">
                                 <td class="px-3 py-3">{{ \Carbon\Carbon::parse($trans['date'])->format('Y-m-d') }}</td>
                                 <td class="px-3 py-3">
                                     @if($trans['type'] === 'Invoice')
@@ -161,7 +161,7 @@
                                     @endif
                                 </td>
                                 <td class="px-3 py-3">
-                                    <span class="bg-gray-700 px-2 py-1 rounded font-mono">{{ $trans['reference'] }}</span>
+                                    <span class="bg-gray-100 px-2 py-1 rounded font-mono">{{ $trans['reference'] }}</span>
                                 </td>
                                 <td class="px-3 py-3 text-xs">{{ $trans['description'] }}</td>
                                 <td class="px-3 py-3 text-right font-semibold {{ $trans['debit'] > 0 ? 'text-red-400' : 'text-gray-500' }}">
@@ -170,7 +170,7 @@
                                 <td class="px-3 py-3 text-right font-semibold {{ $trans['credit'] > 0 ? 'text-green-400' : 'text-gray-500' }}">
                                     {{ $trans['credit'] > 0 ? '-₱' . number_format($trans['credit'], 2) : '-' }}
                                 </td>
-                                <td class="px-3 py-3 text-right font-bold text-white">
+                                <td class="px-3 py-3 text-right font-bold text-gray-800">
                                     ₱{{ number_format($trans['balance'], 2) }}
                                 </td>
                                 <td class="px-3 py-3 text-xs">{{ $trans['created_by'] }}</td>
@@ -193,9 +193,9 @@
                 </div> -->
                 
                 <div class="overflow-x-auto">
-                    <table class="bg-gray-800 rounded-lg text-xs" style="min-width:max-content;width:100%;">
+                    <table class="bg-white rounded-lg text-xs" style="min-width:max-content;width:100%;">
                         <thead>
-                            <tr class="bg-gray-900 text-gray-300 text-xs uppercase tracking-wider sticky top-0">
+                            <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider sticky top-0">
                                 <th class="px-3 py-2 text-left whitespace-nowrap">Invoice No</th>
                                 <th class="px-3 py-2 text-left whitespace-nowrap">DR No</th>
                                 <th class="px-3 py-2 text-left whitespace-nowrap">PO No</th>
@@ -218,25 +218,25 @@
                         </thead>
                         <tbody class="text-gray-200">
                             @forelse($arRecords as $record)
-                            <tr class="border-b border-gray-700 hover:bg-gray-750">
+                            <tr class="border-b border-gray-200 hover:bg-gray-750">
                                 <td class="px-3 py-2">
                                     <span class="bg-indigo-900/40 border border-indigo-700/50 px-2 py-1 rounded font-mono text-indigo-200">
                                         {{ $record->invoice_no ?? 'N/A' }}
                                     </span>
                                 </td>
-                                <td class="px-3 py-2 font-mono text-gray-300">{{ $record->dr_no ?? 'N/A' }}</td>
-                                <td class="px-3 py-2 text-gray-400">{{ $record->po_no ?? 'N/A' }}</td>
-                                <td class="px-3 py-2 whitespace-nowrap text-gray-300">{{ $record->invoice_date ?? 'N/A' }}</td>
-                                <td class="px-3 py-2 text-right font-semibold text-white whitespace-nowrap">₱{{ number_format($record->invoice_amount ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 font-mono text-gray-500">{{ $record->dr_no ?? 'N/A' }}</td>
+                                <td class="px-3 py-2 text-gray-500">{{ $record->po_no ?? 'N/A' }}</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-gray-500">{{ $record->invoice_date ?? 'N/A' }}</td>
+                                <td class="px-3 py-2 text-right font-semibold text-gray-800 whitespace-nowrap">₱{{ number_format($record->invoice_amount ?? 0, 2) }}</td>
                                 <td class="px-3 py-2 text-right text-green-400 whitespace-nowrap">₱{{ number_format($record->settled_invoice_amount ?? 0, 2) }}</td>
-                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->cwt ?? 0, 2) }}</td>
-                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->ewt ?? 0, 2) }}</td>
-                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->annual ?? 0, 2) }}</td>
-                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->factoring ?? 0, 2) }}</td>
-                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->factoring_interest ?? 0, 2) }}</td>
-                                <td class="px-3 py-2 text-gray-300 text-xs" title="{{ $record->others_particulars ?? '' }}">{{ $record->others_particulars ?? '' }}</td>
-                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->others_amount ?? 0, 2) }}</td>
-                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->check_amount ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-500 whitespace-nowrap">₱{{ number_format($record->cwt ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-500 whitespace-nowrap">₱{{ number_format($record->ewt ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-500 whitespace-nowrap">₱{{ number_format($record->annual ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-500 whitespace-nowrap">₱{{ number_format($record->factoring ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-500 whitespace-nowrap">₱{{ number_format($record->factoring_interest ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-gray-500 text-xs" title="{{ $record->others_particulars ?? '' }}">{{ $record->others_particulars ?? '' }}</td>
+                                <td class="px-3 py-2 text-right text-gray-500 whitespace-nowrap">₱{{ number_format($record->others_amount ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-500 whitespace-nowrap">₱{{ number_format($record->check_amount ?? 0, 2) }}</td>
                                 <td class="px-3 py-2 text-right text-yellow-400 whitespace-nowrap">
                                     @php $adjAmount = $record->ar_adjustments ?? 0; @endphp
                                     {{ $adjAmount != 0 ? ($adjAmount > 0 ? '+' : '') . '₱' . number_format(abs($adjAmount), 2) : '-' }}
@@ -275,10 +275,10 @@
                 </div> -->
                 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-gray-800 rounded-lg text-xs">
+                    <table class="min-w-full bg-white rounded-lg text-xs">
                         <thead>
-                            <tr class="bg-gray-900 text-gray-200">
-                                <th class="px-2 py-2 text-left">Invoice Date</th>
+                            <tr class="bg-gray-50 text-gray-500">
+                                <th class="px-2 py-2 text-left">Deposit Date</th>
                                 <th class="px-2 py-2 text-left">CR Number</th>
                                 <th class="px-2 py-2 text-left">DR No</th>
                                 <th class="px-2 py-2 text-left">Invoice No</th>
@@ -301,7 +301,7 @@
                         </thead>
                         <tbody class="text-gray-200">
                             @forelse($collections as $coll)
-                            <tr class="border-b border-gray-700 hover:bg-gray-750">
+                            <tr class="border-b border-gray-200 hover:bg-gray-750">
                                 <td class="px-2 py-3">{{ \Carbon\Carbon::parse($coll['deposit_date'])->format('Y-m-d') }}</td>
                                 <td class="px-2 py-3">
                                     <span class="bg-green-900/30 border border-green-700/50 px-2 py-1 rounded font-mono text-xs">
@@ -312,7 +312,7 @@
                                 <td class="px-2 py-3">{{ $coll['invoice_no'] ?? '-' }}</td>
                                 <td class="px-2 py-3">{{ $coll['client_name'] }}</td>
                                 <td class="px-2 py-3">{{ $coll['branch'] }}</td>
-                                <td class="px-2 py-3 text-right font-semibold text-white">₱{{ number_format($coll['gross_amount'], 2) }}</td>
+                                <td class="px-2 py-3 text-right font-semibold text-gray-800">₱{{ number_format($coll['gross_amount'], 2) }}</td>
                                 <td class="px-2 py-3 text-right text-orange-400">₱{{ number_format($coll['ewt'], 2) }}</td>
                                 <td class="px-2 py-3 text-right text-yellow-400">
                                     @if($coll['other_adjustment'] != 0)
@@ -352,8 +352,8 @@
                             <tr><td colspan="19" class="px-4 py-8 text-center text-gray-400">No collections found</td></tr>
                             @endforelse
                         </tbody>
-                        <tfoot class="bg-gray-900">
-                            <tr class="font-bold text-white">
+                        <tfoot class="bg-gray-50">
+                            <tr class="font-bold text-gray-800">
                                 <td colspan="6" class="px-2 py-3 text-right">TOTALS:</td>
                                 <td class="px-2 py-3 text-right">₱{{ number_format($collections->sum('gross_amount'), 2) }}</td>
                                 <td class="px-2 py-3 text-right text-orange-400">₱{{ number_format($collections->sum('ewt'), 2) }}</td>
@@ -378,9 +378,9 @@
                 </div> -->
                 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-gray-800 rounded-lg text-xs">
+                    <table class="min-w-full bg-white rounded-lg text-xs">
                         <thead>
-                            <tr class="bg-gray-900 text-gray-200">
+                            <tr class="bg-gray-50 text-gray-200">
                                 <th class="px-3 py-2 text-left">Reference No</th>
                                 <th class="px-3 py-2 text-left">Date</th>
                                 <th class="px-3 py-2 text-left">Type</th>
@@ -394,7 +394,7 @@
                         </thead>
                         <tbody class="text-gray-200">
                             @forelse($adjustments as $adj)
-                            <tr class="border-b border-gray-700 hover:bg-gray-750">
+                            <tr class="border-b border-gray-200 hover:bg-gray-750">
                                 <td class="px-3 py-3">
                                     <span class="bg-purple-900/30 border border-purple-700/50 px-2 py-1 rounded font-mono">
                                         {{ $adj['reference_number'] }}
@@ -430,7 +430,7 @@
 
         {{-- Export Button --}}
         <div class="flex justify-end">
-            <button onclick="exportProfile()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded font-medium transition">
+            <button onclick="exportProfile()" class="bg-emerald-600 hover:bg-emerald-700 text-gray-800 px-6 py-2 rounded font-medium transition">
                 <i class="fas fa-file-excel mr-2"></i>Export Complete Profile
             </button>
         </div>
@@ -441,13 +441,13 @@
 function showTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
     document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('border-blue-500', 'text-white');
+        btn.classList.remove('border-blue-500', 'text-gray-800');
         btn.classList.add('text-gray-400');
     });
     
     document.getElementById('content_' + tabName).classList.remove('hidden');
     const activeBtn = document.getElementById('tab_' + tabName);
-    activeBtn.classList.add('border-blue-500', 'text-white');
+    activeBtn.classList.add('border-blue-500', 'text-gray-800');
     activeBtn.classList.remove('text-gray-400');
 }
 
@@ -458,8 +458,8 @@ function exportProfile() {
         icon: 'success',
         title: 'Exporting...',
         text: 'Your complete AR profile will be downloaded',
-        background: '#1f2937',
-        color: '#fff',
+        background: '#ffffff',
+        color: '#1f2937',
         timer: 2000,
         showConfirmButton: false
     });

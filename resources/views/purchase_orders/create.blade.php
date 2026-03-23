@@ -4,13 +4,13 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold text-white">CREATE PURCHASE ORDER</h1>
+        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+            <h1 class="text-2xl font-bold text-gray-800">CREATE PURCHASE ORDER</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-300">PO NO:</label>
-                <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $poNo }}</span>
+                <label class="font-semibold text-gray-500">PO NO:</label>
+                <span class="ml-2 px-4 py-1 bg-gray-50 border border-gray-200 text-gray-800 rounded">{{ $poNo }}</span>
             </div>
         </div>
 
@@ -37,24 +37,24 @@
             @csrf
 
             <!-- Search PR Section -->
-            <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-                <label class="block font-semibold text-gray-300 mb-2">SEARCH PURCHASE REQUEST (Optional):</label>
+            <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
+                <label class="block font-semibold text-gray-500 mb-2">SEARCH PURCHASE REQUEST (Optional):</label>
                 <p class="text-gray-400 text-sm mb-3">Search by PR Number, Requisitioner, or Company to auto-fill data</p>
 
                 <div class="relative">
                     <input type="text" id="prSearchInput"
-                        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                        class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
                         placeholder="Type to search approved PRs..." autocomplete="off">
                     <span class="absolute right-3 top-2.5 text-gray-500"><i class="fas fa-search"></i></span>
                 </div>
 
-                <div id="prSearchResults" class="hidden mt-2 bg-gray-800 border border-gray-700 rounded max-h-64 overflow-y-auto"></div>
+                <div id="prSearchResults" class="hidden mt-2 bg-white border border-gray-200 rounded max-h-64 overflow-y-auto"></div>
 
                 <div id="selectedPRDisplay" class="hidden mt-3 p-3 bg-green-900/20 border border-green-700 rounded">
                     <div class="flex justify-between items-center">
                         <div>
                             <span class="text-green-400 font-semibold">Selected PR: </span>
-                            <span id="selectedPRText" class="text-gray-300"></span>
+                            <span id="selectedPRText" class="text-gray-500"></span>
                         </div>
                         <button type="button" onclick="clearSelectedPR()" class="text-red-400 hover:text-red-300">
                             <i class="fas fa-times"></i> Clear
@@ -73,52 +73,52 @@
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE:</label>
-                        <input type="text" name="consignee" id="consignee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('consignee') }}">
+                        <label class="block font-semibold text-gray-500 mb-1">CONSIGNEE:</label>
+                        <input type="text" name="consignee" id="consignee" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('consignee', $selectedPR->contact_person ?? '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE ADDRESS:</label>
-                        <textarea name="consignee_address" id="consignee_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('consignee_address') }}</textarea>
+                        <label class="block font-semibold text-gray-500 mb-1">CONSIGNEE ADDRESS:</label>
+                        <textarea name="consignee_address" id="consignee_address" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('consignee_address', $selectedPR->address ?? '') }}</textarea>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">DELIVERY ADDRESS:</label>
-                        <textarea name="delivery_address" id="delivery_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('delivery_address', $selectedPR->delivery_address ?? '') }}</textarea>
+                        <label class="block font-semibold text-gray-500 mb-1">DELIVERY ADDRESS:</label>
+                        <textarea name="delivery_address" id="delivery_address" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('delivery_address', $selectedPR->delivery_address ?? '') }}</textarea>
                     </div>
                 </div>
 
                 <!-- Right Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">ORDER DATE: <span class="text-red-400">*</span></label>
-                        <input type="date" name="order_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('order_date', date('Y-m-d')) }}" required>
+                        <label class="block font-semibold text-gray-500 mb-1">ORDER DATE: <span class="text-red-400">*</span></label>
+                        <input type="date" name="order_date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('order_date', date('Y-m-d')) }}" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">EXPECTED DELIVERY DATE:</label>
-                        <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('expected_delivery_date') }}">
+                        <label class="block font-semibold text-gray-500 mb-1">EXPECTED DELIVERY DATE:</label>
+                        <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('expected_delivery_date', isset($selectedPR) && $selectedPR && $selectedPR->date_needed ? $selectedPR->date_needed->format('Y-m-d') : '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">PAYMENT TERMS:</label>
-                        <input type="text" name="payment_terms" id="payment_terms" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms', $selectedPR->terms ?? '') }}">
+                        <label class="block font-semibold text-gray-500 mb-1">PAYMENT TERMS:</label>
+                        <input type="text" name="payment_terms" id="payment_terms" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms', $selectedPR->terms ?? '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">LOCATION:</label>
-                        <input type="text" name="location" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('location') }}">
+                        <label class="block font-semibold text-gray-500 mb-1">LOCATION:</label>
+                        <input type="text" name="location" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('location') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">HOUSE:</label>
-                        <input type="text" name="house" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('house') }}">
+                        <label class="block font-semibold text-gray-500 mb-1">HOUSE:</label>
+                        <input type="text" name="house" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('house') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">PR#:</label>
-                        <input type="text" name="pr_no" id="pr_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('pr_no', $selectedPR->pr_no ?? '') }}">
+                        <label class="block font-semibold text-gray-500 mb-1">PR#:</label>
+                        <input type="text" name="pr_no" id="pr_no" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('pr_no', $selectedPR->pr_no ?? '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">LC PRICE:</label>
-                        <input type="number" step="0.01" name="lc_price" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('lc_price') }}">
+                        <label class="block font-semibold text-gray-500 mb-1">LC PRICE:</label>
+                        <input type="number" step="0.01" name="lc_price" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('lc_price') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-1">CURRENCY:</label>
-                        <select name="currency" id="currency_select" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="onCurrencyChange()">
+                        <label class="block font-semibold text-gray-500 mb-1">CURRENCY:</label>
+                        <select name="currency" id="currency_select" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="onCurrencyChange()">
                             @foreach($currencies as $cur)
                                 <option value="{{ $cur->code }}"
                                         data-rate="{{ $cur->rate_to_php }}"
@@ -130,10 +130,10 @@
                         </select>
                     </div>
                     <div id="exchange_rate_row" class="{{ old('currency', 'PHP') === 'PHP' ? 'hidden' : '' }}">
-                        <label class="block font-semibold text-gray-300 mb-1">EXCHANGE RATE <span class="text-gray-400 text-xs" id="rate_label">(1 USD = ? PHP)</span>:</label>
+                        <label class="block font-semibold text-gray-500 mb-1">EXCHANGE RATE <span class="text-gray-400 text-xs" id="rate_label">(1 USD = ? PHP)</span>:</label>
                         <div class="flex items-center gap-2">
                             <span class="text-gray-400">₱</span>
-                            <input type="number" step="0.0001" name="exchange_rate" id="exchange_rate" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('exchange_rate', 1) }}">
+                            <input type="number" step="0.0001" name="exchange_rate" id="exchange_rate" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('exchange_rate', 1) }}">
                         </div>
                         <p class="text-gray-500 text-xs mt-1">Auto-filled from current rate. You may override.</p>
                     </div>
@@ -147,27 +147,27 @@
             <!-- Items Table -->
             <div class="mb-6">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold text-white">Items</h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Items</h3>
                     <button type="button" onclick="addRow()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         <i class="fas fa-plus mr-1"></i> Add Row
                     </button>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="border-collapse border border-gray-700" id="itemsTable" style="min-width:1400px; width:100%;">
+                    <table class="border-collapse border border-gray-200" id="itemsTable" style="min-width:1400px; width:100%;">
                         <thead class="bg-red-700 text-white">
                             <tr>
-                                <th class="border border-gray-700 px-2 py-2" style="width:70px">ACTION</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:40px">NO.</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:130px">ITEM CODE</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:70px">QTY</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:80px">UOM</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:280px">DESCRIPTION</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:200px">SUPPLIER</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:140px">DATE NEEDED</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:110px">UNIT PRICE</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:80px">TAX</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:100px">TOTAL</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:150px">REMARKS</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:70px">ACTION</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:40px">NO.</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:130px">ITEM CODE</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:70px">QTY</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:80px">UOM</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:280px">DESCRIPTION</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:200px">SUPPLIER</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:140px">DATE NEEDED</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:110px">UNIT PRICE</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:80px">TAX</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:100px">TOTAL</th>
+                                <th class="border border-gray-200 px-2 py-2" style="width:150px">REMARKS</th>
                             </tr>
                         </thead>
                         <tbody id="itemsBody">
@@ -181,106 +181,106 @@
                             @if($items)
                                 @foreach($items as $index => $item)
                                 <tr>
-                                    <td class="border border-gray-700 px-2 py-2 text-center">
+                                    <td class="border border-gray-200 px-2 py-2 text-center">
                                         <button type="button" onclick="removeRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition">
                                             <i class="fas fa-trash mr-1"></i>Delete
                                         </button>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2 text-center text-gray-300">{{ $index + 1 }}</td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off" value="{{ $item->item_code }}">
+                                    <td class="border border-gray-200 px-2 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-code-input" autocomplete="off" value="{{ $item->item_code }}">
                                         <input type="hidden" name="items[{{ $index }}][purchase_request_item_id]" value="{{ $item->id }}">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" value="{{ $item->remaining_qty }}" required>
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="number" step="0.01" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-qty" value="{{ $item->remaining_qty }}" required>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="text" name="items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->uom }}">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="text" name="items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" value="{{ $item->uom }}">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
+                                    <td class="border border-gray-200 px-2 py-2">
                                         <div class="relative">
-                                            <input type="text" name="items[{{ $index }}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" value="{{ $item->description }}" required autocomplete="off">
-                                            <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                                            <input type="text" name="items[{{ $index }}][description]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 desc-input" value="{{ $item->description }}" required autocomplete="off">
+                                            <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
                                         </div>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
+                                    <td class="border border-gray-200 px-2 py-2">
                                         <div class="relative">
                                             <input type="text"
-                                                   class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-search-input"
+                                                   class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 supplier-search-input"
                                                    placeholder="Search supplier..."
                                                    autocomplete="off"
                                                    value="{{ $item->supplier_name ?? $prSupplierName }}">
                                             <input type="hidden" name="items[{{ $index }}][supplier_id]" class="supplier-id-input" value="{{ $item->supplier_id ?? $prSupplierId }}">
                                             <input type="hidden" name="items[{{ $index }}][supplier_name]" class="supplier-name-input" value="{{ $item->supplier_name ?? $prSupplierName }}">
-                                            <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto"></div>
+                                            <div class="supplier-dropdown hidden bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto"></div>
                                         </div>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="date" name="items[{{ $index }}][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->date_needed }}">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="date" name="items[{{ $index }}][date_needed]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" value="{{ $item->date_needed ? \Carbon\Carbon::parse($item->date_needed)->format('Y-m-d') : '' }}">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" value="{{ $item->unit_price }}">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-price" value="{{ $item->unit_price }}">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="0">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-tax" value="0">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly>
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="number" step="0.01" name="items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-total" readonly>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="text" name="items[{{ $index }}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->remarks }}" placeholder="Remarks...">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="text" name="items[{{ $index }}][note]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" value="{{ $item->remarks }}" placeholder="Remarks...">
                                     </td>
                                 </tr>
                                 @endforeach
                             @else
                                 <tr>
-                                    <td class="border border-gray-700 px-2 py-2 text-center">
+                                    <td class="border border-gray-200 px-2 py-2 text-center">
                                         <button type="button" onclick="removeRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition">
                                             <i class="fas fa-trash mr-1"></i>Delete
                                         </button>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2 text-center text-gray-300">1</td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="text" name="items[0][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off">
+                                    <td class="border border-gray-200 px-2 py-2 text-center text-gray-500">1</td>
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="text" name="items[0][item_code]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-code-input" autocomplete="off">
                                         <input type="hidden" name="items[0][purchase_request_item_id]" value="">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[0][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required>
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="number" step="0.01" name="items[0][qty]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-qty" required>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="text" name="items[0][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="text" name="items[0][uom]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
+                                    <td class="border border-gray-200 px-2 py-2">
                                         <div class="relative">
-                                            <input type="text" name="items[0][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off">
-                                            <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                                            <input type="text" name="items[0][description]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 desc-input" required autocomplete="off">
+                                            <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
                                         </div>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
+                                    <td class="border border-gray-200 px-2 py-2">
                                         <div class="relative">
                                             <input type="text"
-                                                   class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-search-input"
+                                                   class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 supplier-search-input"
                                                    placeholder="Search supplier..."
                                                    autocomplete="off">
                                             <input type="hidden" name="items[0][supplier_id]" class="supplier-id-input" value="">
                                             <input type="hidden" name="items[0][supplier_name]" class="supplier-name-input" value="">
-                                            <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto"></div>
+                                            <div class="supplier-dropdown hidden bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto"></div>
                                         </div>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="date" name="items[0][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="date" name="items[0][date_needed]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[0][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="number" step="0.01" name="items[0][unit_price]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-price">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[0][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="0">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="number" step="0.01" name="items[0][tax]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-tax" value="0">
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[0][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly>
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="number" step="0.01" name="items[0][total]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-total" readonly>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2">
-                                        <input type="text" name="items[0][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="Remarks...">
+                                    <td class="border border-gray-200 px-2 py-2">
+                                        <input type="text" name="items[0][note]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" placeholder="Remarks...">
                                     </td>
                                 </tr>
                             @endif
@@ -291,16 +291,16 @@
 
             <!-- Currency Totals Summary -->
             <div id="currency_summary" class="mb-4 hidden">
-                <div class="bg-gray-900 border border-purple-700 rounded p-4">
+                <div class="bg-gray-50 border border-purple-700 rounded p-4">
                     <h3 class="font-semibold text-purple-300 mb-2">PHP Equivalent Summary</h3>
                     <div class="flex flex-wrap gap-6 text-sm">
                         <div>
                             <span class="text-gray-400">Total (<span id="summary_currency">USD</span>):</span>
-                            <span class="text-white font-bold ml-2" id="summary_foreign_total">0.00</span>
+                            <span class="text-gray-800 font-bold ml-2" id="summary_foreign_total">0.00</span>
                         </div>
                         <div>
                             <span class="text-gray-400">Exchange Rate:</span>
-                            <span class="text-white ml-2">1 <span id="summary_code">USD</span> = ₱<span id="summary_rate">0.00</span></span>
+                            <span class="text-gray-800 ml-2">1 <span id="summary_code">USD</span> = ₱<span id="summary_rate">0.00</span></span>
                         </div>
                         <div>
                             <span class="text-gray-400">Total (PHP):</span>
@@ -312,18 +312,18 @@
 
             <!-- Remarks -->
             <div class="mb-6">
-                <label class="block font-semibold text-white mb-2">REMARKS:</label>
+                <label class="block font-semibold text-gray-800 mb-2">REMARKS:</label>
                 <textarea name="remarks" id="remarks" rows="4"
-                          class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
                           placeholder="Enter remarks...">{{ old('remarks', $selectedPR->reason_for_requisition ?? '') }}</textarea>
             </div>
 
             <!-- Quotation File Upload -->
             <div class="mb-6">
-                <label class="block font-semibold text-white mb-2">QUOTATION:</label>
+                <label class="block font-semibold text-gray-800 mb-2">QUOTATION:</label>
                 <div class="flex items-center gap-4">
                     <input type="file" name="quotation" id="quotation"
-                           class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                           class="flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
                            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
                     <span class="text-gray-400 text-sm">(PDF, Word, Excel, Image)</span>
                 </div>
@@ -331,25 +331,25 @@
 
             <!-- Signature Section -->
             <div class="mb-6">
-                <div class="border border-gray-700 rounded">
+                <div class="border border-gray-200 rounded">
                     <table class="w-full">
                         <thead>
-                            <tr class="bg-gray-700">
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Prepared By:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Checked By:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Approved By:</th>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-200 px-4 py-2 text-center text-gray-500 text-sm">Prepared By:</th>
+                                <th class="border border-gray-200 px-4 py-2 text-center text-gray-500 text-sm">Checked By:</th>
+                                <th class="border border-gray-200 px-4 py-2 text-center text-gray-500 text-sm">Approved By:</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="border border-gray-700 px-4 py-16 text-center"></td>
-                                <td class="border border-gray-700 px-4 py-16 text-center"></td>
-                                <td class="border border-gray-700 px-4 py-16 text-center"></td>
+                                <td class="border border-gray-200 px-4 py-16 text-center"></td>
+                                <td class="border border-gray-200 px-4 py-16 text-center"></td>
+                                <td class="border border-gray-200 px-4 py-16 text-center"></td>
                             </tr>
-                            <tr class="bg-gray-700 text-gray-300 text-xs italic">
-                                <td class="border border-gray-700 px-4 py-2 text-center">Purchasing Officer</td>
-                                <td class="border border-gray-700 px-4 py-2 text-center">Accounting Manager</td>
-                                <td class="border border-gray-700 px-4 py-2 text-center">Authorized Signatory</td>
+                            <tr class="bg-gray-100 text-gray-500 text-xs italic">
+                                <td class="border border-gray-200 px-4 py-2 text-center">Purchasing Officer</td>
+                                <td class="border border-gray-200 px-4 py-2 text-center">Accounting Manager</td>
+                                <td class="border border-gray-200 px-4 py-2 text-center">Authorized Signatory</td>
                             </tr>
                         </tbody>
                     </table>
@@ -358,10 +358,10 @@
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-4">
-                <a href="{{ route('purchase_orders.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
+                <a href="{{ route('purchase_orders.index') }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
+                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                     <i class="fas fa-save mr-1"></i> Create Purchase Order
                 </button>
             </div>
@@ -408,9 +408,9 @@ prSearchInput.addEventListener('input', function () {
             ? '<span class="ml-2 px-2 py-0.5 bg-yellow-600 text-white text-xs rounded">Partially Ordered</span>'
             : '';
         return `
-            <div class="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700"
+            <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200"
                  onclick="selectPR(${pr.id}, '${pr.pr_no}', '${pr.requisitioner}', '${dateFormatted}')">
-                <div class="font-semibold text-white">${pr.pr_no}${badge}</div>
+                <div class="font-semibold text-gray-800">${pr.pr_no}${badge}</div>
                 <div class="text-sm text-gray-400">${pr.requisitioner} • ${pr.company}</div>
                 <div class="text-xs text-gray-500">${dateFormatted}</div>
             </div>`;
@@ -454,50 +454,50 @@ function addRow() {
     const tbody  = document.getElementById('itemsBody');
     const newRow = tbody.insertRow();
     newRow.innerHTML = `
-        <td class="border border-gray-700 px-2 py-2 text-center">
+        <td class="border border-gray-200 px-2 py-2 text-center">
             <button type="button" onclick="removeRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition">
                 <i class="fas fa-trash mr-1"></i>Delete
             </button>
         </td>
-        <td class="border border-gray-700 px-2 py-2 text-center text-gray-300">${rowCount + 1}</td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off">
+        <td class="border border-gray-200 px-2 py-2 text-center text-gray-500">${rowCount + 1}</td>
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-code-input" autocomplete="off">
             <input type="hidden" name="items[${rowCount}][purchase_request_item_id]" value="">
         </td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required>
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-qty" required>
         </td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800">
         </td>
-        <td class="border border-gray-700 px-2 py-2">
+        <td class="border border-gray-200 px-2 py-2">
             <div class="relative">
-                <input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off">
-                <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                <input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 desc-input" required autocomplete="off">
+                <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
             </div>
         </td>
-        <td class="border border-gray-700 px-2 py-2">
+        <td class="border border-gray-200 px-2 py-2">
             <div class="relative">
-                <input type="text" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-search-input" placeholder="Search supplier..." autocomplete="off">
+                <input type="text" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 supplier-search-input" placeholder="Search supplier..." autocomplete="off">
                 <input type="hidden" name="items[${rowCount}][supplier_id]" class="supplier-id-input" value="">
                 <input type="hidden" name="items[${rowCount}][supplier_name]" class="supplier-name-input" value="">
-                <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto"></div>
+                <div class="supplier-dropdown hidden bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto"></div>
             </div>
         </td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="date" name="items[${rowCount}][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="date" name="items[${rowCount}][date_needed]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800">
         </td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price">
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-price">
         </td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="0">
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-tax" value="0">
         </td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="number" step="0.01" name="items[${rowCount}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly>
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="number" step="0.01" name="items[${rowCount}][total]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-total" readonly>
         </td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="text" name="items[${rowCount}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="Remarks...">
+        <td class="border border-gray-200 px-2 py-2">
+            <input type="text" name="items[${rowCount}][note]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" placeholder="Remarks...">
         </td>
     `;
     rowCount++;
@@ -660,11 +660,11 @@ function attachSupplierSearch(input) {
                 // Header
                 let headerHtml = '';
                 if (desc && !isFallback) {
-                    headerHtml = `<div class="px-3 py-1.5 text-xs text-green-400 bg-gray-900 border-b border-gray-700 font-semibold">
+                    headerHtml = `<div class="px-3 py-1.5 text-xs text-green-400 bg-gray-50 border-b border-gray-200 font-semibold">
                         ✓ Showing suppliers confirmed to carry this item
                     </div>`;
                 } else if (desc && isFallback) {
-                    headerHtml = `<div class="px-3 py-1.5 text-xs text-yellow-400 bg-gray-900 border-b border-gray-700 font-semibold">
+                    headerHtml = `<div class="px-3 py-1.5 text-xs text-yellow-400 bg-gray-50 border-b border-gray-200 font-semibold">
                         ⚠ This item has no confirmed suppliers in the library — showing all active suppliers
                     </div>`;
                 }
@@ -677,15 +677,15 @@ function attachSupplierSearch(input) {
                     } else if (s.carries_item === true) {
                         badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-green-700 text-green-100 rounded">✓ Carries item</span>`;
                     } else if (desc) {
-                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-600 text-gray-300 rounded">? Unconfirmed</span>`;
+                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-600 text-gray-500 rounded">? Unconfirmed</span>`;
                     }
                     return `
-                    <div class="px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 supplier-option"
+                    <div class="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 supplier-option"
                          data-id="${s.id}"
                          data-name="${s.supplier_name}"
                          data-code="${s.supplier_code || ''}"
                          data-address="${(s.address || '').replace(/"/g, '&quot;')}">
-                        <div class="flex items-center gap-1 text-sm font-semibold text-white flex-wrap">
+                        <div class="flex items-center gap-1 text-sm font-semibold text-gray-800 flex-wrap">
                             ${s.supplier_name} ${badge}
                         </div>
                         <div class="text-xs text-gray-400">${s.supplier_code || ''}</div>
@@ -746,7 +746,7 @@ function attachDescAutocomplete(input) {
                 const items = await res.json();
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(item =>
-                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 desc-option"
+                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 desc-option"
                           data-name="${(item.name || item).toString().replace(/"/g, '&quot;')}"
                           data-item-code="${(item.item_code || '').toString().replace(/"/g, '&quot;')}"
                           data-supplier-id="${item.supplier_id || ''}"
