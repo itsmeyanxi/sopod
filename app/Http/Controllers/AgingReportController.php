@@ -2434,7 +2434,7 @@ public function debugAdjustments($customerCode)
         }
 
         foreach ($collections as $coll) {
-            $summary['total_collections'] += (float)$coll['check_amount'];
+            // Keep EWT from payments table for breakdown display only
             $summary['ewt_total'] += (float)$coll['ewt'];
         }
 
@@ -2447,6 +2447,13 @@ public function debugAdjustments($customerCode)
             }
             $summary['net_adjustments'] += $amount;
         }
+
+        // Derive total_collections from stored data so the formula always matches net_ar_balance:
+        // net_ar_balance = invoice_amount - total_collections + net_adjustments
+        // → total_collections = invoice_amount - net_ar_balance - net_adjustments
+        $summary['total_collections'] = $summary['original_invoice_amount']
+            - $summary['net_ar_balance']
+            - $summary['net_adjustments'];
 
         return $summary;
     }
