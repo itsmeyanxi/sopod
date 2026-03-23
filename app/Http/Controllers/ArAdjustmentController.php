@@ -63,24 +63,26 @@ class ArAdjustmentController extends Controller
             });
 
             // ✅ NEW: Also search in Deliveries table (pending invoicing)
-            $deliveryRecords = Deliveries::where(function($query) use ($search) {
-                $query->where('customer_name', 'LIKE', "%{$search}%")
-                      ->orWhere('dr_no', 'LIKE', "%{$search}%")
-                      ->orWhere('customer_code', 'LIKE', "%{$search}%");
+            $deliveryRecords = Deliveries::leftJoin('customers', function($join) {
+                    $join->whereRaw('LOWER(TRIM(customers.customer_name)) = LOWER(TRIM(deliveries.customer_name))');
+                })
+            ->where(function($query) use ($search) {
+                $query->where('deliveries.customer_name', 'LIKE', "%{$search}%")
+                      ->orWhere('deliveries.dr_no', 'LIKE', "%{$search}%")
+                      ->orWhere('deliveries.customer_code', 'LIKE', "%{$search}%")
+                      ->orWhere('customers.customer_code', 'LIKE', "%{$search}%");
             })
-            ->where('status', 'Delivered')
-            ->where('is_pulled_out', '!=', 1)
+            ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.is_pulled_out', '!=', 1)
             ->whereNotExists(function ($query) {
-                // Exclude deliveries that already have AR adjustments
-                // ✅ FIX: Add explicit COLLATE to handle collation mismatch
                 $query->select(DB::raw(1))
                     ->from('ar_aging')
                     ->whereRaw('CAST(ar_aging.dr_no AS CHAR) COLLATE utf8mb4_unicode_ci = CAST(deliveries.dr_no AS CHAR) COLLATE utf8mb4_unicode_ci');
             })
-            ->select('id', 'dr_no', DB::raw("'Pending Invoice' as invoice_no"), 'customer_name',
-                     DB::raw("TRIM(IFNULL(customer_code, '')) as customer_code"),
+            ->select('deliveries.id', 'deliveries.dr_no', DB::raw("'Pending Invoice' as invoice_no"), 'deliveries.customer_name',
+                     DB::raw("TRIM(IFNULL(NULLIF(deliveries.customer_code,''), customers.customer_code)) as customer_code"),
                      DB::raw('0 as invoice_amount'), DB::raw('0 as net_ar_balance'))
-            ->orderBy('dr_no', 'desc')
+            ->orderBy('deliveries.dr_no', 'desc')
             ->get()
             ->map(function($record) {
                 $record->source = 'pending_invoice';
@@ -139,7 +141,8 @@ public function getAdjustments(Request $request)
                 $q->where('reference_number', 'LIKE', "%{$search}%")
                   ->orWhere('customer_name', 'LIKE', "%{$search}%")
                   ->orWhere('invoice_number', 'LIKE', "%{$search}%")
-                  ->orWhere('customer_code', 'LIKE', "%{$search}%");
+                  ->orWhere('customer_code', 'LIKE', "%{$search}%")
+                  ->orWhere('dr_no', 'LIKE', "%{$search}%");
             });
         }
 

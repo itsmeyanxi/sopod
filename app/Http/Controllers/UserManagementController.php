@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Activity;
+use App\Models\UserModuleOverride;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\RoleHelper;
 
@@ -90,9 +91,10 @@ class UserManagementController extends Controller
             return RoleHelper::unauthorized();
         }
 
-        $user = User::with('lockedBy')->findOrFail($id);
+        $user = User::with(['lockedBy', 'moduleOverrides'])->findOrFail($id);
+        $overrides = $user->moduleOverrides->keyBy('module');
 
-        return view('admin.users.edit', compact('user'));
+        return view('admin.users.edit', compact('user', 'overrides'));
     }
 
     /**
@@ -207,6 +209,48 @@ class UserManagementController extends Controller
             return redirect()->route('admin.users.index')
                 ->with('error', 'Error deleting account: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Set or remove a per-user module access override.
+     * override: 'grant' = always allow, 'deny' = always block, 'default' = remove override
+     */
+    public function updateModuleOverride(Request $request, $id)
+    {
+        if (!auth()->user()->isAdminUser()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'module'   => 'required|string',
+            'override' => 'required|in:default,grant,deny',
+        ]);
+
+        $user   = User::findOrFail($id);
+        $module = $request->module;
+
+        if ($request->override === 'default') {
+            $user->moduleOverrides()->where('module', $module)->delete();
+            $action = 'removed';
+        } else {
+            $allowed = $request->override === 'grant';
+            $user->moduleOverrides()->updateOrCreate(
+                ['module' => $module],
+                ['allowed' => $allowed]
+            );
+            $action = $allowed ? 'granted' : 'denied';
+        }
+
+        Activity::create([
+            'user_name' => auth()->user()->name,
+            'action'    => 'Module Override',
+            'item'      => $user->name,
+            'target'    => "Module: {$module}",
+            'type'      => 'User Management',
+            'message'   => "Module override {$action} for {$module}",
+        ]);
+
+        return response()->json(['success' => true, 'action' => $action]);
     }
 
     /**

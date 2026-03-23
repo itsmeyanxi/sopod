@@ -141,19 +141,19 @@
         </a>
 
         <!-- PO Dashboard -->
-        @if(auth()->user()->canAccessModule('po_dashboard'))
+        @if(auth()->user()->navAccess('po_dashboard', fn() => auth()->user()->canAccessModule('po_dashboard')))
         <a href="{{ route('po_dashboard') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
             <span>💰</span>
             <span class="sidebar-text">PO Dashboard</span>
         </a>
         @endif
 
-        @if(auth()->user()->canAccessModule('po_dashboard'))
+        @if(auth()->user()->navAccess('po_summary', fn() => auth()->user()->canAccessModule('po_dashboard')))
         <a href="{{ route('po_summary') }}" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-700">
             <span>📋</span>
             <span class="sidebar-text">PO Summary</span>
         </a>
-        @endif 
+        @endif
 
         <!-- =================== RESTRICTED: Hide everything below for President/VP =================== -->
         @if(!auth()->user()->isPresidentOrVicePresident())
@@ -184,13 +184,15 @@
                     <span class="chevron">▼</span>
                 </button>
                 <div class="submenu ml-8 space-y-1 hidden">
-                    @if(auth()->user()->canCreateSalesOrders())
+                    @if(auth()->user()->navAccess('sales_orders.create', fn() => auth()->user()->canCreateSalesOrders()))
                         <a href="{{ route('sales_orders.create') }}" class="block hover:underline">Create Order</a>
                     @endif
-                    @if(auth()->user()->canAccessModule('sales_orders'))
+                    @if(auth()->user()->navAccess('sales_orders.list', fn() => auth()->user()->canAccessModule('sales_orders')))
                         <a href="{{ route('sales_orders.index') }}" class="block hover:underline">Order List</a>
                     @endif
-                    <a href="{{ route('sales_orders.accepted') }}" class="block hover:underline">Accepted Orders</a>
+                    @if(auth()->user()->navAccess('sales_orders.accepted', fn() => true))
+                        <a href="{{ route('sales_orders.accepted') }}" class="block hover:underline">Accepted Orders</a>
+                    @endif
                 </div>
             </div>
         @endif
@@ -206,16 +208,28 @@
                     <span class="chevron">▼</span>
                 </button>
                 <div class="submenu ml-8 space-y-1 hidden">
-                    @if(auth()->user()->canAddCustomers())
+                    @if(auth()->user()->navAccess('customers.create', fn() => auth()->user()->canAddCustomers()))
                         <a href="{{ route('customers.create') }}" class="block hover:underline">Add Customer</a>
                     @endif
-                    <a href="{{ route('customers.index') }}" class="block hover:underline">Customer List</a>
+                    @if(auth()->user()->navAccess('customers.list', fn() => true))
+                        <a href="{{ route('customers.index') }}" class="block hover:underline">Customer List</a>
+                    @endif
                 </div>
             </div>
         @endif
 
         <!-- =================== SUPPLIERS =================== -->
-        @if(auth()->user()->canManageSuppliers())
+        @php
+            $canSeeSupplyChain = !auth()->user()->isCCRole() && (
+                auth()->user()->canManageSuppliers()
+                || auth()->user()->canManageSupplierReceivingReports()
+                || auth()->user()->canManageIssueSlips()
+                || auth()->user()->canManagePurchaseRequests()
+                || auth()->user()->canManagePurchaseOrders()
+                || auth()->user()->canManageRequestForPayments()
+            );
+        @endphp
+        @if($canSeeSupplyChain)
             <div>
                 <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
                     <span class="flex items-center space-x-2">
@@ -225,28 +239,48 @@
                     <span class="chevron">▼</span>
                 </button>
                 <div class="submenu ml-8 space-y-1 hidden">
-                    <a href="{{ route('suppliers.create') }}" class="block hover:underline">Add Supplier</a>
-                    <a href="{{ route('suppliers.index') }}" class="block hover:underline">Supplier List</a>
+                    @if(auth()->user()->canManageSuppliers())
+                        @if(auth()->user()->navAccess('supply_chain.add_supplier', fn() => true))
+                            <a href="{{ route('suppliers.create') }}" class="block hover:underline">Add Supplier</a>
+                        @endif
+                        @if(auth()->user()->navAccess('supply_chain.supplier_list', fn() => true))
+                            <a href="{{ route('suppliers.index') }}" class="block hover:underline">Supplier List</a>
+                        @endif
+                    @endif
                     @if(auth()->user()->canManageSupplierReceivingReports())
-                        <a href="{{ route('supplier_receiving_reports.index') }}" class="block hover:underline">Receiving Reports</a>
+                        @if(auth()->user()->navAccess('supply_chain.receiving_reports', fn() => true))
+                            <a href="{{ route('supplier_receiving_reports.index') }}" class="block hover:underline">Receiving Reports</a>
+                        @endif
                     @endif
                     @if(auth()->user()->canManageIssueSlips())
-                        <a href="{{ route('issue_slips.index') }}" class="block hover:underline">Issue Slips</a>
+                        @if(auth()->user()->navAccess('supply_chain.issue_slips', fn() => true))
+                            <a href="{{ route('issue_slips.index') }}" class="block hover:underline">Issue Slips</a>
+                        @endif
                     @endif
-                    <!-- SCM Role - Supply Chain Module Links -->
-                    @if(auth()->user()->hasRole(['SCM']))
-                        <hr class="my-2 border-gray-600">
-                        @if(auth()->user()->canManagePurchaseRequests())
+                    @if(auth()->user()->canManagePurchaseRequests())
+                        @if(auth()->user()->navAccess('supply_chain.purchase_requests', fn() => true))
                             <a href="{{ route('purchase_requests.index') }}" class="block hover:underline">Purchase Request (PR)</a>
                         @endif
-                        @if(auth()->user()->canManagePurchaseOrders())
+                    @endif
+                    @if(auth()->user()->canManagePurchaseOrders())
+                        @if(auth()->user()->navAccess('supply_chain.purchase_orders', fn() => true))
                             <a href="{{ route('purchase_orders.index') }}" class="block hover:underline">Purchase Order (PO)</a>
                         @endif
-                        @if(auth()->user()->canManageRequestForPayments())
+                    @endif
+                    @if(auth()->user()->canManageRequestForPayments())
+                        @if(auth()->user()->navAccess('supply_chain.rfp', fn() => true))
                             <a href="{{ route('request_for_payments.index') }}" class="block hover:underline">Request For Payment (RFP)</a>
                         @endif
-                        <a href="{{ route('non_trade_items.index') }}" class="block hover:underline">Non-Trade Items Library</a>
-                        <a href="{{ route('trade_items.index') }}" class="block hover:underline">Trade Items Library</a>
+                    @endif
+                    @if(auth()->user()->canAccessModule('non_trade_items'))
+                        @if(auth()->user()->navAccess('supply_chain.non_trade_items', fn() => true))
+                            <a href="{{ route('non_trade_items.index') }}" class="block hover:underline">Non-Trade Items Library</a>
+                        @endif
+                    @endif
+                    @if(auth()->user()->canAccessModule('trade_items'))
+                        @if(auth()->user()->navAccess('supply_chain.trade_items', fn() => true))
+                            <a href="{{ route('trade_items.index') }}" class="block hover:underline">Trade Items Library</a>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -283,10 +317,12 @@
                     <span class="chevron">▼</span>
                 </button>
                 <div class="submenu ml-8 space-y-1 hidden">
-                    @if(auth()->user()->canAddItems())
+                    @if(auth()->user()->navAccess('items.create', fn() => auth()->user()->canAddItems()))
                         <a href="{{ route('items.create') }}" class="block hover:underline">Add Item</a>
                     @endif
-                    <a href="{{ route('items.index') }}" class="block hover:underline">Item List</a>
+                    @if(auth()->user()->navAccess('items.list', fn() => true))
+                        <a href="{{ route('items.index') }}" class="block hover:underline">Item List</a>
+                    @endif
                 </div>
             </div>
         @endif
@@ -302,10 +338,12 @@
                     <span class="chevron">▼</span>
                 </button>
                 <div class="submenu ml-8 space-y-1 hidden">
-                    @if(auth()->user()->canCreateDeliveries())
+                    @if(auth()->user()->navAccess('deliveries.view', fn() => auth()->user()->canCreateDeliveries()))
                         <a href="{{ route('deliveries.deliveries') }}" class="block hover:underline">View Delivery</a>
                     @endif
-                    <a href="{{ route('deliveries.index') }}" class="block hover:underline">Delivery List</a>
+                    @if(auth()->user()->navAccess('deliveries.list', fn() => true))
+                        <a href="{{ route('deliveries.index') }}" class="block hover:underline">Delivery List</a>
+                    @endif
                 </div>
             </div>
         @endif
@@ -327,7 +365,22 @@
         @endif
 
         <!-- =================== PURCHASE ORDER =================== -->
-        @if((auth()->user()->canManagePurchaseRequests() || auth()->user()->canManagePurchaseOrders() || auth()->user()->canManageRequestForPayments() || auth()->user()->hasRole(['Accounting_Creator', 'Accounting_Approver'])) && !auth()->user()->hasRole(['SCM']))
+        @php
+            $canSeeFinance = !auth()->user()->hasRole(['SCM']) && (
+                auth()->user()->canManagePurchaseRequests()
+                || auth()->user()->canManagePurchaseOrders()
+                || auth()->user()->canManageRequestForPayments()
+                || auth()->user()->canAccessModule('apv')
+                || auth()->user()->canAccessModule('cv')
+                || auth()->user()->canAccessModule('cash_advance')
+                || auth()->user()->canAccessModule('liquidation')
+                || auth()->user()->canAccessModule('reimbursement')
+                || auth()->user()->canAccessModule('non_trade_items')
+                || auth()->user()->canAccessModule('trade_items')
+                || auth()->user()->canAccessModule('currency_rates')
+            );
+        @endphp
+        @if($canSeeFinance)
             <div>
                 <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
                     <span class="flex items-center space-x-2">
@@ -340,36 +393,36 @@
                     @if(auth()->user()->canManagePurchaseRequests())
                         <a href="{{ route('purchase_requests.index') }}" class="block hover:underline">Purchase Request (PR)</a>
                     @endif
-
                     @if(auth()->user()->canManagePurchaseOrders())
                         <a href="{{ route('purchase_orders.index') }}" class="block hover:underline">Purchase Order (PO)</a>
                     @endif
-
                     @if(auth()->user()->canAccessModule('non_trade_items'))
                         <a href="{{ route('non_trade_items.index') }}" class="block hover:underline">Non-Trade Items Library</a>
+                    @endif
+                    @if(auth()->user()->canAccessModule('trade_items'))
                         <a href="{{ route('trade_items.index') }}" class="block hover:underline">Trade Items Library</a>
                     @endif
-
                     @if(auth()->user()->canManageRequestForPayments())
                         <a href="{{ route('request_for_payments.index') }}" class="block hover:underline">Request For Payment (RFP)</a>
                     @endif
-
                     @if(auth()->user()->canAccessModule('apv'))
                         <a href="{{ route('accounts_payable_invoices.index') }}" class="block hover:underline">Account Payable Invoice (APV)</a>
                     @endif
-
                     @if(auth()->user()->canAccessModule('cv'))
                         <a href="{{ route('check_vouchers.index') }}" class="block hover:underline">Check Voucher (CV)</a>
                     @endif
-
-                    <a href="{{ route('cash_advance_requests.index') }}" class="block hover:underline">Cash Advance Request (CAR)</a>
-                    <a href="{{ route('liquidation_forms.index') }}" class="block hover:underline">Liquidation Form (LIQ)</a>
+                    @if(auth()->user()->canAccessModule('cash_advance'))
+                        <a href="{{ route('cash_advance_requests.index') }}" class="block hover:underline">Cash Advance Request (CAR)</a>
+                    @endif
+                    @if(auth()->user()->canAccessModule('liquidation'))
+                        <a href="{{ route('liquidation_forms.index') }}" class="block hover:underline">Liquidation Form (LIQ)</a>
+                    @endif
                     @if(auth()->user()->canAccessReimbursementForms())
                         <a href="{{ route('reimbursement_forms.index') }}" class="block hover:underline">Reimbursement Form (RI)</a>
                     @endif
-
-                    <a href="{{ route('po_records.index') }}" class="block hover:underline">PO Records</a>
-
+                    @if(auth()->user()->canManagePurchaseOrders())
+                        <a href="{{ route('po_records.index') }}" class="block hover:underline">PO Records</a>
+                    @endif
                     @if(auth()->user()->canAccessModule('currency_rates'))
                         <a href="{{ route('currencies.index') }}" class="block hover:underline">Currency Rates</a>
                     @endif
@@ -378,25 +431,29 @@
         @endif
         @endif <!-- Close PO Creator role check -->
 
-        <!-- =================== AGING REPORT =================== -->
-        @if(auth()->user()->canAccessAgingReports())
+        <!-- =================== CREDITS & COLLECTION =================== -->
+        @if(auth()->user()->canAccessAgingReports() || auth()->user()->canAccessCollections())
             <div>
                 <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
                     <span class="flex items-center space-x-2">
                         <span>📅</span>
-                        <span class="sidebar-text">Aging Report</span>
+                        <span class="sidebar-text">Credits & Collection</span>
                     </span>
                     <span class="chevron">▼</span>
                 </button>
                 <div class="submenu ml-8 space-y-1 hidden">
-                    <a href="{{ route('aging_reports.view') }}" class="block hover:underline">Aging Reports View</a>
+                    @if(auth()->user()->canAccessAgingReports() && auth()->user()->navAccess('aging.view', fn() => true))
+                        <a href="{{ route('aging_reports.view') }}" class="block hover:underline">Aging Reports View</a>
+                    @endif
                     @if(auth()->user()->canAccessARDashboard())
                         <a href="{{ route('invoices.screen') }}" class="block hover:underline">AR Dashboard</a>
                     @endif
-                    @if(auth()->user()->canAccessPayments())
+                    @if(auth()->user()->canAccessCollections() && auth()->user()->navAccess('payments', fn() => true))
                         <a href="{{ route('payments.entry') }}" class="block hover:underline">Collection</a>
                     @endif
-                    <a href="{{ route('ar_adjustments.index') }}" class="block hover:underline">AR Adjustments</a>
+                    @if(auth()->user()->canAccessAgingReports() && auth()->user()->navAccess('aging.adjustments', fn() => true))
+                        <a href="{{ route('ar_adjustments.index') }}" class="block hover:underline">AR Adjustments</a>
+                    @endif
                 </div>
             </div>
         @endif
@@ -522,8 +579,11 @@
 
                     <!-- User & Access Management (IT Only) -->
                     @if(Auth::user()->canManageUsers())
+                    <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 hover:bg-gray-100">
+                        <i class="fas fa-users mr-2"></i>User Management
+                    </a>
                     <a href="{{ route('rbac.index') }}" class="block px-4 py-2 hover:bg-gray-100">
-                        <i class="fas fa-users-gear mr-2"></i>User & Access Management
+                        <i class="fas fa-users-gear mr-2"></i>RBAC Management
                     </a>
                     @endif
 

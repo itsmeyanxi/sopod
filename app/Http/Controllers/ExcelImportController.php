@@ -364,7 +364,10 @@ private $arAdjustmentColumnMap = [
 
         // Fix common encoding issues
         $text = str_replace('�', '', $text); // Remove replacement character
-        
+        $text = str_replace("\xc2\xa0", ' ', $text); // Non-breaking space (UTF-8)
+        $text = str_replace("\xc3\xa0", ' ', $text); // Another common variant
+        $text = preg_replace('/\s+/', ' ', $text);   // Collapse multiple spaces
+
         return trim($text);
     }
 
@@ -834,8 +837,8 @@ private $arAdjustmentColumnMap = [
                 'annual' => 'annual',
                 'factoring' => 'factoring',
                 'factoring_interest' => 'factoring_interest', 'factoringinterest' => 'factoring_interest',
-                'others__particulars' => 'others_particulars', 'othersparticulars' => 'others_particulars',
-                'others__particulars_1' => 'others_particulars',
+                'others_particulars' => 'others_particulars', 'othersparticulars' => 'others_particulars',
+                'others__particulars' => 'others_particulars', 'others__particulars_1' => 'others_particulars',
                 'others' => 'others_amount',
                 'check_amount' => 'check_amount', 'checkamount' => 'check_amount',
                 'status' => 'status',
@@ -860,6 +863,8 @@ private $arAdjustmentColumnMap = [
             $imported = 0;
             $skipped = 0;
             $errors = [];
+
+            // All rows are inserted as new records — no deduplication
 
             DB::beginTransaction();
 
@@ -950,9 +955,37 @@ private $arAdjustmentColumnMap = [
                 }
 
                 try {
+                    // Always insert every row as a new record
                     ArAging::create($insertData);
                     $imported++;
-                    
+                    $invoiceNo = $insertData['invoice_no'] ?? null;
+
+                    // Auto-create AR adjustment record if ar_adjustments amount is non-zero
+                    if (!empty($insertData['ar_adjustments']) && (float)$insertData['ar_adjustments'] != 0) {
+                        $adjAmount = (float)$insertData['ar_adjustments'];
+                        $invoiceNo = $insertData['invoice_no'] ?? null;
+                        $refNumber = 'ARIMPORT-' . ($invoiceNo ?? uniqid()) . '-' . $rowNum;
+
+                        // Only create if this reference doesn't already exist
+                        $alreadyExists = ArAdjustment::where('reference_number', $refNumber)->exists();
+                        if (!$alreadyExists) {
+                            ArAdjustment::create([
+                                'customer_code'    => $insertData['customer_code'] ?? null,
+                                'customer_name'    => $insertData['client_name'] ?? null,
+                                'branch'           => $insertData['branch'] ?? null,
+                                'reference_number' => $refNumber,
+                                'transaction_type' => 'adjustment',
+                                'transaction_date' => $insertData['invoice_date'] ?? now()->format('Y-m-d'),
+                                'amount'           => abs($adjAmount),
+                                'is_decrease'      => $adjAmount < 0,
+                                'invoice_number'   => $invoiceNo,
+                                'dr_no'            => $insertData['dr_no'] ?? null,
+                                'remarks'          => 'Auto-created from AR Aging import',
+                                'created_by'       => auth()->id() ?? null,
+                            ]);
+                        }
+                    }
+
                 } catch (\Exception $e) {
                     $errors[] = "Row $rowNum: " . $e->getMessage();
                     \Log::error("Row $rowNum import failed", [
@@ -964,10 +997,11 @@ private $arAdjustmentColumnMap = [
 
             DB::commit();
 
-            $message = "Successfully imported $imported AR Aging rows!";
+            $message = "AR Aging import complete: $imported record(s) added";
             if ($skipped > 0) {
-                $message .= " ($skipped empty rows skipped)";
+                $message .= ", $skipped empty row(s) skipped";
             }
+            $message .= ".";
 
             if (!empty($errors)) {
                 $errorMessage = implode("\n", array_slice($errors, 0, 10));

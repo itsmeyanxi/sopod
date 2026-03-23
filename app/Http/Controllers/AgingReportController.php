@@ -14,6 +14,14 @@ use Illuminate\Support\Facades\Log;
 
 class AgingReportController extends Controller
 {
+    private function denyIfCCOnly()
+    {
+        $user = auth()->user();
+        if ($user && $user->isCCRole() && !$user->full_aging_access) {
+            abort(403, 'Credits & Collection role does not have access to AR Aging reports.');
+        }
+    }
+
     /**
      * Display the aging reports view
      * ✅ UPDATED: Filter by record_date and include_flag
@@ -65,10 +73,13 @@ class AgingReportController extends Controller
             'aging_date_used' => $agingDate->format('Y-m-d'),
         ]);
 
-        // Apply date filter on record_date if provided
+        // Apply date filter on record_date if provided (include NULL record_dates)
         if ($request->filled('filter_date')) {
             $filterDate = Carbon::parse($request->filter_date);
-            $query->whereDate('record_date', '<=', $filterDate);
+            $query->where(function($q) use ($filterDate) {
+                $q->whereNull('record_date')
+                  ->orWhereDate('record_date', '<=', $filterDate);
+            });
         }
 
         // Apply include filter - ONLY show records matching the selection
@@ -96,10 +107,8 @@ class AgingReportController extends Controller
                     if ($request->filled('aging_date')) {
                         $agingDateForCalc = $agingDate->copy()->startOfDay();
                     } else {
-                        // Use record_date from the database record
-                        $agingDateForCalc = $record->record_date
-                            ? Carbon::parse($record->record_date)->startOfDay()
-                            : now()->startOfDay();
+                        // Use today's date so age auto-increments daily
+                        $agingDateForCalc = now()->startOfDay();
                     }
 
                     // Age = days passed since base date (signed difference - can be negative if base date is in future)
@@ -153,6 +162,16 @@ class AgingReportController extends Controller
                     'net_of_cwt' => $record->net_of_cwt ?? 0,
                     'ar_class' => $record->ar_class ?? 'N/A',
                     'include_flag' => $record->include_flag ?? 'yes',
+                    'dr_no' => $record->dr_no ?? 'N/A',
+                    'po_no' => $record->po_no ?? 'N/A',
+                    'ewt' => $record->ewt ?? 0,
+                    'annual' => $record->annual ?? 0,
+                    'factoring' => $record->factoring ?? 0,
+                    'factoring_interest' => $record->factoring_interest ?? 0,
+                    'others_particulars' => $record->others_particulars ?? '',
+                    'others_amount' => $record->others_amount ?? 0,
+                    'check_amount' => $record->check_amount ?? 0,
+                    'ar_adjustments' => $record->ar_adjustments ?? 0,
                 ];
             });
     }
@@ -202,41 +221,46 @@ class AgingReportController extends Controller
         // Search in imported AR Aging data
         $query = ArAging::query();
 
-        // Apply search filters based on what was provided
+        // Apply search filters — split into words so non-breaking spaces / encoding
+        // differences from Excel don't break matching
         $query->where(function($q) use ($customerSearch, $invoiceSearch, $drSearch) {
             if (!empty($customerSearch)) {
-                // Search by customer
-                $q->where('client_name', 'LIKE', "%{$customerSearch}%")
-                  ->orWhere('customer_code', 'LIKE', "%{$customerSearch}%");
+                $term = '%' . strtolower(trim($customerSearch)) . '%';
+                // Search across client_name, customer_code, AND branch
+                // (branch often contains the outlet/store name like "MANG INASAL - Royale...")
+                $q->where(function($nameQ) use ($term) {
+                    $nameQ->whereRaw('LOWER(client_name) LIKE ?', [$term])
+                          ->orWhereRaw('LOWER(customer_code) LIKE ?', [$term])
+                          ->orWhereRaw('LOWER(branch) LIKE ?', [$term]);
+                });
             }
 
             if (!empty($invoiceSearch)) {
-                // Search by invoice number
+                $term = '%' . strtolower(trim($invoiceSearch)) . '%';
                 if (!empty($customerSearch)) {
-                    // If both are provided, use OR logic
-                    $q->orWhere('invoice_no', 'LIKE', "%{$invoiceSearch}%");
+                    $q->orWhereRaw('LOWER(TRIM(invoice_no)) LIKE ?', [$term]);
                 } else {
-                    // If only invoice search is provided
-                    $q->where('invoice_no', 'LIKE', "%{$invoiceSearch}%");
+                    $q->whereRaw('LOWER(TRIM(invoice_no)) LIKE ?', [$term]);
                 }
             }
 
-            // ✅ NEW: Add DR number search
             if (!empty($drSearch)) {
+                $term = '%' . strtolower(trim($drSearch)) . '%';
                 if (!empty($customerSearch) || !empty($invoiceSearch)) {
-                    // If other searches are provided, use OR logic
-                    $q->orWhere('dr_no', 'LIKE', "%{$drSearch}%");
+                    $q->orWhereRaw('LOWER(TRIM(dr_no)) LIKE ?', [$term]);
                 } else {
-                    // If only DR search is provided
-                    $q->where('dr_no', 'LIKE', "%{$drSearch}%");
+                    $q->whereRaw('LOWER(TRIM(dr_no)) LIKE ?', [$term]);
                 }
             }
         });
 
-        // Apply date filter on record_date
+        // Apply date filter on record_date (include NULL record_dates)
         if ($request->filled('filter_date')) {
             $filterDate = Carbon::parse($request->filter_date);
-            $query->whereDate('record_date', '<=', $filterDate);
+            $query->where(function($q) use ($filterDate) {
+                $q->whereNull('record_date')
+                  ->orWhereDate('record_date', '<=', $filterDate);
+            });
         }
 
         // Apply include filter
@@ -263,10 +287,8 @@ class AgingReportController extends Controller
                     if ($request->filled('aging_date')) {
                         $agingDateForCalc = $agingDate->copy()->startOfDay();
                     } else {
-                        // Use record_date from the database record
-                        $agingDateForCalc = $record->record_date
-                            ? Carbon::parse($record->record_date)->startOfDay()
-                            : now()->startOfDay();
+                        // Use today's date so age auto-increments daily
+                        $agingDateForCalc = now()->startOfDay();
                     }
 
                     // Age = days passed since base date (signed difference - can be negative if base date is in future)
@@ -290,10 +312,20 @@ class AgingReportController extends Controller
                     'invoice_amount' => $record->invoice_amount ?? 0,
                     'settled_amount' => $record->settled_invoice_amount ?? 0,
                     'net_ar' => $record->net_ar_balance ?? 0,
-                    'age' => $age, // ✅ Dynamically calculated age
-                    'age_category' => $ageCategory, // ✅ Dynamically calculated category
+                    'age' => $age,
+                    'age_category' => $ageCategory,
                     'status' => $record->status ?? 'Outstanding',
                     'include_flag' => $record->include_flag ?? 'yes',
+                    'dr_no' => $record->dr_no ?? 'N/A',
+                    'po_no' => $record->po_no ?? 'N/A',
+                    'ewt' => $record->ewt ?? 0,
+                    'annual' => $record->annual ?? 0,
+                    'factoring' => $record->factoring ?? 0,
+                    'factoring_interest' => $record->factoring_interest ?? 0,
+                    'others_particulars' => $record->others_particulars ?? '',
+                    'others_amount' => $record->others_amount ?? 0,
+                    'check_amount' => $record->check_amount ?? 0,
+                    'ar_adjustments' => $record->ar_adjustments ?? 0,
                 ];
             });
     } else {
@@ -459,10 +491,31 @@ class AgingReportController extends Controller
 
             $query = ArAging::query();
 
-            // Filter by record_date
+            // Filter by date: use record_date if present, otherwise fall back to counter_date/invoice_date
+            // NOTE: due_date is NOT used as a filter — it represents payment due date (can be in the future)
+            //       and does not indicate when the invoice was created.
             if ($filterDate) {
                 $filterDate = Carbon::parse($filterDate);
-                $query->whereDate('record_date', '<=', $filterDate);
+                $query->where(function($q) use ($filterDate) {
+                    // Has record_date: use it
+                    $q->whereDate('record_date', '<=', $filterDate)
+                      // No record_date: use counter_date (creation proxy) or invoice_date
+                      ->orWhere(function($inner) use ($filterDate) {
+                          $inner->whereNull('record_date')
+                                ->where(function($d) use ($filterDate) {
+                                    $d->whereDate('counter_date', '<=', $filterDate)
+                                      ->orWhere(function($d2) use ($filterDate) {
+                                          $d2->whereNull('counter_date')
+                                             ->whereDate('invoice_date', '<=', $filterDate);
+                                      })
+                                      // No counter_date and no invoice_date: always include
+                                      ->orWhere(function($d2) use ($filterDate) {
+                                          $d2->whereNull('counter_date')
+                                             ->whereNull('invoice_date');
+                                      });
+                                });
+                      });
+                });
             }
 
             // Filter by include flag
@@ -519,10 +572,8 @@ class AgingReportController extends Controller
                     if ($request->filled('aging_date')) {
                         $agingDateForCalc = $agingDate->copy()->startOfDay();
                     } else {
-                        // Use record_date from the database record
-                        $agingDateForCalc = $record->record_date
-                            ? Carbon::parse($record->record_date)->startOfDay()
-                            : now()->startOfDay();
+                        // Use today's date so age auto-increments daily
+                        $agingDateForCalc = now()->startOfDay();
                     }
 
                     // Age = days passed since base date (signed difference - can be negative if base date is in future)
@@ -896,11 +947,27 @@ class AgingReportController extends Controller
             ? Carbon::parse($request->aging_date)
             : now();
 
-        // ✅ Build query with filters - Get AR Aging records only
-        // Note: Deliveries without invoices are searchable via DR number but not included in aging buckets
+        // Build query — same date filter logic as arAgingFromImported()
+        // Use counter_date/invoice_date as creation proxy (due_date is payment due, not creation date)
         $query = ArAging::query();
 
-        $query->whereDate('record_date', '<=', $agingDate);
+        $query->where(function($q) use ($agingDate) {
+            $q->whereDate('record_date', '<=', $agingDate)
+              ->orWhere(function($inner) use ($agingDate) {
+                  $inner->whereNull('record_date')
+                        ->where(function($d) use ($agingDate) {
+                            $d->whereDate('counter_date', '<=', $agingDate)
+                              ->orWhere(function($d2) use ($agingDate) {
+                                  $d2->whereNull('counter_date')
+                                     ->whereDate('invoice_date', '<=', $agingDate);
+                              })
+                              ->orWhere(function($d2) use ($agingDate) {
+                                  $d2->whereNull('counter_date')
+                                     ->whereNull('invoice_date');
+                              });
+                        });
+              });
+        });
 
         if ($include !== 'all') {
             $query->where('include_flag', $include);
@@ -1015,7 +1082,10 @@ class AgingReportController extends Controller
         });
 
         // Use agingDate for record_date filter
-        $query->whereDate('record_date', '<=', $agingDate);
+        $query->where(function($q) use ($agingDate) {
+            $q->whereNull('record_date')
+              ->orWhereDate('record_date', '<=', $agingDate);
+        });
 
         if ($include !== 'all') {
             $query->where('include_flag', $include);
@@ -1094,7 +1164,10 @@ class AgingReportController extends Controller
         });
 
         // ✅ Use agingDate for record_date filter (same logic as summary)
-        $query->whereDate('record_date', '<=', $agingDate);
+        $query->where(function($q) use ($agingDate) {
+            $q->whereNull('record_date')
+              ->orWhereDate('record_date', '<=', $agingDate);
+        });
 
         if ($include !== 'all') {
             $query->where('include_flag', $include);
@@ -1990,13 +2063,73 @@ public function debugAdjustments($customerCode)
             // Get all invoice numbers for this customer
             $invoiceNumbers = $arRecords->pluck('invoice_no')->filter()->toArray();
 
-            // ✅ FIXED: Fetch collections with flexible matching
-            $collections = $this->fetchCollectionsFlexible($record->customer_code, $invoiceNumbers, $record->client_name);
+            // Fetch real collections from payments table
+            $realCollections = $this->fetchCollectionsFlexible($record->customer_code, $invoiceNumbers, $record->client_name);
+
+            // Always build synthetic collections from ar_aging settled amounts
+            // (covers customers whose payments only exist in ar_aging import data)
+            $syntheticCollections = [];
+            $realInvoiceKeys = $realCollections->pluck('invoice_no')->filter()->flip()->all();
+
+            foreach ($arRecords as $ar) {
+                $settledAmt = (float)($ar->settled_invoice_amount ?? 0);
+                // Only add synthetic if not already covered by a real payment record
+                if ($settledAmt > 0 && !isset($realInvoiceKeys[$ar->invoice_no])) {
+                    $syntheticCollections[] = [
+                        'deposit_date'              => $ar->counter_date ?? $ar->invoice_date ?? $ar->record_date,
+                        'collection_receipt_number' => 'AR-IMPORT-' . ($ar->invoice_no ?? $ar->id),
+                        'dr_no'                     => $ar->dr_no ?? '-',
+                        'invoice_no'                => $ar->invoice_no ?? '-',
+                        'client_name'               => $ar->client_name,
+                        'branch'                    => $ar->branch ?? '-',
+                        'gross_amount'              => $settledAmt,
+                        'ewt'                       => (float)($ar->ewt ?? 0),
+                        'other_adjustment'          => (float)($ar->others_amount ?? 0),
+                        'factoring'                 => (float)($ar->factoring ?? 0),
+                        'check_amount'              => (float)($ar->check_amount ?? $settledAmt),
+                        'net_ar_balance'            => (float)($ar->net_ar_balance ?? 0),
+                        'checking_si'               => '-',
+                        'week_no'                   => '-',
+                        'ar_class'                  => $ar->ar_class ?? null,
+                        'remarks'                   => 'From AR Aging import',
+                        'data_check'                => '-',
+                        'status'                    => 'Settled',
+                        'signed_by'                 => '-',
+                        'created_by'                => 'Import',
+                    ];
+                }
+            }
+
+            // Merge real + synthetic collections
+            $collections = $realCollections->concat(collect($syntheticCollections));
 
             Log::info('Collections fetched', ['count' => $collections->count()]);
 
             // ✅ FIXED: Fetch adjustments with flexible matching (THIS WAS MISSING)
             $adjustments = $this->fetchAdjustmentsFlexible($record->customer_code, $invoiceNumbers, $record->client_name);
+
+            // If no adjustments found, synthesize from ar_aging ar_adjustments column
+            if ($adjustments->isEmpty()) {
+                $syntheticAdjustments = [];
+                foreach ($arRecords as $ar) {
+                    $adjAmt = (float)($ar->ar_adjustments ?? 0);
+                    if ($adjAmt != 0) {
+                        $syntheticAdjustments[] = [
+                            'reference_number'  => 'ARIMPORT-' . ($ar->invoice_no ?? $ar->id),
+                            'transaction_date'  => $ar->invoice_date ?? $ar->record_date,
+                            'transaction_type'  => 'adjustment',
+                            'invoice_number'    => $ar->invoice_no ?? null,
+                            'amount'            => $adjAmt,
+                            'is_decrease'       => $adjAmt < 0,
+                            'gl_account'        => '-',
+                            'signed_by'         => '-',
+                            'remarks'           => ($ar->others_particulars ?? '') ?: 'From AR Aging import',
+                            'created_by'        => 'Import',
+                        ];
+                    }
+                }
+                $adjustments = collect($syntheticAdjustments);
+            }
 
             Log::info('Adjustments fetched', ['count' => $adjustments->count()]);
 

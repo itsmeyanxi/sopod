@@ -2319,6 +2319,7 @@ Route::prefix('admin/users')->name('admin.users.')->group(function () {
     Route::get('/create', fn() => auth()->user()->canManageUsers() ? app(UserManagementController::class)->create() : view('errors.noaccess'))->name('create');
     Route::post('/', fn() => auth()->user()->canManageUsers() ? app(UserManagementController::class)->store(request()) : view('errors.noaccess'))->name('store');
     Route::post('/{id}/toggle-lock', fn($id) => auth()->user()->isAdminUser() ? app(UserManagementController::class)->toggleLock($id) : view('errors.noaccess'))->name('toggleLock');
+    Route::post('/{id}/module-overrides', fn($id) => auth()->user()->isAdminUser() ? app(UserManagementController::class)->updateModuleOverride(request(), $id) : response()->json(['error' => 'Unauthorized'], 403))->name('module-overrides');
     Route::get('/{id}/edit', fn($id) => auth()->user()->canManageUsers() ? app(UserManagementController::class)->edit($id) : view('errors.noaccess'))->name('edit');
     Route::put('/{id}', fn($id) => auth()->user()->canManageUsers() ? app(UserManagementController::class)->update(request(), $id) : view('errors.noaccess'))->name('update');
     Route::delete('/{id}', fn($id) => auth()->user()->canManageUsers() ? app(UserManagementController::class)->destroy($id) : view('errors.noaccess'))->name('destroy');

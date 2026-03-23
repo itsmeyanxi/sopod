@@ -127,7 +127,7 @@
                                class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                title="Select All">
                     </th>
-                    <th class="px-2 py-2 text-left">Deposit Date</th>
+                    <th class="px-2 py-2 text-left">Invoice Date</th>
                     <th class="px-2 py-2 text-left">CR Number</th>
                     <th class="px-2 py-2 text-left">Invoice No</th>
                     <th class="px-2 py-2 text-left">DR No</th>
@@ -481,7 +481,18 @@ function addSelectedToPaymentTable() {
     }
 
     let addedCount = 0;
-    
+
+    // If the only existing row is empty, remove it before adding selected rows
+    const tbody = document.getElementById('payment_entries_tbody');
+    const existingRows = tbody.querySelectorAll('tr');
+    if (existingRows.length === 1) {
+        const drInput = existingRows[0].querySelector('[data-field="dr_number"]');
+        if (drInput && drInput.value.trim() === '') {
+            existingRows[0].remove();
+            paymentRowCounter = 0;
+        }
+    }
+
     outstandingPaymentsData.forEach(payment => {
         if (selectedOutstandingPayments.has(payment.dr_no)) {
             addPaymentRowWithData(payment);

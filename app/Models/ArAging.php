@@ -41,6 +41,14 @@ class ArAging extends Model
         'net_ar_balance',
         'factored_ar_amount',
 
+        'ewt',
+        'annual',
+        'factoring',
+        'factoring_interest',
+        'others_particulars',
+        'others_amount',
+        'check_amount',
+
         'status',
         'include_flag',
         'ar_class',

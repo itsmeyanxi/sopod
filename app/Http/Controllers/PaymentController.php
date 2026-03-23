@@ -258,49 +258,130 @@ class PaymentController extends Controller
         // ✅ If a delivery was found (pending invoicing), create a synthetic invoice entry for it
         $outstandingInvoices = collect();
         if (isset($customerData->dr_no) && $customerData->total_outstanding == 0) {
-            // This is a delivery from the deliveries table - create a display entry
-            $deliveryAmount = isset($customerData->delivery_amount) ? floatval($customerData->delivery_amount) : 0;
-            $outstandingInvoices->push((object)[
-                'dr_no' => $customerData->dr_no,
-                'invoice_no' => 'PENDING',
-                'invoice_date' => $customerData->request_delivery_date,
-                'invoice_amount' => $deliveryAmount,  // ✅ Use actual delivery gross amount
-                'settled_invoice_amount' => 0,
-                'net_ar_balance' => $deliveryAmount,  // ✅ Full amount is outstanding
-                'gross_ar_balance' => $deliveryAmount,  // ✅ Use actual delivery amount
-                'terms' => 'TBD',
-                'age' => 0,
-                'due_date' => null,
-                'status' => 'Pending Invoice'
-            ]);
-        } else {
-            // Get outstanding invoices from ar_aging
-            $outstandingInvoices = DB::table('ar_aging')
-            ->select(
-                'dr_no',           // ✅ Added this!
-                'invoice_no',
-                'invoice_date',
-                'invoice_amount',
-                'settled_invoice_amount',
-                'net_ar_balance',
-                'gross_ar_balance',
-                'terms',
-                'age',
-                'due_date',
-                'status'
-            )
-            ->where('customer_code', $customerData->customer_code)
-            ->where('net_ar_balance', '>', 0);
+            // First check if ar_aging already has this DR — use its net_ar_balance if so
+            // Try both the delivery's dr_no AND the original search term (handles format mismatches)
+            $drNoFromDelivery = trim($customerData->dr_no);
+            $drNoFromSearch = trim($search);
 
-        // ✅ If search was for a specific DR, only show that DR's invoices
-        if (isset($customerData->dr_no)) {
-            $outstandingInvoices->where('dr_no', $customerData->dr_no);
-        }
-
-        $outstandingInvoices = $outstandingInvoices
-                ->orderBy('invoice_date', 'desc')
-                ->limit(100)  // Increased limit to get more outstanding invoices
+            $arAgingForDr = DB::table('ar_aging')
+                ->where(function($q) use ($drNoFromDelivery, $drNoFromSearch) {
+                    $q->whereRaw('TRIM(dr_no) = ?', [$drNoFromDelivery]);
+                    if ($drNoFromSearch !== $drNoFromDelivery) {
+                        $q->orWhereRaw('TRIM(dr_no) = ?', [$drNoFromSearch]);
+                    }
+                    // Also handle Excel-exported decimals like "136501.0"
+                    if (is_numeric($drNoFromSearch)) {
+                        $q->orWhereRaw('CAST(TRIM(dr_no) AS UNSIGNED) = ?', [(int)$drNoFromSearch]);
+                    }
+                })
+                ->select('dr_no', 'invoice_no', 'invoice_date', 'invoice_amount', 'settled_invoice_amount',
+                         'net_ar_balance', 'gross_ar_balance', 'net_of_cwt', 'cwt',
+                         'check_amount', 'others_amount', 'ar_adjustments', 'terms', 'age', 'due_date', 'status')
                 ->get();
+
+            Log::info('AR Aging DR lookup', [
+                'dr_from_delivery' => $drNoFromDelivery,
+                'dr_from_search' => $drNoFromSearch,
+                'records_found' => $arAgingForDr->count(),
+                'net_ar_values' => $arAgingForDr->pluck('net_ar_balance')->toArray(),
+                'invoice_amounts' => $arAgingForDr->pluck('invoice_amount')->toArray(),
+            ]);
+
+            if ($arAgingForDr->isNotEmpty()) {
+                // Use actual AR aging data; resolve net_ar_balance for each record
+                $arAgingForDr = $arAgingForDr->map(function($record) {
+                    $netAr = (float)($record->net_ar_balance ?? 0);
+                    if ($netAr <= 0) {
+                        // Fallback 1: invoice_amount - settled_invoice_amount
+                        $netAr = max(0,
+                            (float)($record->invoice_amount ?? 0)
+                            - (float)($record->settled_invoice_amount ?? 0)
+                        );
+                    }
+                    if ($netAr <= 0) {
+                        // Fallback 2: derive from net_of_cwt, check_amount, others_amount, ar_adjustments
+                        // others_amount can be a credit (payment) or debit (additional charge):
+                        //   - Credit: net_of_cwt - ar_adj - check - others  (when check < net_of_cwt)
+                        //   - Debit:  net_of_cwt - ar_adj + others - check  (when check > net_of_cwt)
+                        $netOfCwt  = (float)($record->net_of_cwt ?? 0);
+                        $checkAmt  = (float)($record->check_amount ?? 0);
+                        $othersAmt = (float)($record->others_amount ?? 0);
+                        $adjAmt    = (float)($record->ar_adjustments ?? 0);
+                        if ($netOfCwt > 0) {
+                            $computed = $netOfCwt - $adjAmt - $checkAmt - $othersAmt;
+                            if ($computed < 0) {
+                                // others_amount is likely a debit/charge, not a payment
+                                $computed = $netOfCwt - $adjAmt + $othersAmt - $checkAmt;
+                            }
+                            $netAr = max(0, $computed);
+                        }
+                    }
+                    $record->net_ar_balance = $netAr;
+                    return $record;
+                });
+
+                $outstandingInvoices = $arAgingForDr;
+            } else {
+                // No AR aging record yet — use full delivery amount as outstanding
+                $deliveryAmount = isset($customerData->delivery_amount) ? floatval($customerData->delivery_amount) : 0;
+                $outstandingInvoices->push((object)[
+                    'dr_no' => $customerData->dr_no,
+                    'invoice_no' => 'PENDING',
+                    'invoice_date' => $customerData->request_delivery_date,
+                    'invoice_amount' => $deliveryAmount,
+                    'settled_invoice_amount' => 0,
+                    'net_ar_balance' => $deliveryAmount,
+                    'gross_ar_balance' => $deliveryAmount,
+                    'terms' => 'TBD',
+                    'age' => 0,
+                    'due_date' => null,
+                    'status' => 'Pending Invoice'
+                ]);
+            }
+        } else {
+            // Get outstanding invoices from ar_aging (include fallback columns)
+            $arQuery = DB::table('ar_aging')
+                ->select(
+                    'dr_no', 'invoice_no', 'invoice_date', 'invoice_amount',
+                    'settled_invoice_amount', 'net_ar_balance', 'gross_ar_balance',
+                    'net_of_cwt', 'check_amount', 'others_amount', 'ar_adjustments',
+                    'terms', 'age', 'due_date', 'status'
+                )
+                ->where('customer_code', $customerData->customer_code);
+
+            if (isset($customerData->dr_no)) {
+                $arQuery->where('dr_no', $customerData->dr_no);
+            }
+
+            $outstandingInvoices = $arQuery
+                ->orderBy('invoice_date', 'desc')
+                ->get()
+                ->map(function($record) {
+                    $netAr = (float)($record->net_ar_balance ?? 0);
+                    if ($netAr <= 0) {
+                        $netAr = max(0,
+                            (float)($record->invoice_amount ?? 0)
+                            - (float)($record->settled_invoice_amount ?? 0)
+                        );
+                    }
+                    if ($netAr <= 0) {
+                        $netOfCwt  = (float)($record->net_of_cwt ?? 0);
+                        $checkAmt  = (float)($record->check_amount ?? 0);
+                        $othersAmt = (float)($record->others_amount ?? 0);
+                        $adjAmt    = (float)($record->ar_adjustments ?? 0);
+                        if ($netOfCwt > 0) {
+                            $computed = $netOfCwt - $adjAmt - $checkAmt - $othersAmt;
+                            if ($computed < 0) {
+                                $computed = $netOfCwt - $adjAmt + $othersAmt - $checkAmt;
+                            }
+                            $netAr = max(0, $computed);
+                        }
+                    }
+                    $record->net_ar_balance = $netAr;
+                    return $record;
+                })
+                ->filter(fn($r) => $r->net_ar_balance > 0)
+                ->values();
         }
 
         Log::info('Outstanding invoices loaded', [
@@ -999,7 +1080,6 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                 ->where('customer_code', $customerCode)
                 ->where('net_ar_balance', '>', 0) // ✅ Only outstanding balances
                 ->orderBy('invoice_date', 'desc')
-                ->limit(100)
                 ->get();
 
             Log::info('Outstanding invoices found', [

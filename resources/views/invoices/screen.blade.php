@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        window.location.href = `/aging-reports/summary?filter_date=${weekEndDate}`;
+        window.location.href = `/aging-reports/summary?filter_date=${weekEndDate}&aging_date=${weekEndDate}`;
     });
 
     // Export Summary
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load Dashboard Data
     function loadDashboardData(filterDate) {
-        fetch(`/aging-reports/ar-aging?filter_date=${filterDate}`)
+        fetch(`/aging-reports/ar-aging?filter_date=${filterDate}&aging_date=${filterDate}`)
             .then(response => response.json())
             .then(data => {
                 hideLoading();

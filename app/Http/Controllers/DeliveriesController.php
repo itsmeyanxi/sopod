@@ -63,7 +63,8 @@ class DeliveriesController extends Controller
         });
     }
 
-    $deliveries = $query->get();
+    $perPage = in_array((int)$request->per_page, [25, 50, 100, 250, 500]) ? (int)$request->per_page : 25;
+    $deliveries = $query->paginate($perPage)->withQueryString();
 
     return view('deliveries.index', compact('deliveries'));
 }

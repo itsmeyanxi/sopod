@@ -77,7 +77,7 @@
             <div class="mb-4 flex items-center space-x-4">
                 <div class="flex-1 flex space-x-2">
                     <select id="search_type" class="bg-gray-600 text-white border border-gray-500 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="customer">Customer Name</option>
+                        <option value="customer">Customer / Branch</option>
                         <option value="invoice">Invoice No</option>
                         <option value="dr">DR Number</option>
                     </select>
@@ -144,15 +144,15 @@
                                     ₱{{ number_format($report['net_ar'] ?? 0, 2) }}
                                 </td>
                                 <td class="px-4 py-3 text-center">
+                                    @php $age = $report['age'] ?? 0; @endphp
                                     <span class="
-                                        @if(($report['age'] ?? 0) <= 30) bg-green-600
-                                        @elseif(($report['age'] ?? 0) <= 60) bg-yellow-600
-                                        @elseif(($report['age'] ?? 0) <= 90) bg-orange-600
+                                        @if($age <= 30) bg-green-600
+                                        @elseif($age <= 60) bg-yellow-600
+                                        @elseif($age <= 90) bg-orange-600
                                         @else bg-red-600
                                         @endif
-                                        px-2 py-1 rounded text-xs font-semibold
-                                    ">
-                                        {{ $report['age'] ?? 0 }} days
+                                        px-2 py-1 rounded text-xs font-semibold">
+                                        {{ $age }} days
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
@@ -360,7 +360,7 @@
             else if (age > 30) ageClass = 'bg-yellow-600';
 
             const includeFlag = report.include_flag || 'yes';
-            const includeBadge = includeFlag === 'yes' 
+            const includeBadge = includeFlag === 'yes'
                 ? '<span class="bg-green-600 text-white px-2 py-1 rounded text-xs font-medium">Yes</span>'
                 : '<span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-medium">No</span>';
 
@@ -392,7 +392,7 @@
                         ${includeBadge}
                     </td>
                     <td class="px-4 py-3 text-center">
-                        <a href="${viewUrl}" 
+                        <a href="${viewUrl}"
                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs inline-block">
                             <i class="fas fa-eye mr-1"></i>View
                         </a>

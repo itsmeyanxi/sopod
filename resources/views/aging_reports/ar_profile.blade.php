@@ -193,57 +193,72 @@
                 </div> -->
                 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-gray-800 rounded-lg text-xs">
+                    <table class="bg-gray-800 rounded-lg text-xs" style="min-width:max-content;width:100%;">
                         <thead>
-                            <tr class="bg-gray-900 text-gray-200">
-                                <th class="px-3 py-2 text-left">Invoice No</th>
-                                <th class="px-3 py-2 text-left">Invoice Date</th>
-                                <th class="px-3 py-2 text-right">Invoice Amount</th>
-                                <th class="px-3 py-2 text-right">Collections</th>
-                                <th class="px-3 py-2 text-right">Adjustments</th>
-                                <th class="px-3 py-2 text-right">Net Balance</th>
-                                <th class="px-3 py-2 text-center">Age</th>
-                                <th class="px-3 py-2 text-center">Status</th>
+                            <tr class="bg-gray-900 text-gray-300 text-xs uppercase tracking-wider sticky top-0">
+                                <th class="px-3 py-2 text-left whitespace-nowrap">Invoice No</th>
+                                <th class="px-3 py-2 text-left whitespace-nowrap">DR No</th>
+                                <th class="px-3 py-2 text-left whitespace-nowrap">PO No</th>
+                                <th class="px-3 py-2 text-left whitespace-nowrap">Invoice Date</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap">Invoice Amount</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap text-green-400">Settled Amount</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap">CWT</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap">EWT</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap">Annual</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap">Factoring</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap">Factoring Int.</th>
+                                <th class="px-3 py-2 text-left whitespace-nowrap" style="min-width:180px;">Others - Particulars</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap">Others Amt</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap">Check Amount</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap">AR Adjustments</th>
+                                <th class="px-3 py-2 text-right whitespace-nowrap text-blue-300">Net AR Balance</th>
+                                <th class="px-3 py-2 text-center whitespace-nowrap">Age</th>
+                                <th class="px-3 py-2 text-center whitespace-nowrap">Status</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-200">
                             @forelse($arRecords as $record)
                             <tr class="border-b border-gray-700 hover:bg-gray-750">
-                                <td class="px-3 py-3">
-                                    <span class="bg-blue-900/30 border border-blue-700/50 px-2 py-1 rounded font-mono">
+                                <td class="px-3 py-2">
+                                    <span class="bg-indigo-900/40 border border-indigo-700/50 px-2 py-1 rounded font-mono text-indigo-200">
                                         {{ $record->invoice_no ?? 'N/A' }}
                                     </span>
                                 </td>
-                                <td class="px-3 py-3">{{ $record->invoice_date ?? 'N/A' }}</td>
-                                <td class="px-3 py-3 text-right font-semibold text-white">₱{{ number_format($record->invoice_amount ?? 0, 2) }}</td>
-                                <td class="px-3 py-3 text-right text-green-400">₱{{ number_format($record->settled_invoice_amount ?? 0, 2) }}</td>
-                                <td class="px-3 py-3 text-right
-                                    @php
-                                        $adjAmount = $record->ar_adjustments ?? 0;
-                                        $adjColor = $adjAmount > 0 ? 'text-green-400' : ($adjAmount < 0 ? 'text-red-400' : 'text-yellow-400');
-                                    @endphp
-                                    {{ $adjColor }}">
-                                    {{ $adjAmount > 0 ? '+' : '' }}₱{{ number_format(abs($adjAmount), 2) }}
+                                <td class="px-3 py-2 font-mono text-gray-300">{{ $record->dr_no ?? 'N/A' }}</td>
+                                <td class="px-3 py-2 text-gray-400">{{ $record->po_no ?? 'N/A' }}</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-gray-300">{{ $record->invoice_date ?? 'N/A' }}</td>
+                                <td class="px-3 py-2 text-right font-semibold text-white whitespace-nowrap">₱{{ number_format($record->invoice_amount ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-green-400 whitespace-nowrap">₱{{ number_format($record->settled_invoice_amount ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->cwt ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->ewt ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->annual ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->factoring ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->factoring_interest ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-gray-300 text-xs" title="{{ $record->others_particulars ?? '' }}">{{ $record->others_particulars ?? '' }}</td>
+                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->others_amount ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-gray-400 whitespace-nowrap">₱{{ number_format($record->check_amount ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right text-yellow-400 whitespace-nowrap">
+                                    @php $adjAmount = $record->ar_adjustments ?? 0; @endphp
+                                    {{ $adjAmount != 0 ? ($adjAmount > 0 ? '+' : '') . '₱' . number_format(abs($adjAmount), 2) : '-' }}
                                 </td>
-                                <td class="px-3 py-3 text-right font-bold text-white">₱{{ number_format($record->net_ar_balance ?? 0, 2) }}</td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-2 text-right font-bold text-blue-300 whitespace-nowrap">₱{{ number_format($record->net_ar_balance ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-center whitespace-nowrap">
                                     @php
                                         $age = $record->age ?? 0;
                                         $badgeClass = $age <= 30 ? 'bg-green-600' : ($age <= 60 ? 'bg-yellow-600' : ($age <= 90 ? 'bg-orange-600' : 'bg-red-600'));
                                     @endphp
                                     <span class="{{ $badgeClass }} px-2 py-1 rounded text-xs font-semibold">{{ $age }} days</span>
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3 py-2 text-center whitespace-nowrap">
                                     @php
                                         $status = $record->status ?? 'Outstanding';
-                                        $statusClass = $status === 'Closed' ? 'bg-red-600' : 'bg-blue-500'; 
-
+                                        $statusClass = $status === 'Closed' ? 'bg-red-600' : 'bg-blue-500';
                                     @endphp
                                     <span class="{{ $statusClass }} px-2 py-1 rounded text-xs font-semibold">{{ $status }}</span>
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No invoices found</td></tr>
+                            <tr><td colspan="18" class="px-4 py-8 text-center text-gray-400">No invoices found</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -263,7 +278,7 @@
                     <table class="min-w-full bg-gray-800 rounded-lg text-xs">
                         <thead>
                             <tr class="bg-gray-900 text-gray-200">
-                                <th class="px-2 py-2 text-left">Deposit Date</th>
+                                <th class="px-2 py-2 text-left">Invoice Date</th>
                                 <th class="px-2 py-2 text-left">CR Number</th>
                                 <th class="px-2 py-2 text-left">DR No</th>
                                 <th class="px-2 py-2 text-left">Invoice No</th>
@@ -274,6 +289,7 @@
                                 <th class="px-2 py-2 text-right">Other Adj.</th>
                                 <th class="px-2 py-2 text-right">Factoring</th>
                                 <th class="px-2 py-2 text-right">Check Amount</th>
+                                <th class="px-2 py-2 text-right text-red-300">Final AR (Remaining)</th>
                                 <th class="px-2 py-2 text-left">Checking SI</th>
                                 <th class="px-2 py-2 text-left">Week No</th>
                                 <th class="px-2 py-2 text-left">AR Class</th>
@@ -313,6 +329,9 @@
                                     @endif
                                 </td>
                                 <td class="px-2 py-3 text-right font-bold text-green-400">₱{{ number_format($coll['check_amount'], 2) }}</td>
+                                <td class="px-2 py-3 text-right font-bold {{ ($coll['net_ar_balance'] ?? 0) > 0 ? 'text-red-400' : 'text-gray-400' }}">
+                                    {{ isset($coll['net_ar_balance']) && $coll['net_ar_balance'] != 0 ? '₱' . number_format($coll['net_ar_balance'], 2) : '-' }}
+                                </td>
                                 <td class="px-2 py-3">{{ $coll['checking_si'] ?? '-' }}</td>
                                 <td class="px-2 py-3">{{ $coll['week_no'] ?? '-' }}</td>
                                 <td class="px-2 py-3">
@@ -330,7 +349,7 @@
                                 <td class="px-2 py-3 text-xs">{{ $coll['signed_by'] }}</td>
                             </tr>
                             @empty
-                            <tr><td colspan="18" class="px-4 py-8 text-center text-gray-400">No collections found</td></tr>
+                            <tr><td colspan="19" class="px-4 py-8 text-center text-gray-400">No collections found</td></tr>
                             @endforelse
                         </tbody>
                         <tfoot class="bg-gray-900">
@@ -341,6 +360,7 @@
                                 <td class="px-2 py-3 text-right text-yellow-400">₱{{ number_format($collections->sum('other_adjustment'), 2) }}</td>
                                 <td class="px-2 py-3 text-right text-purple-400">₱{{ number_format($collections->sum('factoring'), 2) }}</td>
                                 <td class="px-2 py-3 text-right text-green-400">₱{{ number_format($collections->sum('check_amount'), 2) }}</td>
+                                <td class="px-2 py-3 text-right text-red-400">₱{{ number_format($collections->sum('net_ar_balance'), 2) }}</td>
                                 <td colspan="7"></td>
                             </tr>
                         </tfoot>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\UserModuleOverride;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -15,11 +16,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // Keep for backward compatibility
-        'roles', // New multi-role field
+        'role',
+        'roles',
         'is_locked',
         'locked_at',
         'locked_by',
+        'full_aging_access',
     ];
 
     protected $hidden = [
@@ -168,21 +170,30 @@ class User extends Authenticatable
 
     public function canAddCustomers()
     {
-        // Accounting cannot create customers
-        if ($this->hasRole('Accounting')) {
-            return false;
-        }
-        return $this->canPerformInModule('can_create', 'customers');
+        // Only Joey Fernandez can create customers
+        return $this->isJoeyFernandez();
     }
 
     public function canEditCustomers()
     {
-        return $this->canPerformInModule('can_edit', 'customers');
+        // Only Joey Fernandez can directly edit customers
+        return $this->isJoeyFernandez();
+    }
+
+    public function canRequestCustomerEdit()
+    {
+        // CC roles can submit edit requests (Joey approves/rejects)
+        return $this->isCCRole() && !$this->isJoeyFernandez();
+    }
+
+    public function canApproveCustomerEditRequests()
+    {
+        return $this->isJoeyFernandez();
     }
 
     public function canDeleteCustomers()
     {
-        return $this->canPerformInModule('can_delete', 'customers');
+        return $this->isJoeyFernandez();
     }
 
     // ==================== DELIVERY PERMISSIONS ====================
@@ -282,6 +293,18 @@ class User extends Authenticatable
     public function canDeleteSuppliers()
     {
         return $this->canPerformInModule('can_delete', 'suppliers');
+    }
+
+    // ==================== CC ROLE HELPERS ====================
+
+    public function isCCRole()
+    {
+        return in_array($this->role, ['CC_Approver', 'CC_Creator']);
+    }
+
+    public function isJoeyFernandez()
+    {
+        return $this->id === 28; // Joey Albert U. Fernandez — sole customer admin
     }
 
     // ==================== DELIVERY ROLE RESTRICTIONS ====================
@@ -563,6 +586,13 @@ class User extends Authenticatable
         'deliveries'   => [15, 25],              // Credit & Collection, Delivery
     ];
 
+    // ==================== MODULE OVERRIDE RELATIONSHIP ====================
+
+    public function moduleOverrides()
+    {
+        return $this->hasMany(UserModuleOverride::class);
+    }
+
     // ==================== RBAC HELPER METHODS ====================
 
     /**
@@ -577,10 +607,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Check a specific nav item override (dot-notation key like 'sales_orders.create').
+     * Returns true/false if override exists, or calls $default closure if no override.
+     */
+    public function navAccess(string $key, callable $default): bool
+    {
+        $override = $this->moduleOverrides()->where('module', $key)->first();
+        if ($override !== null) {
+            return (bool) $override->allowed;
+        }
+        return $default();
+    }
+
+    /**
      * Check if user can access a module based on their sub-department assignments.
+     * Per-user overrides in user_module_overrides take priority over role defaults.
      */
     public function canAccessModule(string $module): bool
     {
+        // Per-user override takes priority over everything
+        $override = $this->moduleOverrides()->where('module', $module)->first();
+        if ($override !== null) {
+            return (bool) $override->allowed;
+        }
+
         if ($this->isAdminUser()) {
             return true;
         }
@@ -689,11 +739,38 @@ class User extends Authenticatable
 
     public function canAccessAgingReports()
     {
+        // Per-user override takes priority (even over CC role block)
+        $override = $this->moduleOverrides()->where('module', 'aging_reports')->first();
+        if ($override !== null) {
+            return (bool) $override->allowed;
+        }
+        // CC roles cannot access AR Aging reports by default — only collections
+        if ($this->isCCRole()) {
+            return false;
+        }
         return $this->canAccessModule('aging_reports');
+    }
+
+    public function canAccessCollections()
+    {
+        // CC roles, Accounting, Admin, IT can access collections
+        // Also checks new RBAC sub-department 15 (Credit & Collection) and 26 (Accounting)
+        return $this->isCCRole()
+            || $this->canAccessModule('payments')
+            || in_array($this->role, ['IT', 'Admin', 'Accounting_Approver', 'Accounting_Creator']);
     }
 
     public function canAccessARDashboard()
     {
+        // Per-user override takes priority
+        $override = $this->moduleOverrides()->where('module', 'ar_dashboard')->first();
+        if ($override !== null) {
+            return (bool) $override->allowed;
+        }
+        // CC cannot access the AR dashboard by default
+        if ($this->isCCRole()) {
+            return false;
+        }
         return $this->canAccessModule('ar_dashboard');
     }
 

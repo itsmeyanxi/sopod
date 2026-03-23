@@ -217,6 +217,18 @@
     @endif
 
     {{-- 📋 Deliveries Table --}}
+    <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2 text-sm text-gray-300">
+            <span>Number of rows:</span>
+            <select onchange="changePerPage(this.value)"
+                class="bg-gray-700 border border-gray-600 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                @foreach([25,50,100,250,500] as $n)
+                    <option value="{{ $n }}" {{ request('per_page', 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>{{ $deliveries->onEachSide(1)->links('vendor.pagination.elegant') }}</div>
+    </div>
     <div class="bg-gray-800 rounded-xl shadow-md overflow-hidden">
         <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
             <table id="deliveriesTable" class="min-w-full text-sm border-collapse">
@@ -424,8 +436,11 @@
         </div>
     </div>
 
-    <div class="mt-3 text-sm text-gray-300">
-        Showing {{ $deliveries->count() }} delivery record(s)
+    <div class="mt-3 flex items-center justify-between">
+        <div class="text-sm text-gray-300">
+            Showing {{ $deliveries->firstItem() }}–{{ $deliveries->lastItem() }} of {{ $deliveries->total() }} record(s)
+        </div>
+        <div>{{ $deliveries->onEachSide(1)->links('vendor.pagination.elegant') }}</div>
     </div>
 </div>
 
@@ -1661,5 +1676,11 @@ function exportExcel() {
     window.location.href = `/deliveries/export-excel?${params.toString()}`;
 }
 
+function changePerPage(val) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', val);
+    url.searchParams.set('page', 1);
+    window.location.href = url.toString();
+}
 </script>
 @endsection

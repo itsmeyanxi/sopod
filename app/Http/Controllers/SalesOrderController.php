@@ -67,48 +67,31 @@ class SalesOrderController extends Controller
         $query->where('status', $request->so_status);
     }
 
-    // Get initial results
-    $salesOrders = $query->get();
-
-    // Filter by DR status if requested (must be done after fetching due to complex logic)
+    // Filter by DR status using SQL via LEFT JOIN on deliveries
     if ($request->filled('dr_status')) {
-        $drStatusFilter = $request->dr_status;
-
-        $salesOrders = $salesOrders->filter(function($order) use ($drStatusFilter) {
-            $delivery = $order->deliveries;
-
-            // Determine the DR status for this order (same logic as in the view)
-            if (!$delivery) {
-                $drStatus = ($order->status === 'Approved') ? 'Awaiting Delivery' : 'Not Delivered';
-            } else {
-                if ($delivery->is_pulled_out) {
-                    $drStatus = 'Pulled Out';
-                } elseif ($delivery->approval_status === 'Rejected') {
-                    $drStatus = 'Rejected';
-                } elseif ($delivery->status === 'Cancelled') {
-                    $drStatus = 'Cancelled';
-                } elseif ($order->is_closed) {
-                    $drStatus = 'Fully Delivered';
-                } elseif ($delivery->approval_status === 'Pending') {
-                    $drStatus = 'Pending Approval';
-                } elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Full') {
-                    $drStatus = 'Delivered (Full)';
-                } elseif ($delivery->status === 'Delivered' && $delivery->delivery_type === 'Partial') {
-                    $drStatus = 'Partial';
-                } elseif ($delivery->status === 'Delivered') {
-                    $drStatus = 'Delivered';
-                } elseif ($delivery->status === 'In Transit') {
-                    $drStatus = 'In Transit';
-                } elseif ($delivery->status === 'Preparing') {
-                    $drStatus = 'Preparing';
-                } else {
-                    $drStatus = $delivery->status ?? 'Pending';
-                }
-            }
-
-            return $drStatus === $drStatusFilter;
-        });
+        $drStatus = $request->dr_status;
+        $query->leftJoin('deliveries as d_filter', 'd_filter.sales_order_id', '=', 'sales_orders.id')
+              ->where(function($q) use ($drStatus) {
+                  match($drStatus) {
+                      'Awaiting Delivery' => $q->whereNull('d_filter.id')->where('sales_orders.status', 'Approved'),
+                      'Not Delivered'     => $q->whereNull('d_filter.id')->where('sales_orders.status', '!=', 'Approved'),
+                      'Pulled Out'        => $q->where('d_filter.is_pulled_out', 1),
+                      'Rejected'          => $q->where('d_filter.approval_status', 'Rejected'),
+                      'Cancelled'         => $q->where('d_filter.status', 'Cancelled'),
+                      'Fully Delivered'   => $q->where('sales_orders.is_closed', 1),
+                      'Pending Approval'  => $q->where('d_filter.approval_status', 'Pending')->where('d_filter.is_pulled_out', '!=', 1),
+                      'Delivered (Full)'  => $q->where('d_filter.status', 'Delivered')->where('d_filter.delivery_type', 'Full'),
+                      'Partial'           => $q->where('d_filter.status', 'Delivered')->where('d_filter.delivery_type', 'Partial'),
+                      'Delivered'         => $q->where('d_filter.status', 'Delivered'),
+                      'In Transit'        => $q->where('d_filter.status', 'In Transit'),
+                      'Preparing'         => $q->where('d_filter.status', 'Preparing'),
+                      default             => $q->where('d_filter.status', $drStatus),
+                  };
+              });
     }
+
+    $perPage = in_array((int)$request->per_page, [25, 50, 100, 250, 500]) ? (int)$request->per_page : 25;
+    $salesOrders = $query->paginate($perPage)->withQueryString();
 
     return view('sales_orders.index', compact('salesOrders'));
 }
