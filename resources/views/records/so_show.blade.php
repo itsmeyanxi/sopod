@@ -43,7 +43,7 @@
                             'Pending' => 'bg-yellow-500 text-black',
                             'Approved' => 'bg-green-600 text-white',
                             'Declined' => 'bg-red-600 text-white',
-                            'Cancelled' => 'bg-gray-600 text-white',
+                            'Cancelled' => 'bg-gray-200 text-gray-800',
                             'New' => 'bg-purple-600 text-white'
                         ];
                         $statusClass = $statusColors[$salesOrder->status] ?? 'bg-gray-100 text-gray-800';
@@ -60,7 +60,7 @@
     <!-- Order Items -->
     <div class="bg-white/80 p-6 rounded-xl shadow-lg mb-6 border border-gray-200">
         <h2 class="text-lg font-semibold mb-3 border-b border-gray-200 pb-2">Order Items</h2>
-        <table class="w-full border border-gray-200 rounded-lg overflow-hidden text-gray-200">
+        <table class="w-full border border-gray-200 rounded-lg overflow-hidden text-gray-700">
             <thead class="bg-gray-100 text-gray-500">
                 <tr>
                     <th class="px-3 py-2 text-left">Name</th>
@@ -82,7 +82,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center py-3 text-gray-400">No items found for this order.</td>
+                        <td colspan="5" class="text-center py-3 text-gray-500">No items found for this order.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -94,7 +94,7 @@
         <div class="text-right">
             <p class="text-lg font-semibold">
                 Total Amount: 
-                <span class="text-green-400">₱{{ number_format($salesOrder->total_amount, 2) }}</span>
+                <span class="text-green-700">₱{{ number_format($salesOrder->total_amount, 2) }}</span>
             </p>
         </div>
     </div>
@@ -104,13 +104,13 @@
     <div class="mt-8 bg-white/70 border border-gray-200 rounded-lg p-5 shadow-md">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-base font-semibold text-gray-100 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Update Sales Order Status
             </h3>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-yellow-600/20 text-yellow-400 border border-yellow-700/40">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-yellow-600/20 text-yellow-700 border border-yellow-700/40">
                 {{ ucfirst($salesOrder->status) }}
             </span>
         </div>
@@ -120,13 +120,13 @@
             @method('PATCH')
 
             <div>
-                <label class="block text-xs font-medium text-gray-400 mb-2">Select New Status</label>
+                <label class="block text-xs font-medium text-gray-500 mb-2">Select New Status</label>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     @php
                         $statuses = [
-                            'Approved' => ['icon' => '✅', 'color' => 'bg-green-600/20 text-green-400 border-green-700/40 hover:bg-green-600/30'],
-                            'Declined' => ['icon' => '❌', 'color' => 'bg-red-600/20 text-red-400 border-red-700/40 hover:bg-red-600/30'],
-                            'Cancelled' => ['icon' => '🚫', 'color' => 'bg-gray-600/20 text-gray-400 border-gray-200/40 hover:bg-gray-100/30'],
+                            'Approved' => ['icon' => '✅', 'color' => 'bg-green-600/20 text-green-700 border-green-700/40 hover:bg-green-600/30'],
+                            'Declined' => ['icon' => '❌', 'color' => 'bg-red-600/20 text-red-700 border-red-700/40 hover:bg-red-600/30'],
+                            'Cancelled' => ['icon' => '🚫', 'color' => 'bg-gray-100 text-gray-500 border-gray-200/40 hover:bg-gray-100/30'],
                         ];
                     @endphp
 

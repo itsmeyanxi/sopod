@@ -14,11 +14,18 @@
             </a>
             <button type="button"
                     onclick="exportExcel({{ $delivery->id }})"
-                    class="bg-emerald-600 hover:bg-emerald-700 text-gray-800 px-4 py-2 rounded transition">
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition">
                      📥 Export Excel
             </button>
-            <a href="{{ route('deliveries.index') }}" 
-               class="bg-gray-600 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded transition">
+            @if(auth()->user()->isAdminUser() && !$delivery->is_hidden)
+                <button type="button"
+                        onclick="showHideModal()"
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition">
+                    🚫 Hide DR
+                </button>
+            @endif
+            <a href="{{ route('deliveries.index') }}"
+               class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded transition">
                ← Back
             </a>
         </div>
@@ -50,22 +57,22 @@
         
         // Status badge
         $statusColors = [
-            'Delivered' => 'bg-green-600/20 text-green-400 border-green-600',
-            'Partial' => 'bg-orange-600/20 text-orange-400 border-orange-600',
-            'Cancelled' => 'bg-red-600/20 text-red-400 border-red-600',
+            'Delivered' => 'bg-green-600/20 text-green-700 border-green-600',
+            'Partial' => 'bg-orange-600/20 text-orange-700 border-orange-600',
+            'Cancelled' => 'bg-red-600/20 text-red-700 border-red-600',
         ];
-        $statusColor = $statusColors[$delivery->status] ?? 'bg-gray-600/20 text-gray-400 border-gray-300';
+        $statusColor = $statusColors[$delivery->status] ?? 'bg-gray-100 text-gray-500 border-gray-300';
     @endphp
 
     <!-- Approval Actions (Show only if Pending and user can approve) -->
     @if($delivery->approval_status === 'Pending' && auth()->user()->canApproveDeliveries())
-    <div class="mb-6 bg-blue-900/30 border border-blue-600 p-6 rounded-lg">
+    <div class="mb-6 bg-blue-100 border border-blue-600 p-6 rounded-lg">
         <div class="flex items-center justify-between">
             <div class="flex items-start gap-3">
                 <span class="text-3xl">⏳</span>
                 <div>
-                    <h4 class="text-blue-300 font-semibold text-lg mb-1">Approval Required</h4>
-                    <p class="text-sm text-blue-200">
+                    <h4 class="text-blue-700 font-semibold text-lg mb-1">Approval Required</h4>
+                    <p class="text-sm text-blue-700">
                         This delivery is awaiting your approval. Please review the details below and approve or reject.
                     </p>
                 </div>
@@ -95,24 +102,59 @@
     </div>
     @endif
 
+    <!-- Hidden Alert (Admin/IT only - they can see hidden DRs) -->
+    @if($delivery->is_hidden)
+    <div class="mb-6 bg-red-100 border border-red-600 p-4 rounded-lg">
+        <div class="flex items-start gap-3">
+            <span class="text-2xl">🚫</span>
+            <div class="flex-1">
+                <h4 class="text-red-700 font-semibold mb-1">Delivery Hidden</h4>
+                <p class="text-sm text-red-700 mb-2">
+                    This delivery is hidden from all modules system-wide. It will not appear in aging reports, treasury, SOA, or any other module.
+                </p>
+                <div class="bg-red-50 p-3 rounded">
+                    <p class="text-xs text-red-700 mb-1">
+                        <strong>Hidden by:</strong> {{ $delivery->hidden_by }}
+                    </p>
+                    <p class="text-xs text-red-700 mb-1">
+                        <strong>Date:</strong> {{ $delivery->hidden_at ? \Carbon\Carbon::parse($delivery->hidden_at)->format('M d, Y h:i A') : '—' }}
+                    </p>
+                    <p class="text-xs text-red-700">
+                        <strong>Reason:</strong> {{ $delivery->hidden_reason }}
+                    </p>
+                </div>
+                @if(auth()->user()->isAdminUser())
+                <form action="{{ route('deliveries.unhide', $delivery->id) }}" method="POST" class="mt-3"
+                      onsubmit="return confirm('Are you sure you want to unhide this delivery? It will become visible across all modules again.')">
+                    @csrf
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition text-sm font-semibold">
+                        Unhide Delivery
+                    </button>
+                </form>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Pulled Out Alert -->
     @if($delivery->is_pulled_out)
-    <div class="mb-6 bg-orange-900/30 border border-orange-600 p-4 rounded-lg">
+    <div class="mb-6 bg-orange-100 border border-orange-600 p-4 rounded-lg">
         <div class="flex items-start gap-3">
             <span class="text-2xl">🔒</span>
             <div class="flex-1">
-                <h4 class="text-orange-300 font-semibold mb-1">Delivery Pulled Out</h4>
+                <h4 class="text-orange-700 font-semibold mb-1">Delivery Pulled Out</h4>
                 <p class="text-sm text-orange-200 mb-2">
                     This delivery has been pulled out.
                 </p>
                 <div class="bg-orange-950/50 p-3 rounded">
-                    <p class="text-xs text-orange-300 mb-1">
+                    <p class="text-xs text-orange-700 mb-1">
                         <strong>Pulled out by:</strong> {{ $delivery->pulled_out_by }}
                     </p>
-                    <p class="text-xs text-orange-300 mb-1">
+                    <p class="text-xs text-orange-700 mb-1">
                         <strong>Date:</strong> {{ \Carbon\Carbon::parse($delivery->pulled_out_at)->format('M d, Y h:i A') }}
                     </p>
-                    <p class="text-xs text-orange-300">
+                    <p class="text-xs text-orange-700">
                         <strong>Reason:</strong> {{ $delivery->pullout_reason }}
                     </p>
                 </div>
@@ -123,24 +165,24 @@
     
     <!-- Rejected Alert -->
     @if($delivery->approval_status === 'Rejected')
-    <div class="mb-6 bg-red-900/30 border border-red-600 p-4 rounded-lg">
+    <div class="mb-6 bg-red-100 border border-red-600 p-4 rounded-lg">
         <div class="flex items-start gap-3">
             <span class="text-2xl">❌</span>
             <div class="flex-1">
-                <h4 class="text-red-300 font-semibold mb-1">Delivery Rejected</h4>
-                <p class="text-sm text-red-200 mb-2">
+                <h4 class="text-red-700 font-semibold mb-1">Delivery Rejected</h4>
+                <p class="text-sm text-red-700 mb-2">
                     This delivery was rejected during the approval process.
                 </p>
                 <div class="bg-red-950/50 p-3 rounded">
-                    <p class="text-xs text-red-300 mb-1">
+                    <p class="text-xs text-red-700 mb-1">
                         <strong>Rejected by:</strong> {{ $delivery->approved_by_user }}
                     </p>
                     @if($delivery->approved_at)
-                    <p class="text-xs text-red-300 mb-1">
+                    <p class="text-xs text-red-700 mb-1">
                         <strong>Date:</strong> {{ \Carbon\Carbon::parse($delivery->approved_at)->format('M d, Y h:i A') }}
                     </p>
                     @endif
-                    <p class="text-xs text-red-300">
+                    <p class="text-xs text-red-700">
                         <strong>Reason:</strong> {{ $delivery->rejection_reason }}
                     </p>
                 </div>
@@ -151,11 +193,11 @@
     
     <!-- Pending Approval Alert (for non-approvers) -->
     @if($delivery->approval_status === 'Pending' && !auth()->user()->canApproveDeliveries())
-    <div class="mb-6 bg-yellow-900/30 border border-yellow-600 p-4 rounded-lg">
+    <div class="mb-6 bg-yellow-100 border border-yellow-600 p-4 rounded-lg">
         <div class="flex items-start gap-3">
             <span class="text-2xl">⏳</span>
             <div>
-                <h4 class="text-yellow-300 font-semibold mb-1">Pending Approval</h4>
+                <h4 class="text-yellow-700 font-semibold mb-1">Pending Approval</h4>
                 <p class="text-sm text-yellow-200">
                     This delivery is awaiting approval from an authorized user.
                 </p>
@@ -166,13 +208,13 @@
 
     <!-- Status Badge (if Partial) -->
     @if($delivery->status === 'Partial')
-    <div class="mb-6 bg-orange-900/20 border border-orange-700 p-4 rounded-lg">
+    <div class="mb-6 bg-orange-100/20 border border-orange-700 p-4 rounded-lg">
         <div class="flex items-start gap-3">
-            <svg class="w-6 h-6 text-orange-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 text-orange-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
             </svg>
             <div>
-                <h4 class="text-orange-300 font-semibold mb-1">⚠️ Partial Delivery</h4>
+                <h4 class="text-orange-700 font-semibold mb-1">⚠️ Partial Delivery</h4>
                 <p class="text-sm text-orange-200">This delivery was partially fulfilled. Remaining quantities need to be delivered separately.</p>
             </div>
         </div>
@@ -210,13 +252,13 @@
                             $batchDisplay = $delivery->delivery_batch;
                         }
                     @endphp
-                    <div class="w-full px-4 py-2 rounded-lg bg-purple-900/30 border border-purple-700 text-purple-300 flex items-center gap-2">
+                    <div class="w-full px-4 py-2 rounded-lg bg-purple-100 border border-purple-700 text-purple-700 flex items-center gap-2">
                         <span class="text-lg">📦</span>
                         <span>{{ $batchDisplay }}</span>
                     </div>
                 @else
                     <input type="text" value="Single Delivery" 
-                           class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-400" readonly>
+                           class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-500" readonly>
                 @endif
             </div>
 
@@ -240,11 +282,11 @@
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Approval Status</label>
                 @php
                     $approvalColors = [
-                        'Pending' => 'bg-yellow-900/30 border-yellow-700 text-yellow-300',
-                        'Approved' => 'bg-green-900/30 border-green-700 text-green-300',
-                        'Rejected' => 'bg-red-900/30 border-red-700 text-red-300',
+                        'Pending' => 'bg-yellow-100 border-yellow-700 text-yellow-700',
+                        'Approved' => 'bg-green-100 border-green-700 text-green-700',
+                        'Rejected' => 'bg-red-100 border-red-700 text-red-700',
                     ];
-                    $approvalColor = $approvalColors[$delivery->approval_status] ?? 'bg-gray-600/20 text-gray-400 border-gray-300';
+                    $approvalColor = $approvalColors[$delivery->approval_status] ?? 'bg-gray-100 text-gray-500 border-gray-300';
                 @endphp
                 <div class="w-full px-4 py-2 rounded-lg border {{ $approvalColor }} flex items-center gap-2">
                     @if($delivery->approval_status === 'Approved')
@@ -344,7 +386,7 @@
                 <div class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300">
                     <p class="text-gray-100">{{ $delivery->approved_by_user }}</p>
                     @if($delivery->approved_at)
-                        <p class="text-xs text-gray-400 mt-1">
+                        <p class="text-xs text-gray-500 mt-1">
                             {{ \Carbon\Carbon::parse($delivery->approved_at)->format('M d, Y h:i A') }}
                         </p>
                     @endif
@@ -370,7 +412,7 @@
                         {{-- PDF File --}}
                         <a href="{{ asset('po_images/' . $so->po_image) }}" 
                            target="_blank" 
-                           class="text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors">
+                           class="text-blue-700 hover:text-blue-700 flex items-center gap-2 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                             </svg>
@@ -386,7 +428,7 @@
                                  alt="PO Proof" 
                                  class="max-w-md w-full rounded border border-gray-300 hover:border-blue-500 transition-all hover:shadow-lg cursor-pointer">
                         </a>
-                        <p class="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                        <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -402,7 +444,7 @@
             @if($notes !== '—')
             <div class="md:col-span-2">
                 <label class="block text-sm font-semibold text-gray-500 mb-2">📝 Notes (from Sales Order)</label>
-                <textarea class="w-full px-4 py-2 rounded-lg bg-blue-900/20 border border-blue-700 text-blue-200"
+                <textarea class="w-full px-4 py-2 rounded-lg bg-blue-50 border border-blue-700 text-blue-700"
                         rows="2" readonly>{{ $notes }}</textarea>
             </div>
             @endif
@@ -469,9 +511,9 @@
                         <th class="px-4 py-2 text-left">Description</th>
                         <th class="px-4 py-2 text-left">Brand</th>
                         <th class="px-4 py-2 text-left">Category</th>
-                        <th class="px-4 py-2 text-right">Original Qty<br><span class="text-xs text-gray-400">(SO Qty)</span></th>
-                        <th class="px-4 py-2 text-right">This Batch Qty<br><span class="text-xs text-gray-400">(DR Qty)</span></th>
-                        <th class="px-4 py-2 text-right">Total Delivered<br><span class="text-xs text-gray-400">(All Batches)</span></th>
+                        <th class="px-4 py-2 text-right">Original Qty<br><span class="text-xs text-gray-500">(SO Qty)</span></th>
+                        <th class="px-4 py-2 text-right">This Batch Qty<br><span class="text-xs text-gray-500">(DR Qty)</span></th>
+                        <th class="px-4 py-2 text-right">Total Delivered<br><span class="text-xs text-gray-500">(All Batches)</span></th>
                         <th class="px-4 py-2 text-right">Remaining</th>
                         <th class="px-4 py-2 text-center">UOM</th>
                         <th class="px-4 py-2 text-right">Unit Price</th>
@@ -507,7 +549,7 @@
                     @endphp
 
                     <tr class="border-b border-gray-800 hover:bg-white 
-                        {{ $isPartial ? 'bg-orange-900/10' : '' }}">
+                        {{ $isPartial ? 'bg-orange-100/10' : '' }}">
                             <td class="px-4 py-2">{{ $item->item_code ?? '—' }}</td>
                             <td class="px-4 py-2">{{  $item->item_description ?? $item->item?->item_description ?? $item->salesOrderItem?->item_description ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $item->brand ?? '—' }}</td>
@@ -515,14 +557,14 @@
 
                             <!-- Original Qty (SO Qty) -->
                             <td class="px-4 py-2 text-right">
-                                <span class="font-semibold text-blue-400">
+                                <span class="font-semibold text-blue-700">
                                     {{ number_format($originalQty, 2) }}
                                 </span>
                             </td>
 
                             <!-- This Batch Qty (DR Qty) -->
                             <td class="px-4 py-2 text-right">
-                                <span class="font-semibold text-green-400">
+                                <span class="font-semibold text-green-700">
                                     {{ number_format($thisBatchQty, 2) }}
                                 </span>
                             </td>
@@ -530,7 +572,7 @@
                             <!-- Total Delivered (All Batches) -->
                            <td class="px-4 py-2 text-right">
                                 <div class="flex flex-col items-end">
-                                    <span class="font-semibold text-purple-400">
+                                    <span class="font-semibold text-purple-700">
                                         {{ number_format($totalDelivered, 2) }}
                                     </span>
                                     @if($totalDelivered > $thisBatchQty)
@@ -544,15 +586,15 @@
                             <!-- Remaining -->
                             <td class="px-4 py-2 text-right">
                                 @if($remaining > 0)
-                                    <span class="font-semibold text-orange-400">
+                                    <span class="font-semibold text-orange-700">
                                         {{ number_format($remaining, 2) }}
                                     </span>
                                 @elseif($remaining < 0)
-                                    <span class="font-semibold text-red-400">
+                                    <span class="font-semibold text-red-700">
                                         OVER: {{ number_format(abs($remaining), 2) }}
                                     </span>
                                 @else
-                                    <span class="text-green-400 font-semibold">✓ Complete</span>
+                                    <span class="text-green-700 font-semibold">✓ Complete</span>
                                 @endif
                             </td>
 
@@ -566,7 +608,7 @@
                             <!-- Notes Column -->
                             <td class="px-4 py-2 text-left">
                                 @if($item->notes)
-                                    <span class="text-gray-200">{{ $item->notes }}</span>
+                                    <span class="text-gray-700">{{ $item->notes }}</span>
                                 @else
                                     <span class="text-gray-500 italic">—</span>
                                 @endif
@@ -584,7 +626,7 @@
                         <!-- Grand Total Row -->
                         <tr class="bg-white font-semibold">
                             <td colspan="10" class="px-4 py-3 text-right">Grand Total:</td>
-                            <td class="px-4 py-3 text-right text-green-400">₱{{ number_format($grandTotal, 2) }}</td>
+                            <td class="px-4 py-3 text-right text-green-700">₱{{ number_format($grandTotal, 2) }}</td>
                             <td></td>
                         </tr>
                         
@@ -594,8 +636,8 @@
         </div>
 
         @if($hasPartialItems)
-        <div class="mt-4 bg-orange-900/20 border border-orange-700 p-3 rounded-lg text-sm">
-            <p class="text-orange-300">
+        <div class="mt-4 bg-orange-100/20 border border-orange-700 p-3 rounded-lg text-sm">
+            <p class="text-orange-700">
                 <strong>Note:</strong> Items highlighted in orange have remaining quantities that need to be delivered in a future delivery.
             </p>
         </div>
@@ -604,7 +646,7 @@
         <!-- Back Button -->
         <div class="flex justify-end mt-8">
             <a href="{{ route('deliveries.index') }}" 
-               class="bg-gray-600 hover:bg-gray-500 text-gray-800 px-6 py-2 rounded-lg transition">
+               class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg transition">
                 Back to List
             </a>
         </div>
@@ -623,7 +665,7 @@
             
             <!-- Rejection Reason (shown only for reject) -->
             <div id="rejectionReasonDiv" class="mb-4 hidden">
-                <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason <span class="text-red-400">*</span></label>
+                <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason <span class="text-red-700">*</span></label>
                 <textarea name="rejection_reason" 
                           id="rejectionReason"
                           rows="4" 
@@ -634,7 +676,7 @@
             <div class="flex justify-end gap-3">
                 <button type="button" 
                         onclick="closeApprovalModal()"
-                        class="bg-gray-600 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg transition">
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition">
                     Cancel
                 </button>
                 <button type="submit" 
@@ -646,6 +688,38 @@
         </form>
     </div>
 </div>
+
+<!-- 🚫 Hide DR Modal -->
+@if(auth()->user()->isAdminUser() && !$delivery->is_hidden)
+<div id="hideModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold text-gray-800 mb-2">🚫 Hide Delivery</h3>
+        <p class="text-sm text-gray-600 mb-4">
+            Hiding <strong>DR {{ $delivery->dr_no }}</strong> will make it invisible across <strong>all modules</strong> —
+            delivery list, aging reports, treasury, SOA, etc. Only Admin/IT users can see and unhide it.
+        </p>
+        <form action="{{ route('deliveries.hide', $delivery->id) }}" method="POST">
+            @csrf
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-600 mb-2">Reason for Hiding <span class="text-red-600">*</span></label>
+                <textarea name="hidden_reason" rows="3" required
+                          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          placeholder="Please provide a reason for hiding this delivery..."></textarea>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeHideModal()"
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition font-semibold">
+                    Hide Delivery
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 
 <!-- 🖼️ Image Modal -->
 <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 hidden items-center justify-center z-50" onclick="closeImageModal()">
@@ -671,14 +745,14 @@ function showApprovalModal(action) {
         title.textContent = '✓ Approve Delivery';
         actionInput.value = 'approve';
         submitBtn.textContent = 'Approve Delivery';
-        submitBtn.className = 'bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition text-gray-800 font-semibold';
+        submitBtn.className = 'bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition text-white font-semibold';
         rejectionDiv.classList.add('hidden');
         rejectionTextarea.required = false;
     } else {
         title.textContent = '✗ Reject Delivery';
         actionInput.value = 'reject';
         submitBtn.textContent = 'Reject Delivery';
-        submitBtn.className = 'bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition text-gray-800 font-semibold';
+        submitBtn.className = 'bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition text-white font-semibold';
         rejectionDiv.classList.remove('hidden');
         rejectionTextarea.required = true;
     }
@@ -711,11 +785,28 @@ function exportExcel(deliveryId) {
     window.location.href = url;
 }
 
+function showHideModal() {
+    const modal = document.getElementById('hideModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeHideModal() {
+    const modal = document.getElementById('hideModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
 // Close modals with Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeImageModal();
         closeApprovalModal();
+        closeHideModal();
     }
 });
 </script>

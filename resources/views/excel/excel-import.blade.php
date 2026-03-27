@@ -19,7 +19,7 @@
     @endphp
 
     <h1 class="text-3xl font-bold text-gray-800 mb-2">Import Data from Excel/CSV</h1>
-    <p class="text-gray-400 mb-6">Upload Excel or CSV files to import items, customers, suppliers, or monthly sales into your database</p>
+    <p class="text-gray-500 mb-6">Upload Excel or CSV files to import items, customers, suppliers, or monthly sales into your database</p>
 
     <!-- Tabs -->
     <div class="bg-white rounded-lg shadow-sm mb-6">
@@ -28,49 +28,49 @@
 
                 @if($canImportItems)
                 <button onclick="switchTab('items')" id="items-tab"
-                    class="tab-button px-6 py-3 font-medium text-blue-400 border-b-2 border-blue-400">
+                    class="tab-button px-6 py-3 font-medium text-blue-700 border-b-2 border-blue-400">
                     Import Items
                 </button>
                 @endif
 
                 @if($canImportCustomers)
                 <button onclick="switchTab('customers')" id="customers-tab"
-                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-500">
+                    class="tab-button px-6 py-3 font-medium text-gray-500 hover:text-gray-500">
                     Import Customers
                 </button>
                 @endif
 
                 @if($canImportSuppliers)
                 <button onclick="switchTab('suppliers')" id="suppliers-tab"
-                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-500">
+                    class="tab-button px-6 py-3 font-medium text-gray-500 hover:text-gray-500">
                     Import Suppliers
                 </button>
                 @endif
 
                 @if($canImportMonthlySales)
                 <button onclick="switchTab('monthly_sales')" id="monthly_sales-tab"
-                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-500">
+                    class="tab-button px-6 py-3 font-medium text-gray-500 hover:text-gray-500">
                     Import Monthly Sales
                 </button>
                 @endif
 
                 @if($canImportARAging)
                 <button onclick="switchTab('ar_aging')" id="ar_aging-tab"
-                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-500">
+                    class="tab-button px-6 py-3 font-medium text-gray-500 hover:text-gray-500">
                     Import AR Aging
                 </button>
                 @endif
 
                 @if($canImportCollections)
                 <button onclick="switchTab('collections')" id="collections-tab"
-                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-500">
+                    class="tab-button px-6 py-3 font-medium text-gray-500 hover:text-gray-500">
                     Import Collections
                 </button>
                 @endif
 
                 @if($canImportARAdjustments)
                 <button onclick="switchTab('ar_adjustments')" id="ar_adjustments-tab"
-                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-500">
+                    class="tab-button px-6 py-3 font-medium text-gray-500 hover:text-gray-500">
                     Import AR Adjustments
                 </button>
                 @endif
@@ -78,7 +78,7 @@
                 {{-- ✅ NEW: BOM MATERIALS TAB --}}
                 @if($canImportBomMaterials)
                 <button onclick="switchTab('bom_materials')" id="bom_materials-tab"
-                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-gray-500">
+                    class="tab-button px-6 py-3 font-medium text-gray-500 hover:text-gray-500">
                     🐔 BOM Materials
                 </button>
                 @endif
@@ -93,10 +93,10 @@
             <div id="items-content" class="tab-content">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold mb-2 text-gray-800">Items Import Requirements</h3>
-                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4">
+                    <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4">
                         <p class="text-sm text-gray-500 mb-2"><strong>✅ All fields are OPTIONAL:</strong></p>
-                        <p class="text-xs text-gray-400 mb-3">Only item_code is checked. Rows without item_code will be skipped. All other fields are optional.</p>
-                        <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                        <p class="text-xs text-gray-500 mb-3">Only item_code is checked. Rows without item_code will be skipped. All other fields are optional.</p>
+                        <ul class="text-sm text-gray-500 space-y-1 ml-4">
                             <li>• <strong>item_code</strong> or <strong>Item Code</strong></li>
                             <li>• item_category / Item Category</li>
                             <li>• item_description / Item Description</li>
@@ -115,7 +115,7 @@
                         <label for="items-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
                             <p class="text-lg font-medium text-gray-500 mb-2">Click to upload Excel or CSV file</p>
-                            <p id="items-filename" class="text-sm text-blue-400 mt-2"></p>
+                            <p id="items-filename" class="text-sm text-blue-700 mt-2"></p>
                         </label>
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
@@ -130,34 +130,34 @@
             <div id="customers-content" class="tab-content {{ $canImportItems ? 'hidden' : '' }}">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold mb-2 text-gray-800">Customers Import Requirements</h3>
-                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                    <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <p class="text-sm text-gray-500 mb-2"><strong>✅ Required columns:</strong></p>
-                        <ul class="text-sm text-gray-400 space-y-1 ml-4 mb-4">
-                            <li>• <strong class="text-red-400">customer_code</strong> / Customer Code</li>
-                            <li>• <strong class="text-red-400">customer_name</strong> / Customer Name</li>
-                            <li>• <strong class="text-red-400">billing_address</strong> / Billing Address</li>
-                            <li>• <strong class="text-red-400">sales_rep</strong> / Sales Rep</li>
-                            <li>• <strong class="text-red-400">collection_terms</strong> / Collection Terms</li>
-                            <li>• <strong class="text-yellow-400">flag_status</strong> / Flag Status
+                        <ul class="text-sm text-gray-500 space-y-1 ml-4 mb-4">
+                            <li>• <strong class="text-red-700">customer_code</strong> / Customer Code</li>
+                            <li>• <strong class="text-red-700">customer_name</strong> / Customer Name</li>
+                            <li>• <strong class="text-red-700">billing_address</strong> / Billing Address</li>
+                            <li>• <strong class="text-red-700">sales_rep</strong> / Sales Rep</li>
+                            <li>• <strong class="text-red-700">collection_terms</strong> / Collection Terms</li>
+                            <li>• <strong class="text-yellow-700">flag_status</strong> / Flag Status
                                 <span class="text-xs text-gray-500">(must be either "Flagged" or "Unflagged")</span>
                             </li>
                         </ul>
-                        <div class="bg-yellow-900/20 border border-yellow-600 rounded p-3 mb-4">
-                            <p class="text-xs text-yellow-300 font-semibold mb-2">📋 Flag Status Examples:</p>
-                            <div class="text-xs text-gray-400 space-y-1">
-                                <p>• Use <strong class="text-yellow-400">"Flagged"</strong> for customers requiring approval</p>
-                                <p>• Use <strong class="text-green-400">"Unflagged"</strong> for customers with auto-approval</p>
-                                <p class="text-red-400 mt-2">⚠️ Case-insensitive: "flagged", "FLAGGED", or "Flagged" all work</p>
+                        <div class="bg-yellow-100/20 border border-yellow-600 rounded p-3 mb-4">
+                            <p class="text-xs text-yellow-700 font-semibold mb-2">📋 Flag Status Examples:</p>
+                            <div class="text-xs text-gray-500 space-y-1">
+                                <p>• Use <strong class="text-yellow-700">"Flagged"</strong> for customers requiring approval</p>
+                                <p>• Use <strong class="text-green-700">"Unflagged"</strong> for customers with auto-approval</p>
+                                <p class="text-red-700 mt-2">⚠️ Case-insensitive: "flagged", "FLAGGED", or "Flagged" all work</p>
                             </div>
                         </div>
                         <p class="text-sm text-gray-500 mt-3 mb-2"><strong>Optional columns:</strong></p>
                         <div class="grid grid-cols-2 gap-x-4">
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>• business_style</li><li>• branch</li><li>• customer_group</li>
                                 <li>• customer_type</li><li>• currency</li><li>• telephone_1</li>
                                 <li>• mobile</li><li>• email</li><li>• website</li>
                             </ul>
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>• shipping_address</li><li>• whtcode</li><li>• whtrate</li>
                                 <li>• require_si</li><li>• ar_type</li><li>• tin_no</li><li>• credit_limit</li>
                             </ul>
@@ -174,7 +174,7 @@
                         <label for="customers-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
                             <p class="text-lg font-medium text-gray-500 mb-2">Click to upload Excel or CSV file</p>
-                            <p id="customers-filename" class="text-sm text-blue-400 mt-2"></p>
+                            <p id="customers-filename" class="text-sm text-blue-700 mt-2"></p>
                         </label>
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
@@ -189,16 +189,16 @@
             <div id="suppliers-content" class="tab-content hidden">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold mb-2 text-gray-800">Suppliers Import Requirements</h3>
-                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                    <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <p class="text-sm text-gray-500 mb-2"><strong>✅ All fields are OPTIONAL:</strong></p>
-                        <p class="text-xs text-gray-400 mb-4">If supplier_code is missing, it will be auto-generated.</p>
+                        <p class="text-xs text-gray-500 mb-4">If supplier_code is missing, it will be auto-generated.</p>
                         <div class="grid grid-cols-2 gap-x-4">
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>• supplier_code / Supplier Code</li><li>• supplier / Supplier Name</li>
                                 <li>• contact_person / Contact Person</li><li>• email_address / Email Address</li>
                                 <li>• company_address / Address</li><li>• contact_number / Contact Number</li>
                             </ul>
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>• terms / Terms</li><li>• tin / TIN</li><li>• bank / Bank</li>
                                 <li>• account_name / Account Name</li><li>• account_number / Account Number</li>
                             </ul>
@@ -215,7 +215,7 @@
                         <label for="suppliers-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
                             <p class="text-lg font-medium text-gray-500 mb-2">Click to upload Excel or CSV file</p>
-                            <p id="suppliers-filename" class="text-sm text-blue-400 mt-2"></p>
+                            <p id="suppliers-filename" class="text-sm text-blue-700 mt-2"></p>
                         </label>
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
@@ -230,15 +230,15 @@
             <div id="monthly_sales-content" class="tab-content hidden">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold mb-2 text-gray-800">Monthly Sales Import Requirements</h3>
-                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4">
+                    <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4">
                         <p class="text-sm text-gray-500 mb-2"><strong>Required columns:</strong></p>
-                        <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                        <ul class="text-sm text-gray-500 space-y-1 ml-4">
                             <li>• <strong>month</strong> or <strong>Month</strong> (e.g., January, February)</li>
                             <li>• <strong>qty</strong> or <strong>Qty</strong> (quantity sold)</li>
                             <li>• <strong>php</strong> or <strong>PHP</strong> (amount in Philippine Pesos)</li>
                         </ul>
                         <p class="text-sm text-gray-500 mt-3 mb-2"><strong>Note:</strong></p>
-                        <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                        <ul class="text-sm text-gray-500 space-y-1 ml-4">
                             <li>• Numbers can include commas (e.g., 902,352.22)</li>
                             <li>• Existing data for the same month will be updated</li>
                         </ul>
@@ -254,7 +254,7 @@
                         <label for="monthly_sales-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
                             <p class="text-lg font-medium text-gray-500 mb-2">Click to upload Excel or CSV file</p>
-                            <p id="monthly_sales-filename" class="text-sm text-blue-400 mt-2"></p>
+                            <p id="monthly_sales-filename" class="text-sm text-blue-700 mt-2"></p>
                         </label>
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
@@ -269,16 +269,16 @@
             <div id="ar_aging-content" class="tab-content hidden">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold mb-2 text-gray-800">AR Aging Import Requirements</h3>
-                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                    <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <p class="text-sm text-gray-500 mb-2"><strong>Available columns:</strong></p>
                         <div class="grid grid-cols-2 gap-x-4">
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>• customer_code</li><li>• invoice_no</li><li>• invoice_date</li>
                                 <li>• net_ar</li><li>• aging_date</li><li>• counter_date</li>
                                 <li>• record_date</li><li>• due_date</li><li>• po_no</li>
                                 <li>• dr_no</li><li>• client_name</li><li>• branch</li><li>• sales_executive</li>
                             </ul>
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>• se2</li><li>• terms</li><li>• sales_week_no</li><li>• age</li>
                                 <li>• age_category</li><li>• invoice_amount</li><li>• ar_adjustments</li>
                                 <li>• settled_invoice_amount</li><li>• gross_ar_balance</li><li>• cwt</li>
@@ -298,7 +298,7 @@
                         <label for="ar-aging-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
                             <p class="text-lg font-medium text-gray-500 mb-2">Click to upload Excel or CSV file</p>
-                            <p id="ar_aging-filename" class="text-sm text-blue-400 mt-2"></p>
+                            <p id="ar_aging-filename" class="text-sm text-blue-700 mt-2"></p>
                         </label>
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
@@ -313,16 +313,16 @@
             <div id="collections-content" class="tab-content hidden">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold mb-2 text-gray-800">Collections (Payments) Import Requirements</h3>
-                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                    <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <p class="text-sm text-gray-500 mb-2"><strong>Available columns (all optional):</strong></p>
                         <div class="grid grid-cols-2 gap-x-4">
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>• customer_code</li><li>• customer_name</li><li>• collection_receipt_number</li>
                                 <li>• collection_receipt_date</li><li>• payment_posting_date</li><li>• payment_date</li>
                                 <li>• amount</li><li>• payment_option</li><li>• tax</li><li>• ewt</li>
                                 <li>• net_of_cwt</li><li>• payment_notes</li><li>• created_by</li><li>• payment_method</li>
                             </ul>
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>• bank</li><li>• reference_no</li><li>• remarks</li><li>• invoice_no</li>
                                 <li>• dr_no</li><li>• branch</li><li>• status</li><li>• signed_by</li>
                                 <li>• other_adjustment</li><li>• factoring</li><li>• check_amount</li>
@@ -341,7 +341,7 @@
                         <label for="collections-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
                             <p class="text-lg font-medium text-gray-500 mb-2">Click to upload Excel or CSV file</p>
-                            <p id="collections-filename" class="text-sm text-blue-400 mt-2"></p>
+                            <p id="collections-filename" class="text-sm text-blue-700 mt-2"></p>
                         </label>
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
@@ -356,15 +356,15 @@
             <div id="ar_adjustments-content" class="tab-content hidden">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold mb-2 text-gray-800">AR Adjustments Import Requirements</h3>
-                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                    <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <p class="text-sm text-gray-500 mb-2"><strong>Available columns (all optional):</strong></p>
                         <div class="grid grid-cols-2 gap-x-4">
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>• customer_code</li><li>• customer_name</li><li>• reference_number</li>
                                 <li>• transaction_type</li><li>• transaction_date</li><li>• amount</li>
                                 <li>• is_decrease</li><li>• invoice_number</li>
                             </ul>
-                            <ul class="text-sm text-gray-400 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>• dr_no</li><li>• gl_account</li><li>• remarks</li>
                                 <li>• signed_by</li><li>• created_by</li>
                             </ul>
@@ -381,7 +381,7 @@
                         <label for="ar-adjustments-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
                             <p class="text-lg font-medium text-gray-500 mb-2">Click to upload Excel or CSV file</p>
-                            <p id="ar_adjustments-filename" class="text-sm text-blue-400 mt-2"></p>
+                            <p id="ar_adjustments-filename" class="text-sm text-blue-700 mt-2"></p>
                         </label>
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
@@ -402,22 +402,22 @@
                     </p>
 
                     {{-- Column requirements --}}
-                    <div class="bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg p-4 mb-4">
-                        <p class="text-sm text-gray-300 font-semibold mb-3">📋 Supported Columns</p>
+                    <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-gray-500 font-semibold mb-3">📋 Supported Columns</p>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {{-- Required --}}
                             <div>
-                                <p class="text-xs font-semibold text-red-400 uppercase tracking-wide mb-2">Required</p>
-                                <ul class="text-sm text-gray-400 space-y-1 ml-2">
+                                <p class="text-xs font-semibold text-red-700 uppercase tracking-wide mb-2">Required</p>
+                                <ul class="text-sm text-gray-500 space-y-1 ml-2">
                                     <li>• <strong class="text-white">item_code</strong> / Item Code / ITEM CODE</li>
                                     <li>• <strong class="text-white">item_description</strong> / Item Description / ITEM DESCRIPTION</li>
                                 </ul>
                             </div>
                             {{-- Optional --}}
                             <div>
-                                <p class="text-xs font-semibold text-green-400 uppercase tracking-wide mb-2">Optional</p>
-                                <ul class="text-sm text-gray-400 space-y-1 ml-2">
+                                <p class="text-xs font-semibold text-green-700 uppercase tracking-wide mb-2">Optional</p>
+                                <ul class="text-sm text-gray-500 space-y-1 ml-2">
                                     <li>• <strong>uom</strong> / UOM (unit of measure)</li>
                                     <li>• <strong>category</strong> / Category</li>
                                     <li>• <strong>default_cost</strong> / Default Cost</li>
@@ -428,20 +428,20 @@
                     </div>
 
                     {{-- Category mapping info --}}
-                    <div class="bg-gray-800 bg-opacity-30 border border-gray-600 rounded-lg p-4 mb-4">
-                        <p class="text-xs font-semibold text-yellow-300 uppercase tracking-wide mb-2">🗂️ Category Values (for BOM grouping)</p>
-                        <p class="text-xs text-gray-400 mb-3">
+                    <div class="bg-white bg-opacity-30 border border-gray-300 rounded-lg p-4 mb-4">
+                        <p class="text-xs font-semibold text-yellow-700 uppercase tracking-wide mb-2">🗂️ Category Values (for BOM grouping)</p>
+                        <p class="text-xs text-gray-500 mb-3">
                             Use one of these exact values in the <strong class="text-white">category</strong> column so items are grouped correctly in the BOM form.
                             If left blank, items will be placed under <strong class="text-white">Other</strong>.
                         </p>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            <span class="text-xs bg-blue-900/40 border border-blue-700 rounded px-2 py-1 text-blue-300">feed</span>
-                            <span class="text-xs bg-indigo-900/40 border border-indigo-700 rounded px-2 py-1 text-indigo-300">supplement</span>
+                            <span class="text-xs bg-blue-100/40 border border-blue-700 rounded px-2 py-1 text-blue-700">feed</span>
+                            <span class="text-xs bg-indigo-100 border border-indigo-700 rounded px-2 py-1 text-indigo-700">supplement</span>
                             <span class="text-xs bg-teal-900/40 border border-teal-700 rounded px-2 py-1 text-teal-300">vaccine</span>
                             <span class="text-xs bg-amber-900/40 border border-amber-700 rounded px-2 py-1 text-amber-300">cleaning</span>
                             <span class="text-xs bg-rose-900/40 border border-rose-700 rounded px-2 py-1 text-rose-300">supply</span>
-                            <span class="text-xs bg-orange-900/40 border border-orange-700 rounded px-2 py-1 text-orange-300">labor</span>
-                            <span class="text-xs bg-gray-700/60 border border-gray-500 rounded px-2 py-1 text-gray-300">overhead</span>
+                            <span class="text-xs bg-orange-100/40 border border-orange-700 rounded px-2 py-1 text-orange-700">labor</span>
+                            <span class="text-xs bg-gray-100/60 border border-gray-300 rounded px-2 py-1 text-gray-500">overhead</span>
                         </div>
                         <p class="text-xs text-gray-500 mt-3">
                             💡 Tip: The category column is also auto-detected from your Excel sheet's section headers
@@ -450,11 +450,11 @@
                     </div>
 
                     {{-- Tips --}}
-                    <div class="bg-green-900/20 border border-green-700 rounded-lg p-4">
-                        <p class="text-xs font-semibold text-green-300 uppercase tracking-wide mb-2">💡 Import Tips</p>
-                        <ul class="text-xs text-gray-400 space-y-1.5 ml-2">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p class="text-xs font-semibold text-green-700 uppercase tracking-wide mb-2">💡 Import Tips</p>
+                        <ul class="text-xs text-gray-500 space-y-1.5 ml-2">
                             <li>• Matches your existing <strong class="text-white">NBC Masterlist</strong> format (Item Code · Item Description · UOM)</li>
-                            <li>• If <strong>item_code</strong> already exists, the record will be <strong class="text-yellow-300">updated</strong> (not duplicated)</li>
+                            <li>• If <strong>item_code</strong> already exists, the record will be <strong class="text-yellow-700">updated</strong> (not duplicated)</li>
                             <li>• Empty rows and section-header rows (e.g. "FEEDS", "SUPPLEMENTS") are automatically skipped</li>
                             <li>• <strong>default_cost</strong> is optional — costs can still be edited per BOM</li>
                             <li>• Supports both <strong>.xlsx</strong> and <strong>.csv</strong> formats</li>
@@ -466,7 +466,7 @@
                 <div id="bom-preview-container" class="hidden mb-4">
                     <div class="border border-gray-200 rounded-lg overflow-hidden">
                         <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
-                            <span class="text-sm font-semibold text-gray-700">📄 File Preview <span id="bom-preview-count" class="text-gray-400 font-normal"></span></span>
+                            <span class="text-sm font-semibold text-gray-700">📄 File Preview <span id="bom-preview-count" class="text-gray-500 font-normal"></span></span>
                             <button type="button" onclick="clearBomFile()" class="text-xs text-red-500 hover:text-red-700">✕ Clear</button>
                         </div>
                         <div class="overflow-x-auto max-h-64">
@@ -498,8 +498,8 @@
                         <label for="bom_materials-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
                             <p class="text-lg font-medium text-gray-500 mb-2">Click to upload Excel or CSV file</p>
-                            <p class="text-xs text-gray-400">Supports NBC Masterlist format: Item Code · Item Description · UOM</p>
-                            <p id="bom_materials-filename" class="text-sm text-blue-400 mt-2"></p>
+                            <p class="text-xs text-gray-500">Supports NBC Masterlist format: Item Code · Item Description · UOM</p>
+                            <p id="bom_materials-filename" class="text-sm text-blue-700 mt-2"></p>
                         </label>
                     </div>
 
@@ -528,36 +528,36 @@
 
     {{-- SUCCESS / ERROR HANDLERS --}}
     @if(session('success'))
-    <div class="bg-green-900 bg-opacity-30 border border-green-600 rounded-lg p-4 mb-4">
+    <div class="bg-green-100 bg-opacity-30 border border-green-600 rounded-lg p-4 mb-4">
         <div class="flex items-start gap-3">
-            <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+            <i class="fas fa-check-circle text-green-700 mt-0.5"></i>
             <div>
-                <h4 class="font-semibold text-green-300">Import Successful!</h4>
-                <p class="text-sm text-green-400 mt-1 whitespace-pre-line">{{ session('success') }}</p>
+                <h4 class="font-semibold text-green-700">Import Successful!</h4>
+                <p class="text-sm text-green-700 mt-1 whitespace-pre-line">{{ session('success') }}</p>
             </div>
         </div>
     </div>
     @endif
 
     @if(session('error'))
-    <div class="bg-red-900 bg-opacity-30 border border-red-600 rounded-lg p-4 mb-4">
+    <div class="bg-red-100 bg-opacity-30 border border-red-600 rounded-lg p-4 mb-4">
         <div class="flex items-start gap-3">
-            <i class="fas fa-times-circle text-red-400 mt-0.5"></i>
+            <i class="fas fa-times-circle text-red-700 mt-0.5"></i>
             <div class="flex-1">
-                <h4 class="font-semibold text-red-300">Import Failed</h4>
-                <p class="text-sm text-red-400 mt-1 whitespace-pre-line">{{ session('error') }}</p>
+                <h4 class="font-semibold text-red-700">Import Failed</h4>
+                <p class="text-sm text-red-700 mt-1 whitespace-pre-line">{{ session('error') }}</p>
             </div>
         </div>
     </div>
     @endif
 
     @if($errors->any())
-    <div class="bg-red-900 bg-opacity-30 border border-red-600 rounded-lg p-4 mb-4">
+    <div class="bg-red-100 bg-opacity-30 border border-red-600 rounded-lg p-4 mb-4">
         <div class="flex items-start gap-3">
-            <i class="fas fa-times-circle text-red-400 mt-0.5"></i>
+            <i class="fas fa-times-circle text-red-700 mt-0.5"></i>
             <div class="flex-1">
-                <h4 class="font-semibold text-red-300">Validation Errors</h4>
-                <ul class="text-sm text-red-400 mt-1 space-y-1">
+                <h4 class="font-semibold text-red-700">Validation Errors</h4>
+                <ul class="text-sm text-red-700 mt-1 space-y-1">
                     @foreach($errors->all() as $error)
                     <li>• {{ $error }}</li>
                     @endforeach
@@ -574,13 +574,13 @@
 // ── Tab switching ─────────────────────────────────────────────────────────────
 function switchTab(tab) {
     document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400');
-        btn.classList.add('text-gray-400');
+        btn.classList.remove('text-blue-700', 'border-b-2', 'border-blue-400');
+        btn.classList.add('text-gray-500');
     });
     const activeTab = document.getElementById(tab + '-tab');
     if (activeTab) {
-        activeTab.classList.remove('text-gray-400');
-        activeTab.classList.add('text-blue-400', 'border-b-2', 'border-blue-400');
+        activeTab.classList.remove('text-gray-500');
+        activeTab.classList.add('text-blue-700', 'border-b-2', 'border-blue-400');
     }
     document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
     const content = document.getElementById(tab + '-content');

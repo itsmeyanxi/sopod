@@ -50,7 +50,7 @@
                         <ul class="list-disc list-inside space-y-1" id="cancelledList">
                             @foreach($cancelledOrders as $order)
                                 <li data-order-id="{{ $order->id }}">
-                                    <a href="{{ route('sales_orders.show', $order->id) }}" class="font-bold underline hover:text-gray-200">
+                                    <a href="{{ route('sales_orders.show', $order->id) }}" class="font-bold underline hover:text-gray-700">
                                         {{ $order->sales_order_number }}
                                     </a> - {{ $order->customer->customer_name ?? 'N/A' }}
                                 </li>
@@ -58,7 +58,7 @@
                         </ul>
                     </div>
                 </div>
-                <button onclick="closeAlert('cancelledAlert')" class="text-gray-800 hover:text-gray-200 text-2xl font-bold ml-4 leading-none">
+                <button onclick="closeAlert('cancelledAlert')" class="text-gray-800 hover:text-gray-700 text-2xl font-bold ml-4 leading-none">
                     ×
                 </button>
             </div>
@@ -76,7 +76,7 @@
                         <ul class="list-disc list-inside space-y-1" id="overdueList">
                             @foreach($overdueOrders as $order)
                                 <li data-order-id="{{ $order->id }}">
-                                    <a href="{{ route('sales_orders.show', $order->id) }}" class="font-bold underline hover:text-gray-200">
+                                    <a href="{{ route('sales_orders.show', $order->id) }}" class="font-bold underline hover:text-gray-700">
                                         {{ $order->sales_order_number }}
                                     </a> - {{ $order->customer->customer_name ?? 'N/A' }}
                                     <span class="text-sm opacity-90">
@@ -87,7 +87,7 @@
                         </ul>
                     </div>
                 </div>
-                <button onclick="closeAlert('overdueAlert')" class="text-gray-800 hover:text-gray-200 text-2xl font-bold ml-4 leading-none">
+                <button onclick="closeAlert('overdueAlert')" class="text-gray-800 hover:text-gray-700 text-2xl font-bold ml-4 leading-none">
                     ×
                 </button>
             </div>
@@ -145,7 +145,7 @@
             </button>
 
             <a href="{{ route('sales_orders.index') }}" 
-            class="bg-gray-600 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded transition">
+            class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded transition">
                 Clear
             </a>
 
@@ -163,11 +163,11 @@
                     </button>
                     
                     <button type="button" onclick="exportExcel()"
-                        class="bg-emerald-600 hover:bg-emerald-700 text-gray-800 px-4 py-2 rounded transition">
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition">
                         📥 Export Excel
                     </button>
                 @else
-                    <div class="bg-yellow-600/20 border border-yellow-600 text-yellow-300 px-4 py-2 rounded text-sm">
+                    <div class="bg-yellow-600/20 border border-yellow-600 text-yellow-700 px-4 py-2 rounded text-sm">
                         ⚠️ Cannot print/export: All filtered sales orders are pending approval
                     </div>
                 @endif
@@ -177,7 +177,7 @@
         <!-- CREATE BUTTON (RIGHT) -->
         @if(auth()->user()->canCreateSalesOrders())
             <a href="{{ route('sales_orders.create') }}" 
-            class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-gray-800 px-4 py-2 rounded transition whitespace-nowrap">
+            class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition whitespace-nowrap">
                 Create Sales Order
             </a>
         @endif
@@ -198,7 +198,7 @@
                     <span id="selectedCount">0</span> order(s) selected
                 </span>
                 <button type="button" onclick="deselectAll()" 
-                    class="text-sm underline hover:text-gray-200">
+                    class="text-sm underline hover:text-gray-700">
                     Deselect All
                 </button>
             </div>
@@ -212,7 +212,7 @@
                     ✗ Decline Selected
                 </button>
                 <button type="button" onclick="hideBulkBar()" 
-                    class="text-gray-800 hover:text-gray-200 text-2xl font-bold">
+                    class="text-gray-800 hover:text-gray-700 text-2xl font-bold">
                     ×
                 </button>
             </div>
@@ -279,7 +279,7 @@
                         @elseif($order->status === 'Declined')
                             <span class="bg-red-600 text-white px-2 py-1 rounded text-xs">Declined</span>
                         @elseif($order->status === 'Cancelled')
-                            <span class="bg-gray-600 text-white px-2 py-1 rounded text-xs">Cancelled</span>
+                            <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs">Cancelled</span>
                         @endif
                     </td>
                     <td class="px-4 py-3">
@@ -295,7 +295,7 @@
                             
                             if (!$delivery) {
                                 $drStatus = ($order->status === 'Approved') ? 'Awaiting Delivery' : 'Not Delivered';
-                                $statusClass = 'bg-gray-600';
+                                $statusClass = 'bg-gray-200';
                             } else {
                                 if ($delivery->is_pulled_out) {
                                     $drStatus = 'Pulled Out';
@@ -329,7 +329,7 @@
                                     $statusClass = 'bg-indigo-600';
                                 } else {
                                     $drStatus = $delivery->status ?? 'Pending';
-                                    $statusClass = 'bg-gray-600';
+                                    $statusClass = 'bg-gray-200';
                                 }
                             }
                         @endphp
@@ -395,7 +395,7 @@
                     @endif
 
                     @if($isDelivered)
-                        <span class="bg-gray-600 text-white px-3 py-1 rounded text-xs ml-2" title="Order has been delivered">
+                        <span class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs ml-2" title="Order has been delivered">
                             🔒 Locked
                         </span>
                     @endif
@@ -440,7 +440,7 @@
             
             <div class="flex justify-end gap-3">
                 <button type="button" onclick="closeDeclineModal()"
-                    class="bg-gray-600 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded">
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded">
                     Cancel
                 </button>
                 <button type="submit"

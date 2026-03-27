@@ -16,6 +16,9 @@ class PurchaseRequest extends Model
         'department',
         'supplier',
         'supplier_id',
+        'bom_id',
+        'bom_cycle_ref',
+        'bom_total_cost',
         'terms',
         'address',
         'delivery_address',
@@ -78,6 +81,11 @@ class PurchaseRequest extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
+
+    public function bom()
+    {
+        return $this->belongsTo(InHouseBom::class, 'bom_id');
     }
 
     /**

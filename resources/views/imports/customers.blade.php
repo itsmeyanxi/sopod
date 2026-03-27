@@ -44,11 +44,11 @@
                         file:mr-4 file:py-2 file:px-4
                         file:rounded file:border-0
                         file:text-sm file:font-semibold
-                        file:bg-blue-600 file:text-gray-800
+                        file:bg-blue-600 file:text-white
                         hover:file:bg-blue-700
                         cursor-pointer"
                 >
-                <p class="text-sm text-gray-400 mt-2">Accepted formats: .xlsx, .xls, .csv</p>
+                <p class="text-sm text-gray-500 mt-2">Accepted formats: .xlsx, .xls, .csv</p>
             </div>
 
             <div class="flex items-center justify-between">
@@ -61,7 +61,7 @@
                 
                 <a 
                     href="{{ route('customers.index') }}" 
-                    class="text-gray-400 hover:text-gray-800 transition"
+                    class="text-gray-500 hover:text-gray-800 transition"
                 >
                     Cancel
                 </a>
@@ -83,7 +83,7 @@
             <div class="mt-4 pt-4 border-t border-gray-300">
                 <a 
                     href="{{ route('import.customers.template') }}" 
-                    class="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm"
+                    class="inline-flex items-center text-blue-700 hover:text-blue-700 text-sm"
                 >
                     📥 Download Sample Template
                 </a>

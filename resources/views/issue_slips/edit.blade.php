@@ -35,7 +35,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DATE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800" value="{{ old('date', $issueSlip->date->format('Y-m-d')) }}" required>
                     </div>
                     <div>
@@ -69,20 +69,20 @@
             <!-- Signature Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-1">ISSUED BY:</label>
-                    <input type="text" name="issued_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('issued_by', $issueSlip->issued_by) }}" placeholder="Name / Signature">
+                    <label class="block font-semibold text-gray-500 mb-1">ISSUED BY:</label>
+                    <input type="text" name="issued_by" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-white" value="{{ old('issued_by', $issueSlip->issued_by) }}" placeholder="Name / Signature">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-1">TRANSPORT:</label>
-                    <input type="text" name="transport" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('transport', $issueSlip->transport) }}" placeholder="Name / Signature">
+                    <label class="block font-semibold text-gray-500 mb-1">TRANSPORT:</label>
+                    <input type="text" name="transport" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-white" value="{{ old('transport', $issueSlip->transport) }}" placeholder="Name / Signature">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-1">SERVICE PROVIDERS CHECKER:</label>
-                    <input type="text" name="service_providers_checker" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('service_providers_checker', $issueSlip->service_providers_checker) }}" placeholder="Name / Signature">
+                    <label class="block font-semibold text-gray-500 mb-1">SERVICE PROVIDERS CHECKER:</label>
+                    <input type="text" name="service_providers_checker" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-white" value="{{ old('service_providers_checker', $issueSlip->service_providers_checker) }}" placeholder="Name / Signature">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-1">RECEIVED BY:</label>
-                    <input type="text" name="received_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('received_by', $issueSlip->received_by) }}" placeholder="Name / Signature">
+                    <label class="block font-semibold text-gray-500 mb-1">RECEIVED BY:</label>
+                    <input type="text" name="received_by" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-white" value="{{ old('received_by', $issueSlip->received_by) }}" placeholder="Name / Signature">
                 </div>
             </div>
 
@@ -169,10 +169,10 @@ destSearch.addEventListener('input', function() {
             const customers = await res.json();
             if (!customers.length) { destDropdown.classList.add('hidden'); return; }
             destDropdown.innerHTML = customers.map(c =>
-                `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 dest-option"
+                `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 dest-option"
                       data-id="${c.id}" data-name="${c.customer_name}">
                     <strong>${c.customer_name}</strong>
-                    <span class="text-gray-400 text-xs ml-1">${c.customer_code || ''}</span>
+                    <span class="text-gray-500 text-xs ml-1">${c.customer_code || ''}</span>
                 </div>`
             ).join('');
             destDropdown.classList.remove('hidden');

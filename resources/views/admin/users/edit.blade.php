@@ -35,7 +35,7 @@
         <div class="mb-4">
             <label class="block text-sm mb-1">
                 New Password
-                <span class="text-gray-400 text-xs">(Leave blank to keep current password)</span>
+                <span class="text-gray-500 text-xs">(Leave blank to keep current password)</span>
             </label>
             <div class="relative">
                 <input type="password"
@@ -45,19 +45,19 @@
                        placeholder="Enter new password (min. 6 characters)">
                 <button type="button"
                         id="togglePassword"
-                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-600 hover:bg-gray-500 text-gray-800 px-3 py-1 rounded">
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
-            <small class="text-gray-400 text-xs">Minimum 6 characters</small>
+            <small class="text-gray-500 text-xs">Minimum 6 characters</small>
         </div>
 
-        <div class="bg-yellow-900/30 border border-yellow-600/30 rounded-lg p-3 mb-4">
-            <p class="text-yellow-300 text-sm"><i class="fas fa-info-circle mr-1"></i> To manage this user's module access and permissions, use the <a href="{{ route('rbac.index') }}" class="underline">RBAC Management</a> page.</p>
+        <div class="bg-yellow-100 border border-yellow-600/30 rounded-lg p-3 mb-4">
+            <p class="text-yellow-700 text-sm"><i class="fas fa-info-circle mr-1"></i> To manage this user's module access and permissions, use the <a href="{{ route('rbac.index') }}" class="underline">RBAC Management</a> page.</p>
         </div>
 
         <div class="flex justify-end space-x-3 mt-6">
-            <a href="{{ route('admin.users.index') }}" class="bg-gray-600 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg">Cancel</a>
+            <a href="{{ route('admin.users.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg">Cancel</a>
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Update User</button>
         </div>
     </form>
@@ -105,7 +105,8 @@ $navStructure = [
         'supply_chain.trade_items'       => 'Trade Items Library',
     ],
     'Storage / Warehouse' => [
-        'warehouse' => '📂 Section Access',
+        'warehouse' => 'Warehouse',
+        'storages'  => 'Storages',
     ],
     'Items' => [
         'items'        => '📂 Section Access',
@@ -133,15 +134,27 @@ $navStructure = [
         'reimbursement'     => 'Reimbursement Form (RI)',
         'currency_rates'    => 'Currency Rates',
     ],
+    'Treasury' => [
+        'treasury' => '📂 Section Access',
+    ],
+    'In-House BOM' => [
+        'inhouse_bom'      => 'BOM List',
+        'daily_feed_usage' => 'Daily Feed Usage',
+    ],
     'Credits & Collection' => [
-        'aging_reports'     => '📂 Section Access (Aging)',
-        'aging.view'        => 'Aging Reports View',
-        'ar_dashboard'      => 'AR Dashboard',
-        'payments'          => 'Collection',
-        'aging.adjustments' => 'AR Adjustments',
+        'aging_reports'          => '📂 Section Access (Aging)',
+        'aging.view'             => 'Aging Reports View',
+        'ar_dashboard'           => 'AR Dashboard',
+        'payments'               => 'Collection',
+        'aging.adjustments'      => 'AR Adjustments',
+        'soa'                    => 'Statement of Accounts',
+        'delivery_counter_dates' => 'Delivery Counter Dates',
+        'counter_date_approvals' => 'Counter Date Approval',
     ],
     'Accounting' => [
-        'gl_accounts' => 'Chart of Accounts',
+        'gl_accounts'      => 'Chart of Accounts',
+        'fixed_assets'     => 'Fixed Asset Capitalization',
+        'journal_vouchers' => 'Journal Vouchers',
     ],
     'Other' => [
         'change_log'     => 'Change Log',
@@ -154,7 +167,7 @@ $navStructure = [
 ];
 @endphp
 
-<div class="max-w-7xl mx-auto bg-gray-800 text-white p-6 rounded-lg mt-6 shadow-md">
+<div class="max-w-7xl mx-auto bg-white text-white p-6 rounded-lg mt-6 shadow-md">
     <div class="flex items-center justify-between mb-3">
         <h3 class="text-lg font-bold">Module Access Overrides</h3>
         <div class="flex gap-4 text-xs">
@@ -166,13 +179,13 @@ $navStructure = [
 
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 items-start" id="moduleOverridesGrid">
         @foreach($navStructure as $sectionName => $items)
-        <div class="rounded-lg overflow-hidden border border-gray-700 flex flex-col">
+        <div class="rounded-lg overflow-hidden border border-gray-200 flex flex-col">
             {{-- Section Header --}}
             <button type="button"
                 onclick="toggleOverrideSection(this)"
-                class="flex items-center justify-between px-3 py-2 bg-gray-700 hover:bg-gray-600 text-left w-full">
-                <span class="text-xs font-semibold text-gray-200 uppercase tracking-wide">{{ $sectionName }}</span>
-                <span class="toggle-chevron text-gray-400 text-xs">▼</span>
+                class="flex items-center justify-between px-3 py-2 bg-gray-100 hover:bg-gray-100 text-left w-full">
+                <span class="text-xs font-semibold text-gray-700 uppercase tracking-wide">{{ $sectionName }}</span>
+                <span class="toggle-chevron text-gray-500 text-xs">▼</span>
             </button>
             {{-- Items --}}
             <div class="section-content hidden flex-col divide-y divide-gray-700/50 bg-gray-750">
@@ -182,13 +195,13 @@ $navStructure = [
                     $current = $ov ? ($ov->allowed ? 'grant' : 'deny') : 'default';
                     $isSection = str_starts_with($label, '📂');
                 @endphp
-                <div class="flex items-center justify-between px-3 py-1.5 {{ $isSection ? 'bg-gray-700/40' : 'bg-gray-800' }} gap-2">
-                    <span class="text-xs truncate {{ $isSection ? 'text-gray-400 italic' : 'text-gray-300' }}" title="{{ $isSection ? ltrim(str_replace('📂', '', $label)) : $label }}">
+                <div class="flex items-center justify-between px-3 py-1.5 {{ $isSection ? 'bg-gray-100/40' : 'bg-white' }} gap-2">
+                    <span class="text-xs truncate {{ $isSection ? 'text-gray-500 italic' : 'text-gray-500' }}" title="{{ $isSection ? ltrim(str_replace('📂', '', $label)) : $label }}">
                         {{ $isSection ? str_replace('📂 ', '', $label) : $label }}
                     </span>
                     <select
                         class="module-override-select flex-shrink-0 border text-xs rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-indigo-500
-                            {{ $current === 'grant' ? 'bg-green-800 border-green-600 text-green-200' : ($current === 'deny' ? 'bg-red-900 border-red-700 text-red-200' : 'bg-gray-600 border-gray-500 text-white') }}"
+                            {{ $current === 'grant' ? 'bg-green-800 border-green-300 text-green-700' : ($current === 'deny' ? 'bg-red-100 border-red-700 text-red-700' : 'bg-gray-100 border-gray-300 text-white') }}"
                         data-module="{{ $key }}"
                         data-user="{{ $user->id }}">
                         <option value="default" {{ $current === 'default' ? 'selected' : '' }}>Default</option>
@@ -225,16 +238,16 @@ document.querySelectorAll('.module-override-select').forEach(function(select) {
     // Color the select based on current value
     function updateColor(sel) {
         sel.classList.remove(
-            'bg-green-800','border-green-600','text-green-200',
-            'bg-red-900','border-red-700','text-red-200',
-            'bg-gray-600','border-gray-500','text-white'
+            'bg-green-800','border-green-600','text-green-700',
+            'bg-red-100','border-red-200','text-red-700',
+            'bg-gray-200','border-gray-300','text-white'
         );
         if (sel.value === 'grant') {
-            sel.classList.add('bg-green-800','border-green-600','text-green-200');
+            sel.classList.add('bg-green-800','border-green-600','text-green-700');
         } else if (sel.value === 'deny') {
-            sel.classList.add('bg-red-900','border-red-700','text-red-200');
+            sel.classList.add('bg-red-100','border-red-200','text-red-700');
         } else {
-            sel.classList.add('bg-gray-600','border-gray-500','text-white');
+            sel.classList.add('bg-gray-200','border-gray-300','text-white');
         }
     }
     updateColor(select);

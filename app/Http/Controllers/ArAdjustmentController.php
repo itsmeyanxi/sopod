@@ -27,9 +27,29 @@ class ArAdjustmentController extends Controller
      * Show create form
      */
     public function create()
-    {
-        return view('ar_adjustments.create');
-    }
+{
+    $glAccounts = \App\Models\GlAccount::orderBy('account_code')
+        ->get(['id', 'account_code', 'account_name', 'fs_line_item'])
+        ->map(function($account) {
+            return [
+                'id'          => $account->id,
+                'code'        => $account->account_code,
+                'name'        => $account->account_name,
+                'display'     => $account->account_code . ' - ' . $account->account_name,
+                'fs_line_item'=> $account->fs_line_item,
+            ];
+        });
+
+    // Generate next reference number preview
+    $year = date('Y');
+    $lastAdj = ArAdjustment::where('reference_number', 'LIKE', "ADJ-{$year}-%")
+        ->orderByRaw('CAST(SUBSTRING(reference_number, ' . (strlen("ADJ-{$year}-") + 1) . ') AS UNSIGNED) DESC')
+        ->first();
+    $nextNum = $lastAdj ? (int)explode('-', $lastAdj->reference_number)[2] + 1 : 1;
+    $nextRefNumber = "ADJ-{$year}-" . str_pad($nextNum, 5, '0', STR_PAD_LEFT);
+
+    return view('ar_adjustments.create', compact('glAccounts', 'nextRefNumber'));
+}
 
     /**
      * Search AR Aging records by customer name or DR number
@@ -115,6 +135,48 @@ class ArAdjustmentController extends Controller
                 'message' => 'Failed to search: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Search receiving reports for linking to AR adjustment
+     */
+    public function searchReceivingReports(Request $request)
+    {
+        $search = $request->get('search', '');
+
+        if (strlen($search) < 2) {
+            return response()->json(['results' => []]);
+        }
+
+        $results = \App\Models\ReceivingReport::with('items')
+            ->where(function($q) use ($search) {
+                $q->where('rr_number', 'LIKE', "%{$search}%")
+                  ->orWhere('delivery_batch', 'LIKE', "%{$search}%")
+                  ->orWhere('customer_name', 'LIKE', "%{$search}%")
+                  ->orWhere('customer_code', 'LIKE', "%{$search}%")
+                  ->orWhere('sales_order_number', 'LIKE', "%{$search}%");
+            })
+            ->orderBy('received_date', 'desc')
+            ->limit(20)
+            ->get()
+            ->map(function($rr) {
+                return [
+                    'id' => $rr->id,
+                    'rr_number' => $rr->rr_number,
+                    'delivery_batch' => $rr->delivery_batch,
+                    'sales_order_number' => $rr->sales_order_number,
+                    'customer_name' => $rr->customer_name,
+                    'customer_code' => $rr->customer_code,
+                    'branch' => $rr->branch,
+                    'sales_invoice_no' => $rr->sales_invoice_no,
+                    'received_date' => $rr->received_date ? $rr->received_date->format('M d, Y') : null,
+                    'status' => $rr->status,
+                    'total_amount' => $rr->items->sum('total_amount'),
+                    'item_count' => $rr->items->count(),
+                ];
+            });
+
+        return response()->json(['results' => $results]);
     }
 
 public function getAdjustments(Request $request)
@@ -221,8 +283,8 @@ public function store(Request $request)
     try {
         $validated = $request->validate([
             'transaction_date' => 'required|date',
-            'reference_number' => 'required|string|max:255|unique:ar_adjustments,reference_number',
-            'transaction_type' => 'required|in:atd,offset,credit_memo,debit_memo,adjustment,write_off',
+            'reference_number' => 'nullable|string|max:255',
+            'transaction_type' => 'required|in:sales_return_allowances,price_adjustment,rebates,distribution_fees,penalty,promotional_expenses,small_balance_adjustment,atd,offset,credit_memo,debit_memo,adjustment,write_off',
             'dr_no' => 'nullable|string|max:255',
             'invoice_number' => 'nullable|string|max:255',
             'customer_code' => 'nullable|string|max:255',
@@ -232,10 +294,26 @@ public function store(Request $request)
             'gl_account' => 'nullable|string|max:255',
             'gl_account_id' => 'nullable|exists:gl_accounts,id',
             'remarks' => 'nullable|string',
+            'attachment' => 'nullable|file|max:5120|mimes:pdf,png,jpg,jpeg',
+            'receiving_report_id' => 'nullable|exists:receiving_reports,id',
             'signed_by' => 'required|string|max:255',
         ]);
 
         DB::beginTransaction();
+
+        // Auto-generate reference number if not provided
+        if (empty($validated['reference_number'])) {
+            $year = date('Y');
+            $lastAdj = ArAdjustment::where('reference_number', 'LIKE', "ADJ-{$year}-%")
+                ->orderByRaw('CAST(SUBSTRING(reference_number, ' . (strlen("ADJ-{$year}-") + 1) . ') AS UNSIGNED) DESC')
+                ->first();
+            $nextNum = 1;
+            if ($lastAdj) {
+                $parts = explode('-', $lastAdj->reference_number);
+                $nextNum = (int)end($parts) + 1;
+            }
+            $validated['reference_number'] = "ADJ-{$year}-" . str_pad($nextNum, 5, '0', STR_PAD_LEFT);
+        }
 
         // Parse amount
         $amountStr = $validated['amount'];
@@ -257,6 +335,15 @@ public function store(Request $request)
             }
         }
 
+        // Handle file upload
+        $attachmentPath = null;
+        $attachmentName = null;
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $attachmentName = $file->getClientOriginalName();
+            $attachmentPath = $file->store('ar-adjustment-attachments', 'public');
+        }
+
         // Create adjustment - MAKE SURE ALL FIELDS ARE INCLUDED
         $adjustment = ArAdjustment::create([
             'transaction_date' => $validated['transaction_date'],
@@ -266,12 +353,15 @@ public function store(Request $request)
             'invoice_number' => $validated['invoice_number'] ?? null,
             'customer_code' => $validated['customer_code'] ?? null,
             'customer_name' => $validated['customer_name'],
-            'branch' => $validated['branch'] ?? null,  // ✅ MAKE SURE THIS IS HERE
+            'branch' => $validated['branch'] ?? null,
             'amount' => $amount,
             'is_decrease' => $isDecrease,
             'gl_account' => $glAccountCode ?? $validated['gl_account'] ?? null,
             'gl_account_id' => $validated['gl_account_id'] ?? null,
+            'receiving_report_id' => $validated['receiving_report_id'] ?? null,
             'remarks' => $validated['remarks'] ?? null,
+            'attachment_path' => $attachmentPath,
+            'attachment_name' => $attachmentName,
             'signed_by' => $validated['signed_by'],
             'created_by' => Auth::user()->name ?? 'System',
         ]);
@@ -324,18 +414,56 @@ public function store(Request $request)
      */
     public function show($id)
     {
-        $adjustment = ArAdjustment::findOrFail($id);
+        $adjustment = ArAdjustment::with(['receivingReport.items', 'delivery', 'glAccount'])->findOrFail($id);
         return view('ar_adjustments.show', compact('adjustment'));
+    }
+
+    /**
+     * Print Debit or Credit Memo
+     */
+    public function printMemo($id, Request $request)
+    {
+        $adjustment = ArAdjustment::with(['receivingReport.items', 'delivery', 'glAccount'])->findOrFail($id);
+        // Derive memo type from transaction_type, fallback to query param
+        $memoType = $adjustment->transaction_type === 'debit_memo' ? 'debit' : ($adjustment->transaction_type === 'credit_memo' ? 'credit' : $request->query('type', 'credit'));
+
+        // Get customer record for TIN and Business Style
+        $customer = Customer::where('customer_code', $adjustment->customer_code)->first();
+
+        // Generate memo number from reference number
+        $memoNumber = str_replace('ADJ-', ($memoType === 'debit' ? 'DM-' : 'CM-'), $adjustment->reference_number);
+
+        // Format customer code to C0000000001-000 format
+        $rawCode = preg_replace('/[^0-9\-]/', '', $adjustment->customer_code ?? '');
+        $parts = explode('-', $rawCode);
+        $mainPart = str_pad($parts[0] ?? '0', 10, '0', STR_PAD_LEFT);
+        $subPart = str_pad($parts[1] ?? '0', 3, '0', STR_PAD_LEFT);
+        $formattedCustomerCode = 'C' . $mainPart . '-' . $subPart;
+
+        return view('ar_adjustments.print_memo', compact('adjustment', 'memoType', 'memoNumber', 'customer', 'formattedCustomerCode'));
     }
 
     /**
      * Show edit form
      */
     public function editForm($id)
-    {
-        $adjustment = ArAdjustment::findOrFail($id);
-        return view('ar_adjustments.edit', compact('adjustment'));
-    }
+{
+    $adjustment = ArAdjustment::findOrFail($id);
+
+    $glAccounts = \App\Models\GlAccount::orderBy('account_code')
+        ->get(['id', 'account_code', 'account_name', 'fs_line_item'])
+        ->map(function($account) {
+            return [
+                'id'          => $account->id,
+                'code'        => $account->account_code,
+                'name'        => $account->account_name,
+                'display'     => $account->account_code . ' - ' . $account->account_name,
+                'fs_line_item'=> $account->fs_line_item,
+            ];
+        });
+
+    return view('ar_adjustments.edit', compact('adjustment', 'glAccounts'));
+}
 
     /**
      * Update an existing adjustment

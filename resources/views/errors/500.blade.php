@@ -49,7 +49,7 @@
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <button onclick="window.location.reload()" 
-                            class="flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-gray-800 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition shadow-lg font-semibold text-lg">
+                            class="flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition shadow-lg font-semibold text-lg">
                         <span>🔄</span> Refresh Page
                     </button>
                     <a href="{{ route('dashboard') }}" 

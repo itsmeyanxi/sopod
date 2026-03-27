@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('ar_adjustments')) {
+            return;
+        }
         Schema::create('ar_adjustments', function (Blueprint $table) {
             $table->id();
             $table->string('customer_code')->nullable();

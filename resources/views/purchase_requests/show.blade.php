@@ -34,10 +34,40 @@
             </div>
         @endif
 
+        @if($purchaseRequest->bom_id)
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-100 text-blue-700 rounded-full w-10 h-10 flex items-center justify-center">
+                        <span class="text-lg">🐔</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-blue-800 text-sm">BOM-Linked Purchase Request</h3>
+                        <p class="text-xs text-blue-600 mt-0.5">
+                            Cycle: <strong>{{ $purchaseRequest->bom_cycle_ref }}</strong>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    @if($purchaseRequest->bom_total_cost)
+                    <div class="text-right">
+                        <div class="text-xs text-blue-500 font-semibold uppercase">BOM Total Cost</div>
+                        <div class="text-lg font-bold text-blue-800">PHP {{ number_format($purchaseRequest->bom_total_cost, 2) }}</div>
+                    </div>
+                    @endif
+                    <a href="{{ route('inhouse_bom.show', $purchaseRequest->bom_id) }}"
+                       class="px-4 py-2 text-sm border border-blue-300 rounded-md hover:bg-blue-100 text-blue-700 font-medium">
+                        <i class="fas fa-clipboard-list mr-1"></i> View BOM
+                    </a>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- Company -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-2">COMPANY:</label>
-            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->company }}</p>
+            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->company }}</p>
         </div>
 
         <!-- Form Fields -->
@@ -46,27 +76,27 @@
             <div class="space-y-4">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">REQUISITIONER:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->requisitioner }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->requisitioner }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">DEPARTMENT:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->department ?? 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->department ?? 'N/A' }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">TERMS:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->terms ?? 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->terms ?? 'N/A' }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">ADDRESS:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->address ?? 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->address ?? 'N/A' }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">DELIVERY ADDRESS:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->delivery_address ?? 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->delivery_address ?? 'N/A' }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">CONTACT PERSON:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->contact_person ?? 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->contact_person ?? 'N/A' }}</p>
                 </div>
             </div>
 
@@ -74,31 +104,31 @@
             <div class="space-y-4">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">DATE OF REQUEST:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->date_of_request->format('F d, Y') }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->date_of_request->format('F d, Y') }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">DATE NEEDED:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->date_needed ? $purchaseRequest->date_needed->format('F d, Y') : 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->date_needed ? $purchaseRequest->date_needed->format('F d, Y') : 'N/A' }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">TYPE OF REQUEST:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->type_of_request ? ucfirst($purchaseRequest->type_of_request) : 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->type_of_request ? ucfirst($purchaseRequest->type_of_request) : 'N/A' }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">WITH BUDGET:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->with_budget ? ucfirst($purchaseRequest->with_budget) : 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->with_budget ? ucfirst($purchaseRequest->with_budget) : 'N/A' }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">CHARGE TO:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->charge_to ?? 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->charge_to ?? 'N/A' }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">CONTACT NUMBER:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->contact_number ?? 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->contact_number ?? 'N/A' }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">CREATED BY:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $purchaseRequest->creator->name ?? 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $purchaseRequest->creator->name ?? 'N/A' }}</p>
                 </div>
             </div>
         </div>
@@ -154,7 +184,7 @@
         <!-- Reason for Requisition -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-800 mb-2">REASON FOR REQUISITION:</label>
-            <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded text-gray-200 min-h-[100px]">
+            <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded text-gray-700 min-h-[100px]">
                 {{ $purchaseRequest->reason_for_requisition ?? 'No reason provided' }}
             </div>
         </div>
@@ -182,7 +212,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $purchaseRequest->creator->name ?? '' }}</span>
                                 @if($purchaseRequest->creator && $purchaseRequest->created_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $purchaseRequest->created_at->format('d M Y | H:i') }}
                                     </div>
@@ -191,7 +221,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $purchaseRequest->departmentHeadApprover->name ?? '' }}</span>
                                 @if($purchaseRequest->departmentHeadApprover && $purchaseRequest->department_head_approved_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $purchaseRequest->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($purchaseRequest->department_head_approved_latitude && $purchaseRequest->department_head_approved_longitude)
@@ -206,7 +236,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $purchaseRequest->managementApprover->name ?? '' }}</span>
                                 @if($purchaseRequest->managementApprover && $purchaseRequest->management_approved_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $purchaseRequest->management_approved_at->format('d M Y | H:i') }}
                                         @if($purchaseRequest->management_approved_latitude && $purchaseRequest->management_approved_longitude)
@@ -222,7 +252,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $purchaseRequest->approver->name ?? '' }}</span>
                                 @if($purchaseRequest->approver && $purchaseRequest->approved_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $purchaseRequest->approved_at->format('d M Y | H:i') }}
                                         @if($purchaseRequest->approved_latitude && $purchaseRequest->approved_longitude)
@@ -259,7 +289,7 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @else
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @endif
@@ -268,14 +298,14 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Department Head Approval</span>
                             @if($purchaseRequest->department_head_approved_by && $purchaseRequest->departmentHeadApprover)
-                                <span class="text-green-400">✓ Approved</span>
+                                <span class="text-green-700">✓ Approved</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $purchaseRequest->departmentHeadApprover->name }}
                                     on {{ $purchaseRequest->department_head_approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @else
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @endif
                         </p>
                     </div>
@@ -289,12 +319,12 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @elseif($purchaseRequest->department_head_approved_by)
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
-                                <i class="fas fa-lock text-gray-400"></i>
+                                <i class="fas fa-lock text-gray-500"></i>
                             </div>
                         @endif
                     </div>
@@ -302,16 +332,16 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Management Approval (GM)</span>
                             @if($purchaseRequest->management_approved_by && $purchaseRequest->managementApprover)
-                                <span class="text-green-400">✓ Approved</span>
+                                <span class="text-green-700">✓ Approved</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $purchaseRequest->managementApprover->name }}
                                     on {{ $purchaseRequest->management_approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @elseif($purchaseRequest->department_head_approved_by)
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @else
-                                <span class="text-gray-400">Locked</span>
+                                <span class="text-gray-500">Locked</span>
                             @endif
                         </p>
                     </div>
@@ -325,12 +355,12 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @elseif($purchaseRequest->management_approved_by)
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
-                                <i class="fas fa-lock text-gray-400"></i>
+                                <i class="fas fa-lock text-gray-500"></i>
                             </div>
                         @endif
                     </div>
@@ -338,16 +368,16 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Executive Approval (President/VP)</span>
                             @if($purchaseRequest->status === 'approved' && $purchaseRequest->approver)
-                                <span class="text-green-400">✓ Approved</span>
+                                <span class="text-green-700">✓ Approved</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $purchaseRequest->approver->name }}
                                     on {{ $purchaseRequest->approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @elseif($purchaseRequest->management_approved_by)
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @else
-                                <span class="text-gray-400">Locked</span>
+                                <span class="text-gray-500">Locked</span>
                             @endif
                         </p>
                     </div>
@@ -355,18 +385,18 @@
 
                 <!-- Rejection Status -->
                 @if($purchaseRequest->status === 'rejected')
-                    <div class="flex items-start gap-4 p-3 bg-red-900/20 border border-red-700 rounded">
+                    <div class="flex items-start gap-4 p-3 bg-red-50 border border-red-200 rounded">
                         <div class="flex-shrink-0">
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-red-600">
                                 <i class="fas fa-times text-gray-800"></i>
                             </div>
                         </div>
                         <div class="flex-1">
-                            <p class="text-red-400">
+                            <p class="text-red-700">
                                 <span class="font-semibold">Rejected</span>
                                 @if($purchaseRequest->approver)
                                     <br>
-                                    <small class="text-red-300">
+                                    <small class="text-red-700">
                                         {{ $purchaseRequest->approver->name }}
                                         on {{ $purchaseRequest->approved_at->format('M d, Y h:i A') }}
                                     </small>
@@ -471,10 +501,10 @@
             <input type="hidden" name="location" id="dh_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="dh_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="dh_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -496,10 +526,10 @@
             <input type="hidden" name="location" id="mgmt_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="mgmt_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="mgmt_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveManagementModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveManagementModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="mgmt_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -521,10 +551,10 @@
             <input type="hidden" name="location" id="exec_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="exec_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="exec_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="exec_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -546,7 +576,7 @@
                 <textarea name="rejection_reason" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeRejectModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeRejectModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
@@ -566,7 +596,7 @@
             @csrf
             @method('DELETE')
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeDeleteModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeDeleteModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
@@ -637,7 +667,7 @@ function enableSubmitButton(submitBtn, withLocation) {
 // IP-based geolocation fallback
 function captureGeolocationByIP(prefix, statusEl, submitBtn) {
     statusEl.textContent = 'Using IP-based location as fallback...';
-    statusEl.className = 'text-sm text-blue-400';
+    statusEl.className = 'text-sm text-blue-700';
 
     fetch('https://ipapi.co/json/')
         .then(response => response.json())
@@ -648,17 +678,17 @@ function captureGeolocationByIP(prefix, statusEl, submitBtn) {
                 document.getElementById(prefix + '_location').value = data.city || data.region || 'Unknown';
 
                 statusEl.textContent = 'Location captured (IP-based): ' + data.latitude + ', ' + data.longitude + ' (' + (data.city || 'Unknown') + ')';
-                statusEl.className = 'text-sm text-green-400';
+                statusEl.className = 'text-sm text-green-700';
                 enableSubmitButton(submitBtn, true);
             } else {
                 statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
-                statusEl.className = 'text-sm text-yellow-400';
+                statusEl.className = 'text-sm text-yellow-700';
                 enableSubmitButton(submitBtn, false);
             }
         })
         .catch(() => {
             statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
-            statusEl.className = 'text-sm text-yellow-400';
+            statusEl.className = 'text-sm text-yellow-700';
             enableSubmitButton(submitBtn, false);
         });
 }
@@ -674,7 +704,7 @@ function captureGeolocation(prefix) {
     }
 
     statusEl.textContent = 'Capturing location...';
-    statusEl.className = 'text-sm text-blue-400';
+    statusEl.className = 'text-sm text-blue-700';
 
     navigator.geolocation.getCurrentPosition(
         function(position) {
@@ -688,7 +718,7 @@ function captureGeolocation(prefix) {
             getLocationName(lat, lng, prefix);
 
             statusEl.textContent = 'Location captured: ' + lat.toFixed(6) + ', ' + lng.toFixed(6);
-            statusEl.className = 'text-sm text-green-400';
+            statusEl.className = 'text-sm text-green-700';
 
             enableSubmitButton(submitBtn, true);
         },

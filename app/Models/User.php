@@ -110,6 +110,7 @@ class User extends Authenticatable
 
     public function canCreateSalesOrders()
     {
+        if ($this->isAdminUser()) return true;
         // CC and Accounting cannot create sales orders
         if ($this->hasRole(['Credit & Collection', 'Accounting'])) {
             return false;
@@ -135,6 +136,7 @@ class User extends Authenticatable
 
     public function canAddItems()
     {
+        if ($this->isAdminUser()) return true;
         // CC cannot create items
         if ($this->hasRole('Credit & Collection')) {
             return false;
@@ -170,8 +172,8 @@ class User extends Authenticatable
 
     public function canAddCustomers()
     {
-        // Only Joey Fernandez can create customers
-        return $this->isJoeyFernandez();
+        // IT/Admin and Joey Fernandez can create customers
+        return $this->isAdminUser() || $this->isJoeyFernandez();
     }
 
     public function canEditCustomers()
@@ -194,6 +196,25 @@ class User extends Authenticatable
     public function canDeleteCustomers()
     {
         return $this->isJoeyFernandez();
+    }
+
+    // ==================== PAYMENT EDIT PERMISSIONS ====================
+
+    public function canEditPayments()
+    {
+        // Joey and IT can edit freely
+        return $this->isAdminUser() || $this->isJoeyFernandez();
+    }
+
+    public function canRequestPaymentEdit()
+    {
+        // Other CC roles must request edit approval
+        return $this->isCCRole() && !$this->isJoeyFernandez();
+    }
+
+    public function canApprovePaymentEditRequests()
+    {
+        return $this->isAdminUser() || $this->isJoeyFernandez();
     }
 
     // ==================== DELIVERY PERMISSIONS ====================
@@ -267,6 +288,7 @@ class User extends Authenticatable
 
     public function canImportItems()
     {
+        if ($this->isAdminUser()) return true;
         // CC cannot import items
         if ($this->hasRole('Credit & Collection')) {
             return false;
@@ -283,6 +305,7 @@ class User extends Authenticatable
 
     public function canManageSuppliers()
     {
+        if ($this->isAdminUser()) return true;
         // CC and Delivery cannot manage suppliers
         if ($this->hasRole(['Credit & Collection', 'Delivery'])) {
             return false;
@@ -299,7 +322,8 @@ class User extends Authenticatable
 
     public function isCCRole()
     {
-        return in_array($this->role, ['CC_Approver', 'CC_Creator']);
+        return in_array($this->role, ['CC_Approver', 'CC_Creator'])
+            || $this->userRoles()->where('sub_department_id', 15)->exists();
     }
 
     public function isJoeyFernandez()
@@ -311,6 +335,10 @@ class User extends Authenticatable
 
     public function isDeliveryOnlyRole()
     {
+        // IT/Admin users are never restricted, even if they also have Delivery role
+        if ($this->isAdminUser()) {
+            return false;
+        }
         // Check if user is Delivery role - they have restricted access
         return $this->hasRole('Delivery');
     }
@@ -411,38 +439,30 @@ class User extends Authenticatable
 
     public function canApprovePurchaseOrders()
     {
-        // PO Creator cannot approve
-        if ($this->isPOCreatorRole()) {
-            return false;
-        }
+        if ($this->isAdminUser()) return true;
+        if ($this->isPOCreatorRole()) return false;
         return $this->canPerformInModule('can_approve', 'purchase_orders');
     }
 
     public function canApprovePurchaseOrdersAsDH()
     {
-        // PO Creator cannot approve
-        if ($this->isPOCreatorRole()) {
-            return false;
-        }
-        return $this->hasPermission('can_approve', 16); // Department Head sub-dept
+        if ($this->isAdminUser()) return true;
+        if ($this->isPOCreatorRole()) return false;
+        return $this->hasPermission('can_approve', 16);
     }
 
     public function canApprovePurchaseOrdersAsManagement()
     {
-        // PO Creator cannot approve
-        if ($this->isPOCreatorRole()) {
-            return false;
-        }
-        return $this->userRoles()->whereIn('sub_department_id', [17, 18])->where('can_approve', true)->exists() || $this->isAdminUser();
+        if ($this->isAdminUser()) return true;
+        if ($this->isPOCreatorRole()) return false;
+        return $this->userRoles()->whereIn('sub_department_id', [17, 18])->where('can_approve', true)->exists();
     }
 
     public function canApprovePurchaseOrdersAsExecutive()
     {
-        // PO Creator cannot approve
-        if ($this->isPOCreatorRole()) {
-            return false;
-        }
-        return $this->userRoles()->whereIn('sub_department_id', [19, 20])->where('can_approve', true)->exists() || $this->isAdminUser();
+        if ($this->isAdminUser()) return true;
+        if ($this->isPOCreatorRole()) return false;
+        return $this->userRoles()->whereIn('sub_department_id', [19, 20])->where('can_approve', true)->exists();
     }
 
     // ==================== REQUEST FOR PAYMENT ROLES ====================
@@ -582,6 +602,14 @@ class User extends Authenticatable
         'ap_dashboard'       => [22, 26, 24, 5, 6, 16, 17, 18, 19, 20], // FAS Trade, Accounting, Treasury, Admin, Purchasing, Executive
         'ap_reports'         => [22, 26, 24, 16, 17, 18, 19, 20],       // FAS Trade, Accounting, Treasury, Executive
         'inhouse_bom'        => [30],                                     // Operations NBC
+        'fixed_assets'       => [26, 5, 12],                              // Accounting, General Administration, IT Operations
+        'journal_vouchers'   => [26, 5, 12],                              // Accounting, General Administration, IT Operations
+        'treasury'           => [24, 26, 5, 12],                          // Treasury, Accounting, General Administration, IT Operations
+        'soa'                => [15, 26, 5, 12],                          // Credit & Collection, Accounting, General Administration, IT Operations
+        'delivery_counter_dates' => [15, 25, 26, 5, 12],                  // Credit & Collection, Delivery, Accounting, General Administration, IT Operations
+        'counter_date_approvals' => [15, 26, 5, 12],                      // Credit & Collection, Accounting, General Administration, IT Operations
+        'daily_feed_usage'   => [30, 5, 12],                              // Operations NBC, General Administration, IT Operations
+        'storages'           => [2, 5, 12],                               // SC - Logistics, General Administration, IT Operations
     ];
 
     // Sub-departments that can perform actions (create/edit/etc.) in a module.
@@ -750,6 +778,7 @@ class User extends Authenticatable
         if ($override !== null) {
             return (bool) $override->allowed;
         }
+        if ($this->isAdminUser()) return true;
         // CC roles cannot access AR Aging reports by default — only collections
         if ($this->isCCRole()) {
             return false;
@@ -759,8 +788,8 @@ class User extends Authenticatable
 
     public function canAccessCollections()
     {
+        if ($this->isAdminUser()) return true;
         // CC roles, Accounting, Admin, IT can access collections
-        // Also checks new RBAC sub-department 15 (Credit & Collection) and 26 (Accounting)
         return $this->isCCRole()
             || $this->canAccessModule('payments')
             || in_array($this->role, ['IT', 'Admin', 'Accounting_Approver', 'Accounting_Creator']);
@@ -768,6 +797,7 @@ class User extends Authenticatable
 
     public function canAccessARDashboard()
     {
+        if ($this->isAdminUser()) return true;
         // Per-user override takes priority
         $override = $this->moduleOverrides()->where('module', 'ar_dashboard')->first();
         if ($override !== null) {

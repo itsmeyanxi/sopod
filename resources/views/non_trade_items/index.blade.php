@@ -8,7 +8,7 @@
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">NON-TRADE ITEMS LIBRARY</h1>
-                <p class="text-gray-400 text-sm mt-1">Master data for non-trade items. Used for autocomplete in Purchase Requests.</p>
+                <p class="text-gray-500 text-sm mt-1">Master data for non-trade items. Used for autocomplete in Purchase Requests.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="document.getElementById('addItemModal').classList.remove('hidden')"
@@ -38,7 +38,7 @@
                 <i class="fas fa-search mr-1"></i> Search
             </button>
             @if(request('search'))
-                <a href="{{ route('non_trade_items.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded text-sm hover:bg-gray-500 transition">Clear</a>
+                <a href="{{ route('non_trade_items.index') }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded text-sm hover:bg-gray-500 transition">Clear</a>
             @endif
         </form>
 
@@ -93,7 +93,7 @@
                                 @if($item->supplier)
                                     <span class="text-purple-600">{{ $item->supplier->supplier_name }}</span>
                                 @else
-                                    <span class="text-gray-400">-</span>
+                                    <span class="text-gray-500">-</span>
                                 @endif
                             </td>
                             <td class="border border-gray-200 px-3 py-2 text-center">
@@ -109,7 +109,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" class="border border-gray-200 px-4 py-8 text-center text-gray-400">
+                            <td colspan="11" class="border border-gray-200 px-4 py-8 text-center text-gray-500">
                                 No items in the library yet. Import a CSV/Excel or add items manually.
                             </td>
                         </tr>
@@ -119,7 +119,7 @@
         </div>
 
         <div class="mt-4 flex justify-between items-center">
-            <p class="text-gray-400 text-sm">{{ $items->total() }} item(s) total</p>
+            <p class="text-gray-500 text-sm">{{ $items->total() }} item(s) total</p>
             {{ $items->links() }}
         </div>
     </div>
@@ -132,7 +132,7 @@
         <p class="text-gray-500 text-sm mb-4">
             Supported column headers (order doesn't matter):<br>
             <strong class="text-gray-700">Item Code, Item Description, Group, Brand, UoM, Trading UoM, Conversion, Status</strong><br>
-            <span class="text-gray-400">Optional: <strong>Supplier</strong> column to link items to suppliers.</span><br>
+            <span class="text-gray-500">Optional: <strong>Supplier</strong> column to link items to suppliers.</span><br>
             First row must be the header row — it will be skipped automatically.<br>
             <span class="text-yellow-600">Duplicates (same item code or same name + supplier) will be updated.</span>
         </p>
@@ -164,13 +164,13 @@
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label class="block text-gray-600 text-sm mb-1">Item Code <span class="text-gray-400">(auto-generated if blank)</span></label>
+                    <label class="block text-gray-600 text-sm mb-1">Item Code <span class="text-gray-500">(auto-generated if blank)</span></label>
                     <input type="text" name="item_code" maxlength="100"
                         class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                         placeholder="Leave blank to auto-generate">
                 </div>
                 <div>
-                    <label class="block text-gray-600 text-sm mb-1">Item Description <span class="text-red-400">*</span></label>
+                    <label class="block text-gray-600 text-sm mb-1">Item Description <span class="text-red-700">*</span></label>
                     <input type="text" name="name" required maxlength="500"
                         class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                         placeholder="e.g. MS Office License">

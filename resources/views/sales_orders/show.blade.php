@@ -13,8 +13,8 @@
     </div>
 
 @if($salesOrder->is_closed)
-    <div class="bg-green-900/40 border-2 border-green-600 text-green-300 p-4 rounded-lg mb-6 flex items-center gap-3">
-        <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="bg-green-100/40 border-2 border-green-300 text-green-700 p-4 rounded-lg mb-6 flex items-center gap-3">
+        <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
         <div>
@@ -26,8 +26,8 @@
 
 {{-- 🔥 ADD THIS: Show notes for Declined/Cancelled orders --}}
 @if(in_array($salesOrder->status, ['Declined', 'Cancelled']) && $salesOrder->notes)
-    <div class="bg-red-900/40 border-2 border-red-600 text-red-300 p-4 rounded-lg mb-6 flex items-start gap-3">
-        <svg class="w-6 h-6 text-red-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="bg-red-100/40 border-2 border-red-600 text-red-700 p-4 rounded-lg mb-6 flex items-start gap-3">
+        <svg class="w-6 h-6 text-red-700 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
         </svg>
         <div class="flex-1">
@@ -39,7 +39,7 @@
                 @endif
             </strong>
             <p class="text-sm mt-2 font-semibold">Reason:</p>
-            <p class="text-sm mt-1 bg-red-950/50 border border-red-800 rounded px-3 py-2">
+            <p class="text-sm mt-1 bg-red-950/50 border border-red-200 rounded px-3 py-2">
                 {{ $salesOrder->notes }}
             </p>
         </div>
@@ -66,20 +66,20 @@
                     
                     <a href="{{ route('sales_orders.print', ['id' => $salesOrder->id, 'hide_prices' => 0]) }}" 
                        target="_blank"
-                       class="block px-3 py-2 text-sm text-gray-200 hover:bg-gray-100 rounded transition mb-2">
+                       class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition mb-2">
                         ✅ Show All Prices
                     </a>
                     
                     <a href="{{ route('sales_orders.print', ['id' => $salesOrder->id, 'hide_prices' => 1]) }}" 
                        target="_blank"
-                       class="block px-3 py-2 text-sm text-gray-200 hover:bg-gray-100 rounded transition">
+                       class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition">
                         🚫 Hide Prices (Show as 0.00)
                     </a>
                 </div>
             </div>
         </div>
     @else
-        <div class="bg-yellow-600/20 border border-yellow-600 text-yellow-300 px-4 py-2 rounded inline-block">
+        <div class="bg-yellow-600/20 border border-yellow-600 text-yellow-700 px-4 py-2 rounded inline-block">
             ⚠️ Cannot print: Sales order is pending for approval
         </div>
     @endif
@@ -109,7 +109,7 @@
         @endphp
         @if($deliveryCount >= 2)
             <a href="{{ route('sales_orders.delivery_batches', ['id' => $salesOrder->id]) }}"
-            class="bg-purple-600 hover:bg-purple-700 text-gray-800 px-4 py-2 rounded inline-block transition flex items-center gap-2">
+            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded inline-block transition flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                 </svg>
@@ -119,7 +119,7 @@
 
         {{-- Message for Single Delivery --}}
         @if($deliveryCount === 1)
-            <div class="bg-blue-600/20 border border-blue-600 text-blue-300 px-4 py-2 rounded inline-block">
+            <div class="bg-blue-600/20 border border-blue-600 text-blue-700 px-4 py-2 rounded inline-block">
                 ℹ️ Single delivery - No multiple batches
             </div>
         @endif
@@ -127,11 +127,11 @@
     
          {{-- ✅ FLAGGED CUSTOMER WARNING BADGE --}}
         @if($salesOrder->customer && $salesOrder->customer->is_flagged)
-            <div class="flex items-center gap-2 bg-red-900/30 border border-red-600 rounded-lg px-4 py-2">
-                <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-2 bg-red-100 border border-red-600 rounded-lg px-4 py-2">
+                <svg class="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                 </svg>
-                <span class="text-red-300 font-semibold text-sm">⚠️ FLAGGED CUSTOMER</span>
+                <span class="text-red-700 font-semibold text-sm">⚠️ FLAGGED CUSTOMER</span>
             </div>
         @endif
     <!-- Sales Order Info -->
@@ -146,7 +146,7 @@
                 <div>
                     <label class="block text-sm mb-1 text-gray-500">PO Number</label>
                     <input type="text" value="{{ $salesOrder->po_number ?? 'N/A' }}" 
-                        class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-400" readonly>
+                        class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-500" readonly>
                 </div>
 
                 {{-- ✅ UPDATED: Show PO Image if available --}}
@@ -158,7 +158,7 @@
                                 {{-- PDF File --}}
                                 <a href="{{ asset('po_images/' . $salesOrder->po_image) }}" 
                                 target="_blank" 
-                                class="text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors">
+                                class="text-blue-700 hover:text-blue-700 flex items-center gap-2 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                     </svg>
@@ -173,7 +173,7 @@
                                         alt="PO Proof" 
                                         class="max-w-md w-full rounded border border-gray-300 hover:border-blue-500 transition-all hover:shadow-lg cursor-pointer">
                                 </a>
-                                <p class="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                                <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -196,7 +196,7 @@
                             'Partial' => 'bg-blue-600 text-white',
                             'Full' => 'bg-green-600 text-white',
                         ];
-                        $typeClass = $typeColors[$deliveryType] ?? 'bg-gray-600 text-white';
+                        $typeClass = $typeColors[$deliveryType] ?? 'bg-gray-200 text-gray-800';
                         $displayText = $deliveryType ?: 'Not Set';
                     @endphp
                     <span class="px-2 py-1 rounded text-xs {{ $typeClass }}">
@@ -217,7 +217,7 @@
                             'Pending' => 'bg-yellow-500 text-black',
                             'Approved' => 'bg-green-600 text-white',
                             'Declined' => 'bg-red-600 text-white',
-                            'Cancelled' => 'bg-gray-600 text-white',
+                            'Cancelled' => 'bg-gray-200 text-gray-800',
                             'New' => 'bg-purple-600 text-white'
                         ];
                         $statusClass = $statusColors[$salesOrder->status] ?? 'bg-gray-100 text-gray-800';
@@ -241,7 +241,7 @@
         {{-- PARTIAL DELIVERY: Card-based batch display --}}
         <div class="space-y-6 mb-6">
             <h2 class="text-xl font-bold text-gray-100 flex items-center gap-2">
-                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                 </svg>
                 Delivery Batches ({{ $itemsByBatch->count() }})
@@ -275,7 +275,7 @@
                                     <div class="text-xs text-blue-100 font-medium">Batch Total</div>
                                     <div class="text-xl font-bold text-gray-800">₱{{ number_format($batchTotal, 2) }}</div>
                                 </div>
-                                <span class="px-4 py-2 rounded-lg text-sm font-bold {{ $isActive ? 'bg-green-500 text-white' : 'bg-red-900 text-red-200' }} shadow-lg">
+                                <span class="px-4 py-2 rounded-lg text-sm font-bold {{ $isActive ? 'bg-green-500 text-white' : 'bg-red-100 text-red-700' }} shadow-lg">
                                     {{ $isActive ? '✅ Active' : '❌ Cancelled' }}
                                 </span>
                             </div>
@@ -300,7 +300,7 @@
                             <tbody class="divide-y divide-gray-700/50">
                                 @foreach($batchItems as $item)
                                     <tr class="hover:bg-gray-100/30 transition-colors {{ $isActive ? '' : 'text-gray-500' }}">
-                                        <td class="px-4 py-3 {{ $isActive ? 'text-gray-200' : 'line-through' }}">
+                                        <td class="px-4 py-3 {{ $isActive ? 'text-gray-700' : 'line-through' }}">
                                             {{ $item->item_description ?: ($item->item->item_description ?? '—') }}
                                         </td>
                                         <td class="px-4 py-3 text-sm {{ $isActive ? 'text-gray-500' : 'line-through' }}">
@@ -312,16 +312,16 @@
                                         <td class="px-4 py-3 text-sm {{ $isActive ? 'text-gray-500' : 'line-through' }}">
                                             {{ $item->brand ?? '—' }}
                                         </td>
-                                        <td class="px-4 py-3 text-right font-medium {{ $isActive ? 'text-gray-200' : 'line-through' }}">
+                                        <td class="px-4 py-3 text-right font-medium {{ $isActive ? 'text-gray-700' : 'line-through' }}">
                                             {{ number_format($item->quantity, 2) }} {{ $item->unit ?? 'Kgs' }}
                                         </td>
                                         <td class="px-4 py-3 text-right {{ $isActive ? 'text-gray-500' : 'line-through' }}">
                                             ₱{{ number_format($item->unit_price, 2) }}
                                         </td>
-                                        <td class="px-4 py-3 text-right font-semibold {{ $isActive ? 'text-blue-400' : 'line-through text-gray-500' }}">
+                                        <td class="px-4 py-3 text-right font-semibold {{ $isActive ? 'text-blue-700' : 'line-through text-gray-500' }}">
                                             ₱{{ number_format($item->quantity * $item->unit_price, 2) }}
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-400 italic">
+                                        <td class="px-4 py-3 text-sm text-gray-500 italic">
                                             {{ $item->note ?? '—' }}
                                         </td>
                                     </tr>
@@ -337,7 +337,7 @@
         <div class="bg-white/80 p-6 rounded-xl shadow-lg mb-6 border border-gray-200">
             <h2 class="text-lg font-semibold mb-3 border-b border-gray-200 pb-2">Order Items</h2>
             
-            <table class="w-full border border-gray-200 rounded-lg overflow-hidden text-gray-200">
+            <table class="w-full border border-gray-200 rounded-lg overflow-hidden text-gray-700">
                 <thead class="bg-gray-100 text-gray-500">
                     <tr>
                         <th class="px-3 py-2 text-left">Description</th>
@@ -366,14 +366,14 @@
                             <td class="px-3 py-2 text-right">
                                 ₱{{ number_format($item->quantity * $item->unit_price, 2) }}
                             </td>
-                            <td class="px-3 py-2 text-sm text-gray-400">{{ $item->note ?? '—' }}</td>
+                            <td class="px-3 py-2 text-sm text-gray-500">{{ $item->note ?? '—' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
 
             @if($salesOrder->items->isEmpty())
-                <div class="text-center py-8 text-gray-400">
+                <div class="text-center py-8 text-gray-500">
                     No items found for this order.
                 </div>
             @endif
@@ -390,14 +390,14 @@
             @endphp
             
             @if($cancelledTotal > 0)
-                <p class="text-sm text-gray-400 mb-2">
+                <p class="text-sm text-gray-500 mb-2">
                     <span class="line-through">Cancelled Items: ₱{{ number_format($cancelledTotal, 2) }}</span>
                 </p>
             @endif
             
             <p class="text-lg font-semibold">
                 Total Amount (Active Items): 
-                <span class="text-green-400">₱{{ number_format($activeTotal, 2) }}</span>
+                <span class="text-green-700">₱{{ number_format($activeTotal, 2) }}</span>
             </p>
         </div>
     </div>
@@ -407,13 +407,13 @@
     <div class="mt-8 bg-white/70 border border-gray-200 rounded-lg p-5 shadow-md">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-base font-semibold text-gray-100 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Update Sales Order Status
             </h3>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-yellow-600/20 text-yellow-400 border border-yellow-700/40">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-yellow-600/20 text-yellow-700 border border-yellow-700/40">
                 {{ ucfirst($salesOrder->status) }}
             </span>
         </div>
@@ -423,13 +423,13 @@
             @method('PATCH')
 
             <div>
-                <label class="block text-xs font-medium text-gray-400 mb-2">Select New Status</label>
+                <label class="block text-xs font-medium text-gray-500 mb-2">Select New Status</label>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     @php
                         $statuses = [
-                            'Approved' => ['icon' => '✅', 'color' => 'bg-green-600/20 text-green-400 border-green-700/40 hover:bg-green-600/30'],
-                            'Declined' => ['icon' => '❌', 'color' => 'bg-red-600/20 text-red-400 border-red-700/40 hover:bg-red-600/30'],
-                            'Cancelled' => ['icon' => '🚫', 'color' => 'bg-gray-600/20 text-gray-400 border-gray-200/40 hover:bg-gray-100/30'],
+                            'Approved' => ['icon' => '✅', 'color' => 'bg-green-600/20 text-green-700 border-green-700/40 hover:bg-green-600/30'],
+                            'Declined' => ['icon' => '❌', 'color' => 'bg-red-600/20 text-red-700 border-red-700/40 hover:bg-red-600/30'],
+                            'Cancelled' => ['icon' => '🚫', 'color' => 'bg-gray-100 text-gray-500 border-gray-200/40 hover:bg-gray-100/30'],
                         ];
                     @endphp
 
@@ -467,12 +467,12 @@
     <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full transform transition-all">
         <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-100 flex items-center gap-2">
-                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                 </svg>
                 Add Notes
             </h3>
-            <button type="button" id="closeModalBtn" class="text-gray-400 hover:text-gray-200 transition-colors">
+            <button type="button" id="closeModalBtn" class="text-gray-500 hover:text-gray-700 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -481,7 +481,7 @@
         
         <div class="p-6">
             <label class="block text-sm font-medium text-gray-500 mb-2">
-                Please provide a reason for <span id="modalStatusText" class="font-bold text-red-400"></span>:
+                Please provide a reason for <span id="modalStatusText" class="font-bold text-red-700"></span>:
             </label>
             <textarea id="modalNotesTextarea" 
                 rows="5" 
@@ -489,7 +489,7 @@
                        focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
                        placeholder-gray-500"
                 placeholder="Enter reason or notes here..."></textarea>
-            <p class="text-xs text-gray-400 mt-2">This field is required for Declined and Cancelled statuses.</p>
+            <p class="text-xs text-gray-500 mt-2">This field is required for Declined and Cancelled statuses.</p>
         </div>
 
         <div class="px-6 py-4 bg-gray-50/50 rounded-b-xl flex justify-end gap-3">

@@ -56,7 +56,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="border border-gray-200 px-4 py-8 text-center text-gray-400">No invoices due in the next 60 days.</td>
+                        <td colspan="5" class="border border-gray-200 px-4 py-8 text-center text-gray-500">No invoices due in the next 60 days.</td>
                     </tr>
                     @endforelse
                 </tbody>

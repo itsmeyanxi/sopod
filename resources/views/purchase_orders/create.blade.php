@@ -39,7 +39,7 @@
             <!-- Search PR Section -->
             <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
                 <label class="block font-semibold text-gray-500 mb-2">SEARCH PURCHASE REQUEST (Optional):</label>
-                <p class="text-gray-400 text-sm mb-3">Search by PR Number, Requisitioner, or Company to auto-fill data</p>
+                <p class="text-gray-500 text-sm mb-3">Search by PR Number, Requisitioner, or Company to auto-fill data</p>
 
                 <div class="relative">
                     <input type="text" id="prSearchInput"
@@ -50,13 +50,13 @@
 
                 <div id="prSearchResults" class="hidden mt-2 bg-white border border-gray-200 rounded max-h-64 overflow-y-auto"></div>
 
-                <div id="selectedPRDisplay" class="hidden mt-3 p-3 bg-green-900/20 border border-green-700 rounded">
+                <div id="selectedPRDisplay" class="hidden mt-3 p-3 bg-green-50 border border-green-200 rounded">
                     <div class="flex justify-between items-center">
                         <div>
-                            <span class="text-green-400 font-semibold">Selected PR: </span>
+                            <span class="text-green-700 font-semibold">Selected PR: </span>
                             <span id="selectedPRText" class="text-gray-500"></span>
                         </div>
-                        <button type="button" onclick="clearSelectedPR()" class="text-red-400 hover:text-red-300">
+                        <button type="button" onclick="clearSelectedPR()" class="text-red-700 hover:text-red-700">
                             <i class="fas fa-times"></i> Clear
                         </button>
                     </div>
@@ -89,7 +89,7 @@
                 <!-- Right Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">ORDER DATE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">ORDER DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="order_date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('order_date', date('Y-m-d')) }}" required>
                     </div>
                     <div>
@@ -130,9 +130,9 @@
                         </select>
                     </div>
                     <div id="exchange_rate_row" class="{{ old('currency', 'PHP') === 'PHP' ? 'hidden' : '' }}">
-                        <label class="block font-semibold text-gray-500 mb-1">EXCHANGE RATE <span class="text-gray-400 text-xs" id="rate_label">(1 USD = ? PHP)</span>:</label>
+                        <label class="block font-semibold text-gray-500 mb-1">EXCHANGE RATE <span class="text-gray-500 text-xs" id="rate_label">(1 USD = ? PHP)</span>:</label>
                         <div class="flex items-center gap-2">
-                            <span class="text-gray-400">₱</span>
+                            <span class="text-gray-500">₱</span>
                             <input type="number" step="0.0001" name="exchange_rate" id="exchange_rate" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('exchange_rate', 1) }}">
                         </div>
                         <p class="text-gray-500 text-xs mt-1">Auto-filled from current rate. You may override.</p>
@@ -292,19 +292,19 @@
             <!-- Currency Totals Summary -->
             <div id="currency_summary" class="mb-4 hidden">
                 <div class="bg-gray-50 border border-purple-700 rounded p-4">
-                    <h3 class="font-semibold text-purple-300 mb-2">PHP Equivalent Summary</h3>
+                    <h3 class="font-semibold text-purple-700 mb-2">PHP Equivalent Summary</h3>
                     <div class="flex flex-wrap gap-6 text-sm">
                         <div>
-                            <span class="text-gray-400">Total (<span id="summary_currency">USD</span>):</span>
+                            <span class="text-gray-500">Total (<span id="summary_currency">USD</span>):</span>
                             <span class="text-gray-800 font-bold ml-2" id="summary_foreign_total">0.00</span>
                         </div>
                         <div>
-                            <span class="text-gray-400">Exchange Rate:</span>
+                            <span class="text-gray-500">Exchange Rate:</span>
                             <span class="text-gray-800 ml-2">1 <span id="summary_code">USD</span> = ₱<span id="summary_rate">0.00</span></span>
                         </div>
                         <div>
-                            <span class="text-gray-400">Total (PHP):</span>
-                            <span class="text-green-400 font-bold ml-2">₱<span id="summary_php_total">0.00</span></span>
+                            <span class="text-gray-500">Total (PHP):</span>
+                            <span class="text-green-700 font-bold ml-2">₱<span id="summary_php_total">0.00</span></span>
                         </div>
                     </div>
                 </div>
@@ -325,7 +325,7 @@
                     <input type="file" name="quotation" id="quotation"
                            class="flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
                            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
-                    <span class="text-gray-400 text-sm">(PDF, Word, Excel, Image)</span>
+                    <span class="text-gray-500 text-sm">(PDF, Word, Excel, Image)</span>
                 </div>
             </div>
 
@@ -361,7 +361,7 @@
                 <a href="{{ route('purchase_orders.index') }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
+                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                     <i class="fas fa-save mr-1"></i> Create Purchase Order
                 </button>
             </div>
@@ -397,7 +397,7 @@ prSearchInput.addEventListener('input', function () {
     );
 
     if (!filteredPRs.length) {
-        prSearchResults.innerHTML = '<div class="p-3 text-gray-400 text-center">No matching PRs found</div>';
+        prSearchResults.innerHTML = '<div class="p-3 text-gray-500 text-center">No matching PRs found</div>';
         prSearchResults.classList.remove('hidden');
         return;
     }
@@ -411,7 +411,7 @@ prSearchInput.addEventListener('input', function () {
             <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200"
                  onclick="selectPR(${pr.id}, '${pr.pr_no}', '${pr.requisitioner}', '${dateFormatted}')">
                 <div class="font-semibold text-gray-800">${pr.pr_no}${badge}</div>
-                <div class="text-sm text-gray-400">${pr.requisitioner} • ${pr.company}</div>
+                <div class="text-sm text-gray-500">${pr.requisitioner} • ${pr.company}</div>
                 <div class="text-xs text-gray-500">${dateFormatted}</div>
             </div>`;
     }).join('');
@@ -649,7 +649,7 @@ function attachSupplierSearch(input) {
                 const suppliers = await res.json();
 
                 if (!suppliers.length) {
-                    dropdown.innerHTML = '<div class="px-3 py-2 text-gray-400 text-sm">No suppliers found</div>';
+                    dropdown.innerHTML = '<div class="px-3 py-2 text-gray-500 text-sm">No suppliers found</div>';
                     positionFixedDropdown(input, dropdown);
                     dropdown.classList.remove('hidden');
                     return;
@@ -660,11 +660,11 @@ function attachSupplierSearch(input) {
                 // Header
                 let headerHtml = '';
                 if (desc && !isFallback) {
-                    headerHtml = `<div class="px-3 py-1.5 text-xs text-green-400 bg-gray-50 border-b border-gray-200 font-semibold">
+                    headerHtml = `<div class="px-3 py-1.5 text-xs text-green-700 bg-gray-50 border-b border-gray-200 font-semibold">
                         ✓ Showing suppliers confirmed to carry this item
                     </div>`;
                 } else if (desc && isFallback) {
-                    headerHtml = `<div class="px-3 py-1.5 text-xs text-yellow-400 bg-gray-50 border-b border-gray-200 font-semibold">
+                    headerHtml = `<div class="px-3 py-1.5 text-xs text-yellow-700 bg-gray-50 border-b border-gray-200 font-semibold">
                         ⚠ This item has no confirmed suppliers in the library — showing all active suppliers
                     </div>`;
                 }
@@ -677,7 +677,7 @@ function attachSupplierSearch(input) {
                     } else if (s.carries_item === true) {
                         badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-green-700 text-green-100 rounded">✓ Carries item</span>`;
                     } else if (desc) {
-                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-600 text-gray-500 rounded">? Unconfirmed</span>`;
+                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-100 text-gray-500 rounded">? Unconfirmed</span>`;
                     }
                     return `
                     <div class="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 supplier-option"
@@ -688,7 +688,7 @@ function attachSupplierSearch(input) {
                         <div class="flex items-center gap-1 text-sm font-semibold text-gray-800 flex-wrap">
                             ${s.supplier_name} ${badge}
                         </div>
-                        <div class="text-xs text-gray-400">${s.supplier_code || ''}</div>
+                        <div class="text-xs text-gray-500">${s.supplier_code || ''}</div>
                     </div>`;
                 }).join('');
 
@@ -746,7 +746,7 @@ function attachDescAutocomplete(input) {
                 const items = await res.json();
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(item =>
-                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 desc-option"
+                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 desc-option"
                           data-name="${(item.name || item).toString().replace(/"/g, '&quot;')}"
                           data-item-code="${(item.item_code || '').toString().replace(/"/g, '&quot;')}"
                           data-supplier-id="${item.supplier_id || ''}"

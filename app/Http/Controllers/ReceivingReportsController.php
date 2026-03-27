@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ReceivingReport;
 use App\Models\ReceivingReportItem;
+use App\Models\ArAdjustment;
 use App\Models\Activity;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ReceivingReportsController extends Controller
@@ -55,7 +57,7 @@ class ReceivingReportsController extends Controller
      */
     public function show($id)
     {
-        $receivingReport = ReceivingReport::with(['items', 'salesOrder'])->findOrFail($id);
+        $receivingReport = ReceivingReport::with(['items', 'salesOrder', 'arAdjustments'])->findOrFail($id);
         return view('receiving_reports.show', compact('receivingReport'));
     }
 
@@ -201,6 +203,65 @@ class ReceivingReportsController extends Controller
             ]);
             
             abort(500, 'Failed to export: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update delivery batch (DR number) and sync to AR adjustments
+     */
+    public function updateDrNo(Request $request, $id)
+    {
+        $request->validate([
+            'delivery_batch' => 'required|string|max:255',
+        ]);
+
+        $rr = ReceivingReport::with('items')->findOrFail($id);
+        $oldDrNo = $rr->delivery_batch;
+        $newDrNo = $request->delivery_batch;
+
+        DB::beginTransaction();
+        try {
+            $changes = [];
+
+            // Update DR number if changed
+            if ($oldDrNo !== $newDrNo) {
+                $rr->update(['delivery_batch' => $newDrNo]);
+                $changes[] = "DR number updated from {$oldDrNo} to {$newDrNo}";
+
+                // Sync DR number to AR adjustments
+                if ($oldDrNo) {
+                    $drUpdated = ArAdjustment::where('dr_no', $oldDrNo)->update(['dr_no' => $newDrNo]);
+                    if ($drUpdated > 0) {
+                        $changes[] = "{$drUpdated} AR adjustment(s) DR number synced";
+                    }
+                }
+            }
+
+            // Sync amounts: update AR adjustments to match receiving report total
+            $rrTotal = $rr->items->sum('total_amount');
+            $drNoForAmount = $newDrNo ?? $oldDrNo;
+            if ($drNoForAmount) {
+                $adjustments = ArAdjustment::where('dr_no', $drNoForAmount)->get();
+                foreach ($adjustments as $adj) {
+                    $newAmount = $adj->is_decrease ? -abs($rrTotal) : abs($rrTotal);
+                    if ((float)$adj->amount !== (float)$newAmount) {
+                        $adj->update(['amount' => $newAmount]);
+                        $changes[] = "AR adjustment {$adj->reference_number} amount updated to ₱" . number_format(abs($newAmount), 2);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            if (empty($changes)) {
+                return back()->with('info', 'No changes were needed.');
+            }
+
+            return back()->with('success', implode('. ', $changes) . '.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to update receiving report', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Failed to update: ' . $e->getMessage());
         }
     }
 }

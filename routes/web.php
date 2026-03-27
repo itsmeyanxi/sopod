@@ -48,7 +48,17 @@ use App\Http\Controllers\{
     ApLedgerController,
     ApDashboardController,
     ApReportController,
-    InHouseBomController
+    InHouseBomController,
+    StatementOfAccountController,
+    DeliveryCounterDateController,
+    CounterDateApprovalController,
+    DailyFeedUsageController,
+    PaymentConfirmationController,
+    TreasurySummaryController,
+    TreasuryBankController,
+    FixedAssetController,
+    DisposalController,
+    JournalVoucherController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -86,9 +96,48 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     Route::get('/collection-report', [PaymentController::class, 'collectionReport'])->name('collectionReport');
     Route::get('/export', [PaymentController::class, 'export'])->name('export');
     Route::get('/duplicate-cr', [PaymentController::class, 'viewDuplicateCR'])->name('duplicateCR');
+    Route::get('/customer-credits', [PaymentController::class, 'getCustomerCredits'])->name('customerCredits');
+    Route::get('/check-dr-status', [PaymentController::class, 'checkDRStatus'])->name('checkDRStatus');
     Route::get('/debug-delivery/{drNo}', [PaymentController::class, 'debugDeliverySearch'])->name('debugDelivery');
     Route::get('/debug-search/{search}', [PaymentController::class, 'debugSearch'])->name('debugSearch');
+
+    // Edit requests management (must be before /{id} routes)
+    Route::get('/edit-requests', [PaymentController::class, 'editRequests'])->name('editRequests');
+    Route::post('/edit-requests/{requestId}/approve', [PaymentController::class, 'approveEditRequest'])->name('approveEditRequest');
+    Route::post('/edit-requests/{requestId}/reject', [PaymentController::class, 'rejectEditRequest'])->name('rejectEditRequest');
+
+    // Edit payment (must be before /{id} show route)
+    Route::get('/{id}/edit', [PaymentController::class, 'edit'])->name('edit')->where('id', '[0-9]+');
+    Route::put('/{id}', [PaymentController::class, 'update'])->name('update')->where('id', '[0-9]+');
+    Route::post('/{id}/edit-request', [PaymentController::class, 'submitEditRequest'])->name('submitEditRequest')->where('id', '[0-9]+');
+
+    Route::get('/{id}', [PaymentController::class, 'show'])->name('show')->where('id', '[0-9]+');
 });
+
+    // ===================== STATEMENT OF ACCOUNTS =====================
+    Route::prefix('soa')->name('soa.')->group(function () {
+        Route::get('/', [StatementOfAccountController::class, 'index'])->name('index');
+        Route::get('/export/{customerCode}', [StatementOfAccountController::class, 'export'])->name('export');
+        Route::get('/{customerCode}', [StatementOfAccountController::class, 'show'])->name('show');
+    });
+
+    // ===================== DELIVERY COUNTER DATES =====================
+    Route::prefix('delivery-counter-dates')->name('delivery_counter_dates.')->group(function () {
+        Route::get('/', [DeliveryCounterDateController::class, 'index'])->name('index');
+        Route::put('/{id}', [DeliveryCounterDateController::class, 'update'])->name('update');
+        Route::post('/bulk-update', [DeliveryCounterDateController::class, 'bulkUpdate'])->name('bulkUpdate');
+        Route::post('/{id}/clear', [DeliveryCounterDateController::class, 'clear'])->name('clear');
+    });
+
+    // ===================== COUNTER DATE APPROVAL =====================
+    Route::prefix('counter-date-approvals')->name('counter_date_approvals.')->group(function () {
+        Route::get('/', [CounterDateApprovalController::class, 'index'])->name('index');
+        Route::get('/{id}', [CounterDateApprovalController::class, 'show'])->name('show');
+        Route::post('/{id}/approve', [CounterDateApprovalController::class, 'approve'])->name('approve');
+        Route::post('/{id}/upload', [CounterDateApprovalController::class, 'uploadAttachment'])->name('upload');
+        Route::post('/bulk-approve', [CounterDateApprovalController::class, 'bulkApprove'])->name('bulkApprove');
+    });
+
     // ===================== CHANGE LOG & NOTIFICATIONS =====================
     Route::get('/changelog', [ChangeLogController::class, 'index'])->name('changelog.index');
     Route::get('/changelog/sales-order/{id}', [ChangeLogController::class, 'salesOrderChanges'])->name('changelog.sales_order');
@@ -125,11 +174,11 @@ Route::prefix('aging-reports')->name('aging_reports.')->group(function () {
     // ✅ Detail view - Show all invoices for customer in an aging bucket
     Route::get('/detail/{customer_code}/{bucket}', [AgingReportController::class, 'detail'])->name('detail');
 
+    // ✅ AR PROFILE - Export single customer profile (must be before {id} wildcard)
+    Route::get('/ar-profile/export', [AgingReportController::class, 'exportARProfile'])->name('ar_profile.export');
+
     // ✅ AR PROFILE - View single customer profile
     Route::get('/ar-profile/{id}', [AgingReportController::class, 'showARProfile'])->name('ar_profile');
-
-    // ✅ AR PROFILE - Export single customer profile
-    Route::get('/ar-profile/export', [AgingReportController::class, 'exportARProfile'])->name('ar_profile.export');
 });
 
 // ===================== AR ADJUSTMENTS =====================
@@ -164,6 +213,9 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     // ✅ NEW: Get GL accounts for dropdown (searchable)
     Route::get('/gl-accounts', [ArAdjustmentController::class, 'getGlAccounts'])->name('gl_accounts');
 
+    // Search receiving reports for linking
+    Route::get('/search-rr', [ArAdjustmentController::class, 'searchReceivingReports'])->name('search_rr');
+
     // ✅ NEW: View adjustments by customer (must be before /{id} route)
     Route::get('/customer/{customerCode}', [ArAdjustmentController::class, 'byCustomer'])->name('by_customer');
 
@@ -172,6 +224,9 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
 
     // Show single adjustment
     Route::get('/{id}', [ArAdjustmentController::class, 'show'])->name('show');
+
+    // Print Memo (Debit or Credit)
+    Route::get('/{id}/print-memo', [ArAdjustmentController::class, 'printMemo'])->name('print_memo');
 
     // Edit form
     Route::get('/{id}/edit', [ArAdjustmentController::class, 'editForm'])->name('edit');
@@ -191,6 +246,7 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
 Route::prefix('receiving-reports')->name('receiving-reports.')->group(function () {
     Route::get('/', [ReceivingReportsController::class, 'index'])->name('index');
     Route::get('/{id}', [ReceivingReportsController::class, 'show'])->name('show');
+    Route::put('/{id}/update-dr', [ReceivingReportsController::class, 'updateDrNo'])->name('updateDr');
     Route::get('/{id}/print', [ReceivingReportsController::class, 'print'])->name('print');
     Route::get('/export/excel', [ReceivingReportsController::class, 'exportExcel'])->name('export');
 });
@@ -307,6 +363,61 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
             if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
             return app(InHouseBomController::class)->exportExcel(\App\Models\InHouseBom::findOrFail($inhouseBom));
         })->name('export');
+        Route::get('/{inhouseBom}/extend', function ($inhouseBom) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->extend(\App\Models\InHouseBom::findOrFail($inhouseBom));
+        })->name('extend');
+        Route::post('/{inhouseBom}/approve', function ($inhouseBom) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->approve(\App\Models\InHouseBom::findOrFail($inhouseBom));
+        })->name('approve');
+        Route::post('/{inhouseBom}/unapprove', function ($inhouseBom) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(InHouseBomController::class)->unapprove(\App\Models\InHouseBom::findOrFail($inhouseBom));
+        })->name('unapprove');
+    });
+
+    // ===================== DAILY FEED USAGE =====================
+    Route::middleware('auth')->prefix('daily-feed-usage')->name('daily_feed_usage.')->group(function () {
+        Route::get('/', function () {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(DailyFeedUsageController::class)->index(request());
+        })->name('index');
+        Route::get('/create', function () {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(DailyFeedUsageController::class)->create(request());
+        })->name('create');
+        Route::post('/', function () {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(DailyFeedUsageController::class)->store(request());
+        })->name('store');
+        Route::get('/bom-houses', function () {
+            return app(DailyFeedUsageController::class)->getBomHouses(request());
+        })->name('bomHouses')->middleware('auth');
+        Route::get('/cumulative', function () {
+            return app(DailyFeedUsageController::class)->getCumulativeUsage(request());
+        })->name('cumulative')->middleware('auth');
+        Route::get('/{dailyFeedUsage}', function ($id) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(DailyFeedUsageController::class)->show(\App\Models\DailyFeedUsage::findOrFail($id));
+        })->name('show');
+        Route::delete('/{dailyFeedUsage}', function ($id) {
+            if (!auth()->user()->canAccessModule('inhouse_bom')) return view('errors.noaccess');
+            return app(DailyFeedUsageController::class)->destroy(\App\Models\DailyFeedUsage::findOrFail($id));
+        })->name('destroy');
+    });
+
+    // ===================== TREASURY =====================
+    Route::middleware('auth')->prefix('treasury')->name('treasury.')->group(function () {
+        Route::get('/confirmation', [PaymentConfirmationController::class, 'index'])->name('confirmation');
+        Route::post('/confirm/{id}', [PaymentConfirmationController::class, 'confirm'])->name('confirm');
+        Route::post('/bulk-confirm', [PaymentConfirmationController::class, 'bulkConfirm'])->name('bulkConfirm');
+        Route::post('/unconfirm/{id}', [PaymentConfirmationController::class, 'unconfirm'])->name('unconfirm');
+        Route::get('/summary', [TreasurySummaryController::class, 'index'])->name('summary');
+        Route::get('/banks/{currency}', [TreasuryBankController::class, 'banks'])->name('banks')->where('currency', 'peso|dollar');
+        Route::get('/bank/{id}', [TreasuryBankController::class, 'show'])->name('bank.show')->where('id', '[0-9]+');
+        Route::post('/bank/{id}/transaction', [TreasuryBankController::class, 'addTransaction'])->name('bank.addTransaction')->where('id', '[0-9]+');
+        Route::patch('/bank/{id}/balance', [TreasuryBankController::class, 'updateBalance'])->name('bank.updateBalance')->where('id', '[0-9]+');
     });
 
     // ===================== BATCH PRINT =====================
@@ -352,6 +463,40 @@ Route::prefix('accounting/gl-accounts')->name('gl_accounts.')->middleware('auth'
 Route::post('/excel/import/gl-accounts', [ExcelImportController::class, 'importGlAccounts'])
     ->name('excel.import.gl_accounts')
     ->middleware(['auth']);
+
+// ===================== FIXED ASSET CAPITALIZATION =====================
+Route::prefix('accounting/fixed-assets')->name('fixed_assets.')->middleware(['auth', 'module:fixed_assets'])->group(function () {
+    Route::get('/',             [FixedAssetController::class, 'index'])->name('index');
+    Route::get('/summary',      [FixedAssetController::class, 'summary'])->name('summary');
+    Route::get('/create',       [FixedAssetController::class, 'create'])->name('create');
+    Route::post('/',            [FixedAssetController::class, 'store'])->name('store');
+    Route::post('/import',      [FixedAssetController::class, 'import'])->name('import');
+    Route::post('/{id}/dispose', [FixedAssetController::class, 'dispose'])->name('dispose');
+    Route::get('/{id}',         [FixedAssetController::class, 'show'])->name('show');
+    Route::get('/{id}/edit',    [FixedAssetController::class, 'edit'])->name('edit');
+    Route::put('/{id}',         [FixedAssetController::class, 'update'])->name('update');
+    Route::delete('/{id}',      [FixedAssetController::class, 'destroy'])->name('destroy');
+});
+
+// ===================== DISPOSAL MODULE =====================
+Route::prefix('accounting/disposals')->name('disposals.')->middleware(['auth', 'module:fixed_assets'])->group(function () {
+    Route::get('/',      [DisposalController::class, 'index'])->name('index');
+    Route::get('/{id}',  [DisposalController::class, 'show'])->name('show');
+});
+
+// ===================== JOURNAL VOUCHERS =====================
+Route::prefix('accounting/journal-vouchers')->name('journal_vouchers.')->middleware(['auth', 'module:journal_vouchers'])->group(function () {
+    Route::get('/',             [JournalVoucherController::class, 'index'])->name('index');
+    Route::get('/create',       [JournalVoucherController::class, 'create'])->name('create');
+    Route::post('/',            [JournalVoucherController::class, 'store'])->name('store');
+    Route::get('/{id}',         [JournalVoucherController::class, 'show'])->name('show');
+    Route::get('/{id}/edit',    [JournalVoucherController::class, 'edit'])->name('edit');
+    Route::put('/{id}',         [JournalVoucherController::class, 'update'])->name('update');
+    Route::delete('/{id}',      [JournalVoucherController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/post',   [JournalVoucherController::class, 'post'])->name('post');
+    Route::post('/{id}/void',   [JournalVoucherController::class, 'void'])->name('void');
+    Route::get('/{id}/print',   [JournalVoucherController::class, 'print'])->name('print');
+});
 
     // IMPORT ITEMS — only Admin, IT + Accounting roles
     Route::post('/excel-import/items', function () {
@@ -749,6 +894,14 @@ Route::prefix('items')->name('items.')->group(function () {
             }
             return view('errors.noaccess');
         })->name('export');
+
+        // ✅ Next Code (for auto-generating customer code)
+        Route::get('/next-code', function () {
+            if (auth()->user()->canAddCustomers()) {
+                return app(CustomerController::class)->getNextCode();
+            }
+            return response()->json(['error' => 'Access denied'], 403);
+        })->name('nextCode');
 
         // ✅ Create
         Route::get('/create', function () {
@@ -1280,6 +1433,16 @@ Route::prefix('items')->name('items.')->group(function () {
             }
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         })->name('recalculateTotals');
+
+        // HIDE / UNHIDE DR (Admin/IT only)
+        Route::post('/{id}/hide', function($id) {
+            if (!auth()->user()->isAdminUser()) { abort(403); }
+            return app(DeliveriesController::class)->hide(request(), $id);
+        })->name('hide');
+        Route::post('/{id}/unhide', function($id) {
+            if (!auth()->user()->isAdminUser()) { abort(403); }
+            return app(DeliveriesController::class)->unhide($id);
+        })->name('unhide');
 
         // SHOW (must be last because it catches any /{id})
         Route::get('/{id}', function($id) {
@@ -1881,10 +2044,19 @@ Route::prefix('items')->name('items.')->group(function () {
         Route::get('/', function () {
             $user = auth()->user();
             if ($user->canAccessModule('apv')) {
-                return app(AccountsPayableInvoiceController::class)->index();
+                return app(AccountsPayableInvoiceController::class)->index(request());
             }
             return view('errors.noaccess');
         })->name('index');
+
+        // Export Excel
+        Route::get('/export', function () {
+            $user = auth()->user();
+            if ($user->canAccessModule('apv')) {
+                return app(AccountsPayableInvoiceController::class)->exportExcel(request());
+            }
+            return view('errors.noaccess');
+        })->name('export');
 
         // Create
         Route::get('/create', function () {

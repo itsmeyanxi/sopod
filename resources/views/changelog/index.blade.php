@@ -78,9 +78,9 @@
                     $isSimpleUpdate = in_array($change->field_changed, ['quantity', 'unit_price', 'total_amount']) && $actionType === 'updated';
                     
                     $actionConfig = [
-                        'added' => ['icon' => 'fa-plus', 'bg' => 'bg-green-900 text-green-400'],
-                        'removed' => ['icon' => 'fa-trash', 'bg' => 'bg-red-900 text-red-400'],
-                        'updated' => ['icon' => 'fa-edit', 'bg' => 'bg-blue-900 text-blue-400'],
+                        'added' => ['icon' => 'fa-plus', 'bg' => 'bg-green-100 text-green-700'],
+                        'removed' => ['icon' => 'fa-trash', 'bg' => 'bg-red-100 text-red-700'],
+                        'updated' => ['icon' => 'fa-edit', 'bg' => 'bg-blue-100 text-blue-700'],
                     ];
                     
                     $config = $actionConfig[$actionType] ?? $actionConfig['updated'];
@@ -89,9 +89,9 @@
                 <tr class="hover:bg-gray-100">
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <div>{{ $change->created_at->format('M d, Y') }}</div>
-                        <div class="text-gray-400 text-xs">{{ $change->created_at->format('h:i A') }}</div>
+                        <div class="text-gray-500 text-xs">{{ $change->created_at->format('h:i A') }}</div>
                     </td>
-                    <td class="px-6 py-4 text-sm font-semibold text-blue-400">
+                    <td class="px-6 py-4 text-sm font-semibold text-blue-700">
                         <a href="{{ route('sales_orders.show', $change->sales_order_id) }}" class="hover:underline">
                             {{ $change->salesOrder->sales_order_number ?? 'N/A' }}
                         </a>
@@ -117,14 +117,14 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         <a href="{{ route('changelog.sales_order', $change->sales_order_id) }}"
-                           class="text-blue-400 hover:text-blue-300 text-sm inline-flex items-center gap-1 bg-blue-900/20 px-3 py-1 rounded">
+                           class="text-blue-700 hover:text-blue-700 text-sm inline-flex items-center gap-1 bg-blue-50 px-3 py-1 rounded">
                             <i class="fas fa-history"></i> History
                         </a>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-8 text-center text-gray-400">
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2 block"></i>
                         No changes found
                     </td>

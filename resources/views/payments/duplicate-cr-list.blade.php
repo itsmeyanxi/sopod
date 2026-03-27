@@ -7,13 +7,13 @@
     <div class="bg-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Duplicate CR Numbers</h1>
-            <a href="{{ route('payments.entry') }}" class="bg-gray-600 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded">
+            <a href="{{ route('payments.entry') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded">
                 Back to Payments
             </a>
         </div>
 
-        <div class="bg-blue-900 border border-blue-700 rounded p-4 mb-6">
-            <p class="text-blue-200">
+        <div class="bg-blue-100 border border-blue-700 rounded p-4 mb-6">
+            <p class="text-blue-700">
                 <i class="fas fa-info-circle mr-2"></i>
                 This page shows all CR numbers that have multiple payment records. Click on any CR number to see the details of all records with that number.
             </p>
@@ -36,7 +36,7 @@
                         </thead>
                         <tbody class="text-gray-500">
                             @foreach($duplicates as $duplicate)
-                            <tr class="border-b border-gray-200 hover:bg-gray-750">
+                            <tr class="border-b border-gray-200 hover:bg-gray-50">
                                 <td class="px-4 py-3 font-semibold">
                                     {{ $duplicate->collection_receipt_number }}
                                 </td>

@@ -13,18 +13,101 @@ use Illuminate\Support\Facades\Auth;
 
 class AccountsPayableInvoiceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Check if user can access APV invoices
         if (!Auth::user()->canAccessAPV()) {
             abort(403, 'Unauthorized action.');
         }
 
-        $invoices = AccountsPayableInvoice::with(['creator', 'requestForPayment'])
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $query = AccountsPayableInvoice::with(['creator', 'requestForPayment']);
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('apv_no', 'like', "%{$s}%")
+                  ->orWhere('vendor_name', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('apv_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('apv_date', '<=', $request->date_to);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $invoices = $query->orderByDesc('created_at')->paginate(20);
 
         return view('accounts_payable_invoices.index', compact('invoices'));
+    }
+
+    public function exportExcel(Request $request)
+    {
+        if (!Auth::user()->canAccessAPV()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $query = AccountsPayableInvoice::with(['creator', 'requestForPayment']);
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('apv_no', 'like', "%{$s}%")
+                  ->orWhere('vendor_name', 'like', "%{$s}%");
+            });
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('apv_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('apv_date', '<=', $request->date_to);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $invoices = $query->orderByDesc('created_at')->get();
+
+        $filename = 'AP_Invoices_' . date('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($invoices) {
+            $file = fopen('php://output', 'w');
+            // UTF-8 BOM for Excel
+            fwrite($file, "\xEF\xBB\xBF");
+
+            fputcsv($file, [
+                'APV No', 'APV Date', 'RFP No', 'Vendor Name', 'Payment Type',
+                'Currency', 'Grand Total', 'Status', 'Due Date', 'Created By', 'Created At',
+            ]);
+
+            foreach ($invoices as $inv) {
+                fputcsv($file, [
+                    $inv->apv_no,
+                    $inv->apv_date ? $inv->apv_date->format('Y-m-d') : '',
+                    $inv->requestForPayment->rfp_no ?? 'N/A',
+                    $inv->vendor_name,
+                    $inv->payment_type === 'downpayment' ? 'Downpayment' : 'Full Payment',
+                    $inv->currency,
+                    number_format($inv->grand_total, 2),
+                    ucfirst($inv->status),
+                    $inv->due_date ? $inv->due_date->format('Y-m-d') : '',
+                    $inv->creator->name ?? 'N/A',
+                    $inv->created_at ? $inv->created_at->format('Y-m-d H:i') : '',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function create(Request $request)

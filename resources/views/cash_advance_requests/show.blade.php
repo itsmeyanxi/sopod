@@ -18,7 +18,7 @@
                     @elseif($car->status === 'approved') bg-green-600 text-white
                     @elseif($car->status === 'rejected') bg-red-600 text-white
                     @elseif($car->status === 'liquidated') bg-blue-600 text-white
-                    @else bg-gray-600 text-white
+                    @else bg-gray-200 text-gray-800
                     @endif">
                     {{ ucfirst($car->status) }}
                 </span>
@@ -41,18 +41,18 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">PAYEE:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $car->payee }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $car->payee }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">DEPARTMENT:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $car->department }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $car->department }}</p>
             </div>
         </div>
 
         <!-- Purpose -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-2">PURPOSE:</label>
-            <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded text-gray-200 min-h-[100px]">
+            <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded text-gray-700 min-h-[100px]">
                 {{ $car->purpose ?? 'No purpose provided' }}
             </div>
         </div>
@@ -61,27 +61,27 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">DATE REQUESTED:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $car->date_requested ? $car->date_requested->format('F d, Y') : 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $car->date_requested ? $car->date_requested->format('F d, Y') : 'N/A' }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">DATE NEEDED:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $car->date_needed ? $car->date_needed->format('F d, Y') : 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $car->date_needed ? $car->date_needed->format('F d, Y') : 'N/A' }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">AMOUNT ADVANCED:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200 font-semibold text-lg">&#8369;{{ number_format($car->amount, 2) }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700 font-semibold text-lg">&#8369;{{ number_format($car->amount, 2) }}</p>
             </div>
         </div>
 
         <!-- Remarks -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-1">REMARKS:</label>
-            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $car->remarks ?? 'N/A' }}</p>
+            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $car->remarks ?? 'N/A' }}</p>
         </div>
 
         <!-- Fine Print -->
         <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded">
-            <p class="text-gray-400 text-sm italic">
+            <p class="text-gray-500 text-sm italic">
                 I hereby acknowledge receipt of the above sum of money and hereby agree to liquidate in 5 calendar days after the cash advance serve its purpose and provide receipts to document the expenditures.
             </p>
         </div>
@@ -89,7 +89,7 @@
         <!-- Created By -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-1">CREATED BY:</label>
-            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $car->creator->name ?? 'N/A' }}</p>
+            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $car->creator->name ?? 'N/A' }}</p>
         </div>
 
         <!-- Signature Section -->
@@ -116,7 +116,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $car->departmentHeadApprover->name ?? '' }}</span>
                                 @if($car->departmentHeadApprover && $car->department_head_approved_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $car->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($car->department_head_approved_latitude && $car->department_head_approved_longitude)
@@ -131,7 +131,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $car->approver->name ?? '' }}</span>
                                 @if($car->approver && $car->approved_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $car->approved_at->format('d M Y | H:i') }}
                                         @if($car->approved_latitude && $car->approved_longitude)
@@ -166,7 +166,7 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @else
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @endif
@@ -175,14 +175,14 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Department Head Check</span>
                             @if($car->department_head_approved_by && $car->departmentHeadApprover)
-                                <span class="text-green-400">&#10003; Checked</span>
+                                <span class="text-green-700">&#10003; Checked</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $car->departmentHeadApprover->name }}
                                     on {{ $car->department_head_approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @else
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @endif
                         </p>
                     </div>
@@ -196,12 +196,12 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @elseif($car->department_head_approved_by)
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
-                                <i class="fas fa-lock text-gray-400"></i>
+                                <i class="fas fa-lock text-gray-500"></i>
                             </div>
                         @endif
                     </div>
@@ -209,16 +209,16 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Executive Approval (President / VP / CFO)</span>
                             @if($car->status === 'approved' && $car->approver)
-                                <span class="text-green-400">&#10003; Approved</span>
+                                <span class="text-green-700">&#10003; Approved</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $car->approver->name }}
                                     on {{ $car->approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @elseif($car->department_head_approved_by)
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @else
-                                <span class="text-gray-400">Locked</span>
+                                <span class="text-gray-500">Locked</span>
                             @endif
                         </p>
                     </div>
@@ -226,14 +226,14 @@
 
                 <!-- Rejection Status -->
                 @if($car->status === 'rejected')
-                    <div class="flex items-start gap-4 p-3 bg-red-900/20 border border-red-700 rounded">
+                    <div class="flex items-start gap-4 p-3 bg-red-50 border border-red-200 rounded">
                         <div class="flex-shrink-0">
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-red-600">
                                 <i class="fas fa-times text-gray-800"></i>
                             </div>
                         </div>
                         <div class="flex-1">
-                            <p class="text-red-400">
+                            <p class="text-red-700">
                                 <span class="font-semibold">Rejected</span>
                             </p>
                             @if($car->rejection_reason)
@@ -273,7 +273,7 @@
         <!-- Create Liquidation Button -->
         @if($car->status === 'approved')
             <div class="mb-4">
-                <a href="{{ route('liquidation_forms.create', ['car_id' => $car->id]) }}" class="bg-gradient-to-r from-blue-600 to-blue-700 text-gray-800 px-6 py-2 rounded hover:from-blue-700 hover:to-blue-800 transition inline-block">
+                <a href="{{ route('liquidation_forms.create', ['car_id' => $car->id]) }}" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2 rounded hover:from-blue-700 hover:to-blue-800 transition inline-block">
                     <i class="fas fa-file-invoice-dollar mr-1"></i> Create Liquidation
                 </a>
             </div>
@@ -282,20 +282,20 @@
         <!-- Linked Liquidation Forms -->
         @if($car->liquidationForms && $car->liquidationForms->count() > 0)
             <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded">
-                <h3 class="text-lg font-semibold text-gray-800 mb-3"><i class="fas fa-file-invoice-dollar mr-2 text-blue-400"></i>Linked Liquidation Forms</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-3"><i class="fas fa-file-invoice-dollar mr-2 text-blue-700"></i>Linked Liquidation Forms</h3>
                 <div class="space-y-2">
                     @foreach($car->liquidationForms as $liquidation)
                         <div class="flex items-center justify-between p-3 bg-white rounded">
                             <div>
                                 <span class="text-gray-800 font-semibold">{{ $liquidation->liquidation_no ?? 'LF-' . $liquidation->id }}</span>
-                                <span class="text-gray-400 ml-3">&#8369;{{ number_format($liquidation->total_amount ?? 0, 2) }}</span>
+                                <span class="text-gray-500 ml-3">&#8369;{{ number_format($liquidation->total_amount ?? 0, 2) }}</span>
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="px-2 py-1 rounded text-xs font-semibold
                                     @if($liquidation->status === 'pending') bg-yellow-600 text-white
                                     @elseif($liquidation->status === 'approved') bg-green-600 text-white
                                     @elseif($liquidation->status === 'rejected') bg-red-600 text-white
-                                    @else bg-gray-600 text-white
+                                    @else bg-gray-200 text-gray-800
                                     @endif">
                                     {{ ucfirst($liquidation->status) }}
                                 </span>
@@ -337,10 +337,10 @@
             <input type="hidden" name="location" id="dh_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="dh_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="dh_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -362,10 +362,10 @@
             <input type="hidden" name="location" id="exec_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="exec_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="exec_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="exec_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -387,7 +387,7 @@
                 <textarea name="rejection_reason" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeRejectModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeRejectModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
@@ -440,7 +440,7 @@ function enableSubmitButton(submitBtn, withLocation) {
 
 function captureGeolocationByIP(prefix, statusEl, submitBtn) {
     statusEl.textContent = 'Using IP-based location as fallback...';
-    statusEl.className = 'text-sm text-blue-400';
+    statusEl.className = 'text-sm text-blue-700';
     fetch('https://ipapi.co/json/')
         .then(response => response.json())
         .then(data => {
@@ -449,17 +449,17 @@ function captureGeolocationByIP(prefix, statusEl, submitBtn) {
                 document.getElementById(prefix + '_longitude').value = data.longitude;
                 document.getElementById(prefix + '_location').value = data.city || data.region || 'Unknown';
                 statusEl.textContent = 'Location captured (IP-based): ' + data.latitude + ', ' + data.longitude + ' (' + (data.city || 'Unknown') + ')';
-                statusEl.className = 'text-sm text-green-400';
+                statusEl.className = 'text-sm text-green-700';
                 enableSubmitButton(submitBtn, true);
             } else {
                 statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
-                statusEl.className = 'text-sm text-yellow-400';
+                statusEl.className = 'text-sm text-yellow-700';
                 enableSubmitButton(submitBtn, false);
             }
         })
         .catch(() => {
             statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
-            statusEl.className = 'text-sm text-yellow-400';
+            statusEl.className = 'text-sm text-yellow-700';
             enableSubmitButton(submitBtn, false);
         });
 }
@@ -472,7 +472,7 @@ function captureGeolocation(prefix) {
         return;
     }
     statusEl.textContent = 'Capturing location...';
-    statusEl.className = 'text-sm text-blue-400';
+    statusEl.className = 'text-sm text-blue-700';
     navigator.geolocation.getCurrentPosition(
         function(position) {
             const lat = position.coords.latitude;
@@ -481,7 +481,7 @@ function captureGeolocation(prefix) {
             document.getElementById(prefix + '_longitude').value = lng;
             getLocationName(lat, lng, prefix);
             statusEl.textContent = 'Location captured: ' + lat.toFixed(6) + ', ' + lng.toFixed(6);
-            statusEl.className = 'text-sm text-green-400';
+            statusEl.className = 'text-sm text-green-700';
             enableSubmitButton(submitBtn, true);
         },
         function(error) {

@@ -39,7 +39,7 @@
         <!-- Company -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-2">COMPANY:</label>
-            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $rfp->company }}</p>
+            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $rfp->company }}</p>
         </div>
 
         <!-- Payment Methods & Dates Section -->
@@ -64,12 +64,12 @@
                     @if(!empty($methods))
                         @foreach($methods as $method)
                             <div class="flex items-center p-2 bg-white rounded">
-                                <span class="text-green-400 mr-2">&#10003;</span>
+                                <span class="text-green-700 mr-2">&#10003;</span>
                                 <span class="text-gray-500">{{ $methodLabels[$method] ?? ucfirst($method) }}</span>
                             </div>
                         @endforeach
                     @else
-                        <p class="text-gray-400">No payment methods specified</p>
+                        <p class="text-gray-500">No payment methods specified</p>
                     @endif
                 </div>
             </div>
@@ -78,17 +78,17 @@
             <div class="space-y-4">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">DATE:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $rfp->date->format('F d, Y') }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $rfp->date->format('F d, Y') }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">DUE DATE:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $rfp->due_date ? $rfp->due_date->format('F d, Y') : 'N/A' }}</p>
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $rfp->due_date ? $rfp->due_date->format('F d, Y') : 'N/A' }}</p>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">LINKED PO:</label>
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">
+                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">
                         @if($rfp->purchaseOrder)
-                            <a href="{{ route('purchase_orders.show', $rfp->purchaseOrder->id) }}" class="text-purple-400 hover:text-purple-300">
+                            <a href="{{ route('purchase_orders.show', $rfp->purchaseOrder->id) }}" class="text-purple-700 hover:text-purple-700">
                                 {{ $rfp->purchaseOrder->po_no }}
                             </a>
                         @else
@@ -103,18 +103,18 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">PAYEE (Vendor/Supplier):</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $rfp->payee }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $rfp->payee }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">AMOUNT:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200 font-semibold text-lg">&#8369;{{ number_format($rfp->amount, 2) }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700 font-semibold text-lg">&#8369;{{ number_format($rfp->amount, 2) }}</p>
             </div>
         </div>
 
         <!-- Particulars -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-2">PARTICULARS:</label>
-            <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded text-gray-200 min-h-[100px]">
+            <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded text-gray-700 min-h-[100px]">
                 {{ $rfp->particulars ?? 'No particulars provided' }}
             </div>
         </div>
@@ -122,18 +122,18 @@
         <!-- Bank -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-1">BANK/S:</label>
-            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $rfp->bank ?? 'N/A' }}</p>
+            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $rfp->bank ?? 'N/A' }}</p>
         </div>
 
         <!-- APV and CV Numbers -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">APV NO.:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $rfp->apv_no ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $rfp->apv_no ?? 'N/A' }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">CV NO.:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $rfp->cv_no ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $rfp->cv_no ?? 'N/A' }}</p>
             </div>
         </div>
 
@@ -141,18 +141,18 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">REQUESTED BY:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $rfp->requested_by ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $rfp->requested_by ?? 'N/A' }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">CHECKED BY:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $rfp->checked_by ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $rfp->checked_by ?? 'N/A' }}</p>
             </div>
         </div>
 
         <!-- Created By -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-1">CREATED BY:</label>
-            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $rfp->creator->name ?? 'N/A' }}</p>
+            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $rfp->creator->name ?? 'N/A' }}</p>
         </div>
 
         <!-- Signature Section -->
@@ -180,7 +180,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $rfp->departmentHeadApprover->name ?? '' }}</span>
                                 @if($rfp->departmentHeadApprover && $rfp->department_head_approved_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $rfp->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($rfp->department_head_approved_latitude && $rfp->department_head_approved_longitude)
@@ -195,7 +195,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $rfp->accountingApprover->name ?? '' }}</span>
                                 @if($rfp->accountingApprover && $rfp->accounting_approved_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $rfp->accounting_approved_at->format('d M Y | H:i') }}
                                         @if($rfp->accounting_approved_latitude && $rfp->accounting_approved_longitude)
@@ -210,7 +210,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $rfp->approver->name ?? '' }}</span>
                                 @if($rfp->approver && $rfp->approved_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $rfp->approved_at->format('d M Y | H:i') }}
                                         @if($rfp->approved_latitude && $rfp->approved_longitude)
@@ -246,7 +246,7 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @else
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @endif
@@ -255,14 +255,14 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Department Head Check</span>
                             @if($rfp->department_head_approved_by && $rfp->departmentHeadApprover)
-                                <span class="text-green-400">✓ Checked</span>
+                                <span class="text-green-700">✓ Checked</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $rfp->departmentHeadApprover->name }}
                                     on {{ $rfp->department_head_approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @else
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @endif
                         </p>
                     </div>
@@ -276,12 +276,12 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @elseif($rfp->department_head_approved_by)
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
-                                <i class="fas fa-lock text-gray-400"></i>
+                                <i class="fas fa-lock text-gray-500"></i>
                             </div>
                         @endif
                     </div>
@@ -289,16 +289,16 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Accounting Check (Finance Manager)</span>
                             @if($rfp->accounting_approved_by && $rfp->accountingApprover)
-                                <span class="text-green-400">✓ Checked</span>
+                                <span class="text-green-700">✓ Checked</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $rfp->accountingApprover->name }}
                                     on {{ $rfp->accounting_approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @elseif($rfp->department_head_approved_by)
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @else
-                                <span class="text-gray-400">Locked</span>
+                                <span class="text-gray-500">Locked</span>
                             @endif
                         </p>
                     </div>
@@ -312,12 +312,12 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @elseif($rfp->accounting_approved_by)
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
-                                <i class="fas fa-lock text-gray-400"></i>
+                                <i class="fas fa-lock text-gray-500"></i>
                             </div>
                         @endif
                     </div>
@@ -325,16 +325,16 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Executive Approval (CFO/President)</span>
                             @if($rfp->status === 'approved' && $rfp->approver)
-                                <span class="text-green-400">✓ Approved</span>
+                                <span class="text-green-700">✓ Approved</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $rfp->approver->name }}
                                     on {{ $rfp->approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @elseif($rfp->accounting_approved_by)
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @else
-                                <span class="text-gray-400">Locked</span>
+                                <span class="text-gray-500">Locked</span>
                             @endif
                         </p>
                     </div>
@@ -342,14 +342,14 @@
 
                 <!-- Rejection Status -->
                 @if($rfp->status === 'rejected')
-                    <div class="flex items-start gap-4 p-3 bg-red-900/20 border border-red-700 rounded">
+                    <div class="flex items-start gap-4 p-3 bg-red-50 border border-red-200 rounded">
                         <div class="flex-shrink-0">
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-red-600">
                                 <i class="fas fa-times text-gray-800"></i>
                             </div>
                         </div>
                         <div class="flex-1">
-                            <p class="text-red-400">
+                            <p class="text-red-700">
                                 <span class="font-semibold">Rejected</span>
                             </p>
                             @if($rfp->rejection_reason)
@@ -420,10 +420,10 @@
             <input type="hidden" name="location" id="dh_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="dh_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="dh_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -445,10 +445,10 @@
             <input type="hidden" name="location" id="acct_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="acct_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="acct_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveAccountingModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveAccountingModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="acct_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -470,10 +470,10 @@
             <input type="hidden" name="location" id="exec_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="exec_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="exec_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="exec_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -495,7 +495,7 @@
                 <textarea name="rejection_reason" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeRejectModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeRejectModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
@@ -557,7 +557,7 @@ function enableSubmitButton(submitBtn, withLocation) {
 
 function captureGeolocationByIP(prefix, statusEl, submitBtn) {
     statusEl.textContent = 'Using IP-based location as fallback...';
-    statusEl.className = 'text-sm text-blue-400';
+    statusEl.className = 'text-sm text-blue-700';
     fetch('https://ipapi.co/json/')
         .then(response => response.json())
         .then(data => {
@@ -566,17 +566,17 @@ function captureGeolocationByIP(prefix, statusEl, submitBtn) {
                 document.getElementById(prefix + '_longitude').value = data.longitude;
                 document.getElementById(prefix + '_location').value = data.city || data.region || 'Unknown';
                 statusEl.textContent = 'Location captured (IP-based): ' + data.latitude + ', ' + data.longitude + ' (' + (data.city || 'Unknown') + ')';
-                statusEl.className = 'text-sm text-green-400';
+                statusEl.className = 'text-sm text-green-700';
                 enableSubmitButton(submitBtn, true);
             } else {
                 statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
-                statusEl.className = 'text-sm text-yellow-400';
+                statusEl.className = 'text-sm text-yellow-700';
                 enableSubmitButton(submitBtn, false);
             }
         })
         .catch(() => {
             statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
-            statusEl.className = 'text-sm text-yellow-400';
+            statusEl.className = 'text-sm text-yellow-700';
             enableSubmitButton(submitBtn, false);
         });
 }
@@ -589,7 +589,7 @@ function captureGeolocation(prefix) {
         return;
     }
     statusEl.textContent = 'Capturing location...';
-    statusEl.className = 'text-sm text-blue-400';
+    statusEl.className = 'text-sm text-blue-700';
     navigator.geolocation.getCurrentPosition(
         function(position) {
             const lat = position.coords.latitude;
@@ -598,7 +598,7 @@ function captureGeolocation(prefix) {
             document.getElementById(prefix + '_longitude').value = lng;
             getLocationName(lat, lng, prefix);
             statusEl.textContent = 'Location captured: ' + lat.toFixed(6) + ', ' + lng.toFixed(6);
-            statusEl.className = 'text-sm text-green-400';
+            statusEl.className = 'text-sm text-green-700';
             enableSubmitButton(submitBtn, true);
         },
         function(error) {

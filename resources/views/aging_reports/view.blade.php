@@ -25,11 +25,11 @@
                 <div>
                     <label for="filter_date" class="block text-sm font-medium text-gray-500 mb-2">
                         Record Date (On or Before)
-                        <span class="text-xs text-gray-400 ml-1">(leave empty to show ALL records)</span>
+                        <span class="text-xs text-gray-500 ml-1">(leave empty to show ALL records)</span>
                     </label>
                     <input type="date" id="filter_date" name="filter_date"
                            value="{{ request('filter_date') ?? now()->format('Y-m-d') }}"
-                           class="w-full bg-gray-600 text-white border border-gray-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                            placeholder="Leave empty for all records">
                 </div>
             </form>
@@ -52,7 +52,7 @@
                 @endif
 
                 <a href="{{ route('aging_reports.view') }}"
-                   class="text-xs text-red-400 hover:text-red-300 ml-2">
+                   class="text-xs text-red-700 hover:text-red-700 ml-2">
                     Clear all filters
                 </a>
             </div>
@@ -65,30 +65,30 @@
             <div class="mb-4">
                 <label for="aging_date" class="block text-sm font-medium text-gray-500 mb-2">
                     Aging Date (As of Date)
-                    <span class="text-xs text-yellow-400 ml-1">⚡ (age = days since counter date; leave empty to use each record's own record date)</span>
+                    <span class="text-xs text-yellow-700 ml-1">⚡ (age = days since counter date; leave empty to use each record's own record date)</span>
                 </label>
                 <input type="date" id="aging_date" name="aging_date" form="filter-form"
                        value="{{ request('aging_date') }}"
-                       class="bg-gray-600 text-white border border-yellow-500 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                       class="bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                        placeholder="Leave empty for record date">
             </div>
 
             <!-- Enhanced Search Bar -->
             <div class="mb-4 flex items-center space-x-4">
                 <div class="flex-1 flex space-x-2">
-                    <select id="search_type" class="bg-gray-600 text-white border border-gray-500 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="search_type" class="bg-white text-gray-800 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="customer">Customer / Branch</option>
                         <option value="invoice">Invoice No</option>
                         <option value="dr">DR Number</option>
                     </select>
                     <input type="text" id="search_input" placeholder="Search by Customer Name, Invoice No, or DR Number..."
-                           class="flex-1 bg-gray-600 text-white border border-gray-500 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="flex-1 bg-white text-gray-800 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button type="button" id="search_button" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-search"></i>
                     <span>Search</span>
                 </button>
-                <button type="button" id="export_excel_btn" class="bg-emerald-600 hover:bg-emerald-700 text-gray-800 px-6 py-2 rounded font-medium transition flex items-center space-x-2">
+                <button type="button" id="export_excel_btn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-file-excel"></i>
                     <span>Export to Excel</span>
                 </button>
@@ -128,7 +128,7 @@
                     <tbody class="text-gray-500">
                         @if(isset($agingReports) && count($agingReports) > 0)
                             @foreach($agingReports as $report)
-                            <tr class="border-b border-gray-200 hover:bg-gray-750">
+                            <tr class="border-b border-gray-200 hover:bg-gray-50">
                                 <td class="px-4 py-3">{{ $report['aging_date'] ?? 'N/A' }}</td>
                                 <td class="px-4 py-3">{{ $report['counter_date'] ?? 'N/A' }}</td>
                                 <td class="px-4 py-3">{{ $report['invoice_date'] ?? 'N/A' }}</td>
@@ -172,12 +172,12 @@
                             @endforeach
                         @else
                             <tr>
-                                <td colspan="11" class="px-4 py-8 text-center text-gray-400">
+                                <td colspan="11" class="px-4 py-8 text-center text-gray-500">
                                     <i class="fas fa-inbox text-4xl mb-2"></i>
                                     <p>No aging reports found.</p>
                                     <p class="text-sm mt-2">
                                         @if(request()->has('filter_date'))
-                                            Try adjusting your filters or <a href="{{ route('aging_reports.view') }}" class="text-blue-400 hover:underline">clear all filters</a>
+                                            Try adjusting your filters or <a href="{{ route('aging_reports.view') }}" class="text-blue-700 hover:underline">clear all filters</a>
                                         @else
                                             Apply filters above to view data.
                                         @endif
@@ -342,7 +342,7 @@
         if (!data || data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="11" class="px-4 py-8 text-center text-gray-400">
+                    <td colspan="11" class="px-4 py-8 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>No aging reports found.</p>
                     </td>
@@ -368,7 +368,7 @@
             const viewUrl = reportId ? generateArProfileUrl(reportId) : '#';
 
             rows += `
-                <tr class="border-b border-gray-200 hover:bg-gray-750">
+                <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="px-4 py-3">${report.aging_date || 'N/A'}</td>
                     <td class="px-4 py-3">${report.counter_date || 'N/A'}</td>
                     <td class="px-4 py-3">${report.invoice_date || 'N/A'}</td>

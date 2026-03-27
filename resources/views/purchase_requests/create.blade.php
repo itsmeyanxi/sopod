@@ -38,12 +38,39 @@
             <!-- Company (Hidden - MeatPlus Only) -->
             <input type="hidden" name="company" value="MeatPlus">
 
+            @if(!empty($bom))
+            <input type="hidden" name="bom_id" value="{{ $bom->id }}">
+            <!-- BOM Info Banner -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-100 text-blue-700 rounded-full w-10 h-10 flex items-center justify-center">
+                            <span class="text-lg">🐔</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-blue-800 text-sm">BOM-Linked Purchase Request</h3>
+                            <p class="text-xs text-blue-600 mt-0.5">
+                                Cycle: <strong>{{ $bom->cycle_ref }}</strong>
+                                @if($bom->grower) · Grower: <strong>{{ $bom->grower }}</strong> @endif
+                                · Date: {{ $bom->cycle_date->format('M d, Y') }}
+                                · Houses: {{ $bom->num_houses }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-blue-500 font-semibold uppercase">BOM Total Cost</div>
+                        <div class="text-lg font-bold text-blue-800">PHP {{ number_format($bom->total_cost, 2) }}</div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">REQUISITIONER: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">REQUISITIONER: <span class="text-red-700">*</span></label>
                         <input type="text" name="requisitioner" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('requisitioner') }}" required>
                     </div>
                     <div>
@@ -76,7 +103,7 @@
                 <!-- Right Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DATE OF REQUEST: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">DATE OF REQUEST: <span class="text-red-700">*</span></label>
                         <input type="date" name="date_of_request" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_of_request', date('Y-m-d')) }}" required>
                     </div>
                     <div>
@@ -124,7 +151,7 @@
             <div class="mb-6">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-lg font-semibold text-gray-800">Items</h3>
-                    <button type="button" onclick="addRow()" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-gray-800 px-4 py-2 rounded transition">
+                    <button type="button" onclick="addRow()" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition">
                         <i class="fas fa-plus mr-1"></i> Add Row
                     </button>
                 </div>
@@ -178,7 +205,7 @@
             <!-- Reason for Requisition -->
             <div class="mb-6">
                 <label class="block font-semibold text-gray-800 mb-2">REASON FOR REQUISITION:</label>
-                <textarea name="reason_for_requisition" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter reason for this requisition...">{{ old('reason_for_requisition') }}</textarea>
+                <textarea name="reason_for_requisition" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter reason for this requisition...">{{ old('reason_for_requisition', !empty($bom) ? 'BOM Purchase Request for cycle ' . $bom->cycle_ref . ($bom->grower ? ' — Grower: ' . $bom->grower : '') : '') }}</textarea>
             </div>
 
             <!-- Signature Section -->
@@ -384,11 +411,11 @@ function attachSupplierAutocomplete(input) {
                 // Header
                 let headerHtml = '';
                 if (desc && !isFallback) {
-                    headerHtml = `<div class="px-3 py-1.5 text-xs text-green-400 bg-gray-50 border-b border-gray-200 font-semibold">
+                    headerHtml = `<div class="px-3 py-1.5 text-xs text-green-700 bg-gray-50 border-b border-gray-200 font-semibold">
                         ✓ Showing suppliers confirmed to carry this item
                     </div>`;
                 } else if (desc && isFallback) {
-                    headerHtml = `<div class="px-3 py-1.5 text-xs text-yellow-400 bg-gray-50 border-b border-gray-200 font-semibold">
+                    headerHtml = `<div class="px-3 py-1.5 text-xs text-yellow-700 bg-gray-50 border-b border-gray-200 font-semibold">
                         ⚠ This item has no confirmed suppliers in the library — showing all active suppliers
                     </div>`;
                 }
@@ -401,16 +428,16 @@ function attachSupplierAutocomplete(input) {
                     } else if (s.carries_item === true) {
                         badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-green-700 text-green-100 rounded">✓ Carries item</span>`;
                     } else if (desc) {
-                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-600 text-gray-500 rounded">? Unconfirmed</span>`;
+                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-100 text-gray-500 rounded">? Unconfirmed</span>`;
                     }
                     return `
-                    <div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 supplier-option"
+                    <div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 supplier-option"
                          data-id="${s.id}" data-name="${s.supplier_name}"
                          data-code="${s.supplier_code}" data-address="${s.address || ''}">
                         <div class="flex items-center gap-1 font-semibold text-gray-800 flex-wrap">
                             ${s.supplier_name} ${badge}
                         </div>
-                        <div class="text-xs text-gray-400">${s.supplier_code || ''}</div>
+                        <div class="text-xs text-gray-500">${s.supplier_code || ''}</div>
                     </div>`;
                 }).join('');
 
@@ -461,7 +488,7 @@ function attachDescAutocomplete(input) {
                 const items = await res.json();
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(item =>
-                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 desc-option"
+                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 desc-option"
                           data-name="${(item.name || item).toString().replace(/"/g, '&quot;')}"
                           data-item-code="${(item.item_code || '').toString().replace(/"/g, '&quot;')}"
                           data-supplier-id="${item.supplier_id || ''}"
@@ -604,11 +631,77 @@ async function autoGenerateItemCode(row) {
     }
 }
 
-// ======================== INIT ========================
-document.addEventListener('DOMContentLoaded', function () {
+// ======================== BOM PRE-FILL ========================
+function prefillBomItems(bomItems) {
+    if (!bomItems || !bomItems.length) return;
+
+    const tbody = document.getElementById('itemsBody');
+    // Clear the default empty row
+    tbody.innerHTML = '';
+    rowCount = 0;
+
+    bomItems.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-100/40';
+        tr.innerHTML = `
+            <td class="border border-gray-200 px-2 py-2 text-center">
+                <button type="button" onclick="removeRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition">
+                    <i class="fas fa-trash mr-1"></i>Delete
+                </button>
+            </td>
+            <td class="border border-gray-200 px-2 py-2 text-center">${idx + 1}</td>
+            <td class="border border-gray-200 px-2 py-2">
+                <input type="text" name="items[${idx}][item_code]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-code-input" autocomplete="off">
+            </td>
+            <td class="border border-gray-200 px-2 py-2">
+                <input type="date" name="items[${idx}][date_needed]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800">
+            </td>
+            <td class="border border-gray-200 px-2 py-2">
+                <input type="number" step="0.01" name="items[${idx}][qty]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-qty" required value="${item.qty || ''}">
+            </td>
+            <td class="border border-gray-200 px-2 py-2">
+                <input type="text" name="items[${idx}][uom]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" value="${item.uom || ''}">
+            </td>
+            <td class="border border-gray-200 px-2 py-2">
+                <div class="relative">
+                    <input type="text" name="items[${idx}][description]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 desc-input" required autocomplete="off" value="${(item.description || '').replace(/"/g, '&quot;')}">
+                    <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                </div>
+            </td>
+            <input type="hidden" name="items[${idx}][supplier_id]" class="supplier-id-input">
+            <input type="hidden" name="items[${idx}][supplier_name]" class="supplier-name-input">
+            <td class="border border-gray-200 px-2 py-2">
+                <input type="number" step="0.01" name="items[${idx}][unit_price]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-price" value="${item.unit_price || ''}">
+            </td>
+            <td class="border border-gray-200 px-2 py-2">
+                <input type="number" step="0.01" name="items[${idx}][amount]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-amount" readonly value="${item.amount || ''}">
+            </td>
+            <td class="border border-gray-200 px-2 py-2">
+                <input type="text" name="items[${idx}][remarks]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" value="${(item.remarks || '').replace(/"/g, '&quot;')}">
+            </td>
+            <td class="border border-gray-200 px-2 py-2">
+                <input type="text" name="items[${idx}][note]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" value="${(item.note || '').replace(/"/g, '&quot;')}">
+            </td>
+        `;
+        tbody.appendChild(tr);
+        rowCount++;
+    });
+
     attachCalculationListeners();
     attachItemCodeListeners();
     initDescAutocomplete();
+}
+
+// ======================== INIT ========================
+document.addEventListener('DOMContentLoaded', function () {
+    @if(!empty($bom) && !empty($bomItems))
+    const bomItems = @json($bomItems);
+    prefillBomItems(bomItems);
+    @else
+    attachCalculationListeners();
+    attachItemCodeListeners();
+    initDescAutocomplete();
+    @endif
 });
 </script>
 @endsection

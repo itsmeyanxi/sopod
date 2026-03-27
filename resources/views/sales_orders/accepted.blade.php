@@ -45,7 +45,7 @@
                             @elseif($status === 'declined')
                                 <span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">Declined</span>
                             @elseif($status === 'cancelled')
-                                <span class="bg-gray-600 text-white px-2 py-1 rounded text-xs font-semibold">Cancelled</span>
+                                <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs font-semibold">Cancelled</span>
                             @endif
                         </td>
                         <td class="px-4 py- text-gray-500">
@@ -59,7 +59,7 @@
                     @endif
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-gray-400">
+                        <td colspan="6" class="text-center py-4 text-gray-500">
                             No accepted sales orders found.
                         </td>
                     </tr>
@@ -67,7 +67,7 @@
             </tbody>
         </table>
 
-        <div id="soCount" class="text-sm text-gray-400 px-4 py-3">
+        <div id="soCount" class="text-sm text-gray-500 px-4 py-3">
             Showing {{ $salesOrders->count() }} accepted sales orders
         </div>
     </div>

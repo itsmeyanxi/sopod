@@ -30,37 +30,37 @@
             <!-- Main Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">PAYEE: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">PAYEE: <span class="text-red-700">*</span></label>
                     <input type="text" name="payee" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee') }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">DEPARTMENT: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">DEPARTMENT: <span class="text-red-700">*</span></label>
                     <input type="text" name="department" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('department') }}" required>
                 </div>
             </div>
 
             <!-- Purpose -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">PURPOSE: <span class="text-red-400">*</span></label>
+                <label class="block font-semibold text-gray-500 mb-2">PURPOSE: <span class="text-red-700">*</span></label>
                 <textarea name="purpose" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter purpose of cash advance..." required>{{ old('purpose') }}</textarea>
             </div>
 
             <!-- Dates and Amount -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">DATE REQUESTED: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">DATE REQUESTED: <span class="text-red-700">*</span></label>
                     <input type="date" name="date_requested" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_requested', date('Y-m-d')) }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">DATE NEEDED: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">DATE NEEDED: <span class="text-red-700">*</span></label>
                     <input type="date" name="date_needed" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_needed') }}" required>
                 </div>
             </div>
 
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">AMOUNT ADVANCED: <span class="text-red-400">*</span></label>
+                <label class="block font-semibold text-gray-500 mb-2">AMOUNT ADVANCED: <span class="text-red-700">*</span></label>
                 <div class="relative">
-                    <span class="absolute left-3 top-2.5 text-gray-400">&#8369;</span>
+                    <span class="absolute left-3 top-2.5 text-gray-500">&#8369;</span>
                     <input type="number" step="0.01" name="amount_advanced" class="w-full bg-gray-50 border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount_advanced') }}" required>
                 </div>
             </div>
@@ -85,7 +85,7 @@
 
             <!-- Fine Print -->
             <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded">
-                <p class="text-gray-400 text-sm italic">
+                <p class="text-gray-500 text-sm italic">
                     I hereby acknowledge receipt of the above sum of money and hereby agree to liquidate in 5 calendar days after the cash advance serve its purpose and provide receipts to document the expenditures.
                 </p>
             </div>
@@ -95,7 +95,7 @@
                 <a href="{{ route('cash_advance_requests.index') }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
+                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                     <i class="fas fa-save mr-1"></i> Create Cash Advance Request
                 </button>
             </div>

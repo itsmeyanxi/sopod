@@ -20,7 +20,7 @@
             <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                 <!-- Flag Filter -->
                 <select name="flag_filter" 
-                        class="border border-gray-200 bg-white text-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        class="border border-gray-200 bg-white text-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         onchange="document.getElementById('filterForm').submit()">
                     <option value="">All Flag Status</option>
                     <option value="flagged" {{ request('flag_filter') === 'flagged' ? 'selected' : '' }}>🚩 Flagged</option>
@@ -29,7 +29,7 @@
 
                 <!-- Status Filter -->
                 <select name="status_filter" 
-                        class="border border-gray-200 bg-white text-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        class="border border-gray-200 bg-white text-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         onchange="document.getElementById('filterForm').submit()">
                     <option value="">All Status</option>
                     <option value="enabled" {{ request('status_filter') === 'enabled' ? 'selected' : '' }}>🟢 Enabled</option>
@@ -42,7 +42,7 @@
                     type="text" 
                     placeholder="Search customer code / name" 
                     value="{{ request('search') }}"
-                    class="border border-gray-200 bg-white text-gray-200 rounded px-3 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="border border-gray-200 bg-white text-gray-700 rounded px-3 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
 
                 <!-- Clear Filters Button -->
@@ -56,7 +56,7 @@
                 <!-- Create Customer Button -->
                 @if(auth()->user()->canManageCustomers())
                     <a href="{{ route('customers.create') }}" 
-                       class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-gray-800 px-4 py-2 rounded transition whitespace-nowrap">
+                       class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition whitespace-nowrap">
                        Create Customer
                     </a>
                 @endif
@@ -115,7 +115,7 @@
                                     <!-- ✏️ Edit -->
                                     @if(auth()->user()->canEditCustomers())
                                         <a href="{{ route('customers.edit', $customer->id) }}" 
-                                           class="bg-yellow-600 hover:bg-yellow-700 text-gray-800 text-xs font-medium px-3 py-1.5 rounded transition">
+                                           class="bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-medium px-3 py-1.5 rounded transition">
                                            Edit
                                         </a>
                                     @endif
@@ -128,7 +128,7 @@
                                             <button type="submit" 
                                                     class="text-gray-800 text-xs font-medium px-3 py-1.5 rounded transition
                                                            {{ $customer->status === 'enabled' 
-                                                              ? 'bg-gray-600 hover:bg-gray-100' 
+                                                              ? 'bg-gray-200 hover:bg-gray-300' 
                                                               : 'bg-green-600 hover:bg-green-700' }}">
                                                 {{ $customer->status === 'enabled' ? 'Disable' : 'Enable' }}
                                             </button>
@@ -172,7 +172,7 @@
                 @empty
                     <tr>
                         <td colspan="10" 
-                            class="px-6 py-4 text-center text-gray-400">
+                            class="px-6 py-4 text-center text-gray-500">
                             No customers found.
                         </td>
                     </tr>
@@ -182,7 +182,7 @@
     </div>
 
     <!-- 📊 Count -->
-    <div class="mt-4 text-gray-400 text-sm">
+    <div class="mt-4 text-gray-500 text-sm">
         Showing {{ $customers->count() }} customer{{ $customers->count() !== 1 ? 's' : '' }}
     </div>
 </div>

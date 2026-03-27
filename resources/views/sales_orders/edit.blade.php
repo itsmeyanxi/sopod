@@ -28,8 +28,8 @@
 
     {{-- ✅ Show warning if order is delivered and CSR needs approval --}}
     @if($isDelivered && $needsApproval)
-        <div class="bg-yellow-900/40 border-2 border-yellow-600 text-yellow-300 p-4 rounded-lg mb-6 flex items-center gap-3">
-            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-yellow-100/40 border-2 border-yellow-600 text-yellow-700 p-4 rounded-lg mb-6 flex items-center gap-3">
+            <svg class="w-6 h-6 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
             </svg>
             <div>
@@ -41,8 +41,8 @@
 
     {{-- ✅ Show info if order is delivered (for CC_Approver or approved CSR) --}}
     @if($isDelivered && !$needsApproval)
-        <div class="bg-blue-900/40 border-2 border-blue-600 text-blue-300 p-4 rounded-lg mb-6 flex items-center gap-3">
-            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-blue-100/40 border-2 border-blue-600 text-blue-700 p-4 rounded-lg mb-6 flex items-center gap-3">
+            <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <div>
@@ -70,7 +70,7 @@
                 <label class="block text-sm mb-1 text-gray-500">Customer</label>
                 <input type="text" 
                     value="{{ $salesOrder->customer->customer_name }}" 
-                    class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-400" readonly>
+                    class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-500" readonly>
                 <input type="hidden" name="customer_id" value="{{ $salesOrder->customer_id }}">
             </div>
 
@@ -83,11 +83,11 @@
                     data-has-po-image="{{ $salesOrder->po_image ? 'true' : 'false' }}"
                     data-original-value="{{ $salesOrder->po_number }}">
                 @if($salesOrder->po_number)
-                    <p class="text-xs text-blue-400 mt-1">💡 To remove this and use an image instead, upload a PO image below</p>
+                    <p class="text-xs text-blue-700 mt-1">💡 To remove this and use an image instead, upload a PO image below</p>
                 @elseif($salesOrder->po_image)
-                    <p class="text-xs text-blue-400 mt-1">💡 Enter a PO Number here to remove the current image</p>
+                    <p class="text-xs text-blue-700 mt-1">💡 Enter a PO Number here to remove the current image</p>
                 @else
-                    <p class="text-xs text-gray-400 mt-1">Provide either PO Number OR upload image below</p>
+                    <p class="text-xs text-gray-500 mt-1">Provide either PO Number OR upload image below</p>
                 @endif
             </div>
 
@@ -102,7 +102,7 @@
                 <label class="block text-sm mb-1 text-gray-500">Sales Representative</label>
                 <input type="text" name="sales_rep"
                     value="{{ old('sales_rep', $salesOrder->sales_rep) }}"
-                    class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-400" readonly>
+                    class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-500" readonly>
             </div>
 
             <div>
@@ -113,7 +113,7 @@
                      focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
                      placeholder-gray-400"
               placeholder="Enter shipping address...">{{ old('shipping_address', $salesOrder->shipping_address ?? $salesOrder->customer->shipping_address) }}</textarea>
-    <p class="text-xs text-gray-400 mt-1">
+    <p class="text-xs text-gray-500 mt-1">
         Leave empty to use customer's default address
     </p>
 </div>
@@ -128,11 +128,11 @@
                     {{-- Current PO Image Display --}}
                     @if($salesOrder->po_image)
                         <div class="mb-3 bg-gray-50/50 border border-gray-200 rounded-lg p-3">
-                            <p class="text-xs text-gray-400 mb-2">Current PO Proof:</p>
+                            <p class="text-xs text-gray-500 mb-2">Current PO Proof:</p>
                             @if(Str::endsWith($salesOrder->po_image, '.pdf'))
                                 <a href="{{ asset('po_images/' . $salesOrder->po_image) }}"
                                    target="_blank"
-                                   class="text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors">
+                                   class="text-blue-700 hover:text-blue-700 flex items-center gap-2 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                     </svg>
@@ -146,15 +146,15 @@
                                         alt="Current PO Proof"
                                         class="max-w-xs rounded border border-gray-300 hover:border-blue-500 transition-all cursor-pointer">
                                 </a>
-                                <p class="text-xs text-gray-400 mt-2">Click to view full size</p>
+                                <p class="text-xs text-gray-500 mt-2">Click to view full size</p>
                             @endif
-                            <p class="text-xs text-blue-400 mt-2">💡 To remove this image, provide a PO Number above</p>
+                            <p class="text-xs text-blue-700 mt-2">💡 To remove this image, provide a PO Number above</p>
                         </div>
                     @endif
 
                     {{-- Upload New PO Image --}}
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">
+                        <label class="block text-xs text-gray-500 mb-1">
                             @if($salesOrder->po_image)
                                 Replace PO Proof (will replace current proof)
                             @else
@@ -164,8 +164,8 @@
                         <input type="file" id="po_image" name="po_image" accept="image/*,application/pdf"
                             class="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded px-3 py-2
                                 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0
-                                file:bg-blue-600 file:text-gray-800 hover:file:bg-blue-500">
-                        <p class="text-xs text-gray-400 mt-2">
+                                file:bg-blue-600 file:text-white hover:file:bg-blue-500">
+                        <p class="text-xs text-gray-500 mt-2">
                             Accepts JPG, PNG, or PDF (max 4MB).
                             @if($salesOrder->po_image)
                                 Leave empty to keep current proof.
@@ -176,7 +176,7 @@
 
                         {{-- Preview for new upload --}}
                         <div id="po_image_preview" class="mt-3 hidden">
-                            <p class="text-xs text-gray-400 mb-2">New upload preview:</p>
+                            <p class="text-xs text-gray-500 mb-2">New upload preview:</p>
                             <img id="po_image_preview_img" src="" alt="New PO Preview"
                                 class="max-w-xs rounded border border-gray-200">
                         </div>
@@ -184,8 +184,8 @@
 
                     {{-- Option to remove PO image by providing PO number --}}
                     @if($salesOrder->po_image && !$salesOrder->po_number)
-                        <div class="mt-3 bg-yellow-900/20 border border-yellow-700 rounded-lg p-3">
-                            <p class="text-xs text-yellow-300 mb-2">
+                        <div class="mt-3 bg-yellow-100/20 border border-yellow-700 rounded-lg p-3">
+                            <p class="text-xs text-yellow-700 mb-2">
                                 <i class="fas fa-info-circle mr-1"></i>
                                 <strong>Want to use PO Number instead?</strong>
                             </p>
@@ -210,7 +210,7 @@
                          focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
                          placeholder-gray-500"
                   placeholder="Enter any special delivery instructions, requirements, or notes for this order...">{{ old('additional_instructions', $salesOrder->additional_instructions) }}</textarea>
-        <p class="text-xs text-gray-400 mt-2">
+        <p class="text-xs text-gray-500 mt-2">
             These instructions will appear on the printed sales order form and delivery documents.
         </p>
     </div>
@@ -319,7 +319,7 @@
                             <label class="block text-sm mb-1 text-gray-500">Total Amount</label>
                             <input type="text" name="items[{{ $loop->index }}][total_amount]" 
                                    value="{{ old('items.' . $loop->index . '.total_amount', $item->total_amount) }}" 
-                                   class="item-total w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-gray-400" readonly>
+                                   class="item-total w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-gray-500" readonly>
                         </div>
                     </div>
 
@@ -341,7 +341,7 @@
                 💾 Update Sales Order
             </button>
             <a href="{{ route('sales_orders.show', $salesOrder->id) }}" 
-               class="text-gray-400 hover:text-gray-200">Cancel</a>
+               class="text-gray-500 hover:text-gray-700">Cancel</a>
         </div>
     </form>
 </div>
@@ -616,7 +616,7 @@ function addNewItem() {
             <div>
                 <label class="block text-sm mb-1 text-gray-500">Total Amount</label>
                 <input type="text" name="items[${itemIndex}][total_amount]" 
-                    class="item-total w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-gray-400" readonly>
+                    class="item-total w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-gray-500" readonly>
             </div>
         </div>
 

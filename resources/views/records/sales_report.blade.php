@@ -16,7 +16,7 @@
         <form method="GET" action="{{ route('sales.report') }}" class="flex items-center gap-4">
             <label for="year" class="text-gray-800 font-semibold">Select Year:</label>
             <select name="year" id="year" 
-                    class="bg-gray-600 text-white border border-gray-500 rounded px-4 py-2"
+                    class="bg-gray-200 text-gray-800 border border-gray-300 rounded px-4 py-2"
                     onchange="this.form.submit()">
                 @foreach($availableYears as $year)
                     <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
@@ -67,7 +67,7 @@
                         <td class="px-6 py-4 text-right">
                             {{ array_sum(array_column($salesData, 'order_count')) }}
                         </td>
-                        <td class="px-6 py-4 text-right text-green-400">
+                        <td class="px-6 py-4 text-right text-green-700">
                             ₱{{ number_format($yearTotal, 2) }}
                         </td>
                     </tr>

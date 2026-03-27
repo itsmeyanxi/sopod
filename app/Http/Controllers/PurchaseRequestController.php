@@ -9,6 +9,7 @@ use App\Models\NonTradeItem;
 use App\Models\TradeItem;
 use App\Models\Supplier;
 use App\Models\Activity;
+use App\Models\InHouseBom;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -78,7 +79,48 @@ class PurchaseRequestController extends Controller
             'Pacific Agrisolutions Enterprises Inc.',
         ];
 
-        return view('purchase_requests.create', compact('prNo', 'companies'));
+        // Load BOM data if creating PR from a BOM
+        $bom = null;
+        $bomItems = [];
+        if (request('bom_id')) {
+            $bom = InHouseBom::with('houses')->find(request('bom_id'));
+            if ($bom) {
+                // Flatten all materials from all houses into PR items
+                $itemIndex = 0;
+                foreach ($bom->houses as $house) {
+                    $houseName = $house->house_name ?: 'House ' . $house->house_number;
+                    foreach ($house->materials ?? [] as $mat) {
+                        $cat = $mat['category'] ?? '';
+                        $qty = $cat === 'feed' ? (float)($mat['qty_bags'] ?? 0) : (float)($mat['qty_kg'] ?? 0);
+                        $cost = (float)($mat['cost'] ?? 0);
+                        $amount = $qty * $cost;
+
+                        // Special labor calculation
+                        if ($cat === 'labor') {
+                            $dy = (float)($mat['days'] ?? 0);
+                            $dv = (float)($mat['divisor'] ?? 0);
+                            $op = $mat['labor_op'] ?? '';
+                            $amount = $qty * $cost;
+                            if ($dy) { $amount = $op === 'divide' ? ($qty * $cost) / $dy : $qty * $cost * $dy; }
+                            if ($dv) { $amount = $amount / $dv; }
+                        }
+
+                        $bomItems[] = [
+                            'description' => ($mat['name'] ?? '') . ' [' . $houseName . ']',
+                            'qty'         => $qty,
+                            'uom'         => $mat['uom'] ?? '',
+                            'unit_price'  => $cost,
+                            'amount'      => round($amount, 2),
+                            'remarks'     => ucfirst(str_replace('_', ' ', $cat)),
+                            'note'        => $houseName,
+                        ];
+                        $itemIndex++;
+                    }
+                }
+            }
+        }
+
+        return view('purchase_requests.create', compact('prNo', 'companies', 'bom', 'bomItems'));
     }
 
     /**
@@ -245,7 +287,20 @@ class PurchaseRequestController extends Controller
         try {
             $prNo = 'PR-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-            $purchaseRequest = PurchaseRequest::create([
+            // Load BOM data if linked
+            $bomData = [];
+            if ($request->bom_id) {
+                $linkedBom = InHouseBom::with('houses')->find($request->bom_id);
+                if ($linkedBom) {
+                    $bomData = [
+                        'bom_id'         => $linkedBom->id,
+                        'bom_cycle_ref'  => $linkedBom->cycle_ref,
+                        'bom_total_cost' => $linkedBom->total_cost,
+                    ];
+                }
+            }
+
+            $purchaseRequest = PurchaseRequest::create(array_merge([
                 'pr_no' => $prNo,
                 'company' => $request->company,
                 'requisitioner' => $request->requisitioner,
@@ -264,7 +319,7 @@ class PurchaseRequestController extends Controller
                 'reason_for_requisition' => $request->reason_for_requisition,
                 'status' => 'pending',
                 'created_by' => Auth::id(),
-            ]);
+            ], $bomData));
 
             foreach ($request->items as $index => $item) {
                 PurchaseRequestItem::create([

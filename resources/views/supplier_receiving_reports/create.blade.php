@@ -32,7 +32,7 @@
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DATE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="report_date" value="{{ old('report_date', date('Y-m-d')) }}" required
                             class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
@@ -80,7 +80,7 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">TYPE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-2">TYPE: <span class="text-red-700">*</span></label>
                         <div class="flex flex-wrap gap-4">
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="report_type" value="purchased" {{ old('report_type', 'purchased') == 'purchased' ? 'checked' : '' }}
@@ -121,7 +121,7 @@
                             <tr>
                                 <th class="border border-gray-200 px-2 py-2 w-10">#</th>
                                 <th class="border border-gray-200 px-2 py-2">ITEM CODE</th>
-                                <th class="border border-gray-200 px-2 py-2">ITEM DESCRIPTION <span class="text-red-400">*</span></th>
+                                <th class="border border-gray-200 px-2 py-2">ITEM DESCRIPTION <span class="text-red-700">*</span></th>
                                 <th class="border border-gray-200 px-2 py-2">BRAND</th>
                                 <th class="border border-gray-200 px-2 py-2 w-28">NO. OF BOXES</th>
                                 <th class="border border-gray-200 px-2 py-2 w-32">NET WEIGHT</th>
@@ -166,7 +166,7 @@
                                     <input type="text" name="items[0][remarks]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
                                 </td>
                                 <td class="border border-gray-200 px-2 py-2 text-center">
-                                    <button type="button" onclick="removeRow(this)" class="text-red-400 hover:text-red-300">
+                                    <button type="button" onclick="removeRow(this)" class="text-red-700 hover:text-red-700">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
@@ -218,13 +218,13 @@
 
             <!-- Submit Buttons -->
             <div class="flex justify-end gap-3 border-t border-gray-200 pt-4">
-                <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-500 transition">
+                <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-500 transition">
                     Cancel
                 </a>
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     <i class="fas fa-save mr-1"></i> Save as Draft
                 </button>
-                <button type="submit" name="save_final" value="1" class="bg-gradient-to-r from-green-600 to-green-700 text-gray-800 px-6 py-2 rounded hover:from-green-700 hover:to-green-800 transition">
+                <button type="submit" name="save_final" value="1" class="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-2 rounded hover:from-green-700 hover:to-green-800 transition">
                     <i class="fas fa-check mr-1"></i> Save
                 </button>
             </div>
@@ -270,7 +270,7 @@ function addRow() {
             <input type="text" name="items[${index}][remarks]" class="w-full bg-gray-50 border-0 px-2 py-1 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 rounded">
         </td>
         <td class="border border-gray-200 px-2 py-2 text-center">
-            <button type="button" onclick="removeRow(this)" class="text-red-400 hover:text-red-300">
+            <button type="button" onclick="removeRow(this)" class="text-red-700 hover:text-red-700">
                 <i class="fas fa-trash"></i>
             </button>
         </td>
@@ -348,7 +348,7 @@ poInput.addEventListener('input', function() {
             const pos = await response.json();
 
             if (pos.length === 0) {
-                poResults.innerHTML = '<div class="p-3 text-gray-400 text-center text-sm">No POs found</div>';
+                poResults.innerHTML = '<div class="p-3 text-gray-500 text-center text-sm">No POs found</div>';
                 poResults.classList.remove('hidden');
                 return;
             }
@@ -357,7 +357,7 @@ poInput.addEventListener('input', function() {
             pos.forEach(po => {
                 html += `<div class="p-3 hover:bg-gray-100 cursor-pointer text-sm" onclick="selectPO('${po.po_no}')">
                     <span class="font-semibold text-gray-800">${po.po_no}</span>
-                    <span class="text-gray-400 ml-2">${po.supplier || ''}</span>
+                    <span class="text-gray-500 ml-2">${po.supplier || ''}</span>
                 </div>`;
             });
             html += '</div>';
@@ -411,7 +411,7 @@ function attachSrrDescAutocomplete(input) {
                 const items = await res.json();
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(name =>
-                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 srr-desc-option">${name}</div>`
+                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 srr-desc-option">${name}</div>`
                 ).join('');
                 positionDropdown();
                 dropdown.classList.remove('hidden');

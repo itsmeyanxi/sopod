@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Create In-House BOM')
+@section('title', isset($parentBom) ? 'Extend BOM — '.$parentBom->cycle_ref : 'Create In-House BOM')
 
 @section('content')
 <style>
@@ -69,11 +69,11 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-4">
     <div>
-        <div class="text-sm text-gray-400 mb-1">
+        <div class="text-sm text-gray-500 mb-1">
             <a href="{{ route('inhouse_bom.index') }}" class="hover:text-gray-600"><i class="fas fa-arrow-left mr-1"></i>BOM List</a>
         </div>
         <h2 class="text-xl font-bold text-gray-800">Create In-House BOM</h2>
-        <p class="text-xs text-gray-400 mt-0.5">Bill of Materials — Broiler Production Cycle</p>
+        <p class="text-xs text-gray-500 mt-0.5">Bill of Materials — Broiler Production Cycle</p>
     </div>
     <div class="flex gap-2">
         <a href="{{ route('inhouse_bom.index') }}" class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600">Cancel</a>
@@ -86,18 +86,57 @@
 <form id="bom-form" method="POST" action="{{ route('inhouse_bom.store') }}">
     @csrf
     <input type="hidden" name="bom_payload" id="bom-payload">
+    @if(!empty($parentBom))
+    <input type="hidden" id="parent-bom-id" value="{{ $parentBom->id }}">
+    @endif
 </form>
+
+@if($errors->any())
+<div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 text-sm rounded-md px-4 py-2.5 mb-4">
+    <i class="fas fa-exclamation-circle text-red-500"></i>
+    <div>
+        @foreach($errors->all() as $error)
+            <div>{{ $error }}</div>
+        @endforeach
+    </div>
+</div>
+@endif
+
+@if(!empty($parentBom))
+<!-- Extension Banner -->
+<div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-amber-100 text-amber-700 rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-amber-800 text-sm">BOM Extension</h3>
+                <p class="text-xs text-amber-600 mt-0.5">
+                    Extending <strong>{{ $parentBom->cycle_ref }}</strong>
+                    @if($parentBom->grower) · Grower: {{ $parentBom->grower }} @endif
+                    · Original Cost: <strong>PHP {{ number_format($parentBom->total_cost, 2) }}</strong>
+                </p>
+            </div>
+        </div>
+        <a href="{{ route('inhouse_bom.show', $parentBom) }}"
+           class="px-4 py-2 text-sm border border-amber-300 rounded-md hover:bg-amber-100 text-amber-700 font-medium">
+            <i class="fas fa-eye mr-1"></i> View Original BOM
+        </a>
+    </div>
+</div>
+@endif
 
 <!-- STEP 1: Cycle Info -->
 <div class="b mb-4">
     <div class="b-hd"><span class="flex items-center gap-2"><span class="sbadge">1</span> Cycle Information</span></div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 p-4">
         <div class="fi">
-            <label>Cycle / Batch Ref <span class="text-red-400">*</span></label>
+            <label>Cycle / Batch Ref <span class="text-red-700">*</span></label>
             <input type="text" id="inp-cycle-ref" value="{{ $nextRef ?? '' }}" placeholder="e.g. BOM-2026-001">
         </div>
         <div class="fi">
-            <label>Date <span class="text-red-400">*</span></label>
+            <label>Date <span class="text-red-700">*</span></label>
             <input type="date" id="inp-cycle-date" value="{{ date('Y-m-d') }}">
         </div>
         <div class="fi">
@@ -156,7 +195,7 @@
             <div class="fi"><label>Age (days)</label>
                 <input type="number" id="p-age" placeholder="29" oninput="calc()">
             </div>
-            <div class="fi"><label>BPI <span class="text-gray-300 font-normal normal-case" style="font-size:.62rem;">(auto-calculated, editable)</span></label>
+            <div class="fi"><label>BPI <span class="text-gray-500 font-normal normal-case" style="font-size:.62rem;">(auto-calculated, editable)</span></label>
                 <input type="number" id="p-bpi" placeholder="412" step="1" oninput="onBpiManual()">
             </div>
             <hr class="border-gray-100">
@@ -203,7 +242,7 @@
                 <button type="button" onclick="addRow('feed')"       class="add-btn blue">  <i class="fas fa-plus"></i> Feed</button>
                 <button type="button" onclick="addRow('supplement')" class="add-btn indigo"><i class="fas fa-plus"></i> Supplement</button>
                 <button type="button" onclick="addRow('vaccine')"    class="add-btn teal">  <i class="fas fa-plus"></i> Vaccine</button>
-                <button type="button" onclick="addRow('cleaning')"   class="add-btn amber"> <i class="fas fa-plus"></i> Cleaning</button>
+                <button type="button" onclick="addRow('cleaning_material')" class="add-btn amber"> <i class="fas fa-plus"></i> Cleaning</button>
                 <button type="button" onclick="addRow('supply')"     class="add-btn rose">  <i class="fas fa-plus"></i> Supply</button>
                 <button type="button" onclick="addRow('labor')"      class="add-btn blue">  <i class="fas fa-plus"></i> Labor</button>
                 <button type="button" onclick="addRow('overhead')"   class="add-btn indigo"><i class="fas fa-plus"></i> Overhead</button>
@@ -213,7 +252,7 @@
 </div>
 
 <div class="flex justify-between items-center mb-6">
-    <p class="text-xs text-gray-400"><i class="fas fa-info-circle mr-1"></i>All house data is saved together in one BOM cycle.</p>
+    <p class="text-xs text-gray-500"><i class="fas fa-info-circle mr-1"></i>All house data is saved together in one BOM cycle.</p>
     <div class="flex gap-2">
         <a href="{{ route('inhouse_bom.index') }}" class="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600">Cancel</a>
         <button onclick="submitBOM()" class="flex items-center gap-1.5 px-5 py-2 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold shadow-sm">
@@ -235,9 +274,9 @@ const CDM_CATS = ['disinfectant','cleaning_material','supply'];
 // Default rows matching the PDF exactly
 const DEFAULTS = {
     feed: [
-        { name:'Booster (Crumble)', days:8,  qty_kg:16000, qty_bags:320, uom:'Bags', cost:1870.00 },
-        { name:'Starter',           days:16, qty_kg:32000, qty_bags:640, uom:'Bags', cost:1830.00 },
-        { name:'Grower',            days:16, qty_kg:32704, qty_bags:655, uom:'Bags', cost:1770.00 },
+        { name:'Booster (Crumble)', days:8,  qty_kg:320000, qty_bags:320, uom:'Bags', cost:1870.00 },
+        { name:'Starter',           days:16, qty_kg:640000, qty_bags:640, uom:'Bags', cost:1830.00 },
+        { name:'Grower',            days:16, qty_kg:655000, qty_bags:655, uom:'Bags', cost:1770.00 },
     ],
     supplement: [
         { name:'Electrolytes - JCS (1 liter/bottle)',               days:'', qty_kg:1,  qty_bags:'', uom:'Liter', cost:195.00   },
@@ -469,7 +508,9 @@ function renderTable() {
                 <td class="r">${isLabor
                     ?`<input class="ci" style="width:40px;" value="${r.days??''}" onchange="updateMat('${cat}',${i},'days',this.value);renderTable()" placeholder="days">`
                     :`<input class="ci" style="width:40px;" value="${r.days??''}" onchange="updateMat('${cat}',${i},'days',this.value)">`}</td>
-                <td class="r"><input class="ci" style="width:75px;" value="${r.qty_kg??''}" onchange="updateMat('${cat}',${i},'qty_kg',this.value);renderTable()"></td>
+                <td class="r">${cat==='feed'
+                    ?`<input class="ci" style="width:75px;background:#f0f7ff;color:#1e3a5f;font-weight:700;" value="${r.qty_kg??''}" readonly title="Auto: Bags × 1,000">`
+                    :`<input class="ci" style="width:75px;" value="${r.qty_kg??''}" onchange="updateMat('${cat}',${i},'qty_kg',this.value);renderTable()">`}</td>
                 <td class="r">${cat==='feed'?`<input class="ci" style="width:58px;" value="${r.qty_bags??''}" onchange="updateMat('${cat}',${i},'qty_bags',this.value);renderTable()">`
                     :isLabor?`<span style="display:flex;align-items:center;gap:2px;justify-content:flex-end;">
                         <select class="ci" style="width:38px;font-size:.65rem;padding:1px 2px;" onchange="updateMat('${cat}',${i},'labor_op',this.value);renderTable()">
@@ -489,7 +530,7 @@ function renderTable() {
         if(cat==='feed'&&feedKgTot){
             html+=`<tr style="background:#f0f7ff;border-bottom:2px solid #bfdbfe;">
                 <td style="padding-left:1.4rem;font-size:.72rem;font-weight:700;color:#1e3a5f;">Total Kg Conversion</td>
-                <td class="r" style="font-size:.6rem;color:#6b7280;">Bags × 50</td>
+                <td class="r" style="font-size:.6rem;color:#6b7280;">Bags × 1,000</td>
                 <td class="r" style="font-weight:800;color:#1e3a5f;">${N(feedKgTot)}</td>
                 <td colspan="6"></td>
             </tr>`;
@@ -498,7 +539,14 @@ function renderTable() {
     document.getElementById('bom-tbody').innerHTML=html;
 }
 
-function updateMat(cat,idx,field,val) { houseData[currentHouse].mats[cat][idx][field]=val; }
+function updateMat(cat,idx,field,val) {
+    houseData[currentHouse].mats[cat][idx][field]=val;
+    // Auto-calc: feed bags × 1000 = kg
+    if(cat==='feed' && field==='qty_bags') {
+        const bags=parseInt(val)||0;
+        houseData[currentHouse].mats[cat][idx]['qty_kg']=bags*1000;
+    }
+}
 function delRow(cat,idx) { houseData[currentHouse].mats[cat].splice(idx,1); renderTable(); }
 function addRow(cat) {
     const uomMap={feed:'Bags',labor:'pax',overhead:'Houses',vaccine:'vial',supply:'kgs',disinfectant:'Liter',cleaning_material:'L'};
@@ -509,14 +557,7 @@ function addRow(cat) {
     setTimeout(()=>{ const rows=document.querySelectorAll(`[data-cat="${cat}"]`); if(rows.length){const inp=rows[rows.length-1].querySelector('.ci.nm');if(inp)inp.focus();}},50);
 }
 
-function submitBOM() {
-    saveCurrent();
-    const ref=gv('inp-cycle-ref'), date=gv('inp-cycle-date');
-    if(!ref||!date){ Swal.fire({icon:'warning',title:'Missing Fields',text:'Cycle Reference and Date are required.'}); return; }
-    if(!Object.values(houseData).some(h=>h.loading)){ Swal.fire({icon:'warning',title:'No Data',text:'Enter parameters for at least one house.'}); return; }
-    document.getElementById('bom-payload').value=JSON.stringify({cycle_ref:ref,cycle_date:date,grower:gv('inp-grower'),notes:gv('inp-cycle-notes'),num_houses:numHouses,houses:houseData});
-    document.getElementById('bom-form').submit();
-}
+
 
 function el(id){return document.getElementById(id);}
 function gv(id){return el(id)?el(id).value.trim():'';}
@@ -524,6 +565,95 @@ function fv(id){return parseFloat(gv(id))||0;}
 function sv(id,v){if(el(id))el(id).value=v;}
 function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');}
 function N(n,d=0){const x=parseFloat(n);if(isNaN(x))return'—';const t=Math.trunc(x*Math.pow(10,d))/Math.pow(10,d);return t.toLocaleString('en-PH',{minimumFractionDigits:d,maximumFractionDigits:d});}
+
+function submitBOM() {
+    saveCurrent();
+
+    const cycleRef  = gv('inp-cycle-ref');
+    const cycleDate = gv('inp-cycle-date');
+
+    if (!cycleRef) { Swal.fire('Error','Cycle / Batch Ref is required.','error'); return; }
+    if (!cycleDate) { Swal.fire('Error','Date is required.','error'); return; }
+
+    const houses = {};
+    for (let h = 1; h <= numHouses; h++) {
+        const d = houseData[h];
+        if (!d.loading && !d.name) continue;
+        houses[h] = {
+            name:    d.name || '',
+            loading: d.loading || 0,
+            liv:     d.liv || 0,
+            alw:     d.alw || 0,
+            fcr:     d.fcr || 0,
+            age:     d.age || 0,
+            bpi:     d.bpi || null,
+            docCost: d.docCost || 24,
+            mats:    d.mats || {}
+        };
+    }
+
+    const payload = {
+        cycle_ref:  cycleRef,
+        cycle_date: cycleDate,
+        grower:     gv('inp-grower'),
+        notes:      gv('inp-cycle-notes'),
+        num_houses: numHouses,
+        houses:     houses,
+        parent_bom_id: document.getElementById('parent-bom-id')?.value || null
+    };
+
+    document.getElementById('bom-payload').value = JSON.stringify(payload);
+    document.getElementById('bom-form').submit();
+}
+
+@if(!empty($parentBom) && !empty($parentHouses))
+// ── Pre-fill from parent BOM for extension ──
+(function() {
+    const parentHouses = @json($parentHouses);
+    const houseNums = Object.keys(parentHouses);
+    const parentNumHouses = houseNums.length;
+
+    // Set number of houses
+    numHouses = parentNumHouses;
+    document.getElementById('inp-num-houses').value = parentNumHouses;
+
+    // Pre-fill grower
+    const growerVal = @json($parentBom->grower ?? '');
+    if (growerVal) document.getElementById('inp-grower').value = growerVal;
+
+    // Pre-fill notes
+    document.getElementById('inp-cycle-notes').value = 'Extension of {{ $parentBom->cycle_ref }}';
+
+    // Override houseData with parent data
+    houseData = {};
+    houseNums.forEach(hNum => {
+        const h = parseInt(hNum);
+        const ph = parentHouses[hNum];
+        houseData[h] = {
+            name: ph.name || '',
+            loading: ph.loading || null,
+            liv: ph.liv || null,
+            alw: ph.alw || null,
+            fcr: ph.fcr || null,
+            age: ph.age || null,
+            bpi: ph.bpi || null,
+            _bpiManual: !!ph.bpi,
+            docCost: ph.docCost || 24,
+            _totalKg: 0,
+            _cpk: 0,
+            mats: {}
+        };
+        // Fill materials from parent
+        CATS.forEach(c => {
+            if (ph.mats && ph.mats[c] && ph.mats[c].length) {
+                houseData[h].mats[c] = ph.mats[c].map(m => ({...m}));
+            } else {
+                houseData[h].mats[c] = [];
+            }
+        });
+    });
+})();
+@endif
 
 buildTabs(); activateHouse(1);
 </script>

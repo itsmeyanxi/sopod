@@ -71,10 +71,10 @@
                         <td class="border border-gray-200 px-4 py-3 font-semibold text-blue-600">{{ $entry->reference }}</td>
                         <td class="border border-gray-200 px-4 py-3 text-gray-700">{{ $entry->supplier_name }}</td>
                         <td class="border border-gray-200 px-4 py-3 text-gray-600">{{ $entry->description }}</td>
-                        <td class="border border-gray-200 px-4 py-3 text-right {{ $entry->debit > 0 ? 'text-red-600 font-semibold' : 'text-gray-400' }}">
+                        <td class="border border-gray-200 px-4 py-3 text-right {{ $entry->debit > 0 ? 'text-red-600 font-semibold' : 'text-gray-500' }}">
                             {{ $entry->debit > 0 ? number_format($entry->debit, 2) : '-' }}
                         </td>
-                        <td class="border border-gray-200 px-4 py-3 text-right {{ $entry->credit > 0 ? 'text-green-600 font-semibold' : 'text-gray-400' }}">
+                        <td class="border border-gray-200 px-4 py-3 text-right {{ $entry->credit > 0 ? 'text-green-600 font-semibold' : 'text-gray-500' }}">
                             {{ $entry->credit > 0 ? number_format($entry->credit, 2) : '-' }}
                         </td>
                         <td class="border border-gray-200 px-4 py-3 text-right font-bold text-gray-800">
@@ -83,7 +83,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="border border-gray-200 px-4 py-8 text-center text-gray-400">No ledger entries found.</td>
+                        <td colspan="8" class="border border-gray-200 px-4 py-8 text-center text-gray-500">No ledger entries found.</td>
                     </tr>
                     @endforelse
                 </tbody>

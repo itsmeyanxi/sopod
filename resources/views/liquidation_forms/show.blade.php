@@ -39,12 +39,12 @@
         <!-- Linked CAR Info -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-1">LINKED CASH ADVANCE REQUEST:</label>
-            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">
+            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">
                 @if($liquidation->cashAdvanceRequest)
-                    <a href="{{ route('cash_advance_requests.show', $liquidation->cashAdvanceRequest->id) }}" class="text-purple-400 hover:text-purple-300">
+                    <a href="{{ route('cash_advance_requests.show', $liquidation->cashAdvanceRequest->id) }}" class="text-purple-700 hover:text-purple-700">
                         <i class="fas fa-link mr-1"></i>{{ $liquidation->cashAdvanceRequest->car_no }}
                     </a>
-                    <span class="text-gray-400 ml-2">(CAR Amount: &#8369;{{ number_format($liquidation->cashAdvanceRequest->amount, 2) }})</span>
+                    <span class="text-gray-500 ml-2">(CAR Amount: &#8369;{{ number_format($liquidation->cashAdvanceRequest->amount, 2) }})</span>
                 @else
                     N/A
                 @endif
@@ -55,15 +55,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">NAME:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $liquidation->name }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $liquidation->name }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">DEPARTMENT:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $liquidation->department }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $liquidation->department }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">DATE APPLIED:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $liquidation->date_applied->format('F d, Y') }}</p>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $liquidation->date_applied->format('F d, Y') }}</p>
             </div>
         </div>
 
@@ -82,7 +82,7 @@
                     <tbody class="text-gray-500">
                         @foreach($liquidation->items as $index => $item)
                             <tr class="hover:bg-gray-100/40">
-                                <td class="border border-gray-200 px-4 py-3 text-center text-gray-400">{{ $index + 1 }}</td>
+                                <td class="border border-gray-200 px-4 py-3 text-center text-gray-500">{{ $index + 1 }}</td>
                                 <td class="border border-gray-200 px-4 py-3">{{ $item->particulars }}</td>
                                 <td class="border border-gray-200 px-4 py-3 text-right">&#8369;{{ number_format($item->amount, 2) }}</td>
                             </tr>
@@ -102,7 +102,7 @@
         @if($liquidation->remarks)
             <div class="mb-6">
                 <label class="block font-semibold text-gray-500 mb-2">REMARKS:</label>
-                <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded text-gray-200 min-h-[60px]">
+                <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded text-gray-700 min-h-[60px]">
                     {{ $liquidation->remarks }}
                 </div>
             </div>
@@ -111,16 +111,16 @@
         <!-- Proof Documents -->
         @if($liquidation->proof_documents && count($liquidation->proof_documents) > 0)
             <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-3">PROOF DOCUMENTS:</label>
-                <div class="bg-gray-900 border border-gray-700 rounded p-4">
+                <label class="block font-semibold text-gray-500 mb-3">PROOF DOCUMENTS:</label>
+                <div class="bg-gray-50 border border-gray-200 rounded p-4">
                     <ul class="space-y-2">
                         @foreach($liquidation->proof_documents as $doc)
-                            <li class="flex items-center justify-between p-3 bg-gray-800 rounded">
+                            <li class="flex items-center justify-between p-3 bg-white rounded">
                                 <div class="flex items-center gap-3">
-                                    <i class="fas fa-file text-purple-400"></i>
+                                    <i class="fas fa-file text-purple-700"></i>
                                     <div>
                                         <p class="text-white font-semibold">{{ $doc['name'] }}</p>
-                                        <p class="text-gray-400 text-sm">{{ number_format($doc['size'] / 1024, 2) }} KB</p>
+                                        <p class="text-gray-500 text-sm">{{ number_format($doc['size'] / 1024, 2) }} KB</p>
                                     </div>
                                 </div>
                                 <a href="{{ asset('storage/' . $doc['path']) }}" download class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition">
@@ -136,7 +136,7 @@
         <!-- Created By -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-1">CREATED BY:</label>
-            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $liquidation->creator->name ?? 'N/A' }}</p>
+            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $liquidation->creator->name ?? 'N/A' }}</p>
         </div>
 
         <!-- Signature Section -->
@@ -163,7 +163,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $liquidation->departmentHeadApprover->name ?? '' }}</span>
                                 @if($liquidation->departmentHeadApprover && $liquidation->department_head_approved_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $liquidation->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($liquidation->department_head_approved_latitude && $liquidation->department_head_approved_longitude)
@@ -178,7 +178,7 @@
                             <td class="border border-gray-200 px-4 py-8 text-center align-bottom">
                                 <span class="text-gray-800 font-semibold text-sm">{{ $liquidation->executiveApprover->name ?? '' }}</span>
                                 @if($liquidation->executiveApprover && $liquidation->executive_approved_at)
-                                    <div class="text-xs text-gray-400 italic mt-1">
+                                    <div class="text-xs text-gray-500 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $liquidation->executive_approved_at->format('d M Y | H:i') }}
                                         @if($liquidation->executive_approved_latitude && $liquidation->executive_approved_longitude)
@@ -213,7 +213,7 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @else
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @endif
@@ -222,14 +222,14 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Immediate Superior Check</span>
                             @if($liquidation->department_head_approved_by && $liquidation->departmentHeadApprover)
-                                <span class="text-green-400">&#10003; Checked</span>
+                                <span class="text-green-700">&#10003; Checked</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $liquidation->departmentHeadApprover->name }}
                                     on {{ $liquidation->department_head_approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @else
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @endif
                         </p>
                     </div>
@@ -243,12 +243,12 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @elseif($liquidation->department_head_approved_by)
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
-                                <i class="fas fa-lock text-gray-400"></i>
+                                <i class="fas fa-lock text-gray-500"></i>
                             </div>
                         @endif
                     </div>
@@ -256,16 +256,16 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Executive Approval</span>
                             @if($liquidation->status === 'approved' && $liquidation->executiveApprover)
-                                <span class="text-green-400">&#10003; Approved</span>
+                                <span class="text-green-700">&#10003; Approved</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $liquidation->executiveApprover->name }}
                                     on {{ $liquidation->executive_approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @elseif($liquidation->department_head_approved_by)
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @else
-                                <span class="text-gray-400">Locked</span>
+                                <span class="text-gray-500">Locked</span>
                             @endif
                         </p>
                     </div>
@@ -273,14 +273,14 @@
 
                 <!-- Rejection Status -->
                 @if($liquidation->status === 'rejected')
-                    <div class="flex items-start gap-4 p-3 bg-red-900/20 border border-red-700 rounded">
+                    <div class="flex items-start gap-4 p-3 bg-red-50 border border-red-200 rounded">
                         <div class="flex-shrink-0">
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-red-600">
                                 <i class="fas fa-times text-gray-800"></i>
                             </div>
                         </div>
                         <div class="flex-1">
-                            <p class="text-red-400">
+                            <p class="text-red-700">
                                 <span class="font-semibold">Rejected</span>
                             </p>
                             @if($liquidation->rejection_reason)
@@ -345,10 +345,10 @@
             <input type="hidden" name="location" id="dh_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="dh_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="dh_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -370,10 +370,10 @@
             <input type="hidden" name="location" id="exec_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="exec_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="exec_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="exec_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -395,7 +395,7 @@
                 <textarea name="rejection_reason" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeRejectModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeRejectModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
@@ -448,7 +448,7 @@ function enableSubmitButton(submitBtn, withLocation) {
 
 function captureGeolocationByIP(prefix, statusEl, submitBtn) {
     statusEl.textContent = 'Using IP-based location as fallback...';
-    statusEl.className = 'text-sm text-blue-400';
+    statusEl.className = 'text-sm text-blue-700';
     fetch('https://ipapi.co/json/')
         .then(response => response.json())
         .then(data => {
@@ -457,17 +457,17 @@ function captureGeolocationByIP(prefix, statusEl, submitBtn) {
                 document.getElementById(prefix + '_longitude').value = data.longitude;
                 document.getElementById(prefix + '_location').value = data.city || data.region || 'Unknown';
                 statusEl.textContent = 'Location captured (IP-based): ' + data.latitude + ', ' + data.longitude + ' (' + (data.city || 'Unknown') + ')';
-                statusEl.className = 'text-sm text-green-400';
+                statusEl.className = 'text-sm text-green-700';
                 enableSubmitButton(submitBtn, true);
             } else {
                 statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
-                statusEl.className = 'text-sm text-yellow-400';
+                statusEl.className = 'text-sm text-yellow-700';
                 enableSubmitButton(submitBtn, false);
             }
         })
         .catch(() => {
             statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
-            statusEl.className = 'text-sm text-yellow-400';
+            statusEl.className = 'text-sm text-yellow-700';
             enableSubmitButton(submitBtn, false);
         });
 }
@@ -480,7 +480,7 @@ function captureGeolocation(prefix) {
         return;
     }
     statusEl.textContent = 'Capturing location...';
-    statusEl.className = 'text-sm text-blue-400';
+    statusEl.className = 'text-sm text-blue-700';
     navigator.geolocation.getCurrentPosition(
         function(position) {
             const lat = position.coords.latitude;
@@ -489,7 +489,7 @@ function captureGeolocation(prefix) {
             document.getElementById(prefix + '_longitude').value = lng;
             getLocationName(lat, lng, prefix);
             statusEl.textContent = 'Location captured: ' + lat.toFixed(6) + ', ' + lng.toFixed(6);
-            statusEl.className = 'text-sm text-green-400';
+            statusEl.className = 'text-sm text-green-700';
             enableSubmitButton(submitBtn, true);
         },
         function(error) {

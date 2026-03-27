@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('customer_terms_history')) {
+            return;
+        }
         Schema::create('customer_terms_history', function (Blueprint $table) {
             $table->id();
             $table->string('customer_code');
@@ -19,8 +22,6 @@ return new class extends Migration
             $table->string('changed_by')->nullable();
             $table->timestamps();
 
-            // Foreign key to customers
-            $table->foreign('customer_code')->references('customer_code')->on('customers')->onDelete('cascade');
             $table->index('customer_code');
         });
     }

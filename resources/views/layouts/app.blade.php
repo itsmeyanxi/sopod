@@ -311,7 +311,7 @@
             <div class="submenu ml-8 space-y-1 hidden">
                 <a href="{{ route('warehouses.create') }}" class="block hover:underline">Add Warehouse</a>
                 <a href="{{ route('warehouses.index') }}" class="block hover:underline">Warehouse List</a>
-                <hr class="my-2 border-gray-600">
+                <hr class="my-2 border-gray-300">
                 <a href="{{ route('storages.create') }}" class="block hover:underline text-sm">Add Storage</a>
                 <a href="{{ route('storages.index') }}" class="block hover:underline text-sm">Storage List</a>
             </div>
@@ -319,22 +319,52 @@
         @endif
 
         <!-- =================== BOM =================== -->
-        @if(auth()->user()->canAccessModule('inhouse_bom'))
-<div>
-    <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
-        <span class="flex items-center space-x-2">
-            <span>🐔</span>
-            <span class="sidebar-text">In-House BOM</span>
-        </span>
-        <span class="chevron">▼</span>
-    </button>
-    <div class="submenu ml-8 space-y-1 hidden">
-    <a href="{{ route('inhouse_bom.index') }}" class="block hover:underline">BOM List</a>
-    <a href="{{ route('inhouse_bom.create') }}" class="block hover:underline">New BOM</a>
+        @if(auth()->user()->canAccessModule('inhouse_bom') || auth()->user()->canAccessModule('daily_feed_usage'))
+        <div>
+            <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
+                <span class="flex items-center space-x-2">
+                    <span>🐔</span>
+                    <span class="sidebar-text">In-House BOM</span>
+                </span>
+                <span class="chevron">▼</span>
+            </button>
+            <div class="submenu ml-8 space-y-1 hidden">
+                @if(auth()->user()->canAccessModule('inhouse_bom'))
+                    <a href="{{ route('inhouse_bom.index') }}" class="block hover:underline">BOM List</a>
+                    <a href="{{ route('inhouse_bom.create') }}" class="block hover:underline">New BOM</a>
+                @endif
+                @if(auth()->user()->canAccessModule('daily_feed_usage'))
+                    <a href="{{ route('daily_feed_usage.index') }}" class="block hover:underline">Daily Feed Usage</a>
+                @endif
+            </div>
+        </div>
+        @endif
 
-</div>
-</div>
-@endif
+        <!-- =================== TREASURY =================== -->
+        @if(auth()->user()->canAccessModule('treasury') || auth()->user()->canAccessModule('cv'))
+        <div>
+            <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
+                <span class="flex items-center space-x-2">
+                    <span>🏦</span>
+                    <span class="sidebar-text">Treasury</span>
+                </span>
+                <span class="chevron">▼</span>
+            </button>
+            <div class="submenu ml-8 space-y-1 hidden">
+                @if(auth()->user()->canAccessModule('treasury'))
+                    <a href="{{ route('treasury.confirmation') }}" class="block hover:underline">Payment Confirmation</a>
+                    <a href="{{ route('treasury.summary') }}" class="block hover:underline">Treasury Summary</a>
+                @endif
+                @if(auth()->user()->canAccessModule('cv'))
+                    <a href="{{ route('check_vouchers.index') }}" class="block hover:underline">Check Voucher (CV)</a>
+                @endif
+                @if(auth()->user()->canAccessModule('treasury'))
+                    <a href="{{ route('treasury.banks', 'peso') }}" class="block hover:underline">Peso Accounts</a>
+                    <a href="{{ route('treasury.banks', 'dollar') }}" class="block hover:underline">Dollar Accounts</a>
+                @endif
+            </div>
+        </div>
+        @endif
 
         <!-- =================== ITEMS =================== -->
         @if(auth()->user()->canManageItems())
@@ -438,13 +468,6 @@
                     @if(auth()->user()->canAccessModule('apv'))
                         <a href="{{ route('accounts_payable_invoices.index') }}" class="block hover:underline">Account Payable Invoice (APV)</a>
                     @endif
-                    @if(auth()->user()->canAccessModule('cv'))
-                        <a href="{{ route('check_vouchers.index') }}" class="block hover:underline">Check Voucher (CV)</a>
-                    @endif
-                    <a href="{{ route('debit_memos.index') }}" class="block hover:underline">Debit Memos (DM)</a>
-                    <a href="{{ route('payment_terms.index') }}" class="block hover:underline">Payment Terms</a>
-                    <a href="{{ route('ap_ledger.index') }}" class="block hover:underline">AP Ledger</a>
-
                     <hr class="my-2 border-gray-300">
 
                     @if(auth()->user()->canAccessModule('cash_advance'))
@@ -468,7 +491,7 @@
         @endif <!-- Close PO Creator role check -->
 
         <!-- =================== CREDITS & COLLECTION =================== -->
-        @if(auth()->user()->canAccessAgingReports() || auth()->user()->canAccessCollections())
+        @if(auth()->user()->canAccessAgingReports() || auth()->user()->canAccessCollections() || auth()->user()->canAccessModule('soa') || auth()->user()->canAccessModule('delivery_counter_dates') || auth()->user()->canAccessModule('counter_date_approvals'))
             <div>
                 <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
@@ -487,6 +510,18 @@
                     @if(auth()->user()->canAccessCollections() && auth()->user()->navAccess('payments', fn() => true))
                         <a href="{{ route('payments.entry') }}" class="block hover:underline">Collection</a>
                     @endif
+                    @if(auth()->user()->canApprovePaymentEditRequests() || auth()->user()->canRequestPaymentEdit())
+                        <a href="{{ route('payments.editRequests') }}" class="block hover:underline">Edit Requests</a>
+                    @endif
+                    @if(auth()->user()->canAccessModule('soa'))
+                        <a href="{{ route('soa.index') }}" class="block hover:underline">Statement of Accounts</a>
+                    @endif
+                    @if(auth()->user()->canAccessModule('delivery_counter_dates'))
+                        <a href="{{ route('delivery_counter_dates.index') }}" class="block hover:underline">Delivery Counter Dates</a>
+                    @endif
+                    @if(auth()->user()->canAccessModule('counter_date_approvals'))
+                        <a href="{{ route('counter_date_approvals.index') }}" class="block hover:underline">Counter Date Approval</a>
+                    @endif
                     @if(auth()->user()->canAccessAgingReports() && auth()->user()->navAccess('aging.adjustments', fn() => true))
                         <a href="{{ route('ar_adjustments.index') }}" class="block hover:underline">AR Adjustments</a>
                     @endif
@@ -495,9 +530,9 @@
         @endif
 
         <!-- =================== ACCOUNTING =================== -->
-        @if(auth()->user()->canAccessModule('gl_accounts'))
+        @if(auth()->user()->canAccessModule('gl_accounts') || auth()->user()->canAccessModule('fixed_assets') || auth()->user()->canAccessModule('journal_vouchers'))
             <div>
-                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
+                <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
                         <span>📒</span>
                         <span class="sidebar-text">Accounting</span>
@@ -505,7 +540,16 @@
                     <span class="chevron">▼</span>
                 </button>
                 <div class="submenu ml-8 space-y-1 hidden">
-                    <a href="{{ route('gl_accounts.index') }}" class="block hover:underline">Chart of Accounts</a>
+                    @if(auth()->user()->canAccessModule('gl_accounts'))
+                        <a href="{{ route('gl_accounts.index') }}" class="block hover:underline">Chart of Accounts</a>
+                    @endif
+                    @if(auth()->user()->canAccessModule('fixed_assets'))
+                        <a href="{{ route('fixed_assets.index') }}" class="block hover:underline">Fixed Asset Capitalization</a>
+                        <a href="{{ route('fixed_assets.summary') }}" class="block hover:underline">Lapsing Schedule</a>
+                    @endif
+                    @if(auth()->user()->canAccessModule('journal_vouchers'))
+                        <a href="{{ route('journal_vouchers.index') }}" class="block hover:underline">Journal Vouchers</a>
+                    @endif
                 </div>
             </div>
         @endif

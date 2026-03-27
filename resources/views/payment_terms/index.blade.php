@@ -58,7 +58,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="border border-gray-200 px-4 py-8 text-center text-gray-400">No payment terms found.</td>
+                        <td colspan="7" class="border border-gray-200 px-4 py-8 text-center text-gray-500">No payment terms found.</td>
                     </tr>
                     @endforelse
                 </tbody>

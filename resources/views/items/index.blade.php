@@ -46,7 +46,7 @@
 
         @if(auth()->user()->canManageItems())
             <a href="{{ route('items.create') }}" 
-               class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-gray-800 px-4 py-2 rounded transition">
+               class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition">
                 Add New Item
             </a>
         @endif
@@ -146,7 +146,7 @@
                                     <button type="submit"
                                         class="text-gray-800 text-xs font-medium px-3 py-1 rounded transition
                                                {{ $item->is_enabled 
-                                                  ? 'bg-gray-600 hover:bg-gray-100' 
+                                                  ? 'bg-gray-200 hover:bg-gray-300' 
                                                   : 'bg-green-600 hover:bg-green-700' }}">
                                         {{ $item->is_enabled ? 'Disable' : 'Enable' }}
                                     </button>
@@ -170,7 +170,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-6 text-center text-gray-400">
+                    <td colspan="8" class="px-4 py-6 text-center text-gray-500">
                         No items found.
                     </td>
                 </tr>
@@ -180,7 +180,7 @@
     </div>
 
     <!-- Item Count at the Bottom -->
-    <div class="mt-4 text-sm text-gray-400 text-left" id="itemCount"></div>
+    <div class="mt-4 text-sm text-gray-500 text-left" id="itemCount"></div>
 </div>
 
 <!-- Individual Reject Modal -->
@@ -202,7 +202,7 @@
                 <button 
                     type="button" 
                     onclick="closeRejectModal()"
-                    class="bg-gray-100 hover:bg-gray-100 text-gray-200 px-4 py-2 rounded-md transition">
+                    class="bg-gray-100 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md transition">
                     Cancel
                 </button>
                 <button 
@@ -219,7 +219,7 @@
 <div id="bulkApprovalModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <h2 class="text-xl font-bold text-gray-800 mb-4">Confirm Bulk Approval</h2>
-        <p class="text-gray-500 mb-4">Are you sure you want to approve <span id="bulkApprovalCount" class="font-bold text-green-400"></span> item(s)?</p>
+        <p class="text-gray-500 mb-4">Are you sure you want to approve <span id="bulkApprovalCount" class="font-bold text-green-700"></span> item(s)?</p>
         <div id="bulkItemsList" class="bg-gray-50 rounded p-3 mb-4 max-h-48 overflow-y-auto">
             <!-- Item codes will be listed here -->
         </div>
@@ -227,7 +227,7 @@
             <button 
                 type="button" 
                 onclick="closeBulkApprovalModal()"
-                class="bg-gray-100 hover:bg-gray-100 text-gray-200 px-4 py-2 rounded-md transition">
+                class="bg-gray-100 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md transition">
                 Cancel
             </button>
             <button 
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateVisibleCount() {
         const visible = Array.from(rows).filter(r => r.style.display !== 'none');
         const pending = visible.filter(r => r.dataset.status === 'pending').length;
-        countDisplay.innerHTML = `Showing ${visible.length} item${visible.length !== 1 ? 's' : ''} ${pending > 0 ? `<span class="text-yellow-400">(${pending} pending)</span>` : ''}`;
+        countDisplay.innerHTML = `Showing ${visible.length} item${visible.length !== 1 ? 's' : ''} ${pending > 0 ? `<span class="text-yellow-700">(${pending} pending)</span>` : ''}`;
     }
 
     function updateBulkActionsBar() {

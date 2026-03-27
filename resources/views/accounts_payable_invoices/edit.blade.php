@@ -25,8 +25,8 @@
         @endif
 
         @if($invoice->requestForPayment)
-        <div class="mb-6 p-4 bg-green-900/20 border border-green-700 rounded">
-            <div class="flex items-center text-green-300 mb-2">
+        <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded">
+            <div class="flex items-center text-green-700 mb-2">
                 <i class="fas fa-link mr-2"></i>
                 <span class="font-semibold">Linked to RFP: {{ $invoice->requestForPayment->rfp_no }}</span>
             </div>
@@ -43,11 +43,11 @@
             <!-- APV Date and Payment Type -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">APV DATE: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">APV DATE: <span class="text-red-700">*</span></label>
                     <input type="date" name="apv_date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('apv_date', $invoice->apv_date->format('Y-m-d')) }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">PAYMENT TYPE: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">PAYMENT TYPE: <span class="text-red-700">*</span></label>
                     <div class="flex gap-4">
                         <label class="flex items-center p-3 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 cursor-pointer transition flex-1">
                             <input type="radio" name="payment_type" value="full_payment" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500" {{ old('payment_type', $invoice->payment_type) == 'full_payment' ? 'checked' : '' }} required>
@@ -70,7 +70,7 @@
                         <input type="text" name="vendor_code" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_code', $invoice->vendor_code) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">VENDOR NAME: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-2">VENDOR NAME: <span class="text-red-700">*</span></label>
                         <input type="text" name="vendor_name" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_name', $invoice->vendor_name) }}" required>
                     </div>
                     <div class="md:col-span-2">
@@ -89,7 +89,7 @@
                 <h3 class="font-semibold text-gray-800 mb-4">DOCUMENT DETAILS</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">DOCUMENT DATE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-2">DOCUMENT DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="document_date" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('document_date', $invoice->document_date->format('Y-m-d')) }}" required>
                     </div>
                     <div>
@@ -109,7 +109,7 @@
                         <input type="text" name="purchase_order_no" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('purchase_order_no', $invoice->purchase_order_no) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">CURRENCY: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-2">CURRENCY: <span class="text-red-700">*</span></label>
                         <select name="currency" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                             <option value="PHP" {{ old('currency', $invoice->currency) == 'PHP' ? 'selected' : '' }}>PHP</option>
                             <option value="USD" {{ old('currency', $invoice->currency) == 'USD' ? 'selected' : '' }}>USD</option>
@@ -128,7 +128,7 @@
             <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
                 <h3 class="font-semibold text-gray-800 mb-4">PARTICULARS & ACCOUNTING</h3>
                 <div class="mb-4">
-                    <label class="block font-semibold text-gray-500 mb-2">PARTICULARS: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">PARTICULARS: <span class="text-red-700">*</span></label>
                     <textarea name="particulars" rows="4" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" required>{{ old('particulars', $invoice->particulars) }}</textarea>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -156,30 +156,30 @@
                 <h3 class="font-semibold text-gray-800 mb-4">AMOUNT DETAILS</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">TOTAL AMOUNT: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-2">TOTAL AMOUNT: <span class="text-red-700">*</span></label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-400">₱</span>
+                            <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
                             <input type="number" step="0.01" name="total" id="totalAmount" class="w-full bg-white border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('total', $invoice->total) }}" required>
                         </div>
                     </div>
                     <div id="downpaymentField" style="display: none;">
-                        <label class="block font-semibold text-gray-500 mb-2">DOWNPAYMENT AMOUNT: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-2">DOWNPAYMENT AMOUNT: <span class="text-red-700">*</span></label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-400">₱</span>
+                            <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
                             <input type="number" step="0.01" name="downpayment_amount" id="downpaymentAmount" class="w-full bg-white border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('downpayment_amount', $invoice->downpayment_amount) }}">
                         </div>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">VAT AMOUNT:</label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-400">₱</span>
+                            <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
                             <input type="number" step="0.01" name="vat_amount" id="vatAmount" class="w-full bg-white border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vat_amount', $invoice->vat_amount) }}">
                         </div>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">W-TAX AMOUNT:</label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-400">₱</span>
+                            <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
                             <input type="number" step="0.01" name="w_tax_amount" id="wTaxAmount" class="w-full bg-white border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('w_tax_amount', $invoice->w_tax_amount) }}">
                         </div>
                     </div>
@@ -189,7 +189,7 @@
                 <div class="mt-4 p-4 bg-white border-2 border-purple-600 rounded">
                     <div class="flex justify-between items-center">
                         <span class="text-lg font-semibold text-gray-500">GRAND TOTAL:</span>
-                        <span id="grandTotalDisplay" class="text-2xl font-bold text-purple-400">₱ 0.00</span>
+                        <span id="grandTotalDisplay" class="text-2xl font-bold text-purple-700">₱ 0.00</span>
                     </div>
                 </div>
             </div>
@@ -217,7 +217,7 @@
                 <a href="{{ route('accounts_payable_invoices.show', $invoice->id) }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
+                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                     <i class="fas fa-save mr-1"></i> Update Invoice
                 </button>
             </div>

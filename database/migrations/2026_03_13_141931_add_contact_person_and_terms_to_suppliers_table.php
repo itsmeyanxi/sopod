@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('suppliers', function (Blueprint $table) {
-            $table->string('contact_person')->nullable()->after('contact_number');
-            $table->string('terms')->nullable()->after('account_number');
+            if (!Schema::hasColumn('suppliers', 'contact_person')) {
+                $table->string('contact_person')->nullable()->after('contact_number');
+            }
+            if (!Schema::hasColumn('suppliers', 'terms')) {
+                $table->string('terms')->nullable()->after('account_number');
+            }
         });
     }
 

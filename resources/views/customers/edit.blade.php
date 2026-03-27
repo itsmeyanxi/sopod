@@ -33,7 +33,7 @@
                     <!-- Customer Code -->
                     <div>
                         <label for="customer_code" class="block text-sm font-semibold text-gray-500 mb-2">
-                            Customer Code <span class="text-red-400">*</span>
+                            Customer Code <span class="text-red-700">*</span>
                         </label>
                         <input type="text" 
                                name="customer_code" 
@@ -42,14 +42,14 @@
                                class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('customer_code') border-red-500 @enderror"
                                required>
                         @error('customer_code')
-                            <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
+                            <p class="text-red-700 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Customer Name -->
                     <div>
                         <label for="customer_name" class="block text-sm font-semibold text-gray-500 mb-2">
-                            Customer Name <span class="text-red-400">*</span>
+                            Customer Name <span class="text-red-700">*</span>
                         </label>
                         <input type="text" 
                                name="customer_name" 
@@ -58,7 +58,7 @@
                                class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('customer_name') border-red-500 @enderror"
                                required>
                         @error('customer_name')
-                            <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
+                            <p class="text-red-700 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -354,10 +354,10 @@
 
             <!-- Action Buttons -->
             <div class="flex justify-end space-x-4 mt-8">
-                <a href="{{ route('customers.index') }}" class="bg-gray-600 hover:bg-gray-500 text-gray-800 px-6 py-2 rounded-lg transition">
+                <a href="{{ route('customers.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-gray-800 px-6 py-2 rounded-lg transition">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition">
                     Update Customer
                 </button>
             </div>

@@ -80,7 +80,7 @@
                     <span class="text-gray-800 font-semibold text-sm whitespace-nowrap">{{ number_format($sup->total, 2) }}</span>
                 </div>
                 @empty
-                <p class="text-gray-400 text-sm">No data yet.</p>
+                <p class="text-gray-500 text-sm">No data yet.</p>
                 @endforelse
             </div>
         </div>
@@ -98,14 +98,11 @@
                 <a href="{{ route('ap_reports.spend_analysis') }}" class="block px-4 py-2 bg-gray-50 rounded hover:bg-gray-100 text-gray-700 text-sm transition">
                     <i class="fas fa-chart-pie mr-2 text-purple-500"></i> Spend Analysis
                 </a>
-                <a href="{{ route('ap_ledger.index') }}" class="block px-4 py-2 bg-gray-50 rounded hover:bg-gray-100 text-gray-700 text-sm transition">
+                <a href="{{ route('accounts_payable_invoices.index') }}" class="block px-4 py-2 bg-gray-50 rounded hover:bg-gray-100 text-gray-700 text-sm transition">
                     <i class="fas fa-book mr-2 text-orange-500"></i> AP Ledger
                 </a>
                 <a href="{{ route('debit_memos.index') }}" class="block px-4 py-2 bg-gray-50 rounded hover:bg-gray-100 text-gray-700 text-sm transition">
                     <i class="fas fa-file-invoice mr-2 text-red-500"></i> Debit Memos
-                </a>
-                <a href="{{ route('payment_terms.index') }}" class="block px-4 py-2 bg-gray-50 rounded hover:bg-gray-100 text-gray-700 text-sm transition">
-                    <i class="fas fa-calendar-alt mr-2 text-teal-500"></i> Payment Terms
                 </a>
             </div>
         </div>
@@ -144,7 +141,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="border border-gray-200 px-4 py-6 text-center text-gray-400">No invoices yet.</td>
+                        <td colspan="5" class="border border-gray-200 px-4 py-6 text-center text-gray-500">No invoices yet.</td>
                     </tr>
                     @endforelse
                 </tbody>

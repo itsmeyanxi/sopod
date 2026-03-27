@@ -7,7 +7,7 @@
     <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">LIQUIDATION FORMS</h1>
-            <a href="{{ route('liquidation_forms.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
+            <a href="{{ route('liquidation_forms.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
                 <i class="fas fa-plus mr-1"></i> Create New Liquidation Form
             </a>
         </div>
@@ -48,7 +48,7 @@
                             <td class="border border-gray-200 px-4 py-3 text-right">&#8369;{{ number_format($liquidation->total_amount_spent, 2) }}</td>
                             <td class="border border-gray-200 px-4 py-3">
                                 @if($liquidation->cashAdvanceRequest)
-                                    <a href="{{ route('cash_advance_requests.show', $liquidation->cashAdvanceRequest->id) }}" class="text-purple-400 hover:text-purple-300">
+                                    <a href="{{ route('cash_advance_requests.show', $liquidation->cashAdvanceRequest->id) }}" class="text-purple-700 hover:text-purple-700">
                                         {{ $liquidation->cashAdvanceRequest->car_no }}
                                     </a>
                                 @else
@@ -87,8 +87,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="border border-gray-200 px-4 py-8 text-center text-gray-400">
-                                No liquidation forms found. <a href="{{ route('liquidation_forms.create') }}" class="text-purple-400 hover:text-purple-300">Create one now</a>
+                            <td colspan="9" class="border border-gray-200 px-4 py-8 text-center text-gray-500">
+                                No liquidation forms found. <a href="{{ route('liquidation_forms.create') }}" class="text-purple-700 hover:text-purple-700">Create one now</a>
                             </td>
                         </tr>
                     @endforelse

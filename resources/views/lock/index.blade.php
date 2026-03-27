@@ -15,14 +15,14 @@
                 </svg>
                 Record Lock Management
             </h2>
-            <p class="text-gray-400 mt-1">Lock Sales Orders, Deliveries, Customers, and Items by month to prevent modifications</p>
+            <p class="text-gray-500 mt-1">Lock Sales Orders, Deliveries, Customers, and Items by month to prevent modifications</p>
         </div>
         <div class="flex items-center gap-2 text-sm">
-            <span class="px-3 py-1 bg-green-600/20 text-green-400 rounded-full border border-green-600">
+            <span class="px-3 py-1 bg-green-600/20 text-green-700 rounded-full border border-green-600">
                 <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
                 Unlocked
             </span>
-            <span class="px-3 py-1 bg-red-600/20 text-red-400 rounded-full border border-red-600">
+            <span class="px-3 py-1 bg-red-600/20 text-red-700 rounded-full border border-red-600">
                 <span class="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
                 Locked
             </span>
@@ -53,14 +53,14 @@
     </form>
 
     {{-- Info Banner --}}
-    <div class="bg-blue-900/30 border border-blue-700 rounded-lg p-4 mb-8">
+    <div class="bg-blue-100 border border-blue-700 rounded-lg p-4 mb-8">
         <div class="flex items-start gap-3">
-            <svg class="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 text-blue-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <div>
-                <h4 class="text-blue-300 font-semibold">How Locking Works</h4>
-                <ul class="text-sm text-blue-200 mt-2 space-y-1">
+                <h4 class="text-blue-700 font-semibold">How Locking Works</h4>
+                <ul class="text-sm text-blue-700 mt-2 space-y-1">
                     <li>• Locked records become <strong>view-only</strong> - no edits, deletions, or status changes allowed</li>
                     <li>• Locking is based on the record's <strong>creation month</strong></li>
                     <li>• Only <strong>Admin</strong> and <strong>IT</strong> roles can lock/unlock records</li>
@@ -93,18 +93,18 @@
                         <p class="text-xs text-gray-500">{{ $monthData['year'] }}-{{ str_pad($monthData['month'], 2, '0', STR_PAD_LEFT) }}</p>
                     </div>
                     @if($isFullyLocked)
-                        <span class="px-3 py-1 bg-red-600/20 text-red-400 text-xs font-semibold rounded-full border border-red-600 flex items-center gap-1">
+                        <span class="px-3 py-1 bg-red-600/20 text-red-700 text-xs font-semibold rounded-full border border-red-600 flex items-center gap-1">
                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
                             </svg>
                             LOCKED
                         </span>
                     @elseif($hasLockedItems)
-                        <span class="px-3 py-1 bg-yellow-600/20 text-yellow-400 text-xs font-semibold rounded-full border border-yellow-600">
+                        <span class="px-3 py-1 bg-yellow-600/20 text-yellow-700 text-xs font-semibold rounded-full border border-yellow-600">
                             PARTIAL
                         </span>
                     @else
-                        <span class="px-3 py-1 bg-green-600/20 text-green-400 text-xs font-semibold rounded-full border border-green-600 flex items-center gap-1">
+                        <span class="px-3 py-1 bg-green-600/20 text-green-700 text-xs font-semibold rounded-full border border-green-600 flex items-center gap-1">
                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"></path>
                             </svg>
@@ -118,8 +118,8 @@
                     {{-- Sales Orders --}}
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm text-gray-400">Sales Orders</span>
-                            <span class="text-sm font-semibold {{ $monthData['so_locked_count'] > 0 ? 'text-red-400' : 'text-green-400' }}">
+                            <span class="text-sm text-gray-500">Sales Orders</span>
+                            <span class="text-sm font-semibold {{ $monthData['so_locked_count'] > 0 ? 'text-red-700' : 'text-green-700' }}">
                                 {{ $monthData['so_locked_count'] }} / {{ $monthData['so_count'] }} locked
                             </span>
                         </div>
@@ -132,8 +132,8 @@
                     {{-- Deliveries --}}
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm text-gray-400">Deliveries</span>
-                            <span class="text-sm font-semibold {{ $monthData['delivery_locked_count'] > 0 ? 'text-red-400' : 'text-green-400' }}">
+                            <span class="text-sm text-gray-500">Deliveries</span>
+                            <span class="text-sm font-semibold {{ $monthData['delivery_locked_count'] > 0 ? 'text-red-700' : 'text-green-700' }}">
                                 {{ $monthData['delivery_locked_count'] }} / {{ $monthData['delivery_count'] }} locked
                             </span>
                         </div>
@@ -146,13 +146,13 @@
                             <div class="mt-2 flex flex-wrap gap-2">
                                 @php
                                     $statusColors = [
-                                        'Delivered' => 'bg-green-600/20 text-green-400 border-green-600',
-                                        'Pending' => 'bg-yellow-600/20 text-yellow-400 border-yellow-600',
-                                        'Cancelled' => 'bg-red-600/20 text-red-400 border-red-600',
+                                        'Delivered' => 'bg-green-600/20 text-green-700 border-green-600',
+                                        'Pending' => 'bg-yellow-600/20 text-yellow-700 border-yellow-600',
+                                        'Cancelled' => 'bg-red-600/20 text-red-700 border-red-600',
                                     ];
                                 @endphp
                                 @foreach($monthData['delivery_status_counts'] as $status => $count)
-                                    <span class="px-2 py-0.5 text-xs font-medium rounded border {{ $statusColors[$status] ?? 'bg-gray-600/20 text-gray-400 border-gray-300' }}">
+                                    <span class="px-2 py-0.5 text-xs font-medium rounded border {{ $statusColors[$status] ?? 'bg-gray-100 text-gray-500 border-gray-300' }}">
                                         {{ $status }}: {{ $count }}
                                     </span>
                                 @endforeach
@@ -163,8 +163,8 @@
                     {{-- Customers --}}
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm text-gray-400">Customers</span>
-                            <span class="text-sm font-semibold {{ $monthData['customer_locked_count'] > 0 ? 'text-red-400' : 'text-green-400' }}">
+                            <span class="text-sm text-gray-500">Customers</span>
+                            <span class="text-sm font-semibold {{ $monthData['customer_locked_count'] > 0 ? 'text-red-700' : 'text-green-700' }}">
                                 {{ $monthData['customer_locked_count'] }} / {{ $monthData['customer_count'] }} locked
                             </span>
                         </div>
@@ -177,8 +177,8 @@
                     {{-- Items --}}
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm text-gray-400">Items</span>
-                            <span class="text-sm font-semibold {{ $monthData['item_locked_count'] > 0 ? 'text-red-400' : 'text-green-400' }}">
+                            <span class="text-sm text-gray-500">Items</span>
+                            <span class="text-sm font-semibold {{ $monthData['item_locked_count'] > 0 ? 'text-red-700' : 'text-green-700' }}">
                                 {{ $monthData['item_locked_count'] }} / {{ $monthData['item_count'] }} locked
                             </span>
                         </div>
@@ -224,7 +224,7 @@
                 <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <p class="text-gray-400 text-lg">No records found</p>
+                <p class="text-gray-500 text-lg">No records found</p>
                 <p class="text-gray-500 text-sm mt-1">Create Sales Orders, Deliveries, Customers, or Items to see them here</p>
             </div>
         @endforelse
@@ -237,7 +237,7 @@
         {{-- Modal Header --}}
         <div class="bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h3 id="modalTitle" class="text-xl font-bold text-gray-800">Month Details</h3>
-            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-800 transition-colors">
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -265,7 +265,7 @@
             {{-- Sales Orders Table --}}
             <div id="soTable" class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-white text-gray-400 uppercase text-xs">
+                    <thead class="bg-white text-gray-500 uppercase text-xs">
                         <tr>
                             <th class="px-4 py-3 text-left">SO Number</th>
                             <th class="px-4 py-3 text-left">Customer</th>
@@ -284,7 +284,7 @@
             {{-- Deliveries Table --}}
             <div id="deliveryTable" class="overflow-x-auto hidden">
                 <table class="w-full text-sm">
-                    <thead class="bg-white text-gray-400 uppercase text-xs">
+                    <thead class="bg-white text-gray-500 uppercase text-xs">
                         <tr>
                             <th class="px-4 py-3 text-left">DR Number</th>
                             <th class="px-4 py-3 text-left">SO Number</th>
@@ -303,7 +303,7 @@
             {{-- Customers Table --}}
             <div id="customerTable" class="overflow-x-auto hidden">
                 <table class="w-full text-sm">
-                    <thead class="bg-white text-gray-400 uppercase text-xs">
+                    <thead class="bg-white text-gray-500 uppercase text-xs">
                         <tr>
                             <th class="px-4 py-3 text-left">Customer Code</th>
                             <th class="px-4 py-3 text-left">Customer Name</th>
@@ -321,7 +321,7 @@
             {{-- Items Table --}}
             <div id="itemTable" class="overflow-x-auto hidden">
                 <table class="w-full text-sm">
-                    <thead class="bg-white text-gray-400 uppercase text-xs">
+                    <thead class="bg-white text-gray-500 uppercase text-xs">
                         <tr>
                             <th class="px-4 py-3 text-left">Item Code</th>
                             <th class="px-4 py-3 text-left">Description</th>
@@ -383,7 +383,7 @@ function populateSOTable(salesOrders) {
 
     tbody.innerHTML = salesOrders.map(so => `
         <tr class="hover:bg-white/50">
-            <td class="px-4 py-3 font-mono text-blue-400">${so.sales_order_number}</td>
+            <td class="px-4 py-3 font-mono text-blue-700">${so.sales_order_number}</td>
             <td class="px-4 py-3">${so.customer?.customer_name || '—'}</td>
             <td class="px-4 py-3 text-right font-mono">₱${parseFloat(so.total_amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
             <td class="px-4 py-3 text-center">
@@ -391,11 +391,11 @@ function populateSOTable(salesOrders) {
             </td>
             <td class="px-4 py-3 text-center">
                 ${so.is_locked
-                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-400 rounded text-xs font-medium border border-red-600">LOCKED</span>'
-                    : '<span class="px-2 py-1 bg-green-600/20 text-green-400 rounded text-xs font-medium border border-green-600">OPEN</span>'
+                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-700 rounded text-xs font-medium border border-red-600">LOCKED</span>'
+                    : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
                 }
             </td>
-            <td class="px-4 py-3 text-center text-gray-400">${formatDate(so.created_at)}</td>
+            <td class="px-4 py-3 text-center text-gray-500">${formatDate(so.created_at)}</td>
         </tr>
     `).join('');
 }
@@ -410,19 +410,19 @@ function populateDeliveryTable(deliveries) {
 
     tbody.innerHTML = deliveries.map(d => `
         <tr class="hover:bg-white/50">
-            <td class="px-4 py-3 font-mono text-green-400">${d.dr_no || '—'}</td>
-            <td class="px-4 py-3 font-mono text-blue-400">${d.sales_order_number || '—'}</td>
+            <td class="px-4 py-3 font-mono text-green-700">${d.dr_no || '—'}</td>
+            <td class="px-4 py-3 font-mono text-blue-700">${d.sales_order_number || '—'}</td>
             <td class="px-4 py-3">${d.customer_name || '—'}</td>
             <td class="px-4 py-3 text-center">
                 <span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(d.status)}">${d.status || '—'}</span>
             </td>
             <td class="px-4 py-3 text-center">
                 ${d.is_locked
-                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-400 rounded text-xs font-medium border border-red-600">LOCKED</span>'
-                    : '<span class="px-2 py-1 bg-green-600/20 text-green-400 rounded text-xs font-medium border border-green-600">OPEN</span>'
+                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-700 rounded text-xs font-medium border border-red-600">LOCKED</span>'
+                    : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
                 }
             </td>
-            <td class="px-4 py-3 text-center text-gray-400">${formatDate(d.created_at)}</td>
+            <td class="px-4 py-3 text-center text-gray-500">${formatDate(d.created_at)}</td>
         </tr>
     `).join('');
 }
@@ -437,18 +437,18 @@ function populateCustomerTable(customers) {
 
     tbody.innerHTML = customers.map(c => `
         <tr class="hover:bg-white/50">
-            <td class="px-4 py-3 font-mono text-purple-400">${c.customer_code || '—'}</td>
+            <td class="px-4 py-3 font-mono text-purple-700">${c.customer_code || '—'}</td>
             <td class="px-4 py-3">${c.customer_name || '—'}</td>
             <td class="px-4 py-3 text-center">
-                <span class="px-2 py-1 rounded text-xs font-medium ${c.status === 'enabled' ? 'bg-green-600/20 text-green-400 border border-green-600' : 'bg-gray-600/20 text-gray-400 border border-gray-300'}">${c.status || '—'}</span>
+                <span class="px-2 py-1 rounded text-xs font-medium ${c.status === 'enabled' ? 'bg-green-600/20 text-green-700 border border-green-600' : 'bg-gray-100 text-gray-500 border border-gray-300'}">${c.status || '—'}</span>
             </td>
             <td class="px-4 py-3 text-center">
                 ${c.is_locked
-                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-400 rounded text-xs font-medium border border-red-600">LOCKED</span>'
-                    : '<span class="px-2 py-1 bg-green-600/20 text-green-400 rounded text-xs font-medium border border-green-600">OPEN</span>'
+                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-700 rounded text-xs font-medium border border-red-600">LOCKED</span>'
+                    : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
                 }
             </td>
-            <td class="px-4 py-3 text-center text-gray-400">${formatDate(c.created_at)}</td>
+            <td class="px-4 py-3 text-center text-gray-500">${formatDate(c.created_at)}</td>
         </tr>
     `).join('');
 }
@@ -463,40 +463,40 @@ function populateItemTable(items) {
 
     tbody.innerHTML = items.map(i => `
         <tr class="hover:bg-white/50">
-            <td class="px-4 py-3 font-mono text-orange-400">${i.item_code || '—'}</td>
+            <td class="px-4 py-3 font-mono text-orange-700">${i.item_code || '—'}</td>
             <td class="px-4 py-3">${i.item_description || '—'}</td>
             <td class="px-4 py-3 text-center">
                 <span class="px-2 py-1 rounded text-xs font-medium ${getApprovalClass(i.approval_status)}">${i.approval_status || '—'}</span>
             </td>
             <td class="px-4 py-3 text-center">
                 ${i.is_locked
-                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-400 rounded text-xs font-medium border border-red-600">LOCKED</span>'
-                    : '<span class="px-2 py-1 bg-green-600/20 text-green-400 rounded text-xs font-medium border border-green-600">OPEN</span>'
+                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-700 rounded text-xs font-medium border border-red-600">LOCKED</span>'
+                    : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
                 }
             </td>
-            <td class="px-4 py-3 text-center text-gray-400">${formatDate(i.created_at)}</td>
+            <td class="px-4 py-3 text-center text-gray-500">${formatDate(i.created_at)}</td>
         </tr>
     `).join('');
 }
 
 function getStatusClass(status) {
     const classes = {
-        'Approved': 'bg-green-600/20 text-green-400 border border-green-600',
-        'Pending': 'bg-yellow-600/20 text-yellow-400 border border-yellow-600',
-        'Declined': 'bg-red-600/20 text-red-400 border border-red-600',
-        'Delivered': 'bg-green-600/20 text-green-400 border border-green-600',
-        'Cancelled': 'bg-red-600/20 text-red-400 border border-red-600',
+        'Approved': 'bg-green-600/20 text-green-700 border border-green-600',
+        'Pending': 'bg-yellow-600/20 text-yellow-700 border border-yellow-600',
+        'Declined': 'bg-red-600/20 text-red-700 border border-red-600',
+        'Delivered': 'bg-green-600/20 text-green-700 border border-green-600',
+        'Cancelled': 'bg-red-600/20 text-red-700 border border-red-600',
     };
-    return classes[status] || 'bg-gray-600/20 text-gray-400 border border-gray-300';
+    return classes[status] || 'bg-gray-100 text-gray-500 border border-gray-300';
 }
 
 function getApprovalClass(status) {
     const classes = {
-        'approved': 'bg-green-600/20 text-green-400 border border-green-600',
-        'pending': 'bg-yellow-600/20 text-yellow-400 border border-yellow-600',
-        'rejected': 'bg-red-600/20 text-red-400 border border-red-600',
+        'approved': 'bg-green-600/20 text-green-700 border border-green-600',
+        'pending': 'bg-yellow-600/20 text-yellow-700 border border-yellow-600',
+        'rejected': 'bg-red-600/20 text-red-700 border border-red-600',
     };
-    return classes[status] || 'bg-gray-600/20 text-gray-400 border border-gray-300';
+    return classes[status] || 'bg-gray-100 text-gray-500 border border-gray-300';
 }
 
 function formatDate(dateString) {
@@ -511,10 +511,10 @@ function switchTab(tab) {
         const table = document.getElementById(t + 'Table');
         if (t === tab) {
             btn.classList.remove('bg-gray-100', 'text-gray-500');
-            btn.classList.add('bg-blue-600', 'text-gray-800');
+            btn.classList.add('bg-blue-600', 'text-white');
             table.classList.remove('hidden');
         } else {
-            btn.classList.remove('bg-blue-600', 'text-gray-800');
+            btn.classList.remove('bg-blue-600', 'text-white');
             btn.classList.add('bg-gray-100', 'text-gray-500');
             table.classList.add('hidden');
         }

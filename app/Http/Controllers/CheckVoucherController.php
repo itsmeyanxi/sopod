@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\CheckVoucher;
 use App\Models\AccountsPayableInvoice;
 use App\Models\Activity;
+use App\Models\TreasuryBankAccount;
+use App\Models\TreasuryBankTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -121,6 +123,7 @@ class CheckVoucherController extends Controller
                 'supplier_tin' => $request->supplier_tin,
                 'check_no' => $request->check_no ?? '0',
                 'bank' => $request->bank,
+                'gl_account_id' => $request->gl_account_id,
                 'branch' => $request->branch,
                 'check_amount' => $request->check_amount,
                 'payment_date' => $request->payment_date,
@@ -239,6 +242,7 @@ class CheckVoucherController extends Controller
                 'supplier_tin' => $request->supplier_tin,
                 'check_no' => $request->check_no,
                 'bank' => $request->bank,
+                'gl_account_id' => $request->gl_account_id,
                 'branch' => $request->branch,
                 'check_amount' => $request->check_amount,
                 'payment_date' => $request->payment_date,
@@ -349,25 +353,57 @@ class CheckVoucherController extends Controller
         }
 
         $voucher = CheckVoucher::where('approval_stage', 'pending_odm')->findOrFail($id);
-        $voucher->update([
-            'status' => 'approved',
-            'approval_stage' => 'approved',
-            'approval_user_id' => Auth::id(),
-            'approval_date' => now(),
-            'approved_latitude' => $request->input('latitude'),
-            'approved_longitude' => $request->input('longitude'),
-            'approved_location' => $request->input('location'),
-            'rejection_reason' => null,
-        ]);
 
-        Activity::create([
-            'user_name' => Auth::user()->name ?? 'System',
-            'action' => 'Approved',
-            'item' => $voucher->cv_no,
-            'target' => $voucher->supplier_name,
-            'type' => 'Check Voucher',
-            'message' => 'Approved Check Voucher ' . $voucher->cv_no,
-        ]);
+        DB::transaction(function () use ($voucher, $request) {
+            $voucher->update([
+                'status' => 'approved',
+                'approval_stage' => 'approved',
+                'approval_user_id' => Auth::id(),
+                'approval_date' => now(),
+                'approved_latitude' => $request->input('latitude'),
+                'approved_longitude' => $request->input('longitude'),
+                'approved_location' => $request->input('location'),
+                'rejection_reason' => null,
+            ]);
+
+            // Deduct from treasury bank account if GL account is set
+            if ($voucher->gl_account_id) {
+                $bankAccount = TreasuryBankAccount::where('gl_account_id', $voucher->gl_account_id)->active()->first();
+                if ($bankAccount) {
+                    $voucher->update(['bank_account_id' => $bankAccount->id]);
+
+                    $withdrawalAmount = (float) $voucher->check_amount;
+                    $newBalance = (float) $bankAccount->cash_balance - $withdrawalAmount;
+
+                    TreasuryBankTransaction::create([
+                        'bank_account_id' => $bankAccount->id,
+                        'txn_date'        => now()->toDateString(),
+                        'type'            => 'Withdrawal',
+                        'reference'       => $voucher->cv_no,
+                        'description'     => 'Check Voucher approved — ' . ($voucher->supplier_name ?? 'N/A'),
+                        'payee_or_source' => $voucher->supplier_name,
+                        'debit'           => 0,
+                        'credit'          => $withdrawalAmount,
+                        'running_balance' => $newBalance,
+                        'logged_by'       => Auth::user()->name,
+                    ]);
+
+                    $bankAccount->update([
+                        'cash_balance'  => $newBalance,
+                        'balance_as_of' => now()->toDateString(),
+                    ]);
+                }
+            }
+
+            Activity::create([
+                'user_name' => Auth::user()->name ?? 'System',
+                'action' => 'Approved',
+                'item' => $voucher->cv_no,
+                'target' => $voucher->supplier_name,
+                'type' => 'Check Voucher',
+                'message' => 'Approved Check Voucher ' . $voucher->cv_no,
+            ]);
+        });
 
         return redirect()->back()->with('success', 'Check Voucher approved!');
     }

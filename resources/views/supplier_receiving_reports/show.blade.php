@@ -14,7 +14,7 @@
                     <span class="ml-2 px-4 py-1 bg-gray-50 border border-gray-200 text-gray-800 rounded">{{ $report->srr_code }}</span>
                 </div>
                 <span class="px-3 py-1 rounded font-semibold
-                    @if($report->status === 'draft') bg-gray-600 text-white
+                    @if($report->status === 'draft') bg-gray-200 text-gray-800
                     @elseif($report->status === 'saved') bg-teal-600 text-white
                     @elseif($report->status === 'pending') bg-yellow-600 text-white
                     @elseif($report->status === 'approved') bg-green-600 text-white
@@ -38,8 +38,8 @@
         @endif
 
         @if($report->status === 'approved' && $report->approver)
-            <div class="p-4 bg-green-900/20 border border-green-700 rounded mb-4">
-                <p class="text-green-400">
+            <div class="p-4 bg-green-50 border border-green-200 rounded mb-4">
+                <p class="text-green-700">
                     <i class="fas fa-check-circle mr-1"></i>
                     Approved by {{ $report->approver->name }}
                     on {{ $report->approved_at->format('M d, Y h:i A') }}
@@ -48,8 +48,8 @@
         @endif
 
         @if($report->status === 'rejected' && $report->approver)
-            <div class="p-4 bg-red-900/20 border border-red-700 rounded mb-4">
-                <p class="text-red-400">
+            <div class="p-4 bg-red-50 border border-red-200 rounded mb-4">
+                <p class="text-red-700">
                     <i class="fas fa-times-circle mr-1"></i>
                     Rejected by {{ $report->approver->name }}
                     on {{ $report->approved_at->format('M d, Y h:i A') }}
@@ -66,34 +66,34 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="space-y-3">
                 <div>
-                    <label class="block font-semibold text-gray-400 text-sm">DATE:</label>
-                    <p class="text-gray-200">{{ $report->report_date->format('M d, Y') }}</p>
+                    <label class="block font-semibold text-gray-500 text-sm">DATE:</label>
+                    <p class="text-gray-700">{{ $report->report_date->format('M d, Y') }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-400 text-sm">SUPPLY:</label>
-                    <p class="text-gray-200">{{ $report->supplier_name }}</p>
+                    <label class="block font-semibold text-gray-500 text-sm">SUPPLY:</label>
+                    <p class="text-gray-700">{{ $report->supplier_name }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-400 text-sm">CV NO:</label>
-                    <p class="text-gray-200">{{ $report->cv_no ?? 'N/A' }}</p>
+                    <label class="block font-semibold text-gray-500 text-sm">CV NO:</label>
+                    <p class="text-gray-700">{{ $report->cv_no ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-400 text-sm">CREATED BY:</label>
-                    <p class="text-gray-200">{{ $report->creator->name ?? 'N/A' }} - {{ $report->created_at->format('M d, Y h:i A') }}</p>
+                    <label class="block font-semibold text-gray-500 text-sm">CREATED BY:</label>
+                    <p class="text-gray-700">{{ $report->creator->name ?? 'N/A' }} - {{ $report->created_at->format('M d, Y h:i A') }}</p>
                 </div>
             </div>
             <div class="space-y-3">
                 <div>
-                    <label class="block font-semibold text-gray-400 text-sm">STORAGE:</label>
-                    <p class="text-gray-200">{{ $report->storage ?? 'N/A' }}</p>
+                    <label class="block font-semibold text-gray-500 text-sm">STORAGE:</label>
+                    <p class="text-gray-700">{{ $report->storage ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-400 text-sm">PO NO:</label>
-                    <p class="text-gray-200">{{ $report->po_no ?? 'N/A' }}</p>
+                    <label class="block font-semibold text-gray-500 text-sm">PO NO:</label>
+                    <p class="text-gray-700">{{ $report->po_no ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-400 text-sm">TYPE:</label>
-                    <span class="px-3 py-1 rounded text-sm bg-blue-900/40 border border-blue-700 text-blue-300">
+                    <label class="block font-semibold text-gray-500 text-sm">TYPE:</label>
+                    <span class="px-3 py-1 rounded text-sm bg-blue-100/40 border border-blue-700 text-blue-700">
                         {{ ucfirst(str_replace('_', ' ', $report->report_type)) }}
                     </span>
                 </div>
@@ -150,34 +150,34 @@
         <!-- Note -->
         @if($report->note)
             <div class="mb-6">
-                <label class="block font-semibold text-gray-400 text-sm mb-1">NOTE:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-200">{{ $report->note }}</p>
+                <label class="block font-semibold text-gray-500 text-sm mb-1">NOTE:</label>
+                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-700">{{ $report->note }}</p>
             </div>
         @endif
 
         <!-- Signature Fields -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-400 text-sm">PREPARED BY:</label>
-                <p class="text-gray-200">{{ $report->prepared_by ?? 'N/A' }}</p>
+                <label class="block font-semibold text-gray-500 text-sm">PREPARED BY:</label>
+                <p class="text-gray-700">{{ $report->prepared_by ?? 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-400 text-sm">CHECKED BY:</label>
-                <p class="text-gray-200">{{ $report->checked_by ?? 'N/A' }}</p>
+                <label class="block font-semibold text-gray-500 text-sm">CHECKED BY:</label>
+                <p class="text-gray-700">{{ $report->checked_by ?? 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-400 text-sm">RECEIVED BY:</label>
-                <p class="text-gray-200">{{ $report->received_by ?? 'N/A' }}</p>
+                <label class="block font-semibold text-gray-500 text-sm">RECEIVED BY:</label>
+                <p class="text-gray-700">{{ $report->received_by ?? 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-400 text-sm">VERIFIED BY:</label>
-                <p class="text-gray-200">{{ $report->verified_by ?? 'N/A' }}</p>
+                <label class="block font-semibold text-gray-500 text-sm">VERIFIED BY:</label>
+                <p class="text-gray-700">{{ $report->verified_by ?? 'N/A' }}</p>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="flex justify-between items-center border-t border-gray-200 pt-4">
-            <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-500 transition">
+            <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-500 transition">
                 <i class="fas fa-arrow-left mr-1"></i> Back to List
             </a>
             <div class="flex gap-3">

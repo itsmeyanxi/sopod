@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\InHouseBom;
 use App\Models\InHouseBomHouse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -52,7 +54,7 @@ class InHouseBomController extends Controller
         }
 
         DB::transaction(function () use ($payload) {
-            $bom = InHouseBom::create([
+            $createData = [
                 'cycle_ref'  => trim($payload['cycle_ref']),
                 'cycle_date' => $payload['cycle_date'],
                 'grower'     => $payload['grower']     ?? null,
@@ -60,7 +62,20 @@ class InHouseBomController extends Controller
                 'num_houses' => (int) ($payload['num_houses'] ?? 1),
                 'status'     => 'draft',
                 'created_by' => auth()->id(),
-            ]);
+            ];
+
+            // If this is an extension, link to parent
+            if (!empty($payload['parent_bom_id'])) {
+                $parent = InHouseBom::find($payload['parent_bom_id']);
+                if ($parent) {
+                    $rootId = $parent->isExtension() ? $parent->parent_bom_id : $parent->id;
+                    $maxExt = InHouseBom::where('parent_bom_id', $rootId)->max('extension_number') ?? 0;
+                    $createData['parent_bom_id'] = $rootId;
+                    $createData['extension_number'] = $maxExt + 1;
+                }
+            }
+
+            $bom = InHouseBom::create($createData);
 
             foreach ($payload['houses'] ?? [] as $houseNum => $h) {
                 if (empty($h['loading']) && empty($h['name'])) continue;
@@ -74,18 +89,28 @@ class InHouseBomController extends Controller
 
     public function show(InHouseBom $inhouseBom)
     {
-        $inhouseBom->load('houses', 'creator');
+        $inhouseBom->load('houses', 'creator', 'extensions.houses', 'parentBom');
         return view('inhouse_bom.show', ['bom' => $inhouseBom]);
     }
 
     public function edit(InHouseBom $inhouseBom)
     {
+        if ($inhouseBom->approved) {
+            return redirect()->route('inhouse_bom.show', $inhouseBom)
+                ->with('error', 'This BOM has been approved and cannot be edited.');
+        }
+
         $inhouseBom->load('houses');
         return view('inhouse_bom.edit', ['bom' => $inhouseBom]);
     }
 
     public function update(Request $request, InHouseBom $inhouseBom)
     {
+        if ($inhouseBom->approved) {
+            return redirect()->route('inhouse_bom.show', $inhouseBom)
+                ->with('error', 'This BOM has been approved and cannot be edited.');
+        }
+
         $request->validate(['bom_payload' => 'required|string']);
 
         $payload = json_decode($request->input('bom_payload'), true);
@@ -114,6 +139,11 @@ class InHouseBomController extends Controller
 
     public function destroy(InHouseBom $inhouseBom)
     {
+        if ($inhouseBom->approved) {
+            return redirect()->route('inhouse_bom.show', $inhouseBom)
+                ->with('error', 'This BOM has been approved and cannot be deleted.');
+        }
+
         $ref = $inhouseBom->cycle_ref;
         $inhouseBom->delete();
         return redirect()->route('inhouse_bom.index')
@@ -125,6 +155,86 @@ class InHouseBomController extends Controller
         $request->validate(['status' => 'required|in:draft,active,complete,archived']);
         $inhouseBom->update(['status' => $request->status]);
         return response()->json(['success' => true, 'status' => $inhouseBom->status]);
+    }
+
+    /**
+     * Show create form pre-filled with parent BOM data for extension
+     */
+    public function extend(InHouseBom $inhouseBom)
+    {
+        if (!$inhouseBom->approved) {
+            return redirect()->route('inhouse_bom.show', $inhouseBom)
+                ->with('error', 'Only approved BOMs can be extended.');
+        }
+
+        $inhouseBom->load('houses');
+
+        $nextRef = InHouseBom::nextExtensionRef($inhouseBom);
+
+        // Build parent house data in the format the create form JS expects
+        $parentHouses = [];
+        foreach ($inhouseBom->houses as $house) {
+            $mats = [];
+            foreach ($house->materials ?? [] as $m) {
+                $cat = $m['category'] ?? 'feed';
+                if (!isset($mats[$cat])) $mats[$cat] = [];
+                $mats[$cat][] = [
+                    'name'     => $m['name'] ?? '',
+                    'days'     => $m['days'] ?? '',
+                    'qty_kg'   => $m['qty_kg'] ?? 0,
+                    'qty_bags' => $m['qty_bags'] ?? '',
+                    'uom'      => $m['uom'] ?? '',
+                    'cost'     => $m['cost'] ?? 0,
+                    'labor_op' => $m['labor_op'] ?? '',
+                    'divisor'  => $m['divisor'] ?? '',
+                ];
+            }
+            $parentHouses[$house->house_number] = [
+                'name'    => $house->house_name ?? '',
+                'loading' => $house->loading_qty,
+                'liv'     => $house->livability,
+                'alw'     => $house->alw,
+                'fcr'     => $house->fcr,
+                'age'     => $house->age_days,
+                'bpi'     => $house->bpi,
+                'docCost' => $house->doc_cost ?? 24,
+                'mats'    => $mats,
+            ];
+        }
+
+        $parentBom = $inhouseBom;
+
+        return view('inhouse_bom.create', compact('nextRef', 'parentBom', 'parentHouses'));
+    }
+
+    public function approve(InHouseBom $inhouseBom)
+    {
+        $inhouseBom->update([
+            'approved'    => true,
+            'approved_by' => Auth::user()->name ?? 'System',
+            'approved_at' => Carbon::now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'BOM "' . $inhouseBom->cycle_ref . '" has been approved.',
+            'approved_by' => $inhouseBom->approved_by,
+            'approved_at' => $inhouseBom->approved_at->format('M d, Y h:i A'),
+        ]);
+    }
+
+    public function unapprove(InHouseBom $inhouseBom)
+    {
+        $inhouseBom->update([
+            'approved'    => false,
+            'approved_by' => null,
+            'approved_at' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'BOM "' . $inhouseBom->cycle_ref . '" approval has been revoked.',
+        ]);
     }
 
     // ── Export to Excel (.xlsx) — matches BOM Bacolorv2026.xlsx format ────────
@@ -238,13 +348,14 @@ class InHouseBomController extends Controller
                 $sheet->getStyle("{$col}14")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             }
 
-            // ── Total Materials (row 15) — blue bg, white text ──
-            $matTotal = $grandTotal - $docAmt;
-            $matCpk   = $totalKg > 0 ? $matTotal / $totalKg : 0;
-            $sheet->setCellValue('B15', 'Total Materials');
-            $sheet->setCellValue('H15', $matTotal);
-            $sheet->setCellValue('I15', $matCpk);
-            $this->applyRowStyle($sheet, 15, 'B', 'I', '156082', 'FFFFFF');
+            // ── TOTAL COST (row 15) — gray bg, bold — matches view layout (total first) ──
+            $sheet->setCellValue('B15', 'TOTAL COST');
+            $sheet->setCellValue('H15', $grandTotal);
+            $sheet->setCellValue('I15', $grandCpk);
+            $this->applyRowStyle($sheet, 15, 'B', 'I', 'D0D0D0', '000000');
+            $sheet->getStyle('B15')->getFont()->setBold(true);
+            $sheet->getStyle('H15')->getFont()->setBold(true);
+            $sheet->getStyle('I15')->getFont()->setBold(true);
             $sheet->getStyle('H15')->getNumberFormat()->setFormatCode('#,##0.00');
             $sheet->getStyle('I15')->getNumberFormat()->setFormatCode('#,##0.00');
 
@@ -261,6 +372,16 @@ class InHouseBomController extends Controller
             $sheet->getStyle('H16')->getNumberFormat()->setFormatCode('#,##0.00');
             $sheet->getStyle('I16')->getNumberFormat()->setFormatCode('#,##0.00');
 
+            // ── Total Materials (row 17) — blue bg, white text ──
+            $matTotal = $grandTotal - $docAmt;
+            $matCpk   = $totalKg > 0 ? $matTotal / $totalKg : 0;
+            $sheet->setCellValue('B17', 'Total Materials');
+            $sheet->setCellValue('H17', $matTotal);
+            $sheet->setCellValue('I17', $matCpk);
+            $this->applyRowStyle($sheet, 17, 'B', 'I', '156082', 'FFFFFF');
+            $sheet->getStyle('H17')->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle('I17')->getNumberFormat()->setFormatCode('#,##0.00');
+
             // ── Pre-calculate CDM sub-category amounts for parent header ──
             $cdmSubAmts = [];
             foreach ($cdmCats as $cdmKey) {
@@ -271,7 +392,7 @@ class InHouseBomController extends Controller
             $cdmTotalCpk = $totalKg > 0 ? $cdmTotalAmt / $totalKg : 0;
 
             // ── Material rows ──
-            $row = 17;
+            $row = 18;
             foreach ($cats as $catKey => $catLabel) {
                 $catRows = $mats->where('category', $catKey)->values();
                 $catAmt  = 0;

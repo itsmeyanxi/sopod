@@ -29,8 +29,8 @@
             
             <!-- Item Code -->
             <div>
-                <label for="item_code" class="block text-sm font-semibold text-gray-200 mb-2">
-                    Item Code <span class="text-red-400">*</span>
+                <label for="item_code" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Item Code <span class="text-red-700">*</span>
                 </label>
                 <input type="text" 
                        name="item_code" 
@@ -42,7 +42,7 @@
 
             <!-- Brand -->
             <div>
-                <label for="brand" class="block text-sm font-semibold text-gray-200 mb-2">
+                <label for="brand" class="block text-sm font-semibold text-gray-700 mb-2">
                     Brand
                 </label>
                 <input type="text" 
@@ -54,7 +54,7 @@
 
             <!-- Category -->
             <div>
-                <label for="item_category" class="block text-sm font-semibold text-gray-200 mb-2">
+                <label for="item_category" class="block text-sm font-semibold text-gray-700 mb-2">
                     Category
                 </label>
                 <input type="text" 
@@ -66,7 +66,7 @@
 
             <!-- Description -->
             <div class="md:col-span-2">
-                <label for="item_description" class="block text-sm font-semibold text-gray-200 mb-2">
+                <label for="item_description" class="block text-sm font-semibold text-gray-700 mb-2">
                      Description
                 </label>
                 <textarea name="item_description" 

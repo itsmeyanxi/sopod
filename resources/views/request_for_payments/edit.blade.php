@@ -30,7 +30,7 @@
 
             <!-- Company Selection -->
             <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
-                <label class="block font-semibold text-gray-500 mb-3">SELECT COMPANY: <span class="text-red-400">*</span></label>
+                <label class="block font-semibold text-gray-500 mb-3">SELECT COMPANY: <span class="text-red-700">*</span></label>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     @foreach($companies as $company)
                         <label class="flex items-center p-3 bg-white border border-gray-200 rounded hover:bg-gray-100 cursor-pointer transition">
@@ -71,7 +71,7 @@
                 <!-- Right Column - Dates and Reference Numbers -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">DATE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-2">DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date', $rfp->date->format('Y-m-d')) }}" required>
                     </div>
                     <div>
@@ -80,7 +80,7 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">RFP#:</label>
-                        <input type="text" readonly class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-400" value="{{ $rfp->rfp_no }}">
+                        <input type="text" readonly class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-500" value="{{ $rfp->rfp_no }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">LINKED PO:</label>
@@ -99,13 +99,13 @@
             <!-- Main Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">PAYEE (Vendor/Supplier): <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">PAYEE (Vendor/Supplier): <span class="text-red-700">*</span></label>
                     <input type="text" name="payee" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee', $rfp->payee) }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">AMOUNT: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">AMOUNT: <span class="text-red-700">*</span></label>
                     <div class="relative">
-                        <span class="absolute left-3 top-2.5 text-gray-400">&#8369;</span>
+                        <span class="absolute left-3 top-2.5 text-gray-500">&#8369;</span>
                         <input type="number" step="0.01" name="amount" class="w-full bg-gray-50 border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount', $rfp->amount) }}" required>
                     </div>
                 </div>
@@ -152,7 +152,7 @@
                 <a href="{{ route('request_for_payments.show', $rfp->id) }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
+                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                     Update Request for Payment
                 </button>
             </div>

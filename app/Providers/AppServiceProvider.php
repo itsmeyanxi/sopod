@@ -30,7 +30,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        URL::forceScheme('http');
+        if (config('app.env') === 'production' || str_starts_with(config('app.url'), 'https')) {
+            URL::forceScheme('https');
+        }
 
         SalesOrder::observe(SalesOrderObserver::class);
         PurchaseOrder::observe(PurchaseOrderObserver::class);

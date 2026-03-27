@@ -12,7 +12,7 @@
                 <a href="{{ route('suppliers.export') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
                     <i class="fas fa-file-excel mr-1"></i> Export to Excel
                 </a>
-                <a href="{{ route('suppliers.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-4 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
+                <a href="{{ route('suppliers.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
                     <i class="fas fa-plus mr-1"></i> Add New Supplier
                 </a>
             </div>
@@ -50,7 +50,7 @@
                         <tr class="hover:bg-gray-100 transition">
                             <td class="px-4 py-2 border-b border-gray-200 text-gray-500">
                                 <div class="font-semibold text-gray-700">{{ $supplier->supplier_name }}</div>
-                                <div class="text-xs text-gray-400">{{ $supplier->supplier_code }}</div>
+                                <div class="text-xs text-gray-500">{{ $supplier->supplier_code }}</div>
                             </td>
                             <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $supplier->terms ?? 'N/A' }}</td>
                             <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $supplier->contact_person ?? 'N/A' }}</td>
@@ -59,9 +59,9 @@
                             <td class="px-4 py-2 border-b border-gray-200 text-gray-500 text-sm">{{ $supplier->bank ?? 'N/A' }}</td>
                             <td class="px-4 py-2 border-b border-gray-200 text-center">
                                 @if($supplier->status === 'active')
-                                    <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">Active</span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Active</span>
                                 @else
-                                    <span class="px-2 py-1 bg-red-900 text-red-300 rounded text-xs">Inactive</span>
+                                    <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">Inactive</span>
                                 @endif
                             </td>
                             <td class="px-4 py-2 border-b border-gray-200 text-center">
@@ -75,7 +75,7 @@
                                     <form action="{{ route('suppliers.toggleStatus', $supplier->id) }}" method="POST" class="inline">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="bg-{{ $supplier->status === 'active' ? 'gray' : 'green' }}-600 text-gray-800 px-3 py-1 rounded hover:bg-{{ $supplier->status === 'active' ? 'gray' : 'green' }}-700 text-xs">
+                                        <button type="submit" class="bg-{{ $supplier->status === 'active' ? 'gray' : 'green' }}-600 text-white px-3 py-1 rounded hover:bg-{{ $supplier->status === 'active' ? 'gray' : 'green' }}-700 text-xs">
                                             <i class="fas fa-{{ $supplier->status === 'active' ? 'ban' : 'check' }}"></i> {{ $supplier->status === 'active' ? 'Deactivate' : 'Activate' }}
                                         </button>
                                     </form>
@@ -84,7 +84,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-400">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 No suppliers found. Create your first supplier using the button above.
                             </td>
                         </tr>

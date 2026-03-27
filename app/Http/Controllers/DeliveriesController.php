@@ -25,7 +25,14 @@ class DeliveriesController extends Controller
     $query = Deliveries::with(['salesOrder.customer'])
         ->withSum('items as quantity', 'quantity')
         ->withSum('items as total_amount', 'total_amount')
-        ->orderBy('request_delivery_date', 'desc'); 
+        ->orderBy('request_delivery_date', 'desc');
+
+    // Admin/IT can toggle to see hidden deliveries
+    $showHidden = false;
+    if ($request->filled('show_hidden') && auth()->user()->isAdminUser()) {
+        $query->withHidden();
+        $showHidden = true;
+    }
 
     if ($request->filled('delivery_date_from')) {
         $query->whereDate('request_delivery_date', '>=', $request->delivery_date_from);
@@ -66,7 +73,7 @@ class DeliveriesController extends Controller
     $perPage = in_array((int)$request->per_page, [25, 50, 100, 250, 500]) ? (int)$request->per_page : 25;
     $deliveries = $query->paginate($perPage)->withQueryString();
 
-    return view('deliveries.index', compact('deliveries'));
+    return view('deliveries.index', compact('deliveries', 'showHidden'));
 }
 
     // Create form
@@ -1801,7 +1808,12 @@ public function rejectEdit(Request $request, $id)
     // 👁️ Show single delivery
     public function show($id)
     {
-        $delivery = Deliveries::with(['items','salesOrder'])->findOrFail($id);
+        // Admin can view hidden deliveries too
+        $query = auth()->user()->isAdminUser()
+            ? Deliveries::withHidden()
+            : Deliveries::query();
+
+        $delivery = $query->with(['items','salesOrder'])->findOrFail($id);
         return view('deliveries.show', compact('delivery'));
     }
 
@@ -2743,5 +2755,43 @@ public function recalculateSODeliveries(Request $request)
         ], 500);
     }
 }
+
+    // ===================== HIDE / UNHIDE DR =====================
+
+    public function hide(Request $request, $id)
+    {
+        if (!auth()->user()->isAdminUser()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $request->validate(['hidden_reason' => 'required|string|max:500']);
+
+        $delivery = Deliveries::findOrFail($id);
+        $delivery->update([
+            'is_hidden'     => true,
+            'hidden_by'     => auth()->user()->name,
+            'hidden_at'     => now(),
+            'hidden_reason' => $request->hidden_reason,
+        ]);
+
+        return redirect()->route('deliveries.index')->with('success', "DR {$delivery->dr_no} has been hidden.");
+    }
+
+    public function unhide($id)
+    {
+        if (!auth()->user()->isAdminUser()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $delivery = Deliveries::withHidden()->findOrFail($id);
+        $delivery->update([
+            'is_hidden'     => false,
+            'hidden_by'     => null,
+            'hidden_at'     => null,
+            'hidden_reason' => null,
+        ]);
+
+        return redirect()->route('deliveries.index', ['show_hidden' => 1])->with('success', "DR {$delivery->dr_no} has been restored.");
+    }
 
 }

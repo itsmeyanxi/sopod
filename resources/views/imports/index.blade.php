@@ -25,10 +25,10 @@
         </select>
 
         {{-- Info text for monthly sales --}}
-        <div id="monthly_sales_info" class="hidden bg-blue-900 p-3 rounded mb-4 text-sm">
+        <div id="monthly_sales_info" class="hidden bg-blue-100 p-3 rounded mb-4 text-sm">
             <strong>Expected format:</strong> Excel/CSV file with columns: <code>month, qty, php</code><br>
             Example: January | 902352.22 | 214312824<br>
-            <a href="{{ route('import.monthly_sales.template') }}" class="text-blue-300 underline mt-2 inline-block">Download Template</a>
+            <a href="{{ route('import.monthly_sales.template') }}" class="text-blue-700 underline mt-2 inline-block">Download Template</a>
         </div>
 
         {{-- File input --}}

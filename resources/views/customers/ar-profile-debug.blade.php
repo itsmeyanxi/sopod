@@ -7,8 +7,8 @@
     <div class="bg-white rounded-lg shadow-lg p-6">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">🔍 AR Profile Debug Information</h2>
         
-        <div class="bg-red-900/20 border border-red-700 rounded-lg p-4 mb-6">
-            <h3 class="text-red-400 font-semibold mb-2">❌ No Records Found</h3>
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <h3 class="text-red-700 font-semibold mb-2">❌ No Records Found</h3>
             <p class="text-gray-500">Searched for customer: <strong>{{ $customerCode }}</strong></p>
         </div>
 
@@ -16,7 +16,7 @@
             {{-- Database Stats --}}
             <div class="bg-gray-100 rounded-lg p-4">
                 <h3 class="text-gray-800 font-semibold mb-3">📊 Database Statistics</h3>
-                <p class="text-gray-500">Total records in ar_aging table: <strong class="text-green-400">{{ $totalRecords }}</strong></p>
+                <p class="text-gray-500">Total records in ar_aging table: <strong class="text-green-700">{{ $totalRecords }}</strong></p>
             </div>
 
             {{-- Query Results --}}
@@ -25,19 +25,19 @@
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
                         <span class="text-gray-500">Query 1 (customer_code = '{{ $customerCode }}'):</span>
-                        <span class="text-yellow-400 font-bold">{{ $query1Count }} records</span>
+                        <span class="text-yellow-700 font-bold">{{ $query1Count }} records</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-500">Query 2 (client_name = '{{ $customerCode }}'):</span>
-                        <span class="text-yellow-400 font-bold">{{ $query2Count }} records</span>
+                        <span class="text-yellow-700 font-bold">{{ $query2Count }} records</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-500">Query 3 (client_name LIKE '%{{ $customerCode }}%'):</span>
-                        <span class="text-yellow-400 font-bold">{{ $query3Count }} records</span>
+                        <span class="text-yellow-700 font-bold">{{ $query3Count }} records</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-500">Query 4 (OR condition):</span>
-                        <span class="text-yellow-400 font-bold">{{ $query4Count }} records</span>
+                        <span class="text-yellow-700 font-bold">{{ $query4Count }} records</span>
                     </div>
                 </div>
             </div>
@@ -67,13 +67,13 @@
                         </table>
                     </div>
                 @else
-                    <p class="text-gray-400">No records in the database</p>
+                    <p class="text-gray-500">No records in the database</p>
                 @endif
             </div>
 
             {{-- Recommendations --}}
-            <div class="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
-                <h3 class="text-blue-400 font-semibold mb-3">💡 Recommendations</h3>
+            <div class="bg-blue-50 border border-blue-700 rounded-lg p-4">
+                <h3 class="text-blue-700 font-semibold mb-3">💡 Recommendations</h3>
                 <ul class="space-y-2 text-gray-500 text-sm">
                     <li>✓ Check if the customer code <strong>"{{ $customerCode }}"</strong> exactly matches the database</li>
                     <li>✓ The customer_code field might be case-sensitive</li>
@@ -86,7 +86,7 @@
             {{-- Actions --}}
             <div class="flex gap-3">
                 <a href="{{ route('aging_reports.view') }}" 
-                   class="bg-gray-600 hover:bg-gray-100 text-gray-800 px-6 py-2 rounded transition">
+                   class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded transition">
                     ← Back to Reports
                 </a>
                 <button onclick="window.location.reload()" 

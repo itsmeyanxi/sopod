@@ -15,7 +15,7 @@
         </div>
 
         @if($notesOnly)
-            <div class="bg-yellow-600/20 border border-yellow-600 text-yellow-300 px-4 py-3 rounded mb-4">
+            <div class="bg-yellow-600/20 border border-yellow-600 text-yellow-700 px-4 py-3 rounded mb-4">
                 <i class="fas fa-info-circle mr-2"></i>
                 This Purchase Order is approved. Only notes can be edited.
             </div>
@@ -40,13 +40,13 @@
             <!-- Read-only PO Info -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="space-y-2">
-                    <p class="text-gray-400"><span class="font-semibold text-gray-500">Company:</span> {{ $purchaseOrder->company }}</p>
-                    <p class="text-gray-400"><span class="font-semibold text-gray-500">Order Date:</span> {{ $purchaseOrder->order_date->format('M d, Y') }}</p>
-                    <p class="text-gray-400"><span class="font-semibold text-gray-500">PR#:</span> {{ $purchaseOrder->pr_no ?? 'N/A' }}</p>
+                    <p class="text-gray-500"><span class="font-semibold text-gray-500">Company:</span> {{ $purchaseOrder->company }}</p>
+                    <p class="text-gray-500"><span class="font-semibold text-gray-500">Order Date:</span> {{ $purchaseOrder->order_date->format('M d, Y') }}</p>
+                    <p class="text-gray-500"><span class="font-semibold text-gray-500">PR#:</span> {{ $purchaseOrder->pr_no ?? 'N/A' }}</p>
                 </div>
                 <div class="space-y-2">
-                    <p class="text-gray-400"><span class="font-semibold text-gray-500">Payment Terms:</span> {{ $purchaseOrder->payment_terms ?? 'N/A' }}</p>
-                    <p class="text-gray-400"><span class="font-semibold text-gray-500">Status:</span> <span class="text-green-400">Approved</span></p>
+                    <p class="text-gray-500"><span class="font-semibold text-gray-500">Payment Terms:</span> {{ $purchaseOrder->payment_terms ?? 'N/A' }}</p>
+                    <p class="text-gray-500"><span class="font-semibold text-gray-500">Status:</span> <span class="text-green-700">Approved</span></p>
                 </div>
             </div>
 
@@ -121,7 +121,7 @@
 
             <!-- Company Selection -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">COMPANY: <span class="text-red-400">*</span></label>
+                <label class="block font-semibold text-gray-500 mb-2">COMPANY: <span class="text-red-700">*</span></label>
                 <select name="company" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                     <option value="">-- Select Company --</option>
                     @foreach($companies as $company)
@@ -153,7 +153,7 @@
                 <!-- Right Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">ORDER DATE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">ORDER DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="order_date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('order_date', $purchaseOrder->order_date->format('Y-m-d')) }}" required>
                     </div>
                     <div>
@@ -195,9 +195,9 @@
                     </div>
                     @php $editCurrency = old('currency', $purchaseOrder->currency ?? 'PHP'); @endphp
                     <div id="exchange_rate_row" class="{{ $editCurrency === 'PHP' ? 'hidden' : '' }}">
-                        <label class="block font-semibold text-gray-500 mb-1">EXCHANGE RATE <span class="text-gray-400 text-xs" id="rate_label">(1 {{ $editCurrency }} = ? PHP)</span>:</label>
+                        <label class="block font-semibold text-gray-500 mb-1">EXCHANGE RATE <span class="text-gray-500 text-xs" id="rate_label">(1 {{ $editCurrency }} = ? PHP)</span>:</label>
                         <div class="flex items-center gap-2">
-                            <span class="text-gray-400">₱</span>
+                            <span class="text-gray-500">₱</span>
                             <input type="number" step="0.0001" name="exchange_rate" id="exchange_rate" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('exchange_rate', $purchaseOrder->exchange_rate ?? 1) }}">
                         </div>
                         <p class="text-gray-500 text-xs mt-1">Rate used when PO was created. You may update.</p>
@@ -277,19 +277,19 @@
             <!-- Currency Totals Summary -->
             <div id="currency_summary" class="mb-4 {{ ($purchaseOrder->currency ?? 'PHP') === 'PHP' ? 'hidden' : '' }}">
                 <div class="bg-gray-50 border border-purple-700 rounded p-4">
-                    <h3 class="font-semibold text-purple-300 mb-2">PHP Equivalent Summary</h3>
+                    <h3 class="font-semibold text-purple-700 mb-2">PHP Equivalent Summary</h3>
                     <div class="flex flex-wrap gap-6 text-sm">
                         <div>
-                            <span class="text-gray-400">Total (<span id="summary_currency">{{ $purchaseOrder->currency ?? 'USD' }}</span>):</span>
+                            <span class="text-gray-500">Total (<span id="summary_currency">{{ $purchaseOrder->currency ?? 'USD' }}</span>):</span>
                             <span class="text-gray-800 font-bold ml-2" id="summary_foreign_total">0.00</span>
                         </div>
                         <div>
-                            <span class="text-gray-400">Exchange Rate:</span>
+                            <span class="text-gray-500">Exchange Rate:</span>
                             <span class="text-gray-800 ml-2">1 <span id="summary_code">{{ $purchaseOrder->currency ?? 'USD' }}</span> = ₱<span id="summary_rate">{{ number_format($purchaseOrder->exchange_rate ?? 1, 4) }}</span></span>
                         </div>
                         <div>
-                            <span class="text-gray-400">Total (PHP):</span>
-                            <span class="text-green-400 font-bold ml-2">₱<span id="summary_php_total">0.00</span></span>
+                            <span class="text-gray-500">Total (PHP):</span>
+                            <span class="text-green-700 font-bold ml-2">₱<span id="summary_php_total">0.00</span></span>
                         </div>
                     </div>
                 </div>
@@ -305,8 +305,8 @@
             <div class="mb-6">
                 <label class="block font-semibold text-gray-800 mb-2">QUOTATION:</label>
                 @if($purchaseOrder->quotation)
-                    <div class="mb-3 p-3 bg-green-900/20 border border-green-700 rounded">
-                        <p class="text-green-400 text-sm">
+                    <div class="mb-3 p-3 bg-green-50 border border-green-200 rounded">
+                        <p class="text-green-700 text-sm">
                             <i class="fas fa-file-check mr-2"></i>
                             <a href="{{ asset('storage/' . $purchaseOrder->quotation) }}" target="_blank" class="hover:underline">
                                 Current file: {{ basename($purchaseOrder->quotation) }}
@@ -316,7 +316,7 @@
                 @endif
                 <div class="flex items-center gap-4">
                     <input type="file" name="quotation" id="quotation" class="flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
-                    <span class="text-gray-400 text-sm">(PDF, Word, Excel, Image)</span>
+                    <span class="text-gray-500 text-sm">(PDF, Word, Excel, Image)</span>
                 </div>
             </div>
 
@@ -546,10 +546,10 @@ function attachSupplierAutocomplete(input) {
                 const suppliers = await res.json();
                 if (!suppliers.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = suppliers.map(s =>
-                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 supplier-option"
+                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 supplier-option"
                           data-id="${s.id}" data-name="${s.supplier_name}">
                         <strong>${s.supplier_name}</strong>
-                        <span class="text-gray-400 text-xs ml-1">${s.supplier_code || ''}</span>
+                        <span class="text-gray-500 text-xs ml-1">${s.supplier_code || ''}</span>
                     </div>`
                 ).join('');
                 positionFixedDropdown(input, dropdown);
@@ -591,7 +591,7 @@ function attachDescAutocomplete(input) {
                 const items = await res.json();
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(item =>
-                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 desc-option"
+                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 desc-option"
                           data-name="${(item.name || item).toString().replace(/"/g, '&quot;')}"
                           data-item-code="${(item.item_code || '').toString().replace(/"/g, '&quot;')}"
                           data-supplier-id="${item.supplier_id || ''}"

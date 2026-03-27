@@ -5,7 +5,7 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">{{ $pageTitle ?? 'All Recent Activities' }}</h1>
         <a href="{{ $backRoute ?? route('dashboard') }}"
-           class="bg-gray-600 hover:bg-gray-100 text-gray-800 text-sm px-4 py-2 rounded-lg">
+           class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm px-4 py-2 rounded-lg">
             ← Back to Dashboard
         </a>
     </div>
@@ -14,7 +14,7 @@
     @else
         <div class="overflow-x-auto">
             <table class="min-w-full border border-gray-200 text-sm text-left text-gray-800">
-                <thead class="bg-gray-100 text-xs uppercase text-gray-200">
+                <thead class="bg-gray-100 text-xs uppercase text-gray-700">
                     <tr>
                         <th class="px-4 py-3 border-b border-gray-300">Date</th>
                         <th class="px-4 py-3 border-b border-gray-300">Activity</th>

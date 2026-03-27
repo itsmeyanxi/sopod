@@ -266,7 +266,7 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @else
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @endif
@@ -275,14 +275,14 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">Accounting Manager Review</span>
                             @if($voucher->accounting_reviewed_by && $voucher->accountingReviewer)
-                                <span class="text-green-400">✓ Reviewed</span>
+                                <span class="text-green-700">✓ Reviewed</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $voucher->accountingReviewer->name }}
                                     on {{ $voucher->accounting_reviewed_at->format('M d, Y h:i A') }}
                                 </small>
                             @else
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @endif
                         </p>
                     </div>
@@ -296,12 +296,12 @@
                                 <i class="fas fa-check text-gray-800"></i>
                             </div>
                         @elseif($voucher->accounting_reviewed_by)
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
-                                <i class="fas fa-lock text-gray-400"></i>
+                                <i class="fas fa-lock text-gray-500"></i>
                             </div>
                         @endif
                     </div>
@@ -309,16 +309,16 @@
                         <p class="text-gray-500">
                             <span class="font-semibold">ODM/FDM Approval</span>
                             @if($voucher->status === 'approved' && $voucher->approvalUser)
-                                <span class="text-green-400">✓ Approved</span>
+                                <span class="text-green-700">✓ Approved</span>
                                 <br>
-                                <small class="text-gray-400">
+                                <small class="text-gray-500">
                                     {{ $voucher->approvalUser->name }}
                                     on {{ $voucher->approval_date->format('M d, Y h:i A') }}
                                 </small>
                             @elseif($voucher->accounting_reviewed_by)
-                                <span class="text-yellow-400">Pending</span>
+                                <span class="text-yellow-700">Pending</span>
                             @else
-                                <span class="text-gray-400">Locked</span>
+                                <span class="text-gray-500">Locked</span>
                             @endif
                         </p>
                     </div>
@@ -326,14 +326,14 @@
 
                 <!-- Rejection Status -->
                 @if($voucher->status === 'rejected')
-                    <div class="flex items-start gap-4 p-3 bg-red-900/20 border border-red-700 rounded">
+                    <div class="flex items-start gap-4 p-3 bg-red-50 border border-red-200 rounded">
                         <div class="flex-shrink-0">
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-red-600">
                                 <i class="fas fa-times text-gray-800"></i>
                             </div>
                         </div>
                         <div class="flex-1">
-                            <p class="text-red-400">
+                            <p class="text-red-700">
                                 <span class="font-semibold">Rejected</span>
                             </p>
                             @if($voucher->rejection_reason)
@@ -383,10 +383,10 @@
             <input type="hidden" name="location" id="acct_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="acct_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="acct_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveAccountingModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveAccountingModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="acct_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -408,10 +408,10 @@
             <input type="hidden" name="location" id="odm_location">
             <div class="mb-4">
                 <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="odm_geolocation_status" class="text-sm text-gray-400">Waiting for location...</div>
+                <div id="odm_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveODMModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveODMModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" id="odm_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -433,7 +433,7 @@
                 <textarea name="rejection_reason" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeRejectModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeRejectModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
@@ -486,7 +486,7 @@ function enableSubmitButton(submitBtn, withLocation) {
 
 function captureGeolocationByIP(prefix, statusEl, submitBtn) {
     statusEl.textContent = 'Using IP-based location as fallback...';
-    statusEl.className = 'text-sm text-blue-400';
+    statusEl.className = 'text-sm text-blue-700';
     fetch('https://ipapi.co/json/')
         .then(response => response.json())
         .then(data => {
@@ -495,17 +495,17 @@ function captureGeolocationByIP(prefix, statusEl, submitBtn) {
                 document.getElementById(prefix + '_longitude').value = data.longitude;
                 document.getElementById(prefix + '_location').value = data.city || data.region || 'Unknown';
                 statusEl.textContent = 'Location captured (IP-based): ' + data.latitude + ', ' + data.longitude + ' (' + (data.city || 'Unknown') + ')';
-                statusEl.className = 'text-sm text-green-400';
+                statusEl.className = 'text-sm text-green-700';
                 enableSubmitButton(submitBtn, true);
             } else {
                 statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
-                statusEl.className = 'text-sm text-yellow-400';
+                statusEl.className = 'text-sm text-yellow-700';
                 enableSubmitButton(submitBtn, false);
             }
         })
         .catch(() => {
             statusEl.innerHTML = 'Could not determine location.<br>You can still approve without location data.';
-            statusEl.className = 'text-sm text-yellow-400';
+            statusEl.className = 'text-sm text-yellow-700';
             enableSubmitButton(submitBtn, false);
         });
 }
@@ -518,7 +518,7 @@ function captureGeolocation(prefix) {
         return;
     }
     statusEl.textContent = 'Capturing location...';
-    statusEl.className = 'text-sm text-blue-400';
+    statusEl.className = 'text-sm text-blue-700';
     navigator.geolocation.getCurrentPosition(
         function(position) {
             const lat = position.coords.latitude;
@@ -527,7 +527,7 @@ function captureGeolocation(prefix) {
             document.getElementById(prefix + '_longitude').value = lng;
             getLocationName(lat, lng, prefix);
             statusEl.textContent = 'Location captured: ' + lat.toFixed(6) + ', ' + lng.toFixed(6);
-            statusEl.className = 'text-sm text-green-400';
+            statusEl.className = 'text-sm text-green-700';
             enableSubmitButton(submitBtn, true);
         },
         function(error) {
@@ -567,7 +567,7 @@ function getLocationName(lat, lng, prefix) {
         width: 100%;
         background: white;
     }
-    .bg-white, .bg-gray-100, .bg-gray-600 {
+    .bg-white, .bg-gray-100, .bg-gray-200 {
         background-color: white !important;
     }
     button, .no-print {
@@ -586,7 +586,7 @@ function getLocationName(lat, lng, prefix) {
             @csrf
             @method('DELETE')
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeDeleteModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeDeleteModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">

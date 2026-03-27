@@ -71,7 +71,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="border border-gray-200 px-4 py-8 text-center text-gray-400">No debit memos found.</td>
+                        <td colspan="8" class="border border-gray-200 px-4 py-8 text-center text-gray-500">No debit memos found.</td>
                     </tr>
                     @endforelse
                 </tbody>

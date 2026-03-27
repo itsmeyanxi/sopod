@@ -7,7 +7,7 @@
     <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">REQUEST FOR PAYMENTS</h1>
-            <a href="{{ route('request_for_payments.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
+            <a href="{{ route('request_for_payments.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
                 <i class="fas fa-plus mr-1"></i> Create New RFP
             </a>
         </div>
@@ -27,10 +27,10 @@
         <!-- Search PO Section -->
         <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
             <div class="flex items-center gap-3 mb-2">
-                <i class="fas fa-search text-purple-400 text-lg"></i>
+                <i class="fas fa-search text-purple-700 text-lg"></i>
                 <h3 class="font-semibold text-gray-800">Create RFP from Approved Purchase Order</h3>
             </div>
-            <p class="text-gray-400 text-sm mb-3">Search by PO Number, Supplier, or Company to create a new Request for Payment</p>
+            <p class="text-gray-500 text-sm mb-3">Search by PO Number, Supplier, or Company to create a new Request for Payment</p>
 
             <div class="relative">
                 <input
@@ -105,8 +105,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="border border-gray-200 px-4 py-8 text-center text-gray-400">
-                                No request for payments found. <a href="{{ route('request_for_payments.create') }}" class="text-purple-400 hover:text-purple-300">Create one now</a>
+                            <td colspan="9" class="border border-gray-200 px-4 py-8 text-center text-gray-500">
+                                No request for payments found. <a href="{{ route('request_for_payments.create') }}" class="text-purple-700 hover:text-purple-700">Create one now</a>
                             </td>
                         </tr>
                     @endforelse
@@ -135,7 +135,7 @@ poSearchInput.addEventListener('input', function() {
         return;
     }
 
-    poSearchResults.innerHTML = '<div class="p-3 text-gray-400 text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Searching...</div>';
+    poSearchResults.innerHTML = '<div class="p-3 text-gray-500 text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Searching...</div>';
     poSearchResults.classList.remove('hidden');
 
     searchTimeout = setTimeout(async () => {
@@ -146,7 +146,7 @@ poSearchInput.addEventListener('input', function() {
             if (pos.length === 0) {
                 poSearchResults.innerHTML = `
                     <div class="p-4 text-center">
-                        <div class="text-gray-400 mb-2">
+                        <div class="text-gray-500 mb-2">
                             <i class="fas fa-inbox text-2xl mb-2"></i>
                             <p>No approved POs found matching "${searchTerm}"</p>
                         </div>
@@ -169,15 +169,15 @@ poSearchInput.addEventListener('input', function() {
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
                                 <div class="font-semibold text-gray-800 mb-1">
-                                    <i class="fas fa-file-invoice mr-2 text-purple-400"></i>${po.po_no}
+                                    <i class="fas fa-file-invoice mr-2 text-purple-700"></i>${po.po_no}
                                 </div>
-                                <div class="text-sm text-gray-400">${po.supplier || 'N/A'} • ${po.company}</div>
+                                <div class="text-sm text-gray-500">${po.supplier || 'N/A'} • ${po.company}</div>
                                 <div class="text-xs text-gray-500 mt-1">
                                     <i class="far fa-calendar mr-1"></i>${dateFormatted}
                                 </div>
                             </div>
                             <div class="ml-4">
-                                <span class="px-3 py-1 bg-purple-900/30 border border-purple-700 text-purple-300 rounded text-sm">
+                                <span class="px-3 py-1 bg-purple-100 border border-purple-700 text-purple-700 rounded text-sm">
                                     Create RFP <i class="fas fa-arrow-right ml-1"></i>
                                 </span>
                             </div>
@@ -191,7 +191,7 @@ poSearchInput.addEventListener('input', function() {
 
         } catch (error) {
             console.error('Search error:', error);
-            poSearchResults.innerHTML = '<div class="p-3 text-red-400 text-center"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading results</div>';
+            poSearchResults.innerHTML = '<div class="p-3 text-red-700 text-center"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading results</div>';
         }
     }, 300);
 });

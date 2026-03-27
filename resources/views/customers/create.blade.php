@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6 bg-gray-50 min-h-screen text-gray-200">
+<div class="p-6 bg-gray-50 min-h-screen text-gray-700">
     <h1 class="text-2xl font-bold mb-6">Create Customer</h1>
 
     @if(session('success'))
@@ -25,18 +25,19 @@
             @csrf
 
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Customer Code <span class="text-red-400">*</span></label>
-                <input 
-                    type="text" 
+                <label class="block text-sm font-medium text-gray-500 mb-1">Customer Code <span class="text-red-700">*</span></label>
+                <input
+                    type="text"
                     name="customer_code"
-                    class="w-full bg-gray-50 border border-gray-200 rounded-md p-2.5 text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter Customer Code (must be unique)"
+                    class="w-full bg-gray-50 border border-gray-200 rounded-md p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="e.g. C0000000001-000"
+                    value="{{ $nextCode ?? old('customer_code') }}"
                     required
                 >
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Customer Name <span class="text-red-400">*</span></label>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Customer Name <span class="text-red-700">*</span></label>
                 <input 
                     type="text" 
                     name="customer_name" 
@@ -61,7 +62,7 @@
                 <input 
                     type="text" 
                     name="sales_rep" 
-                    class="w-full bg-gray-50 border border-gray-200 rounded-md p-2.5 text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                    class="w-full bg-gray-50 border border-gray-200 rounded-md p-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
                     placeholder="Enter Sales Executive Name"
                 >
             </div>
@@ -108,7 +109,7 @@
 
             <div class="flex justify-end gap-3">
                 <a href="{{ route('customers.index') }}" 
-                   class="bg-gray-100 hover:bg-gray-100 text-gray-200 px-4 py-2 rounded-md transition">
+                   class="bg-gray-100 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md transition">
                     Cancel
                 </a>
 

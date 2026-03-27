@@ -8,7 +8,7 @@
 
     {{-- 🔒 View Only Notice --}}
     @if(!\App\Helpers\RoleHelper::canManageDeliveries())
-    <div class="bg-blue-900/40 border border-blue-700 text-blue-300 p-4 rounded-lg mb-6">
+    <div class="bg-blue-100/40 border border-blue-700 text-blue-700 p-4 rounded-lg mb-6">
         <strong>View Only Mode</strong>
         <p>You can view delivery information but cannot make changes. Only Delivery, Admin, or IT roles can modify deliveries.</p>
     </div>
@@ -19,7 +19,7 @@
         <label class="block text-gray-500 font-medium mb-2">Search Sales Order Number</label>
         <div class="flex gap-2">
             <input type="text" id="so_search" placeholder="Enter SO Number (e.g. SO-2025-001)" 
-                   class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md p-2 focus:ring-2 focus:ring-blue-500">
+                   class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2 focus:ring-2 focus:ring-blue-500">
             <button id="search_btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md transition-all">
                 Search
             </button>
@@ -27,25 +27,25 @@
     </div>
 
     {{-- ✅ Batch Selector (Hidden by default) --}}
-    <div id="batch_selector_container" class="mb-6 bg-yellow-900/20 border border-yellow-700 p-4 rounded-lg hidden">
-        <label class="block text-yellow-300 font-medium mb-2">
+    <div id="batch_selector_container" class="mb-6 bg-yellow-100/20 border border-yellow-700 p-4 rounded-lg hidden">
+        <label class="block text-yellow-700 font-medium mb-2">
             📦 Multiple Delivery Batches Found - Select One:
         </label>
         <select id="delivery_batch_select" 
-                class="w-full bg-gray-50 border border-yellow-700 text-gray-200 rounded-md p-2 focus:ring-2 focus:ring-yellow-500">
+                class="w-full bg-gray-50 border border-yellow-700 text-gray-700 rounded-md p-2 focus:ring-2 focus:ring-yellow-500">
             <option value="">-- Select Delivery Batch --</option>
         </select>
-        <p class="text-xs text-gray-400 mt-2">This Sales Order has multiple delivery dates. Please select the batch you want to create/edit a delivery for.</p>
+        <p class="text-xs text-gray-500 mt-2">This Sales Order has multiple delivery dates. Please select the batch you want to create/edit a delivery for.</p>
     </div>
 
     {{-- ✅ Partial Delivery Warning --}}
-    <div id="partial_delivery_warning" class="mb-6 bg-orange-900/20 border border-orange-700 p-4 rounded-lg hidden">
+    <div id="partial_delivery_warning" class="mb-6 bg-orange-100/20 border border-orange-700 p-4 rounded-lg hidden">
         <div class="flex items-start gap-3">
-            <svg class="w-6 h-6 text-orange-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 text-orange-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
             </svg>
             <div class="flex-1">
-                <h4 class="text-orange-300 font-semibold mb-2">⚠️ Partial Delivery Detected</h4>
+                <h4 class="text-orange-700 font-semibold mb-2">⚠️ Partial Delivery Detected</h4>
                 <p class="text-sm text-orange-200 mb-2">You have reduced quantities below the original Sales Order amounts. This will be marked as a <strong>Partial Delivery</strong>.</p>
                 <div id="partial_items_summary" class="text-xs text-orange-100 bg-orange-950/30 p-2 rounded mt-2"></div>
             </div>
@@ -71,9 +71,9 @@
                 'request_delivery_date' => 'Request Delivery Date'
             ] as $id => $label)
                 <div>
-                    <label class="block text-gray-400 text-sm">{{ $label }}</label>
+                    <label class="block text-gray-500 text-sm">{{ $label }}</label>
                     <input id="{{ $id }}" type="{{ $id === 'request_delivery_date' ? 'date' : 'text' }}" 
-                           class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md p-2" readonly>
+                           class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2" readonly>
                 </div>
             @endforeach
         </div>
@@ -84,34 +84,34 @@
     <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-1">Delivery Details</h3>
     <div class="grid grid-cols-2 gap-4">
         <div>
-            <label class="block text-gray-400 text-sm">Approved By</label>
+            <label class="block text-gray-500 text-sm">Approved By</label>
             <input id="approved_by" type="text" 
                    value="{{ auth()->user()->name }}" 
                    class="w-full bg-white border border-gray-200 text-gray-500 rounded-md p-2" readonly>
         </div>
 
         <div>
-            <label class="block text-gray-400 text-sm">Plate No</label>
+            <label class="block text-gray-500 text-sm">Plate No</label>
             <input id="plate_no" type="text"
-                class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md p-2"
+                class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2"
                 {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}>
         </div>
 
         <div>
-            <label class="block text-gray-400 text-sm">Sales Invoice No (Optional)</label>
+            <label class="block text-gray-500 text-sm">Sales Invoice No (Optional)</label>
             <input id="sales_invoice_no" type="text"
-                class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md p-2"
+                class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2"
                 {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}
                 placeholder="Optional">
         </div>
 
         {{-- ✅ UPDATED: DR/RR Number (Dynamic based on status) --}}
         <div>
-            <label class="block text-gray-400 text-sm">
+            <label class="block text-gray-500 text-sm">
                 <span id="dr_rr_label">DR No</span>
             </label>
             <input id="dr_no" type="text"
-                class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md p-2"
+                class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2"
                 {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}
                 placeholder="Will be auto-generated for Backload">
             <p id="dr_rr_hint" class="text-xs text-gray-500 mt-1 hidden">
@@ -121,9 +121,9 @@
 
         {{-- ✅ NEW: Type of Delivery (Replaces Partial in Status) --}}
         <div>
-            <label class="block text-gray-400 text-sm mb-1">Type of Delivery</label>
+            <label class="block text-gray-500 text-sm mb-1">Type of Delivery</label>
             <select id="delivery_type"
-                    class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md p-2"
+                    class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2"
                     {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
                 <option value="Full">Full Delivery</option>
                 <option value="Partial">Partial Delivery</option>
@@ -132,9 +132,9 @@
 
         {{-- ✅ UPDATED: Status (Delivered, Cancelled, or Backload) --}}
         <div>
-            <label class="block text-gray-400 text-sm">Status</label>
+            <label class="block text-gray-500 text-sm">Status</label>
             <select id="status"
-                    class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md p-2"
+                    class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2"
                     {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
                 <option value="Delivered">Delivered</option>
                 <option value="Cancelled">Cancelled</option>
@@ -143,13 +143,13 @@
         </div>
 
         <div>
-            <label class="block text-gray-400 text-sm">Attachment (Optional)</label>
+            <label class="block text-gray-500 text-sm">Attachment (Optional)</label>
             <input id="attachment" type="file" accept="image/*,application/pdf"
-                   class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md p-2 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-600 file:text-gray-800 hover:file:bg-blue-500"
+                   class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-500"
                    {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
             <p class="text-xs text-gray-500 mt-1">Upload an image or PDF file (JPG, PNG, PDF)</p>
             <div id="current_attachment_container" class="mt-2 hidden">
-                <a id="current_attachment_link" href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1">
+                <a id="current_attachment_link" href="#" target="_blank" class="text-blue-700 hover:text-blue-700 text-sm flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
                     </svg>
@@ -159,9 +159,9 @@
         </div>
 
         <div class="col-span-2">
-            <label class="block text-gray-400 text-sm">Additional Instructions</label>
+            <label class="block text-gray-500 text-sm">Additional Instructions</label>
             <textarea id="additional_instructions" readonly
-                    class="w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md p-2" rows="3"></textarea>
+                    class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2" rows="3"></textarea>
         </div>
     </div>
 </div>
@@ -284,18 +284,18 @@ function calculateRemaining(card) {
         const remaining = originalQty - alreadyDelivered;
 
         // Remove all status classes first
-        card.classList.remove('bg-orange-900/10', 'bg-red-900/10');
-        remainingCell.classList.remove('text-orange-400', 'text-green-400', 'text-red-400', 'font-semibold');
+        card.classList.remove('bg-orange-100/10', 'bg-red-100/10');
+        remainingCell.classList.remove('text-orange-700', 'text-green-700', 'text-red-700', 'font-semibold');
 
         if (remaining <= 0) {
             // Fully delivered already
             remainingCell.textContent = '—';
-            remainingCell.classList.add('text-green-400');
+            remainingCell.classList.add('text-green-700');
         } else {
             // Has remaining to deliver
             remainingCell.textContent = remaining.toFixed(2);
-            remainingCell.classList.add('text-orange-400', 'font-semibold');
-            card.classList.add('bg-orange-900/10');
+            remainingCell.classList.add('text-orange-700', 'font-semibold');
+            card.classList.add('bg-orange-100/10');
         }
     }
 }
@@ -335,8 +335,8 @@ function checkPartialDelivery() {
         const remaining = originalQty - totalDelivered;
         
         // Get item details from the card
-        const itemCodeDiv = card.querySelector('.bg-gray-50.border.border-gray-200.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
-        const itemDescDiv = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
+        const itemCodeDiv = card.querySelector('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm.font-mono');
+        const itemDescDiv = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm')[0];
         
         const itemCode = itemCodeDiv?.textContent.trim() || '';
         const itemDesc = itemDescDiv?.textContent.trim() || '';
@@ -374,17 +374,17 @@ function checkPartialDelivery() {
         let summaryHTML = '';
         
         if (hasOverDelivery) {
-            summaryHTML += '<div class="bg-red-950/30 p-2 rounded mb-2"><strong class="text-red-300">⚠️ Over-Delivery:</strong><ul class="mt-1 space-y-1">';
+            summaryHTML += '<div class="bg-red-950/30 p-2 rounded mb-2"><strong class="text-red-700">⚠️ Over-Delivery:</strong><ul class="mt-1 space-y-1">';
             overDeliveryItems.forEach(item => {
-                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Total Delivered <span class="text-red-400">${item.delivered.toFixed(2)}</span> vs SO <span class="text-blue-400">${item.original}</span> (Excess: <span class="text-red-400">+${item.excess.toFixed(2)}</span>)</li>`;
+                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Total Delivered <span class="text-red-700">${item.delivered.toFixed(2)}</span> vs SO <span class="text-blue-700">${item.original}</span> (Excess: <span class="text-red-700">+${item.excess.toFixed(2)}</span>)</li>`;
             });
             summaryHTML += '</ul></div>';
         }
         
         if (hasUnderDelivery) {
-            summaryHTML += '<div class="bg-orange-950/30 p-2 rounded"><strong class="text-orange-300">📦 Partial Delivery:</strong><ul class="mt-1 space-y-1">';
+            summaryHTML += '<div class="bg-orange-950/30 p-2 rounded"><strong class="text-orange-700">📦 Partial Delivery:</strong><ul class="mt-1 space-y-1">';
             partialItems.forEach(item => {
-                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Total Delivered <span class="text-orange-400">${item.delivered.toFixed(2)}</span> of <span class="text-blue-400">${item.original}</span> (Remaining: <span class="text-orange-400">${item.remaining.toFixed(2)}</span>)</li>`;
+                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Total Delivered <span class="text-orange-700">${item.delivered.toFixed(2)}</span> of <span class="text-blue-700">${item.original}</span> (Remaining: <span class="text-orange-700">${item.remaining.toFixed(2)}</span>)</li>`;
             });
             summaryHTML += '</ul></div>';
         }
@@ -470,18 +470,18 @@ function populateItemsTable(items, isViewOnly = false) {
             }
             
             // Determine remaining color and status
-            let remainingClass = 'text-green-400';
+            let remainingClass = 'text-green-700';
             let remainingDisplay = '—';
             let rowBgClass = '';
             
             if (remaining > 0) {
-                remainingClass = 'text-orange-400 font-semibold';
+                remainingClass = 'text-orange-700 font-semibold';
                 remainingDisplay = remaining.toFixed(2);
-                rowBgClass = 'bg-orange-900/10';
+                rowBgClass = 'bg-orange-100/10';
             } else if (remaining < 0) {
-                remainingClass = 'text-red-400 font-semibold';
+                remainingClass = 'text-red-700 font-semibold';
                 remainingDisplay = 'OVER: +' + Math.abs(remaining).toFixed(2);
-                rowBgClass = 'bg-red-900/10';
+                rowBgClass = 'bg-red-100/10';
             }
             
             if (rowBgClass && !isHidden) {
@@ -496,7 +496,7 @@ function populateItemsTable(items, isViewOnly = false) {
         <h4 class="text-sm font-semibold text-gray-500">Item #${index + 1}</h4>
         <div class="flex items-center gap-2">
             ${status === 'Backload' && !isViewOnly && canManageDeliveries ? `
-            <label class="flex items-center gap-2 text-xs text-orange-400 bg-orange-900/20 px-3 py-1 rounded border border-orange-700">
+            <label class="flex items-center gap-2 text-xs text-orange-700 bg-orange-100/20 px-3 py-1 rounded border border-orange-700">
                 <input type="checkbox" class="backload-checkbox w-4 h-4" checked>
                 <span>Include in Backload</span>
             </label>
@@ -523,22 +523,22 @@ function populateItemsTable(items, isViewOnly = false) {
                 <!-- Item Details Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Item Code</label>
-                        <div class="bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2 text-sm font-mono">
+                        <label class="block text-xs text-gray-500 mb-1">Item Code</label>
+                        <div class="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm font-mono">
                             ${item.item_code || '—'}
                         </div>
                     </div>
                     
                     <div class="col-span-2">
-                        <label class="block text-xs text-gray-400 mb-1">Description</label>
-                        <div class="bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2 text-sm">
+                        <label class="block text-xs text-gray-500 mb-1">Description</label>
+                        <div class="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm">
                             ${item.item_description || '—'}
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Brand</label>
-                        <div class="bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2 text-sm">
+                        <label class="block text-xs text-gray-500 mb-1">Brand</label>
+                        <div class="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm">
                             ${item.brand || '—'}
                         </div>
                     </div>
@@ -546,24 +546,24 @@ function populateItemsTable(items, isViewOnly = false) {
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Category</label>
-                        <div class="bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2 text-sm">
+                        <label class="block text-xs text-gray-500 mb-1">Category</label>
+                        <div class="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm">
                             ${item.item_category || '—'}
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Original Qty</label>
-                        <div class="bg-gray-50 border border-blue-600/50 text-blue-400 rounded-md px-3 py-2 text-center">
+                        <label class="block text-xs text-gray-500 mb-1">Original Qty</label>
+                        <div class="bg-gray-50 border border-blue-600/50 text-blue-700 rounded-md px-3 py-2 text-center">
                             <div class="font-semibold">${originalQty}</div>
                             <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Delivered Qty *</label>
+                        <label class="block text-xs text-gray-500 mb-1">Delivered Qty *</label>
                         <input type="number"
-                            class="delivered-qty-input w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2 text-center font-semibold"
+                            class="delivered-qty-input w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-center font-semibold"
                             value="${parseFloat(deliveredQty).toFixed(3)}"
                             data-sales-order-item-id="${item.sales_order_item_id || ''}"
                             data-item-index="${index}"
@@ -573,7 +573,7 @@ function populateItemsTable(items, isViewOnly = false) {
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Remaining</label>
+                        <label class="block text-xs text-gray-500 mb-1">Remaining</label>
                         <div class="bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-center">
                             <div class="remaining-qty ${remainingClass}">${remainingDisplay}</div>
                             <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
@@ -583,32 +583,32 @@ function populateItemsTable(items, isViewOnly = false) {
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">UOM</label>
-                        <div class="bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2 text-sm text-center">
+                        <label class="block text-xs text-gray-500 mb-1">UOM</label>
+                        <div class="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm text-center">
                             ${item.uom || 'Kgs'}
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Unit Price</label>
-                        <div class="price-cell bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2 text-sm text-right font-mono">
+                        <label class="block text-xs text-gray-500 mb-1">Unit Price</label>
+                        <div class="price-cell bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm text-right font-mono">
                             ${item.unit_price || 0}
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Amount</label>
+                        <label class="block text-xs text-gray-500 mb-1">Amount</label>
                         <input type="number" 
-                            class="amount-input w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2 text-right font-mono text-green-400" 
+                            class="amount-input w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-right font-mono text-green-700" 
                             value="${((deliveredQty || 0) * (item.unit_price || 0)).toFixed(2)}" 
                             readonly>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs text-gray-400 mb-1">Note</label>
+                    <label class="block text-xs text-gray-500 mb-1">Note</label>
                     <input type="text"
-                        class="notes-input w-full bg-gray-50 border border-gray-200 text-gray-200 rounded-md px-3 py-2 text-sm"
+                        class="notes-input w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm"
                         value="${item.notes || ''}"
                         placeholder="Add notes for this item..."
                         ${inputReadonly}>
@@ -634,7 +634,7 @@ function populateItemsTable(items, isViewOnly = false) {
                 <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
-                <p class="text-gray-400 text-lg">No items available for delivery</p>
+                <p class="text-gray-500 text-lg">No items available for delivery</p>
                 <p class="text-gray-500 text-sm mt-2">All items have been fully delivered or no items remaining</p>
             </div>
         `;
@@ -654,8 +654,8 @@ function addDeliveryItem() {
     // Build options for dropdown
     let optionsHTML = '<option value="">-- Select Item to Restore --</option>';
     hiddenItems.forEach((card, index) => {
-        const itemCodeDiv = card.querySelector('.bg-gray-50.border.border-gray-200.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
-        const itemDescDiv = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
+        const itemCodeDiv = card.querySelector('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm.font-mono');
+        const itemDescDiv = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm')[0];
         const itemCode = itemCodeDiv?.textContent.trim() || 'Unknown';
         const itemDesc = itemDescDiv?.textContent.trim() || 'No description';
         
@@ -698,7 +698,7 @@ function addDeliveryItem() {
                 checkPartialDelivery();
                 
                 // Get item details for confirmation
-                const itemCodeDiv = cardToRestore.querySelector('.bg-gray-50.border.border-gray-200.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
+                const itemCodeDiv = cardToRestore.querySelector('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm.font-mono');
                 const itemCode = itemCodeDiv?.textContent.trim() || 'Item';
                 
                 Swal.fire({
@@ -725,8 +725,8 @@ function removeDeliveryItem(button) {
     }
     
     // Get item details for confirmation
-    const itemCodeDiv = card.querySelector('.bg-gray-50.border.border-gray-200.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
-    const itemDescDiv = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
+    const itemCodeDiv = card.querySelector('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm.font-mono');
+    const itemDescDiv = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm')[0];
     const itemCode = itemCodeDiv?.textContent.trim() || 'this item';
     const itemDesc = itemDescDiv?.textContent.trim() || '';
     
@@ -955,32 +955,32 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         
         // Determine badge and styling based on status
         let badgeHtml = '';
-        let bgClass = 'bg-blue-900/20 border-blue-700';
-        let iconColor = 'text-blue-400';
-        let textColor = 'text-blue-300';
+        let bgClass = 'bg-blue-50 border-blue-700';
+        let iconColor = 'text-blue-700';
+        let textColor = 'text-blue-700';
         
         if (data.is_view_only) {
             bgClass = 'bg-white/40 border-gray-300';
-            iconColor = 'text-gray-400';
+            iconColor = 'text-gray-500';
             textColor = 'text-gray-500';
-            badgeHtml = '<span class="px-2 py-1 bg-gray-600/30 text-gray-500 text-xs rounded border border-gray-500">View Only</span>';
+            badgeHtml = '<span class="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded border border-gray-300">View Only</span>';
         } else if (data.is_edit_mode) {
-            bgClass = 'bg-yellow-900/20 border-yellow-700';
-            iconColor = 'text-yellow-400';
-            textColor = 'text-yellow-300';
-            badgeHtml = '<span class="px-2 py-1 bg-yellow-600/20 text-yellow-400 text-xs rounded border border-yellow-600">Editing</span>';
+            bgClass = 'bg-yellow-100/20 border-yellow-700';
+            iconColor = 'text-yellow-700';
+            textColor = 'text-yellow-700';
+            badgeHtml = '<span class="px-2 py-1 bg-yellow-600/20 text-yellow-700 text-xs rounded border border-yellow-600">Editing</span>';
         } else if (batchValue === 'Full Delivery') {
-            bgClass = 'bg-green-900/20 border-green-700';
-            iconColor = 'text-green-400';
-            textColor = 'text-green-300';
-            badgeHtml = '<span class="px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded border border-green-600">Full Delivery</span>';
+            bgClass = 'bg-green-50 border-green-700';
+            iconColor = 'text-green-700';
+            textColor = 'text-green-700';
+            badgeHtml = '<span class="px-2 py-1 bg-green-600/20 text-green-700 text-xs rounded border border-green-600">Full Delivery</span>';
         } else if (batchValue.startsWith('Batch')) {
-            bgClass = 'bg-orange-900/20 border-orange-700';
-            iconColor = 'text-orange-400';
-            textColor = 'text-orange-300';
-            badgeHtml = `<span class="px-2 py-1 bg-orange-600/20 text-orange-400 text-xs rounded border border-orange-600">Partial - ${batchValue}</span>`;
+            bgClass = 'bg-orange-100/20 border-orange-700';
+            iconColor = 'text-orange-700';
+            textColor = 'text-orange-700';
+            badgeHtml = `<span class="px-2 py-1 bg-orange-600/20 text-orange-700 text-xs rounded border border-orange-600">Partial - ${batchValue}</span>`;
         } else {
-            badgeHtml = '<span class="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded border border-blue-600">New Delivery</span>';
+            badgeHtml = '<span class="px-2 py-1 bg-blue-600/20 text-blue-700 text-xs rounded border border-blue-600">New Delivery</span>';
         }
         
         batchDisplay.className += ' border ' + bgClass;
@@ -991,12 +991,12 @@ document.getElementById("search_btn").addEventListener("click", async () => {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                 </svg>
                 <div class="flex-1">
-                    <p class="text-sm text-gray-400">Delivery Batch</p>
+                    <p class="text-sm text-gray-500">Delivery Batch</p>
                     <p class="text-lg font-semibold ${textColor}">${batchValue}</p>
                 </div>
                 ${badgeHtml}
             </div>
-            ${data.so_status ? `<p class="text-xs text-gray-400 mt-2">SO Status: <span class="font-semibold">${data.so_status}</span></p>` : ''}
+            ${data.so_status ? `<p class="text-xs text-gray-500 mt-2">SO Status: <span class="font-semibold">${data.so_status}</span></p>` : ''}
         `;
         
         // Remove old batch display if exists
@@ -1134,7 +1134,7 @@ if (canManageDeliveries) {
                 const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
                 const shortage = originalQty - qty;
                 
-                itemsList += `<li class="text-orange-300">• <strong>${itemCode}</strong>: Shortage of <span class="text-red-400">${shortage.toFixed(2)}</span> (Delivered: ${qty.toFixed(2)} / Required: ${originalQty})</li>`;
+                itemsList += `<li class="text-orange-700">• <strong>${itemCode}</strong>: Shortage of <span class="text-red-700">${shortage.toFixed(2)}</span> (Delivered: ${qty.toFixed(2)} / Required: ${originalQty})</li>`;
             });
             itemsList += '</ul>';
 
@@ -1145,8 +1145,8 @@ if (canManageDeliveries) {
                     <div class="text-left">
                         <p class="mb-3">This will create a <strong class="text-blue-600">Receiving Report (RR)</strong> for the following short-delivered items:</p>
                         ${itemsList}
-                        <div class="bg-blue-900/20 border border-blue-700 rounded p-3 mt-3 mb-3">
-                            <p class="text-sm text-blue-300 mb-2"><strong>What happens:</strong></p>
+                        <div class="bg-blue-50 border border-blue-700 rounded p-3 mt-3 mb-3">
+                            <p class="text-sm text-blue-700 mb-2"><strong>What happens:</strong></p>
                             <ul class="text-sm text-gray-500 space-y-1 ml-4">
                                 <li>✓ RR Number auto-generated (e.g., RR-2026-001)</li>
                                 <li>✓ Only selected items will be included</li>
@@ -1269,7 +1269,7 @@ if (canManageDeliveries) {
             const notesInput = card.querySelector('.notes-input');
             const priceCell = card.querySelector('.price-cell');
 
-            const uomDivs = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-200.rounded-md.px-3.py-2.text-sm.text-center');
+            const uomDivs = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm.text-center');
 
             const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
             const deliveredQty = parseFloat(deliveredQtyInput?.value) || 0;
@@ -1342,9 +1342,9 @@ if (canManageDeliveries) {
                     successMessage = `
                         <div class="text-left">
                             <p class="mb-2">Receiving Report created successfully!</p>
-                            <div class="bg-blue-900/20 border border-blue-700 rounded p-3 mt-3">
-                                <p class="text-sm text-blue-300">RR Number: <strong class="text-blue-400">${data.rr_number}</strong></p>
-                                <p class="text-sm text-gray-400 mt-1">Items: <strong>${data.items_count || 0}</strong> short-delivered item(s)</p>
+                            <div class="bg-blue-50 border border-blue-700 rounded p-3 mt-3">
+                                <p class="text-sm text-blue-700">RR Number: <strong class="text-blue-700">${data.rr_number}</strong></p>
+                                <p class="text-sm text-gray-500 mt-1">Items: <strong>${data.items_count || 0}</strong> short-delivered item(s)</p>
                             </div>
                         </div>
                     `;

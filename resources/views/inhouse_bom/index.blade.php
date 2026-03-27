@@ -10,6 +10,8 @@
 .badge-active   { background:#dbeafe; color:#1d4ed8; }
 .badge-complete { background:#dcfce7; color:#15803d; }
 .badge-archived { background:#fef9c3; color:#854d0e; }
+.badge-approved { background:#dcfce7; color:#15803d; border:1px solid #86efac; }
+.badge-pending  { background:#fef3c7; color:#92400e; }
 
 .bom-table { width:100%; border-collapse:collapse; font-size:.82rem; }
 .bom-table thead th { background:#1e3a5f; color:#fff; padding:.5rem .75rem; font-size:.7rem; font-weight:600; text-align:left; white-space:nowrap; }
@@ -39,7 +41,7 @@
 <div class="flex items-center justify-between mb-5">
     <div>
         <h2 class="text-xl font-bold text-gray-800">In-House BOM</h2>
-        <p class="text-xs text-gray-400 mt-0.5">Bill of Materials — Broiler Production Cycles</p>
+        <p class="text-xs text-gray-500 mt-0.5">Bill of Materials — Broiler Production Cycles</p>
     </div>
     <a href="{{ route('inhouse_bom.create') }}"
        class="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold shadow-sm">
@@ -103,7 +105,7 @@
                 <option value="archived">Archived</option>
             </select>
         </div>
-        <span class="text-xs text-gray-400" id="row-count">{{ $totalBoms }} record{{ $totalBoms != 1 ? 's' : '' }}</span>
+        <span class="text-xs text-gray-500" id="row-count">{{ $totalBoms }} record{{ $totalBoms != 1 ? 's' : '' }}</span>
     </div>
 
     <div class="overflow-x-auto">
@@ -120,6 +122,7 @@
                     <th class="r">Total Cost</th>
                     <th class="r">Cost/kg</th>
                     <th style="width:80px;">Status</th>
+                    <th style="width:80px;">Approval</th>
                     <th style="width:110px;">Created By</th>
                     <th style="width:115px;">Actions</th>
                 </tr>
@@ -140,6 +143,9 @@
                     <td class="font-semibold">
                         <a href="{{ route('inhouse_bom.show', $bom) }}"
                            class="text-blue-700 hover:underline">{{ $bom->cycle_ref }}</a>
+                        @if($bom->parent_bom_id)
+                            <span class="badge" style="background:#fef3c7;color:#92400e;font-size:.6rem;vertical-align:middle;">EXT</span>
+                        @endif
                     </td>
                     <td class="text-gray-500 text-xs">{{ $bom->cycle_date->format('M d, Y') }}</td>
                     <td>{{ $bom->grower ?: '—' }}</td>
@@ -156,12 +162,27 @@
                             {{ ucfirst($bom->status) }}
                         </span>
                     </td>
+                    <td>
+                        @if($bom->approved)
+                            <span class="badge badge-approved" title="Approved by {{ $bom->approved_by }}">
+                                <i class="fas fa-check-circle mr-0.5"></i> Yes
+                            </span>
+                        @else
+                            <span class="badge badge-pending">Pending</span>
+                        @endif
+                    </td>
                     <td class="text-gray-500 text-xs">{{ $bom->creator->name ?? '—' }}</td>
                     <td>
                         <div class="flex gap-1 flex-wrap">
                             <a href="{{ route('inhouse_bom.show', $bom) }}" class="action-btn view">
                                 <i class="fas fa-eye mr-0.5"></i> View
                             </a>
+                            @if($bom->approved)
+                            <a href="{{ route('purchase_requests.create', ['bom_id' => $bom->id]) }}" class="action-btn" style="background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe;" title="Create Purchase Request from BOM">
+                                <i class="fas fa-file-invoice mr-0.5"></i> PR
+                            </a>
+                            @endif
+                            @if(!$bom->approved)
                             <a href="{{ route('inhouse_bom.edit', $bom) }}" class="action-btn edit">
                                 <i class="fas fa-edit"></i>
                             </a>
@@ -172,6 +193,7 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
+                            @endif
                         </div>
                     </td>
                 </tr>
@@ -183,8 +205,8 @@
         </table>
 
         @if($boms->isEmpty())
-        <div class="flex flex-col items-center justify-center py-16 text-gray-400">
-            <i class="fas fa-clipboard-list text-4xl mb-3 text-gray-200"></i>
+        <div class="flex flex-col items-center justify-center py-16 text-gray-500">
+            <i class="fas fa-clipboard-list text-4xl mb-3 text-gray-700"></i>
             <p class="text-sm font-medium text-gray-500">No BOM records yet</p>
             <p class="text-xs mt-1">Create your first Bill of Materials to get started.</p>
             <a href="{{ route('inhouse_bom.create') }}"

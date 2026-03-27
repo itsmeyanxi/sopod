@@ -40,22 +40,22 @@
         <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="text-gray-400 text-sm">Item Code</label>
+                    <label class="text-gray-500 text-sm">Item Code</label>
                     <p class="text-gray-800 text-lg font-semibold">{{ $item->item_code }}</p>
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="text-gray-400 text-sm"> Item Description</label>
+                    <label class="text-gray-500 text-sm"> Item Description</label>
                     <p class="text-gray-800">{{ $item->item_description }}</p>
                 </div>
 
                 <div>
-                    <label class="text-gray-400 text-sm">Brand</label>
+                    <label class="text-gray-500 text-sm">Brand</label>
                     <p class="text-gray-800">{{ $item->brand ?? 'N/A' }}</p>
                 </div>
 
                 <div>
-                    <label class="text-gray-400 text-sm">Category</label>
+                    <label class="text-gray-500 text-sm">Category</label>
                     <p class="text-gray-800">{{ $item->item_category ?? 'N/A' }}</p>
                 </div>
             </div>
@@ -63,8 +63,8 @@
 
         <!-- Approval Actions (Only for pending items and authorized users) -->
         @if($item->approval_status === 'pending' && auth()->check() && auth()->user()->canApproveItems())
-            <div class="bg-yellow-900/30 border border-yellow-600 rounded-xl p-6 mb-6">
-                <h3 class="text-xl font-bold text-yellow-400 mb-4">⚠️ Approval Required</h3>
+            <div class="bg-yellow-100 border border-yellow-600 rounded-xl p-6 mb-6">
+                <h3 class="text-xl font-bold text-yellow-700 mb-4">⚠️ Approval Required</h3>
                 <p class="text-gray-500 mb-4">This item is pending approval. Please review and take action:</p>
                 
                 <div class="flex gap-4">
@@ -91,16 +91,16 @@
 
         <!-- Rejection Info (if rejected) -->
         @if($item->approval_status === 'rejected' && $item->rejection_reason)
-            <div class="bg-red-900/30 border border-red-600 rounded-xl p-6 mb-6">
-                <h3 class="text-xl font-bold text-red-400 mb-2">Rejection Reason</h3>
+            <div class="bg-red-100 border border-red-600 rounded-xl p-6 mb-6">
+                <h3 class="text-xl font-bold text-red-700 mb-2">Rejection Reason</h3>
                 <p class="text-gray-500">{{ $item->rejection_reason }}</p>
             </div>
         @endif
 
         <!-- Approval Info (if approved) -->
         @if($item->approval_status === 'approved' && $item->approver)
-            <div class="bg-white rounded-xl p-4 text-sm text-gray-400">
-                <p>Approved by <span class="text-green-400 font-semibold">{{ $item->approver->name }}</span> 
+            <div class="bg-white rounded-xl p-4 text-sm text-gray-500">
+                <p>Approved by <span class="text-green-700 font-semibold">{{ $item->approver->name }}</span> 
                    on {{ $item->approved_at->format('M d, Y h:i A') }}</p>
             </div>
         @endif

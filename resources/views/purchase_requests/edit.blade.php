@@ -21,7 +21,7 @@
         </div>
 
         @if(isset($notesOnly) && $notesOnly)
-            <div class="bg-blue-600/20 border border-blue-500 text-blue-300 px-4 py-3 rounded mb-4">
+            <div class="bg-blue-600/20 border border-blue-500 text-blue-700 px-4 py-3 rounded mb-4">
                 <i class="fas fa-info-circle mr-2"></i> This PR is approved. Only notes can be edited.
             </div>
         @endif
@@ -43,7 +43,7 @@
             @if(!isset($notesOnly) || !$notesOnly)
             <!-- Company Selection -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">COMPANY: <span class="text-red-400">*</span></label>
+                <label class="block font-semibold text-gray-500 mb-2">COMPANY: <span class="text-red-700">*</span></label>
                 <select name="company" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                     <option value="">-- Select Company --</option>
                     @foreach($companies as $company)
@@ -59,7 +59,7 @@
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">REQUISITIONER: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">REQUISITIONER: <span class="text-red-700">*</span></label>
                         <input type="text" name="requisitioner" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('requisitioner', $purchaseRequest->requisitioner) }}" required>
                     </div>
                     <div>
@@ -92,7 +92,7 @@
                 <!-- Right Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DATE OF REQUEST: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">DATE OF REQUEST: <span class="text-red-700">*</span></label>
                         <input type="date" name="date_of_request" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_of_request', $purchaseRequest->date_of_request->format('Y-m-d')) }}" required>
                     </div>
                     <div>
@@ -143,7 +143,7 @@
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-lg font-semibold text-gray-800">Items</h3>
                     @if(!isset($notesOnly) || !$notesOnly)
-                    <button type="button" onclick="addRow()" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-gray-800 px-4 py-2 rounded transition">
+                    <button type="button" onclick="addRow()" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition">
                         <i class="fas fa-plus mr-1"></i> Add Row
                     </button>
                     @endif
@@ -384,7 +384,7 @@ function attachSupplierAutocomplete(input) {
                 const suppliers = await res.json();
                 if (!suppliers.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = suppliers.map(s =>
-                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 supplier-option" data-id="${s.id}" data-name="${s.supplier_name}" data-code="${s.supplier_code}" data-address="${s.address || ''}">${s.supplier_name} (${s.supplier_code})</div>`
+                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 supplier-option" data-id="${s.id}" data-name="${s.supplier_name}" data-code="${s.supplier_code}" data-address="${s.address || ''}">${s.supplier_name} (${s.supplier_code})</div>`
                 ).join('');
                 positionFixedDropdown(input, dropdown);
                 dropdown.classList.remove('hidden');
@@ -425,7 +425,7 @@ function attachDescAutocomplete(input) {
                 const items = await res.json();
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(item =>
-                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 desc-option"
+                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 desc-option"
                           data-name="${(item.name || item).toString().replace(/"/g, '&quot;')}"
                           data-item-code="${(item.item_code || '').toString().replace(/"/g, '&quot;')}"
                           data-supplier-id="${item.supplier_id || ''}"

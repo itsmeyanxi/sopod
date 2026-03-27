@@ -4,16 +4,16 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">
+        <div class="flex justify-between items-start mb-6 border-b border-gray-200 pb-4">
             <div>
-                <h1 class="text-3xl font-bold text-white mb-2">{{ $customerName }}</h1>
-                <p class="text-gray-400 text-sm">Customer Code: <span class="text-gray-300 font-mono">{{ $customerCode }}</span></p>
-                <p class="text-gray-400 text-sm">Complete AR Summary for All Aging Periods</p>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ $customerName }}</h1>
+                <p class="text-gray-500 text-sm">Customer Code: <span class="text-gray-500 font-mono">{{ $customerCode }}</span></p>
+                <p class="text-gray-500 text-sm">Complete AR Summary for All Aging Periods</p>
             </div>
             <a href="{{ route('aging_reports.summary', ['filter_date' => $filterDate, 'include' => $include]) }}"
-               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-medium transition flex items-center space-x-2">
+               class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded font-medium transition flex items-center space-x-2">
                 <i class="fas fa-arrow-left"></i>
                 <span>Back to Summary</span>
             </a>
@@ -50,7 +50,7 @@
                         <h3 class="text-white font-bold text-lg">Current</h3>
                         <p class="text-green-100 text-xs">Not Yet Due</p>
                     </div>
-                    <i class="fas fa-check-circle text-green-200 text-2xl"></i>
+                    <i class="fas fa-check-circle text-green-700 text-2xl"></i>
                 </div>
                 <p class="text-white text-2xl font-bold">{{ $bucketSummary['current']['count'] }}</p>
                 <p class="text-green-100 text-sm mt-2">₱{{ number_format($bucketSummary['current']['total'], 2) }}</p>
@@ -92,7 +92,7 @@
                         <h3 class="text-white font-bold text-lg">61-90 Days</h3>
                         <p class="text-red-100 text-xs">Overdue</p>
                     </div>
-                    <i class="fas fa-fire text-red-200 text-2xl"></i>
+                    <i class="fas fa-fire text-red-700 text-2xl"></i>
                 </div>
                 <p class="text-white text-2xl font-bold">{{ $bucketSummary['61_90']['count'] }}</p>
                 <p class="text-red-100 text-sm mt-2">₱{{ number_format($bucketSummary['61_90']['total'], 2) }}</p>
@@ -104,33 +104,33 @@
                 <div class="flex justify-between items-start mb-2">
                     <div>
                         <h3 class="text-white font-bold text-lg">91-120 Days</h3>
-                        <p class="text-red-100 text-xs">Overdue</p>
+                        <p class="text-red-200 text-xs">Overdue</p>
                     </div>
-                    <i class="fas fa-exclamation-circle text-red-200 text-2xl"></i>
+                    <i class="fas fa-exclamation-circle text-red-300 text-2xl"></i>
                 </div>
                 <p class="text-white text-2xl font-bold">{{ $bucketSummary['91_120']['count'] }}</p>
-                <p class="text-red-100 text-sm mt-2">₱{{ number_format($bucketSummary['91_120']['total'], 2) }}</p>
+                <p class="text-red-200 text-sm mt-2">₱{{ number_format($bucketSummary['91_120']['total'], 2) }}</p>
             </a>
 
             <!-- 120+ Days -->
             <a href="{{ route('aging_reports.detail', ['customer_code' => $customerCode, 'bucket' => 'over_120', 'filter_date' => $filterDate, 'include' => $include]) }}"
-               class="bg-gradient-to-br from-red-900 to-red-950 rounded-lg p-4 shadow-lg hover:shadow-xl hover:scale-105 transition transform cursor-pointer border-l-4 border-red-600">
+               class="bg-gradient-to-br from-red-800 to-red-900 rounded-lg p-4 shadow-lg hover:shadow-xl hover:scale-105 transition transform cursor-pointer border-l-4 border-red-600">
                 <div class="flex justify-between items-start mb-2">
                     <div>
                         <h3 class="text-white font-bold text-lg">120+ Days</h3>
-                        <p class="text-red-100 text-xs">Critically Overdue</p>
+                        <p class="text-red-200 text-xs">Critically Overdue</p>
                     </div>
-                    <i class="fas fa-skull-crossbones text-red-200 text-2xl"></i>
+                    <i class="fas fa-skull-crossbones text-red-300 text-2xl"></i>
                 </div>
                 <p class="text-white text-2xl font-bold">{{ $bucketSummary['over_120']['count'] }}</p>
-                <p class="text-red-100 text-sm mt-2">₱{{ number_format($bucketSummary['over_120']['total'], 2) }}</p>
+                <p class="text-red-200 text-sm mt-2">₱{{ number_format($bucketSummary['over_120']['total'], 2) }}</p>
             </a>
         </div>
 
         <!-- Legend -->
-        <div class="mt-6 bg-gray-700 rounded-lg p-4">
-            <p class="text-gray-300 text-sm mb-3 font-semibold">📋 How to Use:</p>
-            <ul class="text-gray-400 text-sm space-y-1">
+        <div class="mt-6 bg-gray-100 rounded-lg p-4">
+            <p class="text-gray-500 text-sm mb-3 font-semibold">📋 How to Use:</p>
+            <ul class="text-gray-500 text-sm space-y-1">
                 <li>• <strong>Click any card</strong> to see all invoices in that aging bucket</li>
                 <li>• <strong>Invoice count</strong> shows how many invoices in that bucket</li>
                 <li>• <strong>Amount</strong> shows total outstanding AR for that bucket</li>

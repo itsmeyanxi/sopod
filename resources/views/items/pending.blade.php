@@ -69,7 +69,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">
+                    <td colspan="6" class="px-4 py-6 text-center text-gray-500">
                         No pending items for approval.
                     </td>
                 </tr>
@@ -79,7 +79,7 @@
     </div>
 
     <!-- Item Count -->
-    <div class="mt-4 text-sm text-gray-400 text-left">
+    <div class="mt-4 text-sm text-gray-500 text-left">
         Showing {{ $items->count() }} pending item{{ $items->count() !== 1 ? 's' : '' }}
     </div>
 </div>
@@ -103,7 +103,7 @@
                 <button 
                     type="button" 
                     onclick="closeRejectModal()"
-                    class="bg-gray-100 hover:bg-gray-100 text-gray-200 px-4 py-2 rounded-md transition">
+                    class="bg-gray-100 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md transition">
                     Cancel
                 </button>
                 <button 

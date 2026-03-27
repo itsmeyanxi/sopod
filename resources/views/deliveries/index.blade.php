@@ -7,7 +7,7 @@
         
         @if(auth()->user()->canManageDeliveries())
             <a href="{{ route('deliveries.deliveries') }}" 
-               class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-gray-800 px-4 py-2 rounded transition"
+               class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition"
                title="Create Delivery"> Create delivery
                 <i class="fas fa-plus text-lg"></i>
             </a>
@@ -29,10 +29,10 @@
     {{-- 📅 Enhanced Filter Form --}}
     <div class="bg-gradient-to-br from-gray-800 to-gray-850 rounded-2xl shadow-2xl p-6 mb-6 border border-gray-200/50">
         <div class="flex items-center gap-2 mb-4">
-            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
             </svg>
-            <h2 class="text-lg font-semibold text-gray-200">Filter Options</h2>
+            <h2 class="text-lg font-semibold text-gray-700">Filter Options</h2>
         </div>
 
         <form method="GET" action="{{ route('deliveries.index') }}">
@@ -40,7 +40,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                 <div class="relative">
                     <label class="block text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                         🚚 Delivery Date From
@@ -51,7 +51,7 @@
 
                 <div class="relative">
                     <label class="block text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                         🚚 Delivery Date To
@@ -62,7 +62,7 @@
 
                 <div class="relative">
                     <label class="block text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                         Search
@@ -70,7 +70,7 @@
                     <div class="relative">
                         <input type="text" name="search" placeholder="Search DR No, SO, Customer..." value="{{ request('search') }}"
                             class="w-full bg-gray-100/50 text-gray-800 px-4 py-2.5 pl-10 rounded-lg border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none">
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
@@ -99,8 +99,25 @@
                 </div>
             </div>
 
+            {{-- Show Hidden Toggle (Admin/IT only) --}}
+            @if(auth()->user()->isAdminUser())
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 p-4 bg-red-50/30 rounded-xl border border-red-200/30">
+                <div class="flex items-center gap-3">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="show_hidden" value="1" {{ request('show_hidden') ? 'checked' : '' }}
+                               class="sr-only peer" onchange="this.form.submit()">
+                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    </label>
+                    <span class="text-sm font-medium text-red-700">Show Hidden DRs</span>
+                    @if(request('show_hidden'))
+                        <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">Active</span>
+                    @endif
+                </div>
+            </div>
+            @endif
+
             <div class="flex flex-wrap gap-3 items-center">
-                <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-gray-800 px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-blue-500/30 flex items-center gap-2 font-medium">
+                <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-blue-500/30 flex items-center gap-2 font-medium">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
@@ -115,16 +132,16 @@
                 </a>
 
                 @if(request('delivery_date_from') || request('delivery_date_to') || request('search') || request('status') || request('approval_status'))
-                    <div class="h-8 w-px bg-gray-600"></div>
+                    <div class="h-8 w-px bg-gray-300"></div>
                     
-                    <button type="button" onclick="printList()" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-gray-800 px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 font-medium">
+                    <button type="button" onclick="printList()" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                         </svg>
                         Print List
                     </button>
 
-                    <button type="button" onclick="exportExcel()" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-gray-800 px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-emerald-500/30 flex items-center gap-2 font-medium">
+                    <button type="button" onclick="exportExcel()" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-emerald-500/30 flex items-center gap-2 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -136,7 +153,7 @@
             @if(request('delivery_date_from') || request('delivery_date_to') || request('status') || request('approval_status'))
                 <div class="mt-4 pt-4 border-t border-gray-200/50">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-sm font-medium text-gray-400 flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-500 flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                             </svg>
@@ -144,28 +161,28 @@
                         </span>
                         
                         @if(request('delivery_date_from'))
-                            <span class="bg-blue-600/20 border border-blue-600/30 text-blue-300 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-blue-600/30 transition-all">
+                            <span class="bg-blue-600/20 border border-blue-600/30 text-blue-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-blue-600/30 transition-all">
                                 🚚 From: {{ request('delivery_date_from') }}
                                 <a href="{{ route('deliveries.index', request()->except('delivery_date_from')) }}" class="hover:text-gray-800">×</a>
                             </span>
                         @endif
 
                         @if(request('delivery_date_to'))
-                            <span class="bg-blue-600/20 border border-blue-600/30 text-blue-300 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-blue-600/30 transition-all">
+                            <span class="bg-blue-600/20 border border-blue-600/30 text-blue-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-blue-600/30 transition-all">
                                 🚚 To: {{ request('delivery_date_to') }}
                                 <a href="{{ route('deliveries.index', request()->except('delivery_date_to')) }}" class="hover:text-gray-800">×</a>
                             </span>
                         @endif
 
                         @if(request('status'))
-                            <span class="bg-gray-600/20 border border-gray-300/30 text-gray-500 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-gray-100/30 transition-all">
+                            <span class="bg-gray-100 border border-gray-300/30 text-gray-500 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-gray-100/30 transition-all">
                                 📦 Status: {{ request('status') }}
                                 <a href="{{ route('deliveries.index', request()->except('status')) }}" class="hover:text-gray-800">×</a>
                             </span>
                         @endif
 
                         @if(request('approval_status'))
-                            <span class="bg-green-600/20 border border-green-600/30 text-green-300 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-green-600/30 transition-all">
+                            <span class="bg-green-600/20 border border-green-600/30 text-green-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-green-600/30 transition-all">
                                 ✅ Approval: {{ request('approval_status') }}
                                 <a href="{{ route('deliveries.index', request()->except('approval_status')) }}" class="hover:text-gray-800">×</a>
                             </span>
@@ -178,26 +195,26 @@
 
     {{-- ✅ BATCH ACTION BAR (Only for approvers) --}}
     @if(\App\Helpers\RoleHelper::canApproveDeliveries())
-        <div id="batchActionBar" class="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-xl shadow-lg p-4 mb-4 border border-purple-700/50 hidden">
+        <div id="batchActionBar" class="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-xl shadow-lg p-4 mb-4 border border-purple-200 hidden">
             <div class="flex items-center justify-between flex-wrap gap-3">
                 <div class="flex items-center gap-3">
-                    <span class="text-purple-300 font-semibold flex items-center gap-2">
+                    <span class="text-purple-700 font-semibold flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                         </svg>
                         <span id="selectedCount">0</span> delivery(ies) selected
                     </span>
-                    <button onclick="selectAllPending()" class="text-sm text-blue-400 hover:text-blue-300 underline">
+                    <button onclick="selectAllPending()" class="text-sm text-blue-700 hover:text-blue-700 underline">
                         Select All Pending
                     </button>
-                    <button onclick="clearSelection()" class="text-sm text-gray-400 hover:text-gray-500 underline">
+                    <button onclick="clearSelection()" class="text-sm text-gray-500 hover:text-gray-500 underline">
                         Clear Selection
                     </button>
                 </div>
                 
                 <div class="flex gap-3">
                     <button onclick="showBatchApproveConfirm()" 
-                            class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-gray-800 px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 font-medium">
+                            class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
@@ -205,7 +222,7 @@
                     </button>
                     
                     <button onclick="showBatchRejectModal()" 
-                            class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-gray-800 px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-red-500/30 flex items-center gap-2 font-medium">
+                            class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-red-500/30 flex items-center gap-2 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -255,7 +272,7 @@
                 </thead>
                 <tbody>
                     @forelse($deliveries as $delivery)
-                    <tr class="border-b border-gray-200 hover:bg-gray-100 transition-colors {{ $delivery->is_pulled_out ? 'opacity-60' : '' }}">
+                    <tr class="border-b border-gray-200 hover:bg-gray-100 transition-colors {{ $delivery->is_pulled_out ? 'opacity-60' : '' }} {{ $delivery->is_hidden ? 'bg-red-50/50 opacity-60' : '' }}">
                         {{-- ✅ Checkbox column --}}
                         @if(\App\Helpers\RoleHelper::canApproveDeliveries())
                             <td class="px-4 py-3 text-center">
@@ -273,8 +290,11 @@
 
                         <td class="px-4 py-3">
                             {{ $delivery->dr_no }}
+                            @if($delivery->is_hidden)
+                                <span class="ml-2 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded">Hidden</span>
+                            @endif
                             @if($delivery->is_pulled_out)
-                                <span class="ml-2 text-xs text-orange-400">🔒</span>
+                                <span class="ml-2 text-xs text-orange-700">🔒</span>
                             @endif
                         </td>
                         <td class="px-4 py-3">{{ $delivery->sales_order_number }}</td>
@@ -289,7 +309,7 @@
                                         $batchDate = $delivery->delivery_batch;
                                     }
                                 @endphp
-                                <span class="bg-purple-600/30 text-purple-300 px-2 py-1 rounded text-xs">
+                                <span class="bg-purple-600/30 text-purple-700 px-2 py-1 rounded text-xs">
                                     📦 {{ $batchDate }}
                                 </span>
                             @else
@@ -304,7 +324,7 @@
                         </td>
                         <td class="px-4 py-3">
                             @if($delivery->request_delivery_date)
-                                <span class="text-blue-300">
+                                <span class="text-blue-700">
                                     {{ \Carbon\Carbon::parse($delivery->request_delivery_date)->format('M d, Y') }}
                                 </span>
                             @else
@@ -316,11 +336,11 @@
                         
                         <td class="px-4 py-3">
                             @if($delivery->approval_status === 'Pending')
-                                <span class="bg-yellow-600/30 text-yellow-300 px-2 py-1 rounded text-xs">⏳ Pending</span>
+                                <span class="bg-yellow-600/30 text-yellow-700 px-2 py-1 rounded text-xs">⏳ Pending</span>
                             @elseif($delivery->approval_status === 'Approved')
-                                <span class="bg-green-600/30 text-green-300 px-2 py-1 rounded text-xs">✓ Approved</span>
+                                <span class="bg-green-600/30 text-green-700 px-2 py-1 rounded text-xs">✓ Approved</span>
                             @elseif($delivery->approval_status === 'Rejected')
-                                <span class="bg-red-600/30 text-red-300 px-2 py-1 rounded text-xs">✗ Rejected</span>
+                                <span class="bg-red-600/30 text-red-700 px-2 py-1 rounded text-xs">✗ Rejected</span>
                             @endif
                         </td>
                         
@@ -332,7 +352,7 @@
                             @elseif($delivery->status === 'Delivered')
                                 <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">Delivered</span>
                             @else
-                                <span class="bg-gray-600 text-white px-2 py-1 rounded text-xs">{{ $delivery->status }}</span>
+                                <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs">{{ $delivery->status }}</span>
                             @endif
                         </td>
                         
@@ -359,7 +379,7 @@
                                     !$delivery->edit_requested && 
                                     !$delivery->edit_approved)
                                     <button onclick="requestEditPermission({{ $delivery->id }})"
-                                            class="bg-purple-600 hover:bg-purple-700 text-gray-800 px-3 py-1 rounded-md text-xs">
+                                            class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-md text-xs">
                                         📝 Request Edit
                                     </button>
                                 @endif
@@ -368,7 +388,7 @@
                                     !$delivery->edit_approved && 
                                     \App\Helpers\RoleHelper::canManageDeliveries() && 
                                     !\App\Helpers\RoleHelper::canApproveDeliveries())
-                                    <span class="bg-yellow-600/30 text-yellow-300 px-3 py-1 rounded-md text-xs">
+                                    <span class="bg-yellow-600/30 text-yellow-700 px-3 py-1 rounded-md text-xs">
                                         ⏳ Edit Pending
                                     </span>
                                 @endif
@@ -419,7 +439,7 @@
                                         $delivery->approval_status === 'Approved' &&
                                         !$delivery->is_pulled_out)
                                         <button onclick="showPulloutModal({{ $delivery->id }})"
-                                                class="bg-orange-600 hover:bg-orange-700 text-gray-800 px-3 py-1 rounded-md text-xs">
+                                                class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded-md text-xs">
                                             🔒 Pullout
                                         </button>
                                     @endif
@@ -428,7 +448,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center text-gray-400 py-4">No deliveries found.</td>
+                        <td colspan="9" class="text-center text-gray-500 py-4">No deliveries found.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -461,7 +481,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closeRejectModal()"
-                        class="px-4 py-2 bg-gray-600 hover:bg-gray-100 text-gray-800 rounded">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded">
                     Cancel
                 </button>
                 <button type="submit"
@@ -477,8 +497,8 @@
 <div id="pulloutModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <h3 class="text-xl font-bold mb-4 text-gray-800">Pullout Delivery</h3>
-        <div class="mb-4 bg-orange-900/20 border border-orange-700 p-3 rounded">
-            <p class="text-orange-300 text-sm">
+        <div class="mb-4 bg-orange-100/20 border border-orange-700 p-3 rounded">
+            <p class="text-orange-700 text-sm">
                 ⚠️ Warning: Pulling out this delivery will cancel it and lock it from further editing.
             </p>
         </div>
@@ -495,11 +515,11 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closePulloutModal()"
-                        class="px-4 py-2 bg-gray-600 hover:bg-gray-100 text-gray-800 rounded">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded">
                     Cancel
                 </button>
                 <button type="submit"
-                        class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-gray-800 rounded">
+                        class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded">
                     Confirm Pullout
                 </button>
             </div>
@@ -512,7 +532,7 @@
     <div class="bg-white rounded-lg p-6 max-w-5xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-bold text-gray-800">Edit Delivery</h3>
-            <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-800 text-2xl">×</button>
+            <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-800 text-2xl">×</button>
         </div>
         
         <form id="editForm">
@@ -523,32 +543,32 @@
                 <h4 class="text-sm font-semibold text-gray-500 mb-3">Delivery Information (Read-Only)</h4>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                        <label class="block text-gray-400 mb-1">Sales Order</label>
+                        <label class="block text-gray-500 mb-1">Sales Order</label>
                         <input type="text" id="edit_sales_order" readonly 
-                               class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-gray-500 cursor-not-allowed">
+                               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-500 cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="block text-gray-400 mb-1">Customer</label>
+                        <label class="block text-gray-500 mb-1">Customer</label>
                         <input type="text" id="edit_customer" readonly 
-                               class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-gray-500 cursor-not-allowed">
+                               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-500 cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="block text-gray-400 mb-1">Batch</label>
+                        <label class="block text-gray-500 mb-1">Batch</label>
                         <input type="text" id="edit_batch" readonly 
-                               class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-gray-500 cursor-not-allowed">
+                               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-500 cursor-not-allowed">
                     </div>
                 </div>
             </div>
 
             {{-- ✅ PO IMAGE SECTION --}}
-            <div id="poImageSection" class="mb-6 bg-blue-900/20 border border-blue-700 p-4 rounded-lg" style="display: none;">
-                <h4 class="text-sm font-semibold text-blue-300 mb-3">📎 Purchase Order Image</h4>
+            <div id="poImageSection" class="mb-6 bg-blue-50 border border-blue-700 p-4 rounded-lg" style="display: none;">
+                <h4 class="text-sm font-semibold text-blue-700 mb-3">📎 Purchase Order Image</h4>
                 <div class="flex items-center gap-4">
                     <img id="poImagePreview" class="max-w-xs max-h-48 rounded border border-gray-300 cursor-pointer" 
                          onclick="openPOImageFullscreen()" 
                          title="Click to view full size">
                     <div>
-                        <p class="text-sm text-gray-500 mb-2">File: <span id="poImageFileName" class="text-blue-300"></span></p>
+                        <p class="text-sm text-gray-500 mb-2">File: <span id="poImageFileName" class="text-blue-700"></span></p>
                         <button type="button" 
                                 onclick="openPOImageFullscreen()"
                                 class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
@@ -559,13 +579,13 @@
             </div>
 
             {{-- Editable Fields --}}
-            <div class="mb-6 bg-gray-50/50 p-4 rounded-lg border border-green-700/30">
-                <h4 class="text-sm font-semibold text-green-400 mb-3">✎ Editable Fields</h4>
+            <div class="mb-6 bg-gray-50/50 p-4 rounded-lg border border-green-200/30">
+                <h4 class="text-sm font-semibold text-green-700 mb-3">✎ Editable Fields</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">
                             DR No. <span class="text-red-500">*</span>
-                            <span class="text-xs text-gray-400 ml-2">(Numbers, hyphens, and slashes only)</span>
+                            <span class="text-xs text-gray-500 ml-2">(Numbers, hyphens, and slashes only)</span>
                         </label>
                         <input type="text" 
                                id="edit_dr_no" 
@@ -574,7 +594,7 @@
                                title="Only numbers, hyphens (-), and forward slashes (/) are allowed"
                                oninput="validateDRNumber(this)"
                                class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-800 focus:ring-2 focus:ring-green-500">
-                        <p id="dr_no_error" class="text-red-400 text-xs mt-1 hidden">Only numbers, hyphens (-), and forward slashes (/) are allowed</p>
+                        <p id="dr_no_error" class="text-red-700 text-xs mt-1 hidden">Only numbers, hyphens (-), and forward slashes (/) are allowed</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">SI Invoice No.</label>
@@ -594,7 +614,7 @@
                     {{-- ✅ NEW: Request Delivery Date Field --}}
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-500 mb-2">
-                            <i class="fas fa-calendar-alt text-blue-400 mr-1"></i>
+                            <i class="fas fa-calendar-alt text-blue-700 mr-1"></i>
                             Request Delivery Date <span class="text-red-500">*</span>
                         </label>
                         <input type="date" id="edit_request_delivery_date" required
@@ -614,7 +634,7 @@
                                 <th class="px-3 py-2 text-left">Description</th>
                                 <th class="px-3 py-2 text-left">SO Qty</th>
                                 <th class="px-3 py-2 text-left">Already Delivered</th>
-                                <th class="px-3 py-2 text-left">DR Qty <span class="text-green-400">*</span></th>
+                                <th class="px-3 py-2 text-left">DR Qty <span class="text-green-700">*</span></th>
                                 <th class="px-3 py-2 text-left">Remaining</th>
                                 <th class="px-3 py-2 text-right">Total Amount</th>
                             </tr>
@@ -630,7 +650,7 @@
             <div class="flex gap-3 justify-end pt-4 border-t border-gray-200">
                 <button type="button" 
                         onclick="closeEditModal()"
-                        class="px-4 py-2 bg-gray-600 hover:bg-gray-100 text-gray-800 rounded transition">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition">
                     Cancel
                 </button>
                 <button type="submit"
@@ -671,7 +691,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closeRejectEditModal()"
-                        class="px-4 py-2 bg-gray-600 hover:bg-gray-100 text-gray-800 rounded">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded">
                     Cancel
                 </button>
                 <button type="submit"
@@ -688,7 +708,7 @@
         <h3 class="text-xl font-bold mb-4 text-gray-800">Batch Reject Deliveries</h3>
         <div class="mb-4">
             <p class="text-gray-500 mb-3">
-                You are about to reject <strong id="batchRejectCount" class="text-red-400">0</strong> delivery(ies):
+                You are about to reject <strong id="batchRejectCount" class="text-red-700">0</strong> delivery(ies):
             </p>
             <ul id="batchRejectList" class="bg-gray-50/50 border border-gray-200 rounded p-3 mb-4 max-h-40 overflow-y-auto">
                 <!-- List will be populated dynamically -->
@@ -696,7 +716,7 @@
         </div>
         <form id="batchRejectForm">
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason <span class="text-red-400">*</span></label>
+                <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason <span class="text-red-700">*</span></label>
                 <textarea id="batchRejectionReason" 
                           class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-800"
                           rows="4" 
@@ -706,7 +726,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closeBatchRejectModal()"
-                        class="px-4 py-2 bg-gray-600 hover:bg-gray-100 text-gray-800 rounded">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded">
                     Cancel
                 </button>
                 <button type="submit"
@@ -1181,7 +1201,7 @@ function populateEditModal(data) {
             <td class="px-3 py-2">${item.item_code || '—'}</td>
             <td class="px-3 py-2">${item.item_description || '—'}</td>
             <td class="px-3 py-2">${parseFloat(item.original_quantity || 0).toFixed(2)}</td>
-            <td class="px-3 py-2 text-gray-400">${parseFloat(item.already_delivered || 0).toFixed(2)}</td>
+            <td class="px-3 py-2 text-gray-500">${parseFloat(item.already_delivered || 0).toFixed(2)}</td>
             <td class="px-3 py-2">
                 <input type="number"
                        step="0.01"
@@ -1221,10 +1241,10 @@ function updateItemTotal(input) {
         
         // ✅ Optional: Show warning for over-delivery (but don't block it)
         if (remaining < 0) {
-            remainingCell.classList.add('text-orange-400');
+            remainingCell.classList.add('text-orange-700');
             remainingCell.title = 'Over-delivery: Exceeds SO quantity';
         } else {
-            remainingCell.classList.remove('text-orange-400');
+            remainingCell.classList.remove('text-orange-700');
             remainingCell.title = '';
         }
     }
@@ -1515,7 +1535,7 @@ function batchApproveDeliveries() {
     // Show loading state
     const batchActionBar = document.getElementById('batchActionBar');
     const originalHtml = batchActionBar.innerHTML;
-    batchActionBar.innerHTML = '<div class="text-center py-2"><span class="text-purple-300">⏳ Processing batch approval...</span></div>';
+    batchActionBar.innerHTML = '<div class="text-center py-2"><span class="text-purple-700">⏳ Processing batch approval...</span></div>';
     
     fetch('/deliveries/batch-approve', {
         method: 'POST',
@@ -1561,7 +1581,7 @@ function showBatchRejectModal() {
     document.getElementById('batchRejectCount').textContent = selectedDeliveries.size;
     
     const listHtml = Array.from(selectedDeliveries)
-        .map(d => `<li class="flex items-center gap-2"><span class="text-red-400">•</span> DR: ${d.drNo}</li>`)
+        .map(d => `<li class="flex items-center gap-2"><span class="text-red-700">•</span> DR: ${d.drNo}</li>`)
         .join('');
     
     document.getElementById('batchRejectList').innerHTML = listHtml;

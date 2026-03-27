@@ -16,6 +16,8 @@
 .badge-active   { background:#dbeafe; color:#1d4ed8; }
 .badge-complete { background:#dcfce7; color:#15803d; }
 .badge-archived { background:#fef9c3; color:#854d0e; }
+.badge-approved { background:#dcfce7; color:#15803d; border:1px solid #86efac; }
+.badge-not-approved { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
 .htab { padding:.28rem .8rem; border-radius:999px; font-size:.75rem; font-weight:600; border:1px solid #e5e7eb; color:#6b7280; background:#fff; cursor:pointer; transition:all .15s; }
 .htab.active { background:#1e3a5f; color:#fff; border-color:#1e3a5f; }
 .bt { width:100%; border-collapse:collapse; font-size:.79rem; }
@@ -30,17 +32,36 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-4">
     <div>
-        <div class="text-sm text-gray-400 mb-1">
+        <div class="text-sm text-gray-500 mb-1">
             <a href="{{ route('inhouse_bom.index') }}" class="hover:text-gray-600"><i class="fas fa-arrow-left mr-1"></i>BOM List</a>
         </div>
-        <h2 class="text-xl font-bold text-gray-800">{{ $bom->cycle_ref }}</h2>
-        <p class="text-xs text-gray-400 mt-0.5">
+        <h2 class="text-xl font-bold text-gray-800">
+            {{ $bom->cycle_ref }}
+            @if($bom->isExtension())
+                <span class="badge" style="background:#fef3c7;color:#92400e;font-size:.65rem;vertical-align:middle;">EXT {{ $bom->extension_number }}</span>
+            @endif
+        </h2>
+        <p class="text-xs text-gray-500 mt-0.5">
             {{ $bom->cycle_date->format('F d, Y') }}
             @if($bom->grower) · {{ $bom->grower }} @endif
             · <span class="badge badge-{{ $bom->status }}">{{ ucfirst($bom->status) }}</span>
+            @if($bom->isExtension())
+                · Extension of <a href="{{ route('inhouse_bom.show', $bom->parent_bom_id) }}" class="text-blue-600 hover:underline font-semibold">{{ $bom->parentBom->cycle_ref }}</a>
+            @endif
         </p>
     </div>
-    <div class="flex gap-2">
+    <div class="flex gap-2 items-center">
+        @if($bom->approved)
+            <span class="badge badge-approved px-3 py-1.5 text-xs"><i class="fas fa-check-circle mr-1"></i>Approved</span>
+            <a href="{{ route('inhouse_bom.extend', $bom) }}"
+               class="flex items-center gap-1.5 px-4 py-2 text-sm border border-amber-300 rounded-md hover:bg-amber-50 text-amber-700 font-medium">
+                <i class="fas fa-layer-group"></i> Extend BOM
+            </a>
+            <a href="{{ route('purchase_requests.create', ['bom_id' => $bom->id]) }}"
+               class="flex items-center gap-1.5 px-4 py-2 text-sm border border-purple-300 rounded-md hover:bg-purple-50 text-purple-700 font-medium">
+                <i class="fas fa-file-invoice"></i> Create PR
+            </a>
+        @endif
         <a href="{{ route('inhouse_bom.export', $bom) }}"
            class="flex items-center gap-1.5 px-4 py-2 text-sm border border-green-300 rounded-md hover:bg-green-50 text-green-700">
             <i class="fas fa-file-excel"></i> Excel
@@ -49,6 +70,7 @@
            class="flex items-center gap-1.5 px-4 py-2 text-sm border border-blue-300 rounded-md hover:bg-blue-50 text-blue-600">
             <i class="fas fa-print"></i> Print
         </button>
+        @if(!$bom->approved)
         <a href="{{ route('inhouse_bom.edit', $bom) }}"
            class="flex items-center gap-1.5 px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600">
             <i class="fas fa-edit"></i> Edit
@@ -60,12 +82,18 @@
                 <i class="fas fa-trash"></i> Delete
             </button>
         </form>
+        @endif
     </div>
 </div>
 
 @if(session('success'))
 <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 text-sm rounded-md px-4 py-2.5 mb-4">
     <i class="fas fa-check-circle text-green-500"></i> {{ session('success') }}
+</div>
+@endif
+@if(session('error'))
+<div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 text-sm rounded-md px-4 py-2.5 mb-4">
+    <i class="fas fa-times-circle text-red-500"></i> {{ session('error') }}
 </div>
 @endif
 
@@ -86,13 +114,13 @@
 
 <!-- KPI STRIP -->
 <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-4">
-    <div class="kpi"><div class="kpi-lbl">Loading Qty</div><div class="kpi-val">{{ $totalLoading ? number_format($totalLoading) : '—' }}</div><div class="text-xs text-gray-400">heads</div></div>
+    <div class="kpi"><div class="kpi-lbl">Loading Qty</div><div class="kpi-val">{{ $totalLoading ? number_format($totalLoading) : '—' }}</div><div class="text-xs text-gray-500">heads</div></div>
     <div class="kpi"><div class="kpi-lbl">Livability</div><div class="kpi-val">{{ $avgLiv ? number_format($avgLiv,2).'%' : '—' }}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Harvest Qty</div><div class="kpi-val">{{ $totalHarvest ? number_format($totalHarvest) : '—' }}</div><div class="text-xs text-gray-400">heads</div></div>
-    <div class="kpi"><div class="kpi-lbl">ALW</div><div class="kpi-val">{{ $avgAlw ? number_format($avgAlw,2) : '—' }}</div><div class="text-xs text-gray-400">kg/head</div></div>
+    <div class="kpi"><div class="kpi-lbl">Harvest Qty</div><div class="kpi-val">{{ $totalHarvest ? number_format($totalHarvest) : '—' }}</div><div class="text-xs text-gray-500">heads</div></div>
+    <div class="kpi"><div class="kpi-lbl">ALW</div><div class="kpi-val">{{ $avgAlw ? number_format($avgAlw,2) : '—' }}</div><div class="text-xs text-gray-500">kg/head</div></div>
     <div class="kpi"><div class="kpi-lbl">Avg FCR</div><div class="kpi-val">{{ $avgFcr ? number_format($avgFcr,3) : '—' }}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Avg BPI</div><div class="kpi-val">{{ $avgBpi ? number_format($avgBpi,0) : '—' }}</div><div class="text-xs text-gray-400">index</div></div>
-    <div class="kpi"><div class="kpi-lbl">Cost / kg</div><div class="kpi-val">{{ $avgCpk ? number_format($avgCpk,2) : '—' }}</div><div class="text-xs text-gray-400">PHP / kg</div></div>
+    <div class="kpi"><div class="kpi-lbl">Avg BPI</div><div class="kpi-val">{{ $avgBpi ? number_format($avgBpi,0) : '—' }}</div><div class="text-xs text-gray-500">index</div></div>
+    <div class="kpi"><div class="kpi-lbl">Cost / kg</div><div class="kpi-val">{{ $avgCpk ? number_format($avgCpk,2) : '—' }}</div><div class="text-xs text-gray-500">PHP / kg</div></div>
     <div class="kpi accent"><div class="kpi-lbl">Total Cost</div><div class="kpi-val">{{ $totalCostAll ? 'PHP '.number_format(floor($totalCostAll*100)/100,2) : '—' }}</div></div>
 </div>
 
@@ -100,20 +128,91 @@
 <div class="b mb-4">
     <div class="b-hd">Cycle Information</div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 text-sm">
-        <div><div class="text-xs text-gray-400 uppercase font-semibold mb-0.5">Cycle Ref</div><div class="font-semibold text-gray-800">{{ $bom->cycle_ref }}</div></div>
-        <div><div class="text-xs text-gray-400 uppercase font-semibold mb-0.5">Date</div><div>{{ $bom->cycle_date->format('M d, Y') }}</div></div>
-        <div><div class="text-xs text-gray-400 uppercase font-semibold mb-0.5">Grower</div><div>{{ $bom->grower ?: '—' }}</div></div>
-        <div><div class="text-xs text-gray-400 uppercase font-semibold mb-0.5">Houses</div><div>{{ $bom->num_houses }}</div></div>
+        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Cycle Ref</div><div class="font-semibold text-gray-800">{{ $bom->cycle_ref }}</div></div>
+        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Date</div><div>{{ $bom->cycle_date->format('M d, Y') }}</div></div>
+        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Grower</div><div>{{ $bom->grower ?: '—' }}</div></div>
+        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Houses</div><div>{{ $bom->num_houses }}</div></div>
         @if($bom->notes)
-        <div class="col-span-2 md:col-span-4"><div class="text-xs text-gray-400 uppercase font-semibold mb-0.5">Remarks</div><div>{{ $bom->notes }}</div></div>
+        <div class="col-span-2 md:col-span-4"><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Remarks</div><div>{{ $bom->notes }}</div></div>
         @endif
-        <div><div class="text-xs text-gray-400 uppercase font-semibold mb-0.5">Status</div>
+        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Status</div>
             <span class="badge badge-{{ $bom->status }}">{{ ucfirst($bom->status) }}</span>
         </div>
-        <div><div class="text-xs text-gray-400 uppercase font-semibold mb-0.5">Created By</div><div>{{ $bom->creator->name ?? '—' }}</div></div>
-        <div><div class="text-xs text-gray-400 uppercase font-semibold mb-0.5">Created At</div><div>{{ $bom->created_at->format('M d, Y h:i A') }}</div></div>
+        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Created By</div><div>{{ $bom->creator->name ?? '—' }}</div></div>
+        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Created At</div><div>{{ $bom->created_at->format('M d, Y h:i A') }}</div></div>
     </div>
 </div>
+
+<!-- EXTENSIONS & PARENT INFO -->
+@if(!$bom->isExtension() && $bom->extensions->count())
+<div class="b mb-4">
+    <div class="b-hd">
+        <span>Extensions</span>
+        <span class="text-xs font-normal text-amber-600 normal-case tracking-normal">
+            Combined Cost: PHP {{ number_format($bom->combined_cost, 2) }}
+        </span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-amber-50 text-amber-800">
+                    <th class="px-4 py-2 text-left font-semibold text-xs">Extension</th>
+                    <th class="px-4 py-2 text-left font-semibold text-xs">Date</th>
+                    <th class="px-4 py-2 text-right font-semibold text-xs">Houses</th>
+                    <th class="px-4 py-2 text-right font-semibold text-xs">Extension Cost</th>
+                    <th class="px-4 py-2 text-center font-semibold text-xs">Status</th>
+                    <th class="px-4 py-2 text-center font-semibold text-xs">Approved</th>
+                    <th class="px-4 py-2 text-center font-semibold text-xs">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($bom->extensions as $ext)
+                <tr class="border-b border-gray-100 hover:bg-amber-50/50">
+                    <td class="px-4 py-2">
+                        <a href="{{ route('inhouse_bom.show', $ext) }}" class="text-blue-700 hover:underline font-semibold">
+                            {{ $ext->cycle_ref }}
+                        </a>
+                    </td>
+                    <td class="px-4 py-2 text-gray-500 text-xs">{{ $ext->cycle_date->format('M d, Y') }}</td>
+                    <td class="px-4 py-2 text-right">{{ $ext->num_houses }}</td>
+                    <td class="px-4 py-2 text-right font-semibold">PHP {{ number_format($ext->total_cost, 2) }}</td>
+                    <td class="px-4 py-2 text-center"><span class="badge badge-{{ $ext->status }}">{{ ucfirst($ext->status) }}</span></td>
+                    <td class="px-4 py-2 text-center">
+                        @if($ext->approved)
+                            <span class="badge badge-approved"><i class="fas fa-check-circle mr-0.5"></i> Yes</span>
+                        @else
+                            <span class="badge badge-not-approved">Pending</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                        <a href="{{ route('inhouse_bom.show', $ext) }}" class="text-blue-600 hover:underline text-xs font-medium">
+                            <i class="fas fa-eye mr-0.5"></i> View
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+                <tr class="bg-gray-50 font-bold">
+                    <td class="px-4 py-2" colspan="3">Total (Original + Extensions)</td>
+                    <td class="px-4 py-2 text-right text-blue-800">PHP {{ number_format($bom->combined_cost, 2) }}</td>
+                    <td colspan="3"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
+@if($bom->isExtension())
+<div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-center gap-3">
+    <i class="fas fa-layer-group text-amber-600"></i>
+    <span class="text-sm text-amber-800">
+        This is <strong>Extension #{{ $bom->extension_number }}</strong> of
+        <a href="{{ route('inhouse_bom.show', $bom->parent_bom_id) }}" class="text-blue-700 hover:underline font-semibold">{{ $bom->parentBom->cycle_ref }}</a>
+        · Original Cost: PHP {{ number_format($bom->parentBom->total_cost, 2) }}
+        · This Extension: PHP {{ number_format($bom->total_cost, 2) }}
+    </span>
+</div>
+@endif
 
 <!-- HOUSE TABS + BOM TABLE -->
 <div class="b mb-6">
@@ -154,63 +253,63 @@
             <div style="width:255px;min-width:255px;border-right:1px solid #f0f4f8;padding:1rem;" class="flex flex-col gap-2 text-sm">
                 {{-- Input parameters --}}
                 <div>
-                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">House Name</div>
+                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">House Name</div>
                     <div class="font-semibold text-gray-800">{{ $house->house_name ?: '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Loading Qty (heads)</div>
+                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Loading Qty (heads)</div>
                     <div class="font-semibold text-gray-800">{{ $house->loading_qty ? number_format($house->loading_qty) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Livability (%)</div>
+                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Livability (%)</div>
                     <div class="font-semibold text-gray-800">{{ $house->livability ? number_format($house->livability,2).'%' : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">ALW (kg/head)</div>
+                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">ALW (kg/head)</div>
                     <div class="font-semibold text-gray-800">{{ $house->alw ? number_format($house->alw,2) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">FCR</div>
+                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">FCR</div>
                     <div class="font-semibold text-gray-800">{{ $house->fcr ? number_format($house->fcr,3) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Age (days)</div>
+                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Age (days)</div>
                     <div class="font-semibold text-gray-800">{{ $house->age_days ?? '—' }}</div>
                 </div>
                 <hr class="border-gray-100">
                 {{-- Derived / computed fields --}}
                 <div>
-                    <div class="text-xs font-semibold text-blue-300 uppercase tracking-wide">Harvest Qty</div>
+                    <div class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Harvest Qty</div>
                     <div class="font-semibold text-gray-800">{{ $house->harvest_qty ? number_format($house->harvest_qty) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-blue-300 uppercase tracking-wide">Total kg</div>
+                    <div class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Total kg</div>
                     <div class="font-semibold text-gray-800">{{ $house->total_kg ? number_format((float)$house->total_kg,2) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-blue-300 uppercase tracking-wide">Feed Req (kg)</div>
+                    <div class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Feed Req (kg)</div>
                     <div class="font-semibold text-gray-800">{{ $house->feed_req_kg ? number_format((float)$house->feed_req_kg,2) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-blue-300 uppercase tracking-wide">BPI (Performance Index)</div>
+                    <div class="text-xs font-semibold text-blue-700 uppercase tracking-wide">BPI (Performance Index)</div>
                     <div class="font-semibold text-gray-800">{{ $house->bpi ? number_format((float)$house->bpi, 0) : '—' }}</div>
                 </div>
                 <hr class="border-gray-100">
                 <div>
-                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Cost</div>
+                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Cost</div>
                     <div class="font-bold text-blue-800">PHP {{ number_format(floor((float)$grandTotal*100)/100,2) }}</div>
                 </div>
                 <hr class="border-gray-100">
                 <div>
-                    <div class="text-xs font-semibold text-blue-300 uppercase tracking-wide">Cost of Feeds</div>
+                    <div class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Cost of Feeds</div>
                     <div class="font-semibold text-gray-800">{{ $costFeeds ? number_format($costFeeds,2) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-blue-300 uppercase tracking-wide">Cost of Day Old Chick</div>
+                    <div class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Cost of Day Old Chick</div>
                     <div class="font-semibold text-gray-800">{{ $costDoc ? number_format($costDoc,2) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-blue-300 uppercase tracking-wide">Cost of Total Materials</div>
+                    <div class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Cost of Total Materials</div>
                     <div class="font-semibold text-gray-800">{{ $grandCpk ? number_format($grandCpk,2) : '—' }}</div>
                 </div>
             </div>
@@ -327,7 +426,7 @@
                             @if($catKey==='feed' && $feedKg)
                             <tr style="background:#f0f7ff;border-bottom:2px solid #bfdbfe;">
                                 <td style="padding-left:1.4rem;font-size:.72rem;font-weight:700;color:#1e3a5f;">Total Kg Conversion</td>
-                                <td class="r" style="font-size:.6rem;color:#6b7280;">Bags × 50</td>
+                                <td class="r" style="font-size:.6rem;color:#6b7280;">Bags × 1,000</td>
                                 <td class="r" style="font-weight:800;color:#1e3a5f;">{{ number_format($feedKg) }}</td>
                                 <td colspan="5"></td>
                             </tr>
@@ -341,20 +440,54 @@
     @endforeach
 </div>
 
-<!-- STATUS CONTROL -->
-<div class="b p-4 flex items-center gap-4 flex-wrap mb-6">
-    <span class="text-sm font-semibold text-gray-700">Change Status:</span>
-    @foreach(['draft','active','complete','archived'] as $s)
-    <form method="POST" action="{{ route('inhouse_bom.updateStatus', $bom) }}">
-        @csrf @method('PATCH')
-        <input type="hidden" name="status" value="{{ $s }}">
-        <button type="submit"
-            class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-all
-            {{ $bom->status === $s ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400' }}">
-            {{ ucfirst($s) }}
-        </button>
-    </form>
-    @endforeach
+<!-- APPROVAL & STATUS CONTROL -->
+<div class="b p-4 mb-6">
+    <!-- Approval Section -->
+    <div class="flex items-center gap-4 flex-wrap mb-4 pb-4 border-b border-gray-100">
+        <span class="text-sm font-semibold text-gray-700">Approval:</span>
+        @if($bom->approved)
+            <div class="flex items-center gap-3">
+                <span class="badge badge-approved px-3 py-1"><i class="fas fa-check-circle mr-1"></i>Approved</span>
+                <span class="text-xs text-gray-500">
+                    by <strong>{{ $bom->approved_by }}</strong> on {{ $bom->approved_at->format('M d, Y h:i A') }}
+                </span>
+                <button type="button" id="unapproveBtn"
+                    class="px-3 py-1.5 text-xs font-semibold rounded-md border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 transition">
+                    <i class="fas fa-undo mr-1"></i> Revoke Approval
+                </button>
+            </div>
+        @else
+            <div class="flex items-center gap-3">
+                <span class="badge badge-not-approved px-3 py-1"><i class="fas fa-clock mr-1"></i>Not Approved</span>
+                <button type="button" id="approveBtn"
+                    class="px-4 py-1.5 text-xs font-semibold rounded-md bg-green-600 text-white hover:bg-green-700 transition shadow-sm">
+                    <i class="fas fa-check mr-1"></i> Approve BOM
+                </button>
+            </div>
+        @endif
+    </div>
+
+    <!-- Status Section -->
+    @if(!$bom->approved)
+    <div class="flex items-center gap-4 flex-wrap">
+        <span class="text-sm font-semibold text-gray-700">Change Status:</span>
+        @foreach(['draft','active','complete','archived'] as $s)
+        <form method="POST" action="{{ route('inhouse_bom.updateStatus', $bom) }}">
+            @csrf @method('PATCH')
+            <input type="hidden" name="status" value="{{ $s }}">
+            <button type="submit"
+                class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-all
+                {{ $bom->status === $s ? 'bg-white text-white border-gray-800' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400' }}">
+                {{ ucfirst($s) }}
+            </button>
+        </form>
+        @endforeach
+    </div>
+    @else
+    <div class="flex items-center gap-2 text-xs text-gray-400">
+        <i class="fas fa-lock"></i> Status changes and editing are locked while BOM is approved.
+    </div>
+    @endif
 </div>
 
 <script>
@@ -390,6 +523,69 @@ function printBOM() {
     w.document.close();
     w.focus();
     setTimeout(() => { w.print(); w.close(); }, 350);
+}
+
+// BOM Approval
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+const approveBtn = document.getElementById('approveBtn');
+if (approveBtn) {
+    approveBtn.addEventListener('click', async function() {
+        const result = await Swal.fire({
+            title: 'Approve this BOM?',
+            html: 'Once approved, this BOM <strong>cannot be edited or deleted</strong>.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            confirmButtonText: '<i class="fas fa-check mr-1"></i> Yes, Approve'
+        });
+        if (!result.isConfirmed) return;
+        try {
+            const res = await fetch(`{{ route('inhouse_bom.approve', $bom) }}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'Approved!', text: data.message, timer: 2000, showConfirmButton: false });
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Failed to approve BOM.', 'error');
+        }
+    });
+}
+
+const unapproveBtn = document.getElementById('unapproveBtn');
+if (unapproveBtn) {
+    unapproveBtn.addEventListener('click', async function() {
+        const result = await Swal.fire({
+            title: 'Revoke Approval?',
+            text: 'This will allow editing and deleting the BOM again.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ea580c',
+            confirmButtonText: 'Yes, Revoke'
+        });
+        if (!result.isConfirmed) return;
+        try {
+            const res = await fetch(`{{ route('inhouse_bom.unapprove', $bom) }}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'Revoked', text: data.message, timer: 2000, showConfirmButton: false });
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Failed to revoke approval.', 'error');
+        }
+    });
 }
 </script>
 
@@ -474,37 +670,45 @@ body { font-family: Calibri, Arial, sans-serif; font-size: 10pt; color: #000; ma
 {{-- House label --}}
 <div class="house-label">{{ $house->house_name ?: 'House ' . $house->house_number }}</div>
 
-{{-- BOM Table --}}
+{{-- BOM Table (matches Excel: cols B-I) --}}
 <table class="bom">
     <thead>
         <tr>
             <th style="width:200px;"></th>
-            <th style="width:50px;"></th>
-            <th style="width:80px;">QTY</th>
-            <th style="width:60px;">UOM</th>
-            <th style="width:90px;">COST</th>
-            <th style="width:110px;">AMOUNT</th>
-            <th style="width:90px;">COST/KG</th>
+            <th style="width:70px;"></th>
+            <th style="width:60px;"></th>
+            <th style="width:70px;">QTY</th>
+            <th style="width:55px;">UOM</th>
+            <th style="width:80px;">COST</th>
+            <th style="width:100px;">AMOUNT</th>
+            <th style="width:80px;">COST/KG</th>
         </tr>
     </thead>
     <tbody>
-        {{-- Total Materials row --}}
-        @php $matTotal = $grandTotal - $docAmt; $matCpk = $totalKg > 0 ? $matTotal / $totalKg : 0; @endphp
-        <tr class="cat-blue">
-            <td>Total Materials</td><td></td><td></td><td></td><td></td>
-            <td class="r">{{ number_format(floor($matTotal*100)/100,2) }}</td>
-            <td class="r">{{ $matCpk ? number_format($matCpk, 2) : '—' }}</td>
+        {{-- TOTAL COST row (matches Excel row 15 — grand total first) --}}
+        <tr class="grand-total">
+            <td><b>TOTAL COST</b></td><td></td><td></td><td></td><td></td><td></td>
+            <td class="r"><b>{{ number_format(floor($grandTotal*100)/100,2) }}</b></td>
+            <td class="r"><b>{{ $grandCpk ? number_format($grandCpk, 2) : '—' }}</b></td>
         </tr>
 
-        {{-- DOC row --}}
+        {{-- DOC row (matches Excel row 16) --}}
         @php $docCpk = $totalKg > 0 ? $docAmt / $totalKg : 0; @endphp
         <tr>
-            <td>Day Old Chick</td><td></td>
+            <td>Day Old Chick</td><td></td><td></td>
             <td class="r">{{ number_format($loading) }}</td>
             <td>Hds</td>
             <td class="r">{{ number_format($docCost, 2) }}</td>
             <td class="r">{{ number_format(floor($docAmt*100)/100,2) }}</td>
             <td class="r">{{ $docCpk ? number_format($docCpk, 2) : '—' }}</td>
+        </tr>
+
+        {{-- Total Materials row (matches Excel row 17) --}}
+        @php $matTotal = $grandTotal - $docAmt; $matCpk = $totalKg > 0 ? $matTotal / $totalKg : 0; @endphp
+        <tr class="cat-blue">
+            <td>Total Materials</td><td></td><td></td><td></td><td></td><td></td>
+            <td class="r">{{ number_format(floor($matTotal*100)/100,2) }}</td>
+            <td class="r">{{ $matCpk ? number_format($matCpk, 2) : '—' }}</td>
         </tr>
 
         @foreach($cats as $catKey => $catLabel)
@@ -539,22 +743,23 @@ body { font-family: Calibri, Arial, sans-serif; font-size: 10pt; color: #000; ma
                 $cdmCpk = $totalKg > 0 ? $cdmAmt / $totalKg : 0;
             @endphp
             <tr class="cat-blue">
-                <td>Cleaning and Disinfection Mat</td><td></td><td></td><td></td><td></td>
+                <td>Cleaning and Disinfection Mat</td><td></td><td></td><td></td><td></td><td></td>
                 <td class="r">{{ number_format(floor($cdmAmt*100)/100,2) }}</td>
                 <td class="r">{{ $cdmCpk ? number_format($cdmCpk, 2) : '—' }}</td>
             </tr>
             @endif
-            {{-- Category header --}}
+            {{-- Category header (matches Excel column layout) --}}
             <tr class="{{ $style }}">
                 <td @if($isCdmSub) style="padding-left:1rem;" @endif>{{ $catLabel }}</td>
-                <td class="r" style="font-size:7pt;white-space:nowrap;">{{ $catKey === 'feed' ? 'Rec. Bags/Hds' : '' }}</td>
-                <td class="r" style="font-size:7pt;white-space:nowrap;">{{ $catKey === 'feed' ? 'KG' : 'QTY' }}</td>
-                <td style="font-size:7pt;white-space:nowrap;">{{ $catKey === 'feed' ? 'QTY / UOM' : 'UOM' }}</td>
+                <td class="r" style="font-size:7pt;white-space:nowrap;">{{ $catKey === 'feed' ? 'Rec. Bags/Hds' : ($catKey === 'labor' ? 'Days' : '') }}</td>
+                <td class="r" style="font-size:7pt;white-space:nowrap;">{{ $catKey === 'feed' ? 'KG' : '' }}</td>
+                <td class="r" style="font-size:7pt;white-space:nowrap;">{{ $catKey === 'feed' ? 'QTY' : 'QTY' }}</td>
+                <td style="font-size:7pt;white-space:nowrap;">{{ $catKey === 'feed' ? 'UOM' : 'UOM' }}</td>
                 <td class="r" style="font-size:7pt;white-space:nowrap;">{{ $catKey === 'feed' ? '' : 'Cost' }}</td>
                 <td class="r">{{ number_format(floor($catAmt*100)/100,2) }}</td>
                 <td class="r">{{ $catCpk ? number_format($catCpk, 2) : '—' }}</td>
             </tr>
-            {{-- Items --}}
+            {{-- Items (matches Excel columns B-I) --}}
             @foreach($catRows as $row)
                 @php
                     if ($catKey === 'labor') {
@@ -570,27 +775,49 @@ body { font-family: Calibri, Arial, sans-serif; font-size: 10pt; color: #000; ma
                 @endphp
                 <tr>
                     <td class="name" @if($isCdmSub) style="padding-left:1.8rem;" @endif>{{ $row['name'] ?? '—' }}</td>
-                    <td class="r">{{ $row['days'] ?? '' }}</td>
-                    <td class="r">{{ isset($row['qty_kg']) ? (is_numeric($row['qty_kg']) ? number_format((float)$row['qty_kg']) : $row['qty_kg']) : '' }}</td>
-                    <td>{{ $row['uom'] ?? '' }}</td>
-                    <td class="r">{{ isset($row['cost']) ? number_format((float)$row['cost'], 2) : '' }}</td>
-                    <td class="r">{{ number_format(floor($amt*100)/100,2) }}</td>
-                    <td class="r">{{ $catKey==='feed' ? '' : ($cpk ? number_format($cpk, 2) : '0.00') }}</td>
+                    @if($catKey === 'feed')
+                        {{-- Feed: C=days(rec bags/hds), D=qty_kg(KG), E=qty_bags(QTY), F=uom, G=cost, H=amount, I=(empty) --}}
+                        <td class="r">{{ $row['days'] ?? '' }}</td>
+                        <td class="r">{{ isset($row['qty_kg']) ? number_format((float)$row['qty_kg']) : '' }}</td>
+                        <td class="r">{{ isset($row['qty_bags']) ? number_format((float)$row['qty_bags']) : '' }}</td>
+                        <td>{{ $row['uom'] ?? '' }}</td>
+                        <td class="r">{{ isset($row['cost']) ? number_format((float)$row['cost'], 2) : '' }}</td>
+                        <td class="r">{{ number_format(floor($amt*100)/100,2) }}</td>
+                        <td></td>
+                    @elseif($catKey === 'labor')
+                        {{-- Labor: C=days, D=(empty), E=qty, F=uom, G=cost, H=amount, I=cost/kg --}}
+                        <td class="r">{{ $row['days'] ?? '' }}</td>
+                        <td></td>
+                        <td class="r">{{ isset($row['qty_kg']) ? number_format((float)$row['qty_kg']) : '' }}</td>
+                        <td>{{ $row['uom'] ?? '' }}</td>
+                        <td class="r">{{ isset($row['cost']) ? number_format((float)$row['cost'], 2) : '' }}</td>
+                        <td class="r">{{ number_format(floor($amt*100)/100,2) }}</td>
+                        <td class="r">{{ $cpk ? number_format($cpk, 2) : '0.00' }}</td>
+                    @else
+                        {{-- Others: C=(empty), D=(empty), E=qty, F=uom, G=cost, H=amount, I=cost/kg --}}
+                        <td></td>
+                        <td></td>
+                        <td class="r">{{ isset($row['qty_kg']) ? number_format((float)$row['qty_kg']) : '' }}</td>
+                        <td>{{ $row['uom'] ?? '' }}</td>
+                        <td class="r">{{ isset($row['cost']) ? number_format((float)$row['cost'], 2) : '' }}</td>
+                        <td class="r">{{ number_format(floor($amt*100)/100,2) }}</td>
+                        <td class="r">{{ $cpk ? number_format($cpk, 2) : '0.00' }}</td>
+                    @endif
                 </tr>
             @endforeach
             @if($catKey === 'feed' && $feedKg)
                 <tr style="background:#eaf3fb;">
                     <td style="padding-left:1.2rem;font-size:8pt;font-weight:700;color:#156082;">Total Kg Conversion</td>
-                    <td class="r" style="font-size:7pt;color:#666;">Bags × 50</td>
+                    <td class="r" style="font-size:7pt;color:#666;">Bags × 1,000</td>
                     <td class="r" style="font-weight:800;color:#156082;">{{ number_format($feedKg) }}</td>
-                    <td colspan="4"></td>
+                    <td colspan="5"></td>
                 </tr>
             @endif
         @endforeach
 
-        {{-- GRAND TOTAL --}}
+        {{-- GRAND TOTAL (bottom) --}}
         <tr class="grand-total">
-            <td><b>TOTAL COST</b></td><td></td><td></td><td></td><td></td>
+            <td><b>TOTAL COST</b></td><td></td><td></td><td></td><td></td><td></td>
             <td class="r"><b>{{ number_format(floor($grandTotal*100)/100,2) }}</b></td>
             <td class="r"><b>{{ $grandCpk ? number_format($grandCpk, 2) : '—' }}</b></td>
         </tr>

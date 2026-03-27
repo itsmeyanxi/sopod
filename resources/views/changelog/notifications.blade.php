@@ -8,7 +8,7 @@
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-3xl font-bold">🔔 Notifications</h1>
-            <p class="text-gray-400 mt-2">{{ $unreadCount }} unread notification(s)</p>
+            <p class="text-gray-500 mt-2">{{ $unreadCount }} unread notification(s)</p>
         </div>
         
         @if($unreadCount > 0)
@@ -51,9 +51,9 @@
                                     <span class="ml-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">NEW</span>
                                 @endif
                             </h3>
-                            <p class="text-gray-400 text-sm">
+                            <p class="text-gray-500 text-sm">
                                 <a href="{{ route('sales_orders.show', $notification->change->sales_order_id) }}" 
-                                   class="text-blue-400 hover:underline">
+                                   class="text-blue-700 hover:underline">
                                     {{ $notification->change->salesOrder->sales_order_number ?? 'N/A' }}
                                 </a>
                             </p>
@@ -62,29 +62,29 @@
 
                     <!-- Change Details -->
                     <div class="ml-13 bg-gray-100 p-3 rounded mt-2">
-                        <span class="px-2 py-1 bg-purple-900 rounded-full text-xs">
+                        <span class="px-2 py-1 bg-purple-100 rounded-full text-xs">
                             {{ ucwords(str_replace('_', ' ', $notification->change->field_changed)) }}
                         </span>
                         
                         <div class="mt-2 text-sm">
                             @if($notification->change->change_type === 'create')
-                                <p class="text-green-400">
+                                <p class="text-green-700">
                                     <i class="fas fa-plus-circle mr-2"></i>{{ $notification->change->new_value }}
                                 </p>
                             @elseif($notification->change->change_type === 'delete')
-                                <p class="text-red-400">
+                                <p class="text-red-700">
                                     <i class="fas fa-trash mr-2"></i>{{ $notification->change->old_value }}
                                 </p>
                             @else
                                 <div class="flex items-center gap-2 text-sm">
-                                    <span class="text-red-400">{{ $notification->change->old_value }}</span>
+                                    <span class="text-red-700">{{ $notification->change->old_value }}</span>
                                     <i class="fas fa-arrow-right text-gray-500"></i>
-                                    <span class="text-green-400">{{ $notification->change->new_value }}</span>
+                                    <span class="text-green-700">{{ $notification->change->new_value }}</span>
                                 </div>
                             @endif
                         </div>
 
-                        <p class="text-gray-400 text-xs mt-2">
+                        <p class="text-gray-500 text-xs mt-2">
                             Changed by: <span class="text-gray-800">{{ $notification->change->user->name ?? 'System' }}</span>
                         </p>
                     </div>
@@ -116,7 +116,7 @@
         @empty
         <div class="bg-white rounded-lg p-8 text-center">
             <i class="fas fa-bell-slash text-gray-600 text-6xl mb-4"></i>
-            <p class="text-gray-400">No notifications yet</p>
+            <p class="text-gray-500">No notifications yet</p>
         </div>
         @endforelse
     </div>

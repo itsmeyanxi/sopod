@@ -145,7 +145,7 @@
                 class="px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-100 w-40">
         </div>
 
-        <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-gray-800 font-medium">
+        <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white font-medium">
             Filter
         </button>
     </form>
@@ -166,10 +166,10 @@
     @if($type === 'monthly_sales')
     <div class="bg-white p-6 rounded-lg mb-6 border border-gray-200">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold text-purple-400">
+            <h2 class="text-2xl font-bold text-purple-700">
                 <i class="fa-solid fa-chart-bar"></i> Monthly Sales Summary
             </h2>
-            <div class="text-gray-400 text-sm">
+            <div class="text-gray-500 text-sm">
                 Total Records: {{ $records->count() }}
             </div>
         </div>
@@ -178,19 +178,19 @@
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-4 rounded-lg shadow-lg">
-                    <div class="text-blue-200 text-sm mb-1">Total Quantity</div>
+                    <div class="text-blue-700 text-sm mb-1">Total Quantity</div>
                     <div class="text-2xl font-bold text-gray-800">
                         {{ number_format($records->sum('quantity'), 2) }}
                     </div>
                 </div>
                 <div class="bg-gradient-to-br from-green-600 to-green-800 p-4 rounded-lg shadow-lg">
-                    <div class="text-green-200 text-sm mb-1">Total Sales (PHP)</div>
+                    <div class="text-green-700 text-sm mb-1">Total Sales (PHP)</div>
                     <div class="text-2xl font-bold text-gray-800">
                         ₱{{ number_format($records->sum('php_amount'), 2) }}
                     </div>
                 </div>
                 <div class="bg-gradient-to-br from-purple-600 to-purple-800 p-4 rounded-lg shadow-lg">
-                    <div class="text-purple-200 text-sm mb-1">Average per Month</div>
+                    <div class="text-purple-700 text-sm mb-1">Average per Month</div>
                     <div class="text-2xl font-bold text-gray-800">
                         ₱{{ number_format($records->avg('php_amount'), 2) }}
                     </div>
@@ -200,7 +200,7 @@
             <!-- Table -->
             <div class="overflow-x-auto rounded-lg">
                 <table class="min-w-full bg-gray-50 rounded-lg overflow-hidden">
-                    <thead class="bg-purple-900 text-gray-200">
+                    <thead class="bg-purple-100 text-gray-700">
                         <tr>
                             <th class="px-6 py-3 text-left">#</th>
                             <th class="px-6 py-3 text-left">Month</th>
@@ -212,17 +212,17 @@
                     <tbody>
                         @foreach($records as $index => $record)
                         <tr class="border-b border-gray-800 hover:bg-white transition-colors">
-                            <td class="px-6 py-4 text-gray-400">{{ $index + 1 }}</td>
-                            <td class="px-6 py-4 font-semibold text-purple-300">
+                            <td class="px-6 py-4 text-gray-500">{{ $index + 1 }}</td>
+                            <td class="px-6 py-4 font-semibold text-purple-700">
                                 <i class="fa-solid fa-calendar-alt mr-2"></i>{{ $record->month }}
                             </td>
-                            <td class="px-6 py-4 text-right font-mono text-blue-300">
+                            <td class="px-6 py-4 text-right font-mono text-blue-700">
                                 {{ number_format($record->quantity, 2) }}
                             </td>
-                            <td class="px-6 py-4 text-right font-mono text-green-300">
+                            <td class="px-6 py-4 text-right font-mono text-green-700">
                                 ₱{{ number_format($record->php_amount, 2) }}
                             </td>
-                            <td class="px-6 py-4 text-center text-gray-400 text-sm">
+                            <td class="px-6 py-4 text-center text-gray-500 text-sm">
                                 {{ $record->updated_at->format('M d, Y') }}
                             </td>
                         </tr>
@@ -233,7 +233,7 @@
         @else
             <div class="text-center py-12">
                 <i class="fa-solid fa-chart-line text-6xl text-gray-600 mb-4"></i>
-                <p class="text-gray-400 text-lg">No monthly sales data available.</p>
+                <p class="text-gray-500 text-lg">No monthly sales data available.</p>
                 <p class="text-gray-500 text-sm mt-2">Upload data through the Import module to see results here.</p>
             </div>
         @endif
@@ -246,7 +246,7 @@
     @if($type !== 'monthly_sales' && $records->count() > 0)
         <div class="overflow-x-auto">
         <table class="min-w-full bg-white rounded-lg overflow-hidden text-left">
-            <thead class="bg-gray-100 text-gray-200 ">
+            <thead class="bg-gray-100 text-gray-700 ">
                 <tr>
                     @if($report === 'monthly_sales')
                         <th class="px-4 py-2">Month</th>
@@ -334,7 +334,7 @@
                                     @if($record->status === 'Delivered' || $record->status === 'Approved') bg-green-600
                                     @elseif($record->status === 'Declined' || $record->status === 'Cancelled') bg-red-600
                                     @elseif($record->status === 'Pending') bg-yellow-600
-                                    @else bg-gray-600 @endif">
+                                    @else bg-gray-200 @endif">
                                     {{ $record->status ?? '—' }}
                                 </span>
                             </td>
@@ -343,12 +343,12 @@
                             <td class="px-4 py-2 text-center">
                                 @if($type === 'deliveries')
                                     <a href="{{ route('records.dshow', $record->id) }}"
-                                    class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-gray-800 text-sm">
+                                    class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-white text-sm">
                                         <i class="fa-solid fa-eye"></i> View
                                     </a>
                                 @else
                                     <a href="{{ route('records.so_show', $record->id) }}"
-                                    class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-gray-800 text-sm">
+                                    class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-white text-sm">
                                         <i class="fa-solid fa-eye"></i> View
                                     </a>
                                 @endif
@@ -369,7 +369,7 @@
         @endif
 
     @elseif($type !== 'monthly_sales')
-        <p class="text-gray-400">
+        <p class="text-gray-500">
             No {{ $report ? 'data found for this report' : ($type === 'deliveries' ? 'deliveries' : 'sales orders') }}.
         </p>
     @endif

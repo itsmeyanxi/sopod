@@ -37,12 +37,12 @@
                    class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 text-gray-800 focus:ring-blue-500" required>
         </div>
 
-        <div class="bg-yellow-900/30 border border-yellow-600/30 rounded-lg p-3 mb-4">
-            <p class="text-yellow-300 text-sm"><i class="fas fa-info-circle mr-1"></i> After creating the user, assign them to a sub-department via the <a href="{{ route('rbac.index') }}" class="underline">RBAC Management</a> page to grant module access.</p>
+        <div class="bg-yellow-100 border border-yellow-600/30 rounded-lg p-3 mb-4">
+            <p class="text-yellow-700 text-sm"><i class="fas fa-info-circle mr-1"></i> After creating the user, assign them to a sub-department via the <a href="{{ route('rbac.index') }}" class="underline">RBAC Management</a> page to grant module access.</p>
         </div>
 
         <div class="flex justify-end space-x-3 mt-6">
-            <a href="{{ route('dashboard') }}" class="bg-gray-600 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg">Cancel</a>
+            <a href="{{ route('dashboard') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg">Cancel</a>
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Save</button>
         </div>
     </form>

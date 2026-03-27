@@ -21,8 +21,11 @@ class ARAdjustment extends Model
         'dr_no',
         'gl_account',
         'gl_account_id',
+        'receiving_report_id',
         'signed_by',
         'remarks',
+        'attachment_path',
+        'attachment_name',
         'created_by',
     ];
 
@@ -57,10 +60,13 @@ class ARAdjustment extends Model
     }
 
     /**
-     * Get the receiving report if linked (via DR number)
+     * Get the receiving report if linked (via receiving_report_id, fallback to DR number)
      */
     public function receivingReport()
     {
+        if ($this->receiving_report_id) {
+            return $this->belongsTo(ReceivingReport::class, 'receiving_report_id');
+        }
         return $this->belongsTo(ReceivingReport::class, 'dr_no', 'delivery_batch');
     }
 
@@ -103,6 +109,8 @@ class ARAdjustment extends Model
     public function getFormattedTypeAttribute()
 {
     return match($this->transaction_type) {
+        'debit_memo' => 'Debit Memo',
+        'credit_memo' => 'Credit Memo',
         'sales_return_allowances' => 'Sales Return and Allowances',
         'price_adjustment' => 'Price Adjustment',
         'rebates' => 'Rebates',

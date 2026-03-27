@@ -29,21 +29,21 @@
                 <tbody>
                     @forelse($warehouses as $warehouse)
                     <tr class="border-b border-gray-200 hover:bg-gray-100">
-                        <td class="px-4 py-2 font-mono text-purple-400">{{ $warehouse->warehouse_code }}</td>
+                        <td class="px-4 py-2 font-mono text-purple-700">{{ $warehouse->warehouse_code }}</td>
                         <td class="px-4 py-2 font-semibold">{{ $warehouse->warehouse_name }}</td>
-                        <td class="px-4 py-2 text-gray-400">{{ Str::limit($warehouse->address, 40) }}</td>
-                        <td class="px-4 py-2 text-gray-400">{{ $warehouse->contact_number }}</td>
+                        <td class="px-4 py-2 text-gray-500">{{ Str::limit($warehouse->address, 40) }}</td>
+                        <td class="px-4 py-2 text-gray-500">{{ $warehouse->contact_number }}</td>
                         <td class="px-4 py-2">
-                            <span class="px-2 py-1 rounded text-xs font-semibold {{ $warehouse->status === 'active' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300' }}">
+                            <span class="px-2 py-1 rounded text-xs font-semibold {{ $warehouse->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                                 {{ strtoupper($warehouse->status) }}
                             </span>
                         </td>
                         <td class="px-4 py-2">
-                            <a href="{{ route('warehouses.show', $warehouse->id) }}" class="text-blue-400 hover:text-blue-300 mr-2"><i class="fas fa-eye"></i></a>
-                            <a href="{{ route('warehouses.edit', $warehouse->id) }}" class="text-yellow-400 hover:text-yellow-300 mr-2"><i class="fas fa-edit"></i></a>
+                            <a href="{{ route('warehouses.show', $warehouse->id) }}" class="text-blue-700 hover:text-blue-700 mr-2"><i class="fas fa-eye"></i></a>
+                            <a href="{{ route('warehouses.edit', $warehouse->id) }}" class="text-yellow-700 hover:text-yellow-700 mr-2"><i class="fas fa-edit"></i></a>
                             <form action="{{ route('warehouses.destroy', $warehouse->id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this warehouse?')">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
+                                <button type="submit" class="text-red-700 hover:text-red-700"><i class="fas fa-trash"></i></button>
                             </form>
                         </td>
                     </tr>

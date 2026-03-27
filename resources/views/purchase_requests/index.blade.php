@@ -16,7 +16,7 @@
                         <i class="fas fa-check-double mr-1"></i> Approve Selected (<span id="selectedCount">0</span>)
                     </button>
                 @endif
-                <a href="{{ route('purchase_requests.create') }}" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-gray-800 px-4 py-2 rounded transition">
+                <a href="{{ route('purchase_requests.create') }}" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition">
                     <i class="fas fa-plus mr-2"></i>Create New PR
                 </a>
             </div>
@@ -104,8 +104,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->canApprovePurchaseRequests() ? 8 : 7 }}" class="border border-gray-200 px-4 py-8 text-center text-gray-400">
-                                No purchase requests found. <a href="{{ route('purchase_requests.create') }}" class="text-blue-400 hover:underline">Create one now</a>
+                            <td colspan="{{ auth()->user()->canApprovePurchaseRequests() ? 8 : 7 }}" class="border border-gray-200 px-4 py-8 text-center text-gray-500">
+                                No purchase requests found. <a href="{{ route('purchase_requests.create') }}" class="text-blue-700 hover:underline">Create one now</a>
                             </td>
                         </tr>
                     @endforelse

@@ -2,11 +2,34 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ArAging extends Model
 {
     protected $table = 'ar_aging';
+
+    protected static function booted(): void
+    {
+        // Exclude aging records linked to hidden deliveries
+        static::addGlobalScope('not_hidden_dr', function (Builder $builder) {
+            $builder->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('deliveries')
+                    ->whereRaw('deliveries.dr_no COLLATE utf8mb4_unicode_ci = ar_aging.dr_no COLLATE utf8mb4_unicode_ci')
+                    ->where('deliveries.is_hidden', true);
+            });
+        });
+    }
+
+    /**
+     * Include records for hidden DRs (admin views).
+     */
+    public function scopeWithHiddenDr(Builder $query): Builder
+    {
+        return $query->withoutGlobalScope('not_hidden_dr');
+    }
 
     protected $fillable = [
         'aging_date',

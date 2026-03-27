@@ -34,7 +34,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DATE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800" value="{{ old('date', date('Y-m-d')) }}" required>
                     </div>
                     <div>
@@ -44,14 +44,14 @@
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">SALES ORDER: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-1">SALES ORDER: <span class="text-red-700">*</span></label>
                         <div class="relative">
                             <input type="text" id="so_search" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800" placeholder="Search SO number or customer..." autocomplete="off">
                             <input type="hidden" name="sales_order_id" id="sales_order_id" value="{{ old('sales_order_id') }}">
                             <div id="so_dropdown" class="hidden absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto" style="top:100%"></div>
                         </div>
-                        <div id="so_info" class="mt-2 text-sm text-gray-400 hidden">
-                            <span class="text-green-400 font-semibold" id="so_display"></span>
+                        <div id="so_info" class="mt-2 text-sm text-gray-500 hidden">
+                            <span class="text-green-700 font-semibold" id="so_display"></span>
                             <span class="ml-2" id="so_customer"></span>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
             <!-- Items Table -->
             <div class="mb-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">Items</h3>
-                <div id="no_so_msg" class="text-gray-400 text-center py-8 border border-gray-200 rounded">
+                <div id="no_so_msg" class="text-gray-500 text-center py-8 border border-gray-200 rounded">
                     <i class="fas fa-search mr-2"></i> Search and select a Sales Order above to load items.
                 </div>
                 <div id="items_section" class="hidden overflow-x-auto">
@@ -154,7 +154,7 @@ soSearch.addEventListener('input', function() {
         try {
             const res = await fetch(`${SO_SEARCH_URL}?q=${encodeURIComponent(q)}`);
             const orders = await res.json();
-            if (!orders.length) { soDropdown.innerHTML = '<div class="px-3 py-2 text-gray-400 text-sm">No sales orders found.</div>'; soDropdown.classList.remove('hidden'); return; }
+            if (!orders.length) { soDropdown.innerHTML = '<div class="px-3 py-2 text-gray-500 text-sm">No sales orders found.</div>'; soDropdown.classList.remove('hidden'); return; }
             soDropdown.innerHTML = orders.map(so => {
                 const isUsed = so.has_issue_slip;
                 const className = isUsed ? 'text-gray-500 bg-gray-100' : 'text-gray-800 hover:bg-gray-100 cursor-pointer';
@@ -163,7 +163,7 @@ soSearch.addEventListener('input', function() {
                       data-id="${so.id}" data-number="${so.sales_order_number}" data-customer="${so.customer_name || ''}" data-used="${isUsed}">
                     <strong>${so.sales_order_number}</strong>
                     <span class="ml-2">${so.customer_name || ''}</span>
-                    ${isUsed ? '<span class="text-xs ml-2 text-red-400 font-semibold">[ALREADY USED]</span>' : '<span class="text-xs text-gray-500 ml-2">' + so.status + '</span>'}
+                    ${isUsed ? '<span class="text-xs ml-2 text-red-700 font-semibold">[ALREADY USED]</span>' : '<span class="text-xs text-gray-500 ml-2">' + so.status + '</span>'}
                 </div>`;
             }).join('');
             soDropdown.classList.remove('hidden');
@@ -214,7 +214,7 @@ function loadSOItems(items) {
     const noMsg = document.getElementById('no_so_msg');
 
     if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-400 py-4">No items in this Sales Order.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-500 py-4">No items in this Sales Order.</td></tr>';
         section.classList.remove('hidden');
         noMsg.classList.add('hidden');
         return;
@@ -277,10 +277,10 @@ destSearch.addEventListener('input', function() {
             const customers = await res.json();
             if (!customers.length) { destDropdown.classList.add('hidden'); return; }
             destDropdown.innerHTML = customers.map(c =>
-                `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-200 dest-option"
+                `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 dest-option"
                       data-id="${c.id}" data-name="${c.customer_name}" data-address="${c.shipping_address || ''}">
                     <strong>${c.customer_name}</strong>
-                    <span class="text-gray-400 text-xs ml-1">${c.customer_code || ''}</span>
+                    <span class="text-gray-500 text-xs ml-1">${c.customer_code || ''}</span>
                 </div>`
             ).join('');
             destDropdown.classList.remove('hidden');

@@ -20,6 +20,8 @@ class CheckVoucher extends Model
         'supplier_tin',
         'check_no',
         'bank',
+        'gl_account_id',
+        'bank_account_id',
         'branch',
         'check_amount',
         'payment_date',
@@ -80,5 +82,15 @@ class CheckVoucher extends Model
     public function accountingReviewer()
     {
         return $this->belongsTo(User::class, 'accounting_reviewed_by');
+    }
+
+    public function glAccount()
+    {
+        return $this->belongsTo(GlAccount::class, 'gl_account_id');
+    }
+
+    public function bankAccount()
+    {
+        return $this->belongsTo(TreasuryBankAccount::class, 'bank_account_id');
     }
 }

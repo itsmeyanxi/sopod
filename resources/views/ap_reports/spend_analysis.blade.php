@@ -59,7 +59,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="border border-gray-200 px-4 py-8 text-center text-gray-400">No spend data yet.</td>
+                            <td colspan="5" class="border border-gray-200 px-4 py-8 text-center text-gray-500">No spend data yet.</td>
                         </tr>
                         @endforelse
                     </tbody>

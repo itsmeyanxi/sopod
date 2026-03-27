@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6 bg-gray-50 min-h-screen text-gray-200">
+<div class="p-6 bg-gray-50 min-h-screen text-gray-700">
     <h1 class="text-2xl font-bold mb-6">Add Item</h1>
 
     {{-- 💠 Form Container --}}
@@ -56,7 +56,7 @@
             {{-- 🔘 Buttons --}}
             <div class="flex justify-end gap-3">
                 <a href="{{ route('items.index') }}" 
-                   class="bg-gray-100 hover:bg-gray-100 text-gray-200 px-4 py-2 rounded-md transition">
+                   class="bg-gray-100 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md transition">
                     Cancel
                 </a>
 

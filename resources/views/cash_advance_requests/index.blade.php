@@ -7,7 +7,7 @@
     <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">CASH ADVANCE REQUESTS</h1>
-            <a href="{{ route('cash_advance_requests.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
+            <a href="{{ route('cash_advance_requests.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
                 <i class="fas fa-plus mr-1"></i> Create New CAR
             </a>
         </div>
@@ -52,7 +52,7 @@
                                     @elseif($car->status === 'approved') bg-green-600 text-white
                                     @elseif($car->status === 'rejected') bg-red-600 text-white
                                     @elseif($car->status === 'liquidated') bg-blue-600 text-white
-                                    @else bg-gray-600 text-white
+                                    @else bg-gray-200 text-gray-800
                                     @endif">
                                     {{ ucfirst($car->status) }}
                                 </span>
@@ -78,8 +78,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="border border-gray-200 px-4 py-8 text-center text-gray-400">
-                                No cash advance requests found. <a href="{{ route('cash_advance_requests.create') }}" class="text-purple-400 hover:text-purple-300">Create one now</a>
+                            <td colspan="8" class="border border-gray-200 px-4 py-8 text-center text-gray-500">
+                                No cash advance requests found. <a href="{{ route('cash_advance_requests.create') }}" class="text-purple-700 hover:text-purple-700">Create one now</a>
                             </td>
                         </tr>
                     @endforelse

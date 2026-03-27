@@ -54,7 +54,35 @@ class CustomerController extends Controller
             return RoleHelper::unauthorized();
         }
 
-        return view('customers.create');
+        $nextCode = $this->generateNextCustomerCode();
+        return view('customers.create', compact('nextCode'));
+    }
+
+    /**
+     * Generate the next customer code in C0000000001-000 format.
+     * Main part is 10 digits, sub-part is 3 digits, prefixed with C.
+     */
+    private function generateNextCustomerCode(): string
+    {
+        // Find the highest main number from existing codes in C0000000001-000 format
+        $lastCustomer = \App\Models\Customer::selectRaw("
+            CAST(SUBSTRING(
+                REPLACE(REPLACE(customer_code, 'C', ''), 'CUST-', ''),
+                1,
+                LOCATE('-', CONCAT(REPLACE(REPLACE(customer_code, 'C', ''), 'CUST-', ''), '-')) - 1
+            ) AS UNSIGNED) as main_num
+        ")
+        ->orderByDesc('main_num')
+        ->first();
+
+        $nextNum = ($lastCustomer && $lastCustomer->main_num) ? $lastCustomer->main_num + 1 : 1;
+
+        return 'C' . str_pad($nextNum, 10, '0', STR_PAD_LEFT) . '-000';
+    }
+
+    public function getNextCode()
+    {
+        return response()->json(['code' => $this->generateNextCustomerCode()]);
     }
 
     public function export()

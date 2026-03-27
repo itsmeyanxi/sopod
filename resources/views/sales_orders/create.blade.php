@@ -64,7 +64,7 @@
                     @foreach($customers as $customer)
                         @if(strtolower($customer->status) === 'enabled')
                             <div 
-                                class="customer-option px-4 py-3 hover:bg-blue-600 cursor-pointer text-gray-800 border-b border-gray-200 last:border-b-0 transition-colors"
+                                class="customer-option px-4 py-3 hover:bg-blue-600 hover:text-white cursor-pointer text-gray-800 border-b border-gray-200 last:border-b-0 transition-colors"
                                 data-code="{{ $customer->customer_code }}"
                                 data-name="{{ $customer->customer_name }}"
                                 data-search="{{ strtolower($customer->customer_code . ' ' . $customer->customer_name) }}">
@@ -140,7 +140,7 @@
                     <label class="block text-sm">PO Reference No</label>
                     <input type="text" id="po_reference_no" name="po_reference_no"
                         class="w-full bg-gray-50 text-gray-800 border border-gray-200 rounded px-2 py-1">
-                    <p class="text-xs text-gray-400 mt-1">Required: Provide either PO Number OR upload proof below</p>
+                    <p class="text-xs text-gray-500 mt-1">Required: Provide either PO Number OR upload proof below</p>
                 </div>
 
                 <div>
@@ -157,18 +157,18 @@
 
                 {{-- ✅ PO Image Upload (shows when no PO number) --}}
                 <div class="col-span-2" id="po_image_container" style="display: none;">
-                    <div class="bg-yellow-900/20 border-2 border-yellow-700 rounded-lg p-4">
-                        <label class="block text-sm font-medium text-yellow-300 mb-2">
+                    <div class="bg-yellow-100/20 border-2 border-yellow-700 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-yellow-700 mb-2">
                             📸 PO Proof / Order Evidence <span class="text-red-500">*</span>
                         </label>
                         <input type="file" id="po_image" name="po_image" accept="image/*,application/pdf"
                             class="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded px-3 py-2
                                 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0
-                                file:bg-yellow-600 file:text-gray-800 hover:file:bg-yellow-500">
-                        <p class="text-xs text-gray-400 mt-2">
+                                file:bg-yellow-600 file:text-white hover:file:bg-yellow-500">
+                        <p class="text-xs text-gray-500 mt-2">
                             Required: Upload proof of customer order (JPG, PNG, or PDF, max 4MB)
                         </p>
-                        <p class="text-xs text-orange-400 mt-1">
+                        <p class="text-xs text-orange-700 mt-1">
                             ⚠️ Once uploaded, the image cannot be removed
                         </p>
                         <div id="po_image_preview" class="mt-3 hidden">
@@ -220,7 +220,7 @@
                                         @foreach($items as $item)
                                             @if($item->is_enabled && $item->approval_status === 'approved')
                                                 <div 
-                                                    class="item-option px-4 py-3 hover:bg-blue-600 cursor-pointer text-gray-800 border-b border-gray-200 last:border-b-0 transition-colors"
+                                                    class="item-option px-4 py-3 hover:bg-blue-600 hover:text-white cursor-pointer text-gray-800 border-b border-gray-200 last:border-b-0 transition-colors"
                                                     data-id="{{ $item->id }}"
                                                     data-description="{{ $item->item_description }}"
                                                     data-code="{{ $item->item_code }}" 
@@ -231,7 +231,7 @@
                                                     <div class="font-semibold text-base mb-1">{{ $item->item_description ?? '' }}</div>
                                                     <div class="text-sm text-gray-500 flex items-center gap-3">
                                                         <span class="bg-gray-100 px-2 py-0.5 rounded text-xs">{{ $item->brand ?? '' }}</span>
-                                                        <span class="text-gray-400">{{ $item->item_category ?? '' }}</span>
+                                                        <span class="text-gray-500">{{ $item->item_category ?? '' }}</span>
                                                         <span class="text-gray-500">Code: {{ $item->item_code ?? '' }}</span>
                                                     </div>
                                                 </div>
@@ -247,25 +247,25 @@
                                 <input type="hidden" name="items[0][brand]" class="item-brand-hidden">
                             </td>
                             <td class="px-2 py-2 border border-gray-200">
-                                <input type="text" name="items[0][code_display]" class="item-code w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-400" readonly>
+                                <input type="text" name="items[0][code_display]" class="item-code w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-500" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-200">
-                                <input type="text" name="items[0][category_display]" class="item-category w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-400" readonly>
+                                <input type="text" name="items[0][category_display]" class="item-category w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-500" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-200">
-                                <input type="text" name="items[0][brand_display]" class="item-brand w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-400" readonly>
+                                <input type="text" name="items[0][brand_display]" class="item-brand w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-500" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-200">
                                 <input type="number" name="items[0][quantity]" class="item-quantity w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-800" min="0.01" step="0.01" required>
                             </td>
                             <td class="px-2 py-2 border border-gray-200">
-                                <input type="text" name="items[0][unit]" value="Kgs" class="item-unit w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-400 text-center" readonly>
+                                <input type="text" name="items[0][unit]" value="Kgs" class="item-unit w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-500 text-center" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-200">
                                 <input type="number" name="items[0][price]" class="item-price w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-800" step="0.01" required>
                             </td>
                             <td class="px-2 py-2 border border-gray-200">
-                                <input type="text" name="items[0][amount]" class="item-amount w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-400" readonly>
+                                <input type="text" name="items[0][amount]" class="item-amount w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-500" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-200">
                                 <textarea 
@@ -582,7 +582,7 @@ window.validateForm = function() {
             // Show "no results" message if nothing matches
             if (visibleCount === 0) {
                 customerDropdown.innerHTML = `
-                    <div class="px-4 py-8 text-center text-gray-400">
+                    <div class="px-4 py-8 text-center text-gray-500">
                         <svg class="w-12 h-12 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
@@ -694,7 +694,7 @@ window.validateForm = function() {
                 if (visibleCount === 0) {
                     // Append the no-results message instead of replacing everything
                     const noResultsDiv = document.createElement('div');
-                    noResultsDiv.className = 'no-results-message px-4 py-8 text-center text-gray-400';
+                    noResultsDiv.className = 'no-results-message px-4 py-8 text-center text-gray-500';
                     noResultsDiv.innerHTML = '<svg class="w-12 h-12 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><div class="font-medium">No items found</div><div class="text-sm mt-1">Try a different search term</div>';
                     dropdown.appendChild(noResultsDiv);
                 }
@@ -823,7 +823,7 @@ window.validateForm = function() {
             itemsData.forEach(item => {
                 dropdownHTML += `
                     <div 
-                        class="item-option px-4 py-3 hover:bg-blue-600 cursor-pointer text-gray-800 border-b border-gray-200 last:border-b-0 transition-colors"
+                        class="item-option px-4 py-3 hover:bg-blue-600 hover:text-white cursor-pointer text-gray-800 border-b border-gray-200 last:border-b-0 transition-colors"
                         data-id="${item.id}"
                         data-description="${item.description}"
                         data-code="${item.code}" 
@@ -834,7 +834,7 @@ window.validateForm = function() {
                         <div class="font-semibold text-base mb-1">${item.description}</div>
                         <div class="text-sm text-gray-500 flex items-center gap-3">
                             <span class="bg-gray-100 px-2 py-0.5 rounded text-xs">${item.brand}</span>
-                            <span class="text-gray-400">${item.category}</span>
+                            <span class="text-gray-500">${item.category}</span>
                             <span class="text-gray-500">Code: ${item.code}</span>
                         </div>
                     </div>
@@ -865,25 +865,25 @@ window.validateForm = function() {
                     <input type="hidden" name="items[${rowCount}][brand]" class="item-brand-hidden">
                 </td>
                 <td class="border border-gray-200 px-2 py-1">
-                    <input type="text" name="items[${rowCount}][code_display]" class="item-code w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-400" readonly>
+                    <input type="text" name="items[${rowCount}][code_display]" class="item-code w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-500" readonly>
                 </td>
                 <td class="border border-gray-200 px-2 py-1">
-                    <input type="text" name="items[${rowCount}][category_display]" class="item-category w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-400" readonly>
+                    <input type="text" name="items[${rowCount}][category_display]" class="item-category w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-500" readonly>
                 </td>
                 <td class="border border-gray-200 px-2 py-1">
-                    <input type="text" name="items[${rowCount}][brand_display]" class="item-brand w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-400" readonly>
+                    <input type="text" name="items[${rowCount}][brand_display]" class="item-brand w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-500" readonly>
                 </td>
                 <td class="border border-gray-200 px-2 py-1">
                     <input type="number" name="items[${rowCount}][quantity]" class="item-quantity w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-800" min="0.01" step="0.01" required>
                 </td>
                 <td class="border border-gray-200 px-2 py-1">
-                    <input type="text" name="items[${rowCount}][unit]" value="Kgs" class="item-unit w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-400 text-center" readonly>
+                    <input type="text" name="items[${rowCount}][unit]" value="Kgs" class="item-unit w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-500 text-center" readonly>
                 </td>
                 <td class="border border-gray-200 px-2 py-1">
                     <input type="number" name="items[${rowCount}][price]" class="item-price w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-800" step="0.01" required>
                 </td>
                 <td class="border border-gray-200 px-2 py-1">
-                    <input type="text" name="items[${rowCount}][amount]" class="item-amount w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-400" readonly>
+                    <input type="text" name="items[${rowCount}][amount]" class="item-amount w-full bg-white border border-gray-200 rounded-md px-2 py-1 text-gray-500" readonly>
                 </td>
                 <td class="border border-gray-200 px-2 py-1">
                     <textarea 

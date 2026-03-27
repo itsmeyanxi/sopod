@@ -76,11 +76,11 @@
             </button>
 
             <!-- Registration Disabled -->
-            <p class="mt-4 text-center text-gray-400">
+            <p class="mt-4 text-center text-gray-500">
                 Need an account? Contact your administrator.
                 <a href="http://mtcresolveit.meatplus.ph/public/ticket/index.php?entity=1"
                     target="_blank"
-                    class="text-blue-400 hover:underline font-semibold">
+                    class="text-blue-700 hover:underline font-semibold">
                     Send a request
                 </a>
             </p>

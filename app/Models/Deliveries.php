@@ -2,10 +2,35 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Deliveries extends Model
 {
+    protected static function booted(): void
+    {
+        // Global scope: automatically exclude hidden deliveries from all queries
+        static::addGlobalScope('not_hidden', function (Builder $builder) {
+            $builder->where('deliveries.is_hidden', false);
+        });
+    }
+
+    /**
+     * Query including hidden deliveries (for admin views).
+     */
+    public function scopeWithHidden(Builder $query): Builder
+    {
+        return $query->withoutGlobalScope('not_hidden');
+    }
+
+    /**
+     * Query only hidden deliveries.
+     */
+    public function scopeOnlyHidden(Builder $query): Builder
+    {
+        return $query->withoutGlobalScope('not_hidden')->where('deliveries.is_hidden', true);
+    }
+
     protected $fillable = [
         'sales_order_id',
         'sales_order_number',
@@ -23,6 +48,12 @@ class Deliveries extends Model
         'po_number',
         'request_delivery_date',
         'status',
+        'counter_date',
+        'counter_date_approved',
+        'counter_date_approved_by',
+        'counter_date_approved_at',
+        'counter_date_attachment_path',
+        'counter_date_attachment_name',
         'plate_no',
         'approved_by',
         'additional_instructions',
@@ -46,6 +77,10 @@ class Deliveries extends Model
         'pullout_reason',
         'created_by',
         'is_locked',
+        'is_hidden',
+        'hidden_by',
+        'hidden_at',
+        'hidden_reason',
     ];
 
     protected $casts = [
@@ -58,6 +93,8 @@ class Deliveries extends Model
         'edit_approved' => 'boolean',
         'is_pulled_out' => 'boolean',
         'is_locked' => 'boolean',
+        'is_hidden' => 'boolean',
+        'hidden_at' => 'datetime',
     ];
 
     // Relationships

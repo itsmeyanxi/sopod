@@ -8,7 +8,7 @@
 
         <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
             <h1 class="text-2xl font-bold text-gray-800">Currency Exchange Rates</h1>
-            <p class="text-gray-400 text-sm">Rates are used to convert foreign currencies to Philippine Peso (PHP) in Purchase Orders.</p>
+            <p class="text-gray-500 text-sm">Rates are used to convert foreign currencies to Philippine Peso (PHP) in Purchase Orders.</p>
         </div>
 
         @if(session('success'))
@@ -23,19 +23,19 @@
             <div class="bg-gray-50 border border-gray-200 rounded-lg p-5">
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-3">
-                        <span class="text-2xl font-bold text-purple-400">{{ $currency->symbol }}</span>
+                        <span class="text-2xl font-bold text-purple-700">{{ $currency->symbol }}</span>
                         <div>
                             <div class="font-bold text-gray-800 text-lg">{{ $currency->code }}</div>
-                            <div class="text-gray-400 text-sm">{{ $currency->name }}</div>
+                            <div class="text-gray-500 text-sm">{{ $currency->name }}</div>
                         </div>
                     </div>
                     @if($currency->code === 'PHP')
-                        <span class="px-2 py-1 bg-green-800 text-green-300 rounded text-xs font-semibold">BASE</span>
+                        <span class="px-2 py-1 bg-green-800 text-green-700 rounded text-xs font-semibold">BASE</span>
                     @endif
                 </div>
 
                 <div class="mb-3">
-                    <div class="text-gray-400 text-xs mb-1">Current Rate (1 {{ $currency->code }} = ? PHP)</div>
+                    <div class="text-gray-500 text-xs mb-1">Current Rate (1 {{ $currency->code }} = ? PHP)</div>
                     <div class="text-gray-800 text-xl font-bold">
                         ₱{{ number_format($currency->rate_to_php, 4) }}
                     </div>
@@ -55,7 +55,7 @@
                     @csrf
                     @method('PUT')
                     <div class="flex-1">
-                        <label class="block text-gray-400 text-xs mb-1">New Rate (₱ per 1 {{ $currency->code }})</label>
+                        <label class="block text-gray-500 text-xs mb-1">New Rate (₱ per 1 {{ $currency->code }})</label>
                         <input type="number"
                                name="rate_to_php"
                                step="0.0001"
@@ -92,13 +92,13 @@
                         @foreach($currencies as $currency)
                         <tr class="hover:bg-gray-100/30">
                             <td class="border border-gray-200 px-4 py-2">
-                                <span class="font-bold text-purple-400">{{ $currency->code }}</span>
-                                <span class="text-gray-400 ml-2">{{ $currency->name }}</span>
+                                <span class="font-bold text-purple-700">{{ $currency->code }}</span>
+                                <span class="text-gray-500 ml-2">{{ $currency->name }}</span>
                             </td>
                             <td class="border border-gray-200 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php, 4) }}</td>
                             <td class="border border-gray-200 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php * 100, 2) }}</td>
                             <td class="border border-gray-200 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php * 1000, 2) }}</td>
-                            <td class="border border-gray-200 px-4 py-2 text-gray-400 text-xs">{{ $currency->updated_at->format('M d, Y h:i A') }}</td>
+                            <td class="border border-gray-200 px-4 py-2 text-gray-500 text-xs">{{ $currency->updated_at->format('M d, Y h:i A') }}</td>
                         </tr>
                         @endforeach
                     </tbody>

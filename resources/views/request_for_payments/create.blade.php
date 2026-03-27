@@ -91,7 +91,7 @@
                 <!-- Right Column - Dates and Reference Numbers -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">DATE: <span class="text-red-400">*</span></label>
+                        <label class="block font-semibold text-gray-500 mb-2">DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date', date('Y-m-d')) }}" required>
                     </div>
                     <div>
@@ -100,19 +100,19 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">RFP#:</label>
-                        <input type="text" readonly class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-400" value="{{ $rfpNo }}">
+                        <input type="text" readonly class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-500" value="{{ $rfpNo }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">LINKED PO:</label>
                         <input type="hidden" name="purchase_order_id" id="purchase_order_id" value="{{ old('purchase_order_id', $selectedPO->id ?? '') }}">
                         <div id="linkedPODisplay">
                             @if($selectedPO)
-                                <div class="p-3 bg-green-900/20 border border-green-700 rounded text-green-300 flex justify-between items-center">
+                                <div class="p-3 bg-green-50 border border-green-200 rounded text-green-700 flex justify-between items-center">
                                     <span><i class="fas fa-link mr-2"></i>{{ $selectedPO->po_no }}</span>
-                                    <button type="button" id="unlinkPO" class="text-red-400 hover:text-red-300 text-sm"><i class="fas fa-times"></i></button>
+                                    <button type="button" id="unlinkPO" class="text-red-700 hover:text-red-700 text-sm"><i class="fas fa-times"></i></button>
                                 </div>
                             @else
-                                <div class="p-3 bg-gray-50 border border-gray-200 rounded text-gray-400">
+                                <div class="p-3 bg-gray-50 border border-gray-200 rounded text-gray-500">
                                     No PO linked — use search above
                                 </div>
                             @endif
@@ -124,16 +124,16 @@
             <!-- Main Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">PAYEE (Vendor/Supplier): <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">PAYEE (Vendor/Supplier): <span class="text-red-700">*</span></label>
                     <input type="text" name="payee" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee', $selectedPO ? (
     $selectedPO->items->map(fn($item) => $item->supplierModel->supplier_name ?? $item->supplier_name ?? null)->filter()->unique()->implode(' / ')
     ?: ($selectedPO->supplierModel->supplier_name ?? $selectedPO->supplier ?? '')
 ) : '') }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">AMOUNT: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">AMOUNT: <span class="text-red-700">*</span></label>
                     <div class="relative">
-                        <span class="absolute left-3 top-2.5 text-gray-400">₱</span>
+                        <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
                         <input type="number" step="0.01" name="amount" class="w-full bg-gray-50 border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount', $poAmount ? number_format($poAmount, 2, '.', '') : '') }}" required>
                     </div>
                 </div>
@@ -178,7 +178,7 @@
             <!-- Signature Section -->
             <div class="mb-6">
                 <div class="border border-gray-200 rounded">
-                    <div class="bg-gray-50 border-b border-gray-200 px-4 py-2 text-center font-semibold text-yellow-400">
+                    <div class="bg-gray-50 border-b border-gray-200 px-4 py-2 text-center font-semibold text-yellow-700">
                         <i class="fas fa-exclamation-triangle mr-2"></i>FOR FINANCE USE ONLY
                     </div>
                     <table class="w-full">
@@ -207,7 +207,7 @@
                 <a href="{{ route('request_for_payments.index') }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
+                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                     <i class="fas fa-save mr-1"></i> Create Request for Payment
                 </button>
             </div>
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(response => response.json())
                     .then(pos => {
                         if (pos.length === 0) {
-                            poSearchResults.innerHTML = '<div class="p-4 text-gray-400">No approved POs found</div>';
+                            poSearchResults.innerHTML = '<div class="p-4 text-gray-500">No approved POs found</div>';
                             poSearchResults.classList.remove('hidden');
                             return;
                         }
@@ -255,13 +255,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                      data-currency="${po.currency || 'PHP'}">
                                     <div class="flex justify-between items-center">
                                         <div>
-                                            <div class="font-semibold text-purple-400">${po.po_no}</div>
+                                            <div class="font-semibold text-purple-700">${po.po_no}</div>
                                             <div class="text-sm text-gray-500">${po.supplier}</div>
-                                            <div class="text-xs text-gray-400">${po.company}</div>
+                                            <div class="text-xs text-gray-500">${po.company}</div>
                                         </div>
                                         <div class="text-right">
                                             <div class="text-sm text-gray-500">${po.order_date || ''}</div>
-                                            <div class="text-sm text-green-400">${po.currency || 'PHP'} ${parseFloat(po.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                                            <div class="text-sm text-green-700">${po.currency || 'PHP'} ${parseFloat(po.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -285,9 +285,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                 // Fill linked PO display
                                 document.getElementById('linkedPODisplay').innerHTML = `
-                                    <div class="p-3 bg-green-900/20 border border-green-700 rounded text-green-300 flex justify-between items-center">
+                                    <div class="p-3 bg-green-50 border border-green-200 rounded text-green-700 flex justify-between items-center">
                                         <span><i class="fas fa-link mr-2"></i>${poNo}</span>
-                                        <button type="button" id="unlinkPO" class="text-red-400 hover:text-red-300 text-sm"><i class="fas fa-times"></i></button>
+                                        <button type="button" id="unlinkPO" class="text-red-700 hover:text-red-700 text-sm"><i class="fas fa-times"></i></button>
                                     </div>
                                 `;
                                 attachUnlinkHandler();
@@ -326,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                     .catch(error => {
                         console.error('Search error:', error);
-                        poSearchResults.innerHTML = '<div class="p-4 text-red-400">Error searching POs</div>';
+                        poSearchResults.innerHTML = '<div class="p-4 text-red-700">Error searching POs</div>';
                         poSearchResults.classList.remove('hidden');
                     });
             }, 300);
@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('purchase_order_id').value = '';
                 document.getElementById('maxRfpAmount').value = '';
                 document.getElementById('linkedPODisplay').innerHTML = `
-                    <div class="p-3 bg-gray-50 border border-gray-200 rounded text-gray-400">
+                    <div class="p-3 bg-gray-50 border border-gray-200 rounded text-gray-500">
                         No PO linked — use search above
                     </div>
                 `;
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (val > maxVal) {
             if (!warning) {
                 const w = document.createElement('div');
-                w.className = 'amount-warning text-red-400 text-xs mt-1';
+                w.className = 'amount-warning text-red-700 text-xs mt-1';
                 w.textContent = 'Amount cannot exceed PO total: ₱' + maxVal.toLocaleString('en-US', {minimumFractionDigits: 2});
                 amountInput.parentElement.appendChild(w);
             }

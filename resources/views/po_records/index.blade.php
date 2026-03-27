@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
             <h1 class="text-2xl font-bold text-gray-800">PO RECORDS</h1>
             <a href="{{ route('po_records.export', ['type' => $type, 'status' => $status, 'from' => $from, 'to' => $to]) }}"
-               class="bg-gradient-to-r from-green-600 to-green-700 text-gray-800 px-4 py-2 rounded hover:from-green-700 hover:to-green-800 transition">
+               class="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded hover:from-green-700 hover:to-green-800 transition">
                 <i class="fas fa-file-excel mr-1"></i> Export Excel
             </a>
         </div>
@@ -74,7 +74,7 @@
             <input type="hidden" name="type" value="{{ $type }}">
             <div class="flex flex-wrap gap-4 items-end">
                 <div>
-                    <label class="block text-gray-400 text-sm mb-1">Status</label>
+                    <label class="block text-gray-500 text-sm mb-1">Status</label>
                     <select name="status" class="bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                         <option value="all" {{ $status === 'all' ? 'selected' : '' }}>All</option>
                         <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -83,12 +83,12 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-gray-400 text-sm mb-1">From Date</label>
+                    <label class="block text-gray-500 text-sm mb-1">From Date</label>
                     <input type="date" name="from" value="{{ $from }}"
                            class="bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
-                    <label class="block text-gray-400 text-sm mb-1">To Date</label>
+                    <label class="block text-gray-500 text-sm mb-1">To Date</label>
                     <input type="date" name="to" value="{{ $to }}"
                            class="bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
@@ -98,7 +98,7 @@
                     </button>
                 </div>
                 <div>
-                    <a href="{{ route('po_records.index', ['type' => $type]) }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500 transition inline-block">
+                    <a href="{{ route('po_records.index', ['type' => $type]) }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-500 transition inline-block">
                         <i class="fas fa-times mr-1"></i> Clear
                     </a>
                 </div>
@@ -176,7 +176,7 @@
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('purchase_requests.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
                                         @if($record->status === 'approved')
-                                            <a href="{{ route('purchase_requests.print', $record->id) }}" target="_blank" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</a>
+                                            <a href="{{ route('purchase_requests.print', $record->id) }}" target="_blank" class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</a>
                                         @else
                                             <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded text-xs cursor-not-allowed" title="Must be approved to print"><i class="fas fa-print"></i> Print</span>
                                         @endif
@@ -196,7 +196,7 @@
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('purchase_orders.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
                                         @if($record->status === 'approved')
-                                            <a href="{{ route('purchase_orders.print', $record->id) }}" target="_blank" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</a>
+                                            <a href="{{ route('purchase_orders.print', $record->id) }}" target="_blank" class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</a>
                                         @else
                                             <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded text-xs cursor-not-allowed" title="Must be approved to print"><i class="fas fa-print"></i> Print</span>
                                         @endif
@@ -216,7 +216,7 @@
                                 <td class="px-4 py-2 border-b border-gray-200 text-center">
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('request_for_payments.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
-                                        <button onclick="window.open('{{ route('request_for_payments.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
+                                        <button onclick="window.open('{{ route('request_for_payments.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
                                     </div>
                                 </td>
                             @elseif($type === 'apv')
@@ -225,9 +225,9 @@
                                 <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $record->vendor_name }}</td>
                                 <td class="px-4 py-2 border-b border-gray-200 text-gray-500">
                                     @if($record->payment_type === 'downpayment')
-                                        <span class="px-2 py-1 bg-blue-900 text-blue-300 rounded text-xs">Downpayment</span>
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Downpayment</span>
                                     @else
-                                        <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">Full Payment</span>
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Full Payment</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-2 border-b border-gray-200 text-right text-gray-500">{{ $record->currency }} {{ number_format($record->grand_total, 2) }}</td>
@@ -238,14 +238,14 @@
                                 <td class="px-4 py-2 border-b border-gray-200 text-center">
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('accounts_payable_invoices.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
-                                        <button onclick="window.open('{{ route('accounts_payable_invoices.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
+                                        <button onclick="window.open('{{ route('accounts_payable_invoices.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
                                     </div>
                                 </td>
                             @elseif($type === 'check_vouchers')
                                 <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $record->cv_no }}</td>
                                 <td class="px-4 py-2 border-b border-gray-200 text-gray-500">
                                     @if($record->apv_no)
-                                        <span class="text-blue-400">{{ $record->apv_no }}</span>
+                                        <span class="text-blue-700">{{ $record->apv_no }}</span>
                                     @else
                                         <span class="text-gray-500">N/A</span>
                                     @endif
@@ -260,14 +260,14 @@
                                 <td class="px-4 py-2 border-b border-gray-200 text-center">
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('check_vouchers.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
-                                        <button onclick="window.open('{{ route('check_vouchers.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
+                                        <button onclick="window.open('{{ route('check_vouchers.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
                                     </div>
                                 </td>
                             @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="px-4 py-8 text-center text-gray-400">
+                            <td colspan="10" class="px-4 py-8 text-center text-gray-500">
                                 No records found for the selected filters.
                             </td>
                         </tr>

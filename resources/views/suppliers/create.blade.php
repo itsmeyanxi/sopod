@@ -29,13 +29,13 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Supplier Code -->
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">SUPPLIER CODE: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">SUPPLIER CODE: <span class="text-red-700">*</span></label>
                     <input type="text" name="supplier_code" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('supplier_code') }}" required>
                 </div>
 
                 <!-- Supplier Name -->
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">SUPPLIER NAME: <span class="text-red-400">*</span></label>
+                    <label class="block font-semibold text-gray-500 mb-2">SUPPLIER NAME: <span class="text-red-700">*</span></label>
                     <input type="text" name="supplier_name" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('supplier_name') }}" required>
                 </div>
             </div>
@@ -140,7 +140,7 @@
             <!-- Business Documents -->
             <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
                 <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-folder-open mr-2"></i>BUSINESS DOCUMENTS</h3>
-                <p class="text-gray-400 text-sm mb-4">Upload business permits, BIR certificates, DTI, and other required documents.</p>
+                <p class="text-gray-500 text-sm mb-4">Upload business permits, BIR certificates, DTI, and other required documents.</p>
 
                 <div id="fileInputs">
                     <div class="file-row mb-3 bg-white border border-gray-200 rounded p-3">
@@ -158,7 +158,7 @@
                     </div>
                 </div>
 
-                <button type="button" onclick="addFileInput()" class="text-blue-400 hover:text-blue-300 text-sm">
+                <button type="button" onclick="addFileInput()" class="text-blue-700 hover:text-blue-700 text-sm">
                     <i class="fas fa-plus mr-1"></i> Add Another Document
                 </button>
             </div>
@@ -168,7 +168,7 @@
                 <a href="{{ route('suppliers.index') }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-gray-800 px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
+                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                     <i class="fas fa-save mr-1"></i> Create Supplier
                 </button>
             </div>
@@ -182,7 +182,7 @@ function addFileInput() {
     const div = document.createElement('div');
     div.className = 'file-row mb-3 bg-white border border-gray-200 rounded p-3 relative';
     div.innerHTML = `
-        <button type="button" onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-400 hover:text-red-300 text-sm">
+        <button type="button" onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-700 hover:text-red-700 text-sm">
             <i class="fas fa-times"></i>
         </button>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">

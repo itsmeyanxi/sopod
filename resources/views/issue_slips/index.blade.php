@@ -15,15 +15,15 @@
         <!-- Filters -->
         <form method="GET" class="mb-4 flex flex-wrap gap-3 items-end">
             <div>
-                <label class="block text-gray-400 text-xs mb-1">Search</label>
+                <label class="block text-gray-500 text-xs mb-1">Search</label>
                 <input type="text" name="search" value="{{ request('search') }}" class="bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm" placeholder="IS#, SO#, Customer...">
             </div>
             <div>
-                <label class="block text-gray-400 text-xs mb-1">From</label>
+                <label class="block text-gray-500 text-xs mb-1">From</label>
                 <input type="date" name="date_from" value="{{ request('date_from') }}" class="bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm">
             </div>
             <div>
-                <label class="block text-gray-400 text-xs mb-1">To</label>
+                <label class="block text-gray-500 text-xs mb-1">To</label>
                 <input type="date" name="date_to" value="{{ request('date_to') }}" class="bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 text-sm">
             </div>
             <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
@@ -54,7 +54,7 @@
                     @forelse($issueSlips as $is)
                     <tr class="hover:bg-gray-100">
                         <td class="border border-gray-200 px-3 py-2">
-                            <a href="{{ route('issue_slips.show', $is->id) }}" class="text-blue-400 hover:underline font-semibold">{{ $is->issue_slip_number }}</a>
+                            <a href="{{ route('issue_slips.show', $is->id) }}" class="text-blue-700 hover:underline font-semibold">{{ $is->issue_slip_number }}</a>
                         </td>
                         <td class="border border-gray-200 px-3 py-2">{{ $is->date->format('M d, Y') }}</td>
                         <td class="border border-gray-200 px-3 py-2">{{ $is->origin ?? '-' }}</td>
@@ -72,7 +72,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="border border-gray-200 px-3 py-6 text-center text-gray-400">No issue slips found.</td>
+                        <td colspan="8" class="border border-gray-200 px-3 py-6 text-center text-gray-500">No issue slips found.</td>
                     </tr>
                     @endforelse
                 </tbody>
