@@ -479,7 +479,7 @@ Route::prefix('accounting/fixed-assets')->name('fixed_assets.')->middleware(['au
 });
 
 // ===================== DISPOSAL MODULE =====================
-Route::prefix('accounting/disposals')->name('disposals.')->middleware(['auth', 'module:fixed_assets'])->group(function () {
+Route::prefix('accounting/disposals')->name('disposals.')->middleware(['auth', 'module:disposals'])->group(function () {
     Route::get('/',      [DisposalController::class, 'index'])->name('index');
     Route::get('/{id}',  [DisposalController::class, 'show'])->name('show');
 });

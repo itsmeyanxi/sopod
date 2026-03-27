@@ -154,6 +154,7 @@ $navStructure = [
     'Accounting' => [
         'gl_accounts'      => 'Chart of Accounts',
         'fixed_assets'     => 'Fixed Asset Capitalization',
+        'disposals'        => 'Disposal Module',
         'journal_vouchers' => 'Journal Vouchers',
     ],
     'Other' => [
