@@ -8,9 +8,15 @@ use App\Models\SalesInvoice;
 use App\Models\ARLedger;
 use App\Models\Deliveries;
 use App\Models\ArAging;
+use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class AgingReportController extends Controller
 {
@@ -150,7 +156,7 @@ class AgingReportController extends Controller
                     'so_dr_po' => $this->formatImportedSoDrPo($record),
                     'invoice_amount' => $record->invoice_amount ?? 0,
                     'settled_amount' => $record->settled_invoice_amount ?? 0,
-                    'net_ar' => $record->net_ar_balance ?? 0,
+                    'net_ar' => ((float)($record->net_ar_balance ?? 0)) != 0 ? $record->net_ar_balance : ($record->net_of_cwt ?? $record->invoice_amount ?? 0),
                     'age' => $age, // ✅ Dynamically calculated age
                     'age_category' => $ageCategory, // ✅ Dynamically calculated category
                     'status' => $record->status ?? 'Outstanding',
@@ -311,7 +317,7 @@ class AgingReportController extends Controller
                     'so_dr_po' => $this->formatImportedSoDrPo($record),
                     'invoice_amount' => $record->invoice_amount ?? 0,
                     'settled_amount' => $record->settled_invoice_amount ?? 0,
-                    'net_ar' => $record->net_ar_balance ?? 0,
+                    'net_ar' => ((float)($record->net_ar_balance ?? 0)) != 0 ? $record->net_ar_balance : ($record->net_of_cwt ?? $record->invoice_amount ?? 0),
                     'age' => $age,
                     'age_category' => $ageCategory,
                     'status' => $record->status ?? 'Outstanding',
@@ -554,7 +560,10 @@ class AgingReportController extends Controller
                     ];
                 }
 
-                $netAR = $record->net_ar_balance ?? 0;
+                $netAR = (float)($record->net_ar_balance ?? 0);
+                if ($netAR == 0) {
+                    $netAR = (float)($record->net_of_cwt ?? $record->invoice_amount ?? 0);
+                }
 
                 // ✅ Calculate age based on counter_date (days passed since counter_date)
                 // Use counter_date if available, otherwise fall back to due_date or invoice_date
@@ -1007,7 +1016,10 @@ class AgingReportController extends Controller
                 ];
             }
 
-            $netAR = $record->net_ar_balance ?? 0;
+            $netAR = (float)($record->net_ar_balance ?? 0);
+            if ($netAR == 0) {
+                $netAR = (float)($record->net_of_cwt ?? $record->invoice_amount ?? 0);
+            }
 
             // ✅ Dynamically calculate age based on counter_date
             // Use counter_date if available, otherwise fall back to due_date or invoice_date
@@ -1108,14 +1120,25 @@ class AgingReportController extends Controller
 
         // Process each record
         foreach ($records as $record) {
-            // Calculate age based on due_date
-            $baseDate = Carbon::parse($record->due_date)->startOfDay();
+            // Calculate age using same priority as summary: counter_date → due_date → invoice_date
+            $baseDate = null;
+            if ($record->counter_date) {
+                $baseDate = Carbon::parse($record->counter_date)->startOfDay();
+            } elseif ($record->due_date) {
+                $baseDate = Carbon::parse($record->due_date)->startOfDay();
+            } elseif ($record->invoice_date) {
+                $baseDate = Carbon::parse($record->invoice_date)->startOfDay();
+            }
+
             $agingDateForCalc = $agingDate->copy()->startOfDay();
-            $age = $baseDate->diffInDays($agingDateForCalc, false);
+            $age = $baseDate ? $baseDate->diffInDays($agingDateForCalc, false) : ($record->age ?? 0);
 
             // Get the bucket
             $bucket = $this->getAgeBucket($age);
-            $netAR = $record->net_ar_balance ?? 0;
+            $netAR = (float)($record->net_ar_balance ?? 0);
+            if ($netAR == 0) {
+                $netAR = (float)($record->net_of_cwt ?? $record->invoice_amount ?? 0);
+            }
 
             // Add to bucket totals
             if ($netAR > 0) {
@@ -1190,14 +1213,25 @@ class AgingReportController extends Controller
         $bucketLabel = $this->getBucketLabel($bucket);
 
         foreach ($records as $record) {
-            // Calculate age based on due_date
-            $baseDate = Carbon::parse($record->due_date)->startOfDay();
+            // Calculate age using same priority as summary: counter_date → due_date → invoice_date
+            $baseDate = null;
+            if ($record->counter_date) {
+                $baseDate = Carbon::parse($record->counter_date)->startOfDay();
+            } elseif ($record->due_date) {
+                $baseDate = Carbon::parse($record->due_date)->startOfDay();
+            } elseif ($record->invoice_date) {
+                $baseDate = Carbon::parse($record->invoice_date)->startOfDay();
+            }
+
             $agingDateForCalc = $agingDate->copy()->startOfDay();
-            $age = $baseDate->diffInDays($agingDateForCalc, false);
+            $age = $baseDate ? $baseDate->diffInDays($agingDateForCalc, false) : ($record->age ?? 0);
 
             // Check if this record belongs to the requested bucket
             if ($this->getAgeBucket($age) === $bucket) {
-                $netAR = $record->net_ar_balance ?? 0;
+                $netAR = (float)($record->net_ar_balance ?? 0);
+                if ($netAR == 0) {
+                    $netAR = (float)($record->net_of_cwt ?? $record->invoice_amount ?? 0);
+                }
                 // Include all records, even with $0 balance to show complete history
                 $invoices[] = [
                     'invoice_no' => $record->invoice_no,
@@ -1265,7 +1299,10 @@ class AgingReportController extends Controller
         $seriouslyOverdue = []; // 61+ days overdue
 
         foreach ($records as $record) {
-            $netAR = $record->net_ar_balance ?? 0;
+            $netAR = (float)($record->net_ar_balance ?? 0);
+            if ($netAR == 0) {
+                $netAR = (float)($record->net_of_cwt ?? $record->invoice_amount ?? 0);
+            }
             if ($netAR <= 0) continue; // Skip settled invoices
 
             $dueDate = Carbon::parse($record->due_date)->startOfDay();
@@ -1385,12 +1422,11 @@ public function exportARProfile(Request $request)
 {
     try {
         $customerCode = $request->input('customer_code');
-        
+
         if (!$customerCode) {
             return back()->with('error', 'Customer code is required for export.');
         }
 
-        // Get the AR records for this customer
         $arRecords = ArAging::where('customer_code', $customerCode)
             ->orderBy('invoice_date', 'desc')
             ->get();
@@ -1399,210 +1435,209 @@ public function exportARProfile(Request $request)
             return back()->with('error', 'No records found for this customer.');
         }
 
-        // Get customer info from first record
         $firstRecord = $arRecords->first();
         $customerName = $firstRecord->client_name ?? $customerCode;
 
         // Calculate totals and aging summary
         $totals = [
-            'invoice_amount' => 0,
-            'ar_adjustments' => 0,
-            'settled_invoice_amount' => 0,
-            'gross_ar_balance' => 0,
-            'cwt' => 0,
-            'net_of_cwt' => 0,
-            'net_ar_balance' => 0,
-            'factored_ar_amount' => 0,
-            'net_ar' => 0,
+            'invoice_amount' => 0, 'ar_adjustments' => 0, 'settled_invoice_amount' => 0,
+            'gross_ar_balance' => 0, 'cwt' => 0, 'net_of_cwt' => 0,
+            'net_ar_balance' => 0, 'factored_ar_amount' => 0, 'net_ar' => 0,
         ];
-
-        $agingSummary = [
-            'current' => 0,
-            '1_30' => 0,
-            '31_60' => 0,
-            '61_90' => 0,
-            '91_120' => 0,
-            'over_120' => 0,
-        ];
+        $agingSummary = ['current' => 0, '1_30' => 0, '31_60' => 0, '61_90' => 0, '91_120' => 0, 'over_120' => 0];
 
         foreach ($arRecords as $record) {
-            $totals['invoice_amount'] += (float) ($record->invoice_amount ?? 0);
-            $totals['ar_adjustments'] += (float) ($record->ar_adjustments ?? 0);
-            $totals['settled_invoice_amount'] += (float) ($record->settled_invoice_amount ?? 0);
-            $totals['gross_ar_balance'] += (float) ($record->gross_ar_balance ?? 0);
-            $totals['cwt'] += (float) ($record->cwt ?? 0);
-            $totals['net_of_cwt'] += (float) ($record->net_of_cwt ?? 0);
-            $totals['net_ar_balance'] += (float) ($record->net_ar_balance ?? 0);
-            $totals['factored_ar_amount'] += (float) ($record->factored_ar_amount ?? 0);
-            $totals['net_ar'] += (float) ($record->net_ar ?? 0);
+            $totals['invoice_amount'] += (float)($record->invoice_amount ?? 0);
+            $totals['ar_adjustments'] += (float)($record->ar_adjustments ?? 0);
+            $totals['settled_invoice_amount'] += (float)($record->settled_invoice_amount ?? 0);
+            $totals['gross_ar_balance'] += (float)($record->gross_ar_balance ?? 0);
+            $totals['cwt'] += (float)($record->cwt ?? 0);
+            $totals['net_of_cwt'] += (float)($record->net_of_cwt ?? 0);
+            $narBal = (float)($record->net_ar_balance ?? 0);
+            if ($narBal == 0) $narBal = (float)($record->net_of_cwt ?? $record->invoice_amount ?? 0);
+            $totals['net_ar_balance'] += $narBal;
+            $totals['factored_ar_amount'] += (float)($record->factored_ar_amount ?? 0);
+            $totals['net_ar'] += (float)($record->net_ar ?? 0);
 
-            $age = (int) ($record->age ?? 0);
-            $netAR = (float) ($record->net_ar ?? 0);
-
-            if ($age <= 30) {
-                $agingSummary['current'] += $netAR;
-            } elseif ($age <= 60) {
-                $agingSummary['1_30'] += $netAR;
-            } elseif ($age <= 90) {
-                $agingSummary['31_60'] += $netAR;
-            } elseif ($age <= 120) {
-                $agingSummary['61_90'] += $netAR;
-            } elseif ($age <= 150) {
-                $agingSummary['91_120'] += $netAR;
-            } else {
-                $agingSummary['over_120'] += $netAR;
-            }
+            $age = (int)($record->age ?? 0);
+            $netAR = (float)($record->net_ar ?? 0);
+            if ($age <= 30) $agingSummary['current'] += $netAR;
+            elseif ($age <= 60) $agingSummary['1_30'] += $netAR;
+            elseif ($age <= 90) $agingSummary['31_60'] += $netAR;
+            elseif ($age <= 120) $agingSummary['61_90'] += $netAR;
+            elseif ($age <= 150) $agingSummary['91_120'] += $netAR;
+            else $agingSummary['over_120'] += $netAR;
         }
 
-        // Generate filename
-        $filename = 'AR_Profile_' . $customerCode . '_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        // Build Excel workbook
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('AR Profile');
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
-            'Pragma' => 'public',
+        $headerStyle = ['font' => ['bold' => true, 'size' => 12], 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4472C4']], 'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 12]];
+        $subHeaderStyle = ['font' => ['bold' => true, 'size' => 10], 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D6E4F0']]];
+        $totalStyle = ['font' => ['bold' => true], 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E2EFDA']]];
+
+        $row = 1;
+        // Title
+        $sheet->setCellValue("A{$row}", 'CUSTOMER AR PROFILE REPORT');
+        $sheet->getStyle("A{$row}")->applyFromArray($headerStyle);
+        $sheet->mergeCells("A{$row}:F{$row}");
+        $row += 2;
+
+        // Customer Info
+        $sheet->setCellValue("A{$row}", 'Customer Information');
+        $sheet->getStyle("A{$row}")->applyFromArray($subHeaderStyle);
+        $row++;
+        $info = [
+            'Customer Name' => $customerName, 'Customer Code' => $customerCode,
+            'Sales Executive' => $firstRecord->sales_executive ?? 'N/A',
+            'SE2' => $firstRecord->se2 ?? 'N/A', 'Branch' => $firstRecord->branch ?? 'N/A',
+            'Terms' => $firstRecord->terms ?? 'N/A', 'Report Generated' => now()->format('Y-m-d H:i:s'),
         ];
+        foreach ($info as $label => $value) {
+            $sheet->setCellValue("A{$row}", $label);
+            $sheet->setCellValue("B{$row}", $value);
+            $sheet->getStyle("A{$row}")->getFont()->setBold(true);
+            $row++;
+        }
+        $row++;
 
-        $callback = function () use ($arRecords, $customerName, $customerCode, $firstRecord, $totals, $agingSummary) {
-            $file = fopen('php://output', 'w');
-            
-            // Add BOM for UTF-8
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
-            // Customer Information Header
-            fputcsv($file, ['CUSTOMER AR PROFILE REPORT']);
-            fputcsv($file, []);
-            fputcsv($file, ['Customer Information']);
-            fputcsv($file, ['Customer Name:', $customerName]);
-            fputcsv($file, ['Customer Code:', $customerCode]);
-            fputcsv($file, ['Sales Executive:', $firstRecord->sales_executive ?? 'N/A']);
-            fputcsv($file, ['SE2:', $firstRecord->se2 ?? 'N/A']);
-            fputcsv($file, ['Branch:', $firstRecord->branch ?? 'N/A']);
-            fputcsv($file, ['Terms:', $firstRecord->terms ?? 'N/A']);
-            fputcsv($file, ['Report Generated:', now()->format('Y-m-d H:i:s')]);
-            fputcsv($file, []);
+        // Financial Summary
+        $sheet->setCellValue("A{$row}", 'FINANCIAL SUMMARY');
+        $sheet->getStyle("A{$row}")->applyFromArray($subHeaderStyle);
+        $row++;
+        $finFields = [
+            'Invoice Amount' => $totals['invoice_amount'], 'AR Adjustments' => $totals['ar_adjustments'],
+            'Settled Amount' => $totals['settled_invoice_amount'], 'Gross AR Balance' => $totals['gross_ar_balance'],
+            'CWT' => $totals['cwt'], 'Net of CWT' => $totals['net_of_cwt'],
+            'Net AR Balance' => $totals['net_ar_balance'], 'Factored AR' => $totals['factored_ar_amount'],
+            'TOTAL NET AR' => $totals['net_ar'],
+        ];
+        foreach ($finFields as $label => $value) {
+            $sheet->setCellValue("A{$row}", $label);
+            $sheet->setCellValue("B{$row}", $value);
+            $sheet->getStyle("B{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle("A{$row}")->getFont()->setBold(true);
+            if ($label === 'TOTAL NET AR') $sheet->getStyle("A{$row}:B{$row}")->applyFromArray($totalStyle);
+            $row++;
+        }
+        $row++;
 
-            // Financial Summary
-            fputcsv($file, ['FINANCIAL SUMMARY']);
-            fputcsv($file, ['Invoice Amount:', number_format($totals['invoice_amount'], 2)]);
-            fputcsv($file, ['AR Adjustments:', number_format($totals['ar_adjustments'], 2)]);
-            fputcsv($file, ['Settled Amount:', number_format($totals['settled_invoice_amount'], 2)]);
-            fputcsv($file, ['Gross AR Balance:', number_format($totals['gross_ar_balance'], 2)]);
-            fputcsv($file, ['CWT:', number_format($totals['cwt'], 2)]);
-            fputcsv($file, ['Net of CWT:', number_format($totals['net_of_cwt'], 2)]);
-            fputcsv($file, ['Net AR Balance:', number_format($totals['net_ar_balance'], 2)]);
-            fputcsv($file, ['Factored AR:', number_format($totals['factored_ar_amount'], 2)]);
-            fputcsv($file, ['TOTAL NET AR:', number_format($totals['net_ar'], 2)]);
-            fputcsv($file, []);
+        // Aging Distribution
+        $sheet->setCellValue("A{$row}", 'AGING DISTRIBUTION');
+        $sheet->getStyle("A{$row}")->applyFromArray($subHeaderStyle);
+        $row++;
+        $sheet->setCellValue("A{$row}", 'Age Category');
+        $sheet->setCellValue("B{$row}", 'Amount');
+        $sheet->setCellValue("C{$row}", 'Percentage');
+        $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
+        $row++;
+        $totalNetAR = $totals['net_ar'] > 0 ? $totals['net_ar'] : 1;
+        $agingLabels = ['current' => 'Current (0-30 days)', '1_30' => '1-30 Days', '31_60' => '31-60 Days', '61_90' => '61-90 Days', '91_120' => '91-120 Days', 'over_120' => 'Over 120 Days'];
+        foreach ($agingLabels as $key => $label) {
+            $sheet->setCellValue("A{$row}", $label);
+            $sheet->setCellValue("B{$row}", $agingSummary[$key]);
+            $sheet->setCellValue("C{$row}", round(($agingSummary[$key] / $totalNetAR) * 100, 1) . '%');
+            $sheet->getStyle("B{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+            $row++;
+        }
+        $row++;
 
-            // Aging Summary
-            fputcsv($file, ['AGING DISTRIBUTION']);
-            fputcsv($file, ['Age Category', 'Amount', 'Percentage']);
-            $totalNetAR = $totals['net_ar'] > 0 ? $totals['net_ar'] : 1;
-            fputcsv($file, ['Current (0-30 days)', number_format($agingSummary['current'], 2), number_format(($agingSummary['current'] / $totalNetAR) * 100, 1) . '%']);
-            fputcsv($file, ['1-30 Days', number_format($agingSummary['1_30'], 2), number_format(($agingSummary['1_30'] / $totalNetAR) * 100, 1) . '%']);
-            fputcsv($file, ['31-60 Days', number_format($agingSummary['31_60'], 2), number_format(($agingSummary['31_60'] / $totalNetAR) * 100, 1) . '%']);
-            fputcsv($file, ['61-90 Days', number_format($agingSummary['61_90'], 2), number_format(($agingSummary['61_90'] / $totalNetAR) * 100, 1) . '%']);
-            fputcsv($file, ['91-120 Days', number_format($agingSummary['91_120'], 2), number_format(($agingSummary['91_120'] / $totalNetAR) * 100, 1) . '%']);
-            fputcsv($file, ['Over 120 Days', number_format($agingSummary['over_120'], 2), number_format(($agingSummary['over_120'] / $totalNetAR) * 100, 1) . '%']);
-            fputcsv($file, []);
+        // Detailed Records
+        $sheet->setCellValue("A{$row}", 'DETAILED AR RECORDS');
+        $sheet->getStyle("A{$row}")->applyFromArray($subHeaderStyle);
+        $row++;
 
-            // Detailed Records Header
-            fputcsv($file, ['DETAILED AR RECORDS']);
-            fputcsv($file, [
-                'Invoice No',
-                'Aging Date',
-                'Counter Date',
-                'Invoice Date',
-                'Due Date',
-                'Record Date',
-                'PO No',
-                'DR No',
-                'Sales Week No',
-                'Age (Days)',
-                'Age Category',
-                'Invoice Amount',
-                'AR Adjustments',
-                'Settled Amount',
-                'Gross AR Balance',
-                'CWT',
-                'Net of CWT',
-                'Net AR Balance',
-                'Factored AR',
-                'Net AR',
-                'Status',
-                'AR Class',
-                'Include Flag'
-            ]);
+        $detailHeaders = ['Invoice No', 'Aging Date', 'Counter Date', 'Invoice Date', 'Due Date', 'Record Date', 'PO No', 'DR No', 'Sales Week No', 'Age (Days)', 'Age Category', 'Invoice Amount', 'AR Adjustments', 'Settled Amount', 'Gross AR Balance', 'CWT', 'Net of CWT', 'Net AR Balance', 'Factored AR', 'Net AR', 'Status', 'AR Class', 'Include Flag'];
+        $col = 'A';
+        foreach ($detailHeaders as $h) {
+            $sheet->setCellValue("{$col}{$row}", $h);
+            $col++;
+        }
+        $sheet->getStyle("A{$row}:W{$row}")->applyFromArray(['font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']], 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4472C4']]]);
+        $row++;
 
-            // Detailed Records Data
-            foreach ($arRecords as $record) {
-                $age = $record->age ?? 0;
-                
-                // Determine age bracket
-                if ($age <= 30) {
-                    $ageBracket = 'Current (0-30)';
-                } elseif ($age <= 60) {
-                    $ageBracket = '1-30 Days';
-                } elseif ($age <= 90) {
-                    $ageBracket = '31-60 Days';
-                } elseif ($age <= 120) {
-                    $ageBracket = '61-90 Days';
-                } elseif ($age <= 150) {
-                    $ageBracket = '91-120 Days';
-                } else {
-                    $ageBracket = 'Over 120 Days';
-                }
+        foreach ($arRecords as $record) {
+            $age = $record->age ?? 0;
+            if ($age <= 30) $ageBracket = 'Current (0-30)';
+            elseif ($age <= 60) $ageBracket = '1-30 Days';
+            elseif ($age <= 90) $ageBracket = '31-60 Days';
+            elseif ($age <= 120) $ageBracket = '61-90 Days';
+            elseif ($age <= 150) $ageBracket = '91-120 Days';
+            else $ageBracket = 'Over 120 Days';
 
-                fputcsv($file, [
-                    $record->invoice_no ?? 'N/A',
-                    $record->aging_date ?? 'N/A',
-                    $record->counter_date ?? 'N/A',
-                    $record->invoice_date ?? 'N/A',
-                    $record->due_date ?? 'N/A',
-                    $record->record_date ?? 'N/A',
-                    $record->po_no ?? 'N/A',
-                    $record->dr_no ?? 'N/A',
-                    $record->sales_week_no ?? 'N/A',
-                    $age,
-                    $ageBracket,
-                    number_format($record->invoice_amount ?? 0, 2),
-                    number_format($record->ar_adjustments ?? 0, 2),
-                    number_format($record->settled_invoice_amount ?? 0, 2),
-                    number_format($record->gross_ar_balance ?? 0, 2),
-                    number_format($record->cwt ?? 0, 2),
-                    number_format($record->net_of_cwt ?? 0, 2),
-                    number_format($record->net_ar_balance ?? 0, 2),
-                    number_format($record->factored_ar_amount ?? 0, 2),
-                    number_format($record->net_ar ?? 0, 2),
-                    $record->status ?? 'N/A',
-                    $record->ar_class ?? 'N/A',
-                    $record->include_flag ?? 'yes'
-                ]);
+            $sheet->setCellValue("A{$row}", $record->invoice_no ?? 'N/A');
+            $sheet->setCellValue("B{$row}", $record->aging_date ?? 'N/A');
+            $sheet->setCellValue("C{$row}", $record->counter_date ?? 'N/A');
+            $sheet->setCellValue("D{$row}", $record->invoice_date ?? 'N/A');
+            $sheet->setCellValue("E{$row}", $record->due_date ?? 'N/A');
+            $sheet->setCellValue("F{$row}", $record->record_date ?? 'N/A');
+            $sheet->setCellValue("G{$row}", $record->po_no ?? 'N/A');
+            $sheet->setCellValue("H{$row}", $record->dr_no ?? 'N/A');
+            $sheet->setCellValue("I{$row}", $record->sales_week_no ?? 'N/A');
+            $sheet->setCellValue("J{$row}", $age);
+            $sheet->setCellValue("K{$row}", $ageBracket);
+            $sheet->setCellValue("L{$row}", (float)($record->invoice_amount ?? 0));
+            $sheet->setCellValue("M{$row}", (float)($record->ar_adjustments ?? 0));
+            $sheet->setCellValue("N{$row}", (float)($record->settled_invoice_amount ?? 0));
+            $sheet->setCellValue("O{$row}", (float)($record->gross_ar_balance ?? 0));
+            $sheet->setCellValue("P{$row}", (float)($record->cwt ?? 0));
+            $sheet->setCellValue("Q{$row}", (float)($record->net_of_cwt ?? 0));
+            $narVal = ((float)($record->net_ar_balance ?? 0)) != 0 ? (float)$record->net_ar_balance : (float)($record->net_of_cwt ?? $record->invoice_amount ?? 0);
+            $sheet->setCellValue("R{$row}", $narVal);
+            $sheet->setCellValue("S{$row}", (float)($record->factored_ar_amount ?? 0));
+            $sheet->setCellValue("T{$row}", (float)($record->net_ar ?? 0));
+            $sheet->setCellValue("U{$row}", $record->status ?? 'N/A');
+            $sheet->setCellValue("V{$row}", $record->ar_class ?? 'N/A');
+            $sheet->setCellValue("W{$row}", $record->include_flag ?? 'yes');
+
+            // Format number columns
+            foreach (range('L', 'T') as $numCol) {
+                $sheet->getStyle("{$numCol}{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
             }
+            $row++;
+        }
 
-            // Grand Total Row
-            fputcsv($file, []);
-            fputcsv($file, [
-                'GRAND TOTAL',
-                '', '', '', '', '', '', '', '', '', '',
-                number_format($totals['invoice_amount'], 2),
-                number_format($totals['ar_adjustments'], 2),
-                number_format($totals['settled_invoice_amount'], 2),
-                number_format($totals['gross_ar_balance'], 2),
-                number_format($totals['cwt'], 2),
-                number_format($totals['net_of_cwt'], 2),
-                number_format($totals['net_ar_balance'], 2),
-                number_format($totals['factored_ar_amount'], 2),
-                number_format($totals['net_ar'], 2)
-            ]);
+        // Grand Total
+        $row++;
+        $sheet->setCellValue("A{$row}", 'GRAND TOTAL');
+        $sheet->setCellValue("L{$row}", $totals['invoice_amount']);
+        $sheet->setCellValue("M{$row}", $totals['ar_adjustments']);
+        $sheet->setCellValue("N{$row}", $totals['settled_invoice_amount']);
+        $sheet->setCellValue("O{$row}", $totals['gross_ar_balance']);
+        $sheet->setCellValue("P{$row}", $totals['cwt']);
+        $sheet->setCellValue("Q{$row}", $totals['net_of_cwt']);
+        $sheet->setCellValue("R{$row}", $totals['net_ar_balance']);
+        $sheet->setCellValue("S{$row}", $totals['factored_ar_amount']);
+        $sheet->setCellValue("T{$row}", $totals['net_ar']);
+        $sheet->getStyle("A{$row}:W{$row}")->applyFromArray($totalStyle);
+        foreach (range('L', 'T') as $numCol) {
+            $sheet->getStyle("{$numCol}{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+        }
 
-            fclose($file);
-        };
+        // Auto-size columns
+        foreach (range('A', 'W') as $c) {
+            $sheet->getColumnDimension($c)->setAutoSize(true);
+        }
 
-        return response()->stream($callback, 200, $headers);
+        // Write to public/exports so Chrome doesn't block it as insecure download
+        $filename = 'AR_Profile_' . $customerCode . '_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $exportDir = public_path('exports');
+        if (!is_dir($exportDir)) {
+            mkdir($exportDir, 0755, true);
+        }
+        // Clean old exports (older than 1 hour)
+        foreach (glob($exportDir . '/AR_Profile_*.xlsx') as $oldFile) {
+            if (filemtime($oldFile) < time() - 3600) {
+                @unlink($oldFile);
+            }
+        }
+        $filePath = $exportDir . '/' . $filename;
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($filePath);
+
+        return redirect('/exports/' . $filename);
 
     } catch (\Exception $e) {
         Log::error('AR Profile export failed', [
@@ -2204,7 +2239,7 @@ public function debugAdjustments($customerCode)
 
         // ✅ HYBRID APPROACH: Match by customer_code OR customer_name
         // Most payments have NULL customer_code, so we need to match by name too
-        $query = DB::table('payments');
+        $query = Payment::query();
 
         if (!empty($customerName)) {
             // ALWAYS match by customer_name (since most payments have NULL customer_code)
@@ -2238,11 +2273,12 @@ public function debugAdjustments($customerCode)
 
         // Remove duplicates and format (no post-filter needed, SQL query is already exact)
         return collect($collections)->unique('id')->map(function($payment) {
-            $grossAmount = (float)($payment->gross_amount ?? 0);
-            $ewt = (float)($payment->ewt ?? 0);
+            // Fall back to amount/tax/net columns when gross_amount/ewt/check_amount are NULL
+            $grossAmount = (float)($payment->gross_amount ?? $payment->amount ?? 0);
+            $ewt = (float)($payment->ewt ?? $payment->tax ?? 0);
             $otherAdjustment = (float)($payment->other_adjustment ?? 0);
             $factoring = (float)($payment->factoring ?? 0);
-            $checkAmount = (float)($payment->check_amount ?? ($grossAmount - $ewt - $otherAdjustment - $factoring));
+            $checkAmount = (float)($payment->check_amount ?? $payment->net ?? ($grossAmount - $ewt - $otherAdjustment - $factoring));
 
             return [
                 'id' => $payment->id,
@@ -2419,23 +2455,31 @@ public function debugAdjustments($customerCode)
     private function calculateFinancialSummary($arRecords, $collections, $adjustments)
     {
         $summary = [
-            'original_invoice_amount' => 0,
-            'total_collections' => 0,
-            'ewt_total' => 0,
+            'original_invoice_amount'    => 0,
+            'total_collections'          => 0,
+            'ewt_total'                  => 0,
             'total_adjustments_increase' => 0,
             'total_adjustments_decrease' => 0,
-            'net_adjustments' => 0,
-            'net_ar_balance' => 0,
+            'net_adjustments'            => 0,
+            'net_ar_balance'             => 0,
         ];
 
         foreach ($arRecords as $record) {
             $summary['original_invoice_amount'] += (float)($record->invoice_amount ?? 0);
-            $summary['net_ar_balance'] += (float)($record->net_ar_balance ?? 0);
+
+            // Compute net AR balance from available columns since net_ar_balance is 0
+            $computed = (float)($record->invoice_amount ?? 0)
+                      - (float)($record->cwt ?? 0)
+                      - (float)($record->settled_invoice_amount ?? 0)
+                      + (float)($record->ewt ?? 0);
+            $summary['net_ar_balance'] += max(0, $computed);
         }
 
+        // Sum actual collection amounts (real payments + synthetic from ar_aging)
+        $actualCollections = 0;
         foreach ($collections as $coll) {
-            $summary['total_collections'] += (float)$coll['check_amount'];
-            $summary['ewt_total'] += (float)$coll['ewt'];
+            $summary['ewt_total'] += (float)($coll['ewt'] ?? 0);
+            $actualCollections += (float)($coll['gross_amount'] ?? $coll['check_amount'] ?? 0);
         }
 
         foreach ($adjustments as $adj) {
@@ -2447,6 +2491,18 @@ public function debugAdjustments($customerCode)
             }
             $summary['net_adjustments'] += $amount;
         }
+
+        // Use actual collection amounts if available, otherwise derive from AR data
+        $derivedCollections = $summary['original_invoice_amount']
+            - $summary['net_ar_balance']
+            - $summary['net_adjustments'];
+        $summary['total_collections'] = max($actualCollections, $derivedCollections);
+
+        // Recalculate net AR balance to ensure formula balances:
+        // Invoices - Collections + Adjustments = Current AR Balance
+        $summary['net_ar_balance'] = $summary['original_invoice_amount']
+            - $summary['total_collections']
+            + $summary['net_adjustments'];
 
         return $summary;
     }
@@ -2467,7 +2523,11 @@ public function debugAdjustments($customerCode)
 
         foreach ($arRecords as $record) {
             $age = (int)($record->age ?? 0);
+            // Use net_of_cwt as the outstanding balance (net_ar_balance is 0 for all imported records)
             $netAR = (float)($record->net_ar_balance ?? 0);
+            if ($netAR == 0) {
+                $netAR = (float)($record->net_of_cwt ?? $record->invoice_amount ?? 0);
+            }
 
             if ($netAR <= 0) continue;
 

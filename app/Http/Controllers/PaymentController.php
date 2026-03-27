@@ -347,7 +347,12 @@ class PaymentController extends Controller
                     'net_of_cwt', 'check_amount', 'others_amount', 'ar_adjustments',
                     'terms', 'age', 'due_date', 'status'
                 )
-                ->where('customer_code', $customerData->customer_code);
+                ->where('customer_code', $customerData->customer_code)
+                ->where(function($q) {
+                    $q->whereNull('status')
+                      ->orWhere('status', '')
+                      ->orWhere('status', '!=', 'Paid');
+                });
 
             if (isset($customerData->dr_no)) {
                 $arQuery->where('dr_no', $customerData->dr_no);
@@ -384,12 +389,40 @@ class PaymentController extends Controller
                 ->values();
         }
 
+        // Subtract existing payments from outstanding balances
+        $existingPayments = DB::table('payments')
+            ->where(function($q) use ($customerData) {
+                $q->where('customer_code', $customerData->customer_code);
+                if (!empty($customerData->client_name)) {
+                    $q->orWhereRaw('TRIM(LOWER(customer_name)) = ?', [trim(strtolower($customerData->client_name))]);
+                }
+            })
+            ->select('dr_no', 'invoice_no', DB::raw('SUM(amount) as total_paid'))
+            ->groupBy('dr_no', 'invoice_no')
+            ->get()
+            ->keyBy(function($p) { return trim($p->dr_no ?? '') . '|' . trim($p->invoice_no ?? ''); });
+
+        $outstandingInvoices = $outstandingInvoices->map(function($record) use ($existingPayments) {
+            $key = trim($record->dr_no ?? '') . '|' . trim($record->invoice_no ?? '');
+            if ($existingPayments->has($key)) {
+                $paid = (float)$existingPayments[$key]->total_paid;
+                $record->net_ar_balance = max(0, $record->net_ar_balance - $paid);
+                $record->total_paid = $paid;
+                if ($record->net_ar_balance <= 0) {
+                    $record->status = 'Paid';
+                } else {
+                    $record->status = 'Partial';
+                }
+            }
+            return $record;
+        })->filter(fn($r) => $r->net_ar_balance > 0)->values();
+
         Log::info('Outstanding invoices loaded', [
             'count' => $outstandingInvoices->count(),
             'sample_dr_numbers' => $outstandingInvoices->take(3)->pluck('dr_no')->toArray()
         ]);
 
-        // ✅ Calculate actual outstanding balance from invoices (handles pending deliveries)
+        // Calculate actual outstanding balance from invoices (handles pending deliveries)
         $actualOutstandingBalance = $outstandingInvoices->sum('net_ar_balance');
 
         return response()->json([
@@ -440,10 +473,25 @@ class PaymentController extends Controller
     'payment_posting_date' => 'required|date',
     'amount' => 'required|numeric|min:0.01',
     'tax' => 'nullable|numeric|min:0',
-    'net' => 'nullable|numeric|min:0', // ✅ NEW: Accept net amount
-    'payment_means' => 'required|array', // ✅ NEW: Accept payment means data
-    'payment_means.type' => 'required|in:check,bank_transfer,cash', // ✅ NEW
+    'net' => 'nullable|numeric|min:0',
+    'payment_means' => 'required|array',
+    'payment_means.type' => 'required|in:check,bank_transfer,cash',
+    'payment_means.gl_account' => 'nullable|string',
+    'payment_means.gl_account_id' => 'nullable|integer',
+    'payment_means.gl_account_name' => 'nullable|string',
+    'payment_means.due_date' => 'nullable|date',
+    'payment_means.amount' => 'nullable|numeric',
+    'payment_means.bank_name' => 'nullable|string',
+    'payment_means.check_number' => 'nullable|string',
+    'payment_means.transfer_date' => 'nullable|date',
+    'payment_means.reference' => 'nullable|string',
     'payment_notes' => 'nullable|string|max:1000',
+    'invoice_outstanding' => 'nullable|numeric|min:0',
+    'credit_applied' => 'nullable|numeric|min:0',
+    'credit_from_payment_id' => 'nullable|integer',
+    'credits' => 'nullable|array',
+    'credits.*.credit_source_payment_id' => 'required_with:credits|integer',
+    'credits.*.amount' => 'required_with:credits|numeric|min:0.01',
 ]);
 
         Log::info('Validation passed', ['validated_data' => $validated]);
@@ -466,6 +514,29 @@ class PaymentController extends Controller
         }
 
         // ✅ Use direct DB insert with DR number
+        $grossAmount = (float)$validated['amount'];
+        $ewtAmount   = (float)($validated['tax'] ?? 0);
+        $netAmount   = (float)($validated['net'] ?? ($grossAmount - $ewtAmount));
+        $invoiceOutstanding = isset($validated['invoice_outstanding']) ? (float)$validated['invoice_outstanding'] : null;
+        // Support multiple credits: sum from credits array, fallback to legacy single credit
+        $creditsArray = $validated['credits'] ?? [];
+        $creditApplied = 0;
+        $creditFromId  = null;
+        if (!empty($creditsArray)) {
+            $creditApplied = array_sum(array_column($creditsArray, 'amount'));
+            // Keep first credit source as legacy fallback
+            $creditFromId = $creditsArray[0]['credit_source_payment_id'] ?? null;
+        } else {
+            $creditApplied = (float)($validated['credit_applied'] ?? 0);
+            $creditFromId  = $validated['credit_from_payment_id'] ?? null;
+        }
+
+        // Calculate overpayment: if paid more than outstanding
+        $overpayment = 0;
+        if ($invoiceOutstanding !== null && $grossAmount > $invoiceOutstanding && $invoiceOutstanding > 0) {
+            $overpayment = $grossAmount - $invoiceOutstanding;
+        }
+
         $paymentId = DB::table('payments')->insertGetId([
     'customer_code' => $validated['customer_code'],
     'customer_name' => $validated['customer_name'],
@@ -473,14 +544,28 @@ class PaymentController extends Controller
     'invoice_no' => $validated['invoice_no'],
     'collection_receipt_number' => $validated['collection_receipt_number'],
     'collection_receipt_date' => $validated['collection_receipt_date'],
+    'deposit_date' => $validated['collection_receipt_date'],
     'payment_posting_date' => $validated['payment_posting_date'],
     'payment_date' => $validated['payment_posting_date'],
-    'amount' => $validated['amount'],
-    'tax' => $validated['tax'] ?? 0,
-    'net' => $validated['net'] ?? null, // ✅ NEW: Save net amount
-    // ✅ NEW: Store payment means data as JSON or separate fields
-    'payment_method' => $validated['payment_means']['type'], // check, bank_transfer, or cash
-    'payment_means_data' => json_encode($validated['payment_means']), // Store full data as JSON
+    'amount' => $grossAmount,
+    'tax' => $ewtAmount,
+    'net' => $netAmount,
+    // Display columns (used by AR profile collections tab)
+    'gross_amount' => $grossAmount,
+    'ewt' => $ewtAmount,
+    'check_amount' => $netAmount,
+    'other_adjustment' => 0,
+    'factoring' => 0,
+    'status' => 'Posted',
+    'signed_by' => auth()->user()->name ?? 'System',
+    // Credit balance tracking
+    'invoice_outstanding' => $invoiceOutstanding,
+    'overpayment' => $overpayment,
+    'credit_applied' => $creditApplied,
+    'credit_from_payment_id' => $creditFromId,
+    // Payment means
+    'payment_method' => $validated['payment_means']['type'],
+    'payment_means_data' => json_encode($validated['payment_means']),
     'payment_notes' => $validated['payment_notes'] ?? null,
     'created_by' => auth()->user()->name ?? 'System',
     'bank' => $validated['payment_means']['bank_name'] ?? null,
@@ -488,11 +573,34 @@ class PaymentController extends Controller
     'created_at' => now(),
 ]);
 
+        // Insert individual credit application records
+        if (!empty($creditsArray)) {
+            foreach ($creditsArray as $credit) {
+                DB::table('payment_credit_applications')->insert([
+                    'payment_id' => $paymentId,
+                    'credit_source_payment_id' => $credit['credit_source_payment_id'],
+                    'amount' => $credit['amount'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        } elseif ($creditFromId && $creditApplied > 0) {
+            // Legacy single credit — also save to junction table
+            DB::table('payment_credit_applications')->insert([
+                'payment_id' => $paymentId,
+                'credit_source_payment_id' => $creditFromId,
+                'amount' => $creditApplied,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         Log::info('Payment inserted successfully', [
             'payment_id' => $paymentId,
             'customer_code' => $validated['customer_code'],
             'dr_number' => $validated['dr_number'],
-            'amount' => $validated['amount']
+            'amount' => $validated['amount'],
+            'credits_applied' => count($creditsArray),
         ]);
 
         // ✅ UPDATE AR AGING BALANCES BY DR NUMBER
@@ -573,30 +681,69 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
             'payment_amount' => $paymentAmount
         ]);
 
-        // Find the specific invoice by DR number
+        // Find the specific invoice by DR number (flexible match)
+        // Find unpaid invoice for this DR (handles multiple invoices per DR)
         $invoice = DB::table('ar_aging')
-            ->where('customer_code', $customerCode)
-            ->where('dr_no', $drNumber)
-            ->where('net_ar_balance', '>', 0)
+            ->where(function($q) use ($customerCode) {
+                $q->where('customer_code', $customerCode)
+                  ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+            })
+            ->where(function($q) use ($drNumber) {
+                $q->where('dr_no', $drNumber)
+                  ->orWhereRaw('TRIM(dr_no) = ?', [trim($drNumber)]);
+            })
+            ->where(function($q) {
+                $q->whereNull('status')
+                  ->orWhere('status', '')
+                  ->orWhereNotIn('status', ['Paid']);
+            })
             ->first();
 
         if (!$invoice) {
-            Log::warning('Invoice not found or already paid', [
+            // All invoices for this DR may already be paid
+            $invoice = DB::table('ar_aging')
+                ->where(function($q) use ($customerCode) {
+                    $q->where('customer_code', $customerCode)
+                      ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+                })
+                ->where(function($q) use ($drNumber) {
+                    $q->where('dr_no', $drNumber)
+                      ->orWhereRaw('TRIM(dr_no) = ?', [trim($drNumber)]);
+                })
+                ->first();
+        }
+
+        if (!$invoice) {
+            Log::warning('Invoice not found in ar_aging', [
                 'customer_code' => $customerCode,
                 'dr_number' => $drNumber
             ]);
             return false;
         }
 
-        $currentBalance = $invoice->net_ar_balance;
+        // Compute actual outstanding: use net_ar_balance if > 0, else derive from invoice_amount
+        $currentBalance = (float)($invoice->net_ar_balance ?? 0);
+        if ($currentBalance <= 0) {
+            $currentBalance = max(0,
+                (float)($invoice->invoice_amount ?? 0)
+                - (float)($invoice->cwt ?? 0)
+                - (float)($invoice->settled_invoice_amount ?? 0)
+                + (float)($invoice->ewt ?? 0)
+            );
+        }
+
+        if ($currentBalance <= 0) {
+            Log::info('Invoice already fully settled', ['invoice_id' => $invoice->id]);
+            return false;
+        }
 
         if ($paymentAmount >= $currentBalance) {
-            // Payment covers entire balance
+            // Full payment
             DB::table('ar_aging')
                 ->where('id', $invoice->id)
                 ->update([
                     'net_ar_balance' => 0,
-                    'settled_invoice_amount' => DB::raw('settled_invoice_amount + ' . $currentBalance),
+                    'settled_invoice_amount' => DB::raw('COALESCE(settled_invoice_amount, 0) + ' . $currentBalance),
                     'status' => 'Paid',
                     'updated_at' => now()
                 ]);
@@ -607,12 +754,13 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                 'amount_applied' => $currentBalance
             ]);
         } else {
-            // Payment covers partial balance
+            // Partial payment
+            $newBalance = $currentBalance - $paymentAmount;
             DB::table('ar_aging')
                 ->where('id', $invoice->id)
                 ->update([
-                    'net_ar_balance' => DB::raw('net_ar_balance - ' . $paymentAmount),
-                    'settled_invoice_amount' => DB::raw('settled_invoice_amount + ' . $paymentAmount),
+                    'net_ar_balance' => $newBalance,
+                    'settled_invoice_amount' => DB::raw('COALESCE(settled_invoice_amount, 0) + ' . $paymentAmount),
                     'status' => 'Partial',
                     'updated_at' => now()
                 ]);
@@ -621,7 +769,7 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                 'invoice_id' => $invoice->id,
                 'dr_number' => $drNumber,
                 'amount_applied' => $paymentAmount,
-                'remaining_balance' => $currentBalance - $paymentAmount
+                'remaining_balance' => $newBalance
             ]);
         }
 
@@ -644,10 +792,8 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
             $dateTo = $request->input('date_to');
             $customerFilter = $request->input('customer', '');
 
-            // Query 1: Get manually entered payments from payments table
-            $paymentsQuery = DB::table('payments')
-                ->select(
-                    DB::raw("'manual' as source"),
+            // Get actual collections from payments table
+            $paymentsQuery = Payment::select(
                     'id',
                     'customer_code',
                     'customer_name',
@@ -658,14 +804,18 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                     'payment_posting_date',
                     'payment_date',
                     'amount',
+                    'gross_amount',
                     'tax',
-                    'net', // ✅ NEW: Include net field
+                    'ewt',
+                    'net',
+                    'check_amount',
                     'payment_method',
                     'payment_option',
                     'payment_means_data',
                     'payment_notes',
                     'bank',
                     'reference_no',
+                    'status',
                     'created_by',
                     'created_at'
                 );
@@ -685,101 +835,10 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                 });
             }
 
-            // Query 2: Get original data from ar_aging table (invoices/payments)
-            $arAgingQuery = DB::table('ar_aging')
-                ->select(
-                    DB::raw("'ar_aging' as source"),
-                    DB::raw('NULL as id'),
-                    'customer_code',
-                    'client_name as customer_name',
-                    'dr_no',
-                    'invoice_no',
-                    DB::raw("CONCAT('AR-', invoice_no) as collection_receipt_number"),
-                    'invoice_date as collection_receipt_date',
-                    'invoice_date as payment_posting_date',
-                    'invoice_date as payment_date',
-                    'invoice_amount as amount',
-                    DB::raw('0 as tax'),
-                    DB::raw('NULL as net'), // ✅ NEW: Net not applicable for ar_aging
-                    DB::raw('NULL as payment_method'),
-                    DB::raw('NULL as payment_option'),
-                    DB::raw('NULL as payment_means_data'),
-                    'terms as payment_notes',
-                    DB::raw('NULL as bank'),
-                    DB::raw('NULL as reference_no'),
-                    DB::raw("'System' as created_by"),
-                    'created_at'
-                );
-
-            if ($dateFrom) {
-                $arAgingQuery->whereDate('invoice_date', '>=', $dateFrom);
-            }
-
-            if ($dateTo) {
-                $arAgingQuery->whereDate('invoice_date', '<=', $dateTo);
-            }
-
-            if ($customerFilter) {
-                $arAgingQuery->where(function($q) use ($customerFilter) {
-                    $q->where('customer_code', 'LIKE', '%' . $customerFilter . '%')
-                      ->orWhere('client_name', 'LIKE', '%' . $customerFilter . '%');
-                });
-            }
-
-            // ✅ Query 3: Get delivered items that don't have invoices yet
-            $deliveriesQuery = DB::table('deliveries')
-                ->select(
-                    DB::raw("'delivery' as source"),
-                    'id',
-                    'customer_code',
-                    'customer_name',
-                    'dr_no',
-                    DB::raw("'Pending Invoice' as invoice_no"),
-                    DB::raw("dr_no as collection_receipt_number"),
-                    DB::raw("request_delivery_date as collection_receipt_date"),
-                    DB::raw("request_delivery_date as payment_posting_date"),
-                    DB::raw("request_delivery_date as payment_date"),
-                    DB::raw('0 as amount'),
-                    DB::raw('0 as tax'),
-                    DB::raw('NULL as net'),
-                    DB::raw('NULL as payment_method'),
-                    DB::raw('NULL as payment_option'),
-                    DB::raw('NULL as payment_means_data'),
-                    DB::raw("status as payment_notes"),
-                    DB::raw('NULL as bank'),
-                    DB::raw('NULL as reference_no'),
-                    DB::raw("'System' as created_by"),
-                    'created_at'
-                )
-                ->where('status', 'Delivered')
-                ->where('is_pulled_out', '!=', 1)
-                ->whereNotExists(function ($query) {
-                    // Exclude deliveries that already have invoices
-                    $query->select(DB::raw(1))
-                        ->from('ar_aging')
-                        ->whereColumn('ar_aging.dr_no', '=', 'deliveries.dr_no');
-                });
-
-            if ($dateFrom) {
-                $deliveriesQuery->whereDate('request_delivery_date', '>=', $dateFrom);
-            }
-
-            if ($dateTo) {
-                $deliveriesQuery->whereDate('request_delivery_date', '<=', $dateTo);
-            }
-
-            if ($customerFilter) {
-                $deliveriesQuery->where(function($q) use ($customerFilter) {
-                    $q->where('customer_code', 'LIKE', '%' . $customerFilter . '%')
-                      ->orWhere('customer_name', 'LIKE', '%' . $customerFilter . '%');
-                });
-            }
-
-            // ✅ Combine all three queries using UNION
+            // ✅ Show only actual collections from payments table
             $payments = $paymentsQuery
-                ->union($arAgingQuery)
-                ->union($deliveriesQuery)
                 ->orderBy('payment_posting_date', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->get();
 
             return response()->json([
@@ -808,8 +867,7 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
             $customerFilter = $request->input('customer', '');
 
             // ✅ Query 1: Manually entered payments
-            $paymentsQuery = DB::table('payments')
-                ->select(
+            $paymentsQuery = Payment::select(
                     DB::raw("'manual' as source"),
                     'customer_code',
                     'customer_name',
@@ -1075,14 +1133,73 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
                     DB::raw('NULL as checking_si'),
                     'status',
                     'terms as remarks',
-                    DB::raw('CONCAT("INV-", invoice_no) as collection_receipt_number')
+                    DB::raw('CONCAT("INV-", invoice_no) as collection_receipt_number'),
+                    'invoice_amount',
+                    'settled_invoice_amount',
+                    'net_of_cwt as raw_net_of_cwt',
+                    'ar_adjustments',
+                    'others_amount'
                 )
                 ->where('customer_code', $customerCode)
-                ->where('net_ar_balance', '>', 0) // ✅ Only outstanding balances
+                ->where(function($q) {
+                    $q->whereNull('status')
+                      ->orWhere('status', '')
+                      ->orWhere('status', '!=', 'Paid');
+                })
                 ->orderBy('invoice_date', 'desc')
                 ->get();
 
-            Log::info('Outstanding invoices found', [
+            // ✅ Compute actual outstanding balance (handles net_ar_balance=0)
+            $outstandingInvoices = $outstandingInvoices->map(function($record) {
+                $netAr = (float)($record->check_amount ?? 0);
+                if ($netAr <= 0) {
+                    $netAr = max(0,
+                        (float)($record->invoice_amount ?? 0)
+                        - (float)($record->settled_invoice_amount ?? 0)
+                    );
+                }
+                if ($netAr <= 0) {
+                    $netOfCwt  = (float)($record->raw_net_of_cwt ?? 0);
+                    $checkAmt  = (float)($record->check_amount ?? 0);
+                    $othersAmt = (float)($record->others_amount ?? 0);
+                    $adjAmt    = (float)($record->ar_adjustments ?? 0);
+                    if ($netOfCwt > 0) {
+                        $computed = $netOfCwt - $adjAmt - $checkAmt - $othersAmt;
+                        if ($computed < 0) {
+                            $computed = $netOfCwt - $adjAmt + $othersAmt - $checkAmt;
+                        }
+                        $netAr = max(0, $computed);
+                    }
+                }
+                $record->check_amount = $netAr;
+                $record->gross_amount = (float)($record->invoice_amount ?? $record->gross_amount);
+                return $record;
+            })->filter(fn($r) => $r->check_amount > 0)->values();
+
+            // ✅ Subtract existing payments from outstanding balances (payment-aware)
+            $existingPayments = DB::table('payments')
+                ->where('customer_code', $customerCode)
+                ->select('dr_no', 'invoice_no', DB::raw('SUM(amount) as total_paid'))
+                ->groupBy('dr_no', 'invoice_no')
+                ->get()
+                ->keyBy(function($p) { return trim($p->dr_no ?? '') . '|' . trim($p->invoice_no ?? ''); });
+
+            $outstandingInvoices = $outstandingInvoices->map(function($record) use ($existingPayments) {
+                $key = trim($record->dr_no ?? '') . '|' . trim($record->invoice_no ?? '');
+                if ($existingPayments->has($key)) {
+                    $paid = (float)$existingPayments[$key]->total_paid;
+                    $record->check_amount = max(0, $record->check_amount - $paid);
+                    $record->total_paid = $paid;
+                    if ($record->check_amount <= 0) {
+                        $record->status = 'Paid';
+                    } else {
+                        $record->status = 'Partial';
+                    }
+                }
+                return $record;
+            })->filter(fn($r) => $r->check_amount > 0)->values();
+
+            Log::info('Outstanding invoices found (payment-aware)', [
                 'count' => $outstandingInvoices->count(),
                 'total_amount' => $outstandingInvoices->sum('check_amount')
             ]);
@@ -1172,5 +1289,479 @@ private function updateArAgingBalanceByDR($customerCode, $drNumber, $paymentAmou
 
             return redirect()->back()->with('error', 'Failed to load duplicate CR data');
         }
+    }
+
+    /**
+     * Show individual payment details
+     */
+    public function show($id)
+    {
+        $payment = DB::table('payments')->where('id', $id)->first();
+
+        if (!$payment) {
+            return redirect()->route('payments.entry')->with('error', 'Payment not found.');
+        }
+
+        // Decode payment means data
+        $paymentMeans = json_decode($payment->payment_means_data ?? '{}', true);
+
+        // Get credit sources for this payment (from junction table, fallback to legacy)
+        $creditSources = DB::table('payment_credit_applications')
+            ->join('payments', 'payments.id', '=', 'payment_credit_applications.credit_source_payment_id')
+            ->where('payment_credit_applications.payment_id', $payment->id)
+            ->select('payments.id', 'payments.collection_receipt_number', 'payments.invoice_no', 'payments.dr_no', 'payment_credit_applications.amount as credit_amount')
+            ->get();
+
+        // Legacy fallback: if no junction records but legacy credit exists
+        $creditSource = null;
+        if ($creditSources->isEmpty() && $payment->credit_from_payment_id) {
+            $creditSource = DB::table('payments')
+                ->where('id', $payment->credit_from_payment_id)
+                ->first();
+        }
+
+        // Get payments that used credit from this overpayment
+        $creditApplications = collect();
+        if ($payment->overpayment > 0) {
+            // Check junction table first
+            $junctionApps = DB::table('payment_credit_applications')
+                ->join('payments', 'payments.id', '=', 'payment_credit_applications.payment_id')
+                ->where('payment_credit_applications.credit_source_payment_id', $payment->id)
+                ->select('payments.*', 'payment_credit_applications.amount as credit_applied_amount')
+                ->get();
+
+            if ($junctionApps->isNotEmpty()) {
+                $creditApplications = $junctionApps;
+            } else {
+                $creditApplications = DB::table('payments')
+                    ->where('credit_from_payment_id', $payment->id)
+                    ->get();
+            }
+        }
+
+        // Calculate remaining credit
+        $remainingCredit = 0;
+        if ($payment->overpayment > 0) {
+            $usedJunction = (float)DB::table('payment_credit_applications')
+                ->where('credit_source_payment_id', $payment->id)
+                ->sum('amount');
+            $usedLegacy = (float)DB::table('payments')
+                ->where('credit_from_payment_id', $payment->id)
+                ->sum('credit_applied');
+            $usedCredit = max($usedJunction, $usedLegacy);
+            $remainingCredit = (float)$payment->overpayment - $usedCredit;
+        }
+
+        return view('payments.show', compact('payment', 'paymentMeans', 'creditSource', 'creditSources', 'creditApplications', 'remainingCredit'));
+    }
+
+    /**
+     * Get available credit balance for a customer
+     */
+    /**
+     * Check if a DR number is already paid, partially paid, or still outstanding.
+     */
+    public function checkDRStatus(Request $request)
+    {
+        $customerCode = $request->input('customer_code');
+        $drNo = $request->input('dr_no');
+
+        if (!$customerCode || !$drNo) {
+            return response()->json(['status' => 'not_found']);
+        }
+
+        // Check ar_aging for this DR
+        $arRecord = DB::table('ar_aging')
+            ->where(function($q) use ($customerCode) {
+                $q->where('customer_code', $customerCode)
+                  ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+            })
+            ->where(function($q) use ($drNo) {
+                $q->where('dr_no', $drNo)
+                  ->orWhereRaw('TRIM(dr_no) = ?', [trim($drNo)]);
+            })
+            ->first();
+
+        if (!$arRecord) {
+            return response()->json(['status' => 'not_found']);
+        }
+
+        // Compute the original outstanding from ar_aging
+        $originalOutstanding = (float)($arRecord->net_ar_balance ?? 0);
+        if ($originalOutstanding <= 0) {
+            $originalOutstanding = max(0,
+                (float)($arRecord->invoice_amount ?? 0)
+                - (float)($arRecord->settled_invoice_amount ?? 0)
+            );
+        }
+        if ($originalOutstanding <= 0) {
+            $netOfCwt  = (float)($arRecord->net_of_cwt ?? 0);
+            $checkAmt  = (float)($arRecord->check_amount ?? 0);
+            $othersAmt = (float)($arRecord->others_amount ?? 0);
+            $adjAmt    = (float)($arRecord->ar_adjustments ?? 0);
+            if ($netOfCwt > 0) {
+                $computed = $netOfCwt - $adjAmt - $checkAmt - $othersAmt;
+                if ($computed < 0) $computed = $netOfCwt - $adjAmt + $othersAmt - $checkAmt;
+                $originalOutstanding = max(0, $computed);
+            }
+        }
+
+        // Sum all existing payments for this DR
+        $totalPaid = (float)DB::table('payments')
+            ->where(function($q) use ($customerCode) {
+                $q->where('customer_code', $customerCode)
+                  ->orWhereRaw('TRIM(customer_code) = ?', [trim($customerCode)]);
+            })
+            ->where(function($q) use ($drNo) {
+                $q->where('dr_no', $drNo)
+                  ->orWhereRaw('TRIM(dr_no) = ?', [trim($drNo)]);
+            })
+            ->sum('amount');
+
+        $remaining = max(0, $originalOutstanding - $totalPaid);
+
+        if ($remaining <= 0 && $totalPaid > 0) {
+            return response()->json([
+                'status' => 'paid',
+                'total_paid' => $totalPaid,
+                'invoice_no' => $arRecord->invoice_no ?? null,
+            ]);
+        } elseif ($totalPaid > 0 && $remaining > 0) {
+            return response()->json([
+                'status' => 'partial',
+                'total_paid' => $totalPaid,
+                'remaining' => $remaining,
+                'invoice_no' => $arRecord->invoice_no ?? null,
+            ]);
+        }
+
+        // If no payments and original outstanding is 0, it might be settled at import
+        if ($originalOutstanding <= 0) {
+            return response()->json([
+                'status' => 'paid',
+                'total_paid' => 0,
+                'invoice_no' => $arRecord->invoice_no ?? null,
+            ]);
+        }
+
+        return response()->json(['status' => 'not_found']);
+    }
+
+    public function getCustomerCredits(Request $request)
+    {
+        $customerCode = $request->input('customer_code');
+        $customerName = $request->input('customer_name');
+
+        if (!$customerCode && !$customerName) {
+            return response()->json(['success' => false, 'credits' => [], 'total' => 0]);
+        }
+
+        // Find payments with unused overpayments for this customer
+        $query = Payment::where('overpayment', '>', 0);
+
+        if (!empty($customerName)) {
+            $query->where(function($q) use ($customerCode, $customerName) {
+                $q->whereRaw('TRIM(LOWER(customer_name)) = ?', [trim(strtolower($customerName))]);
+                if (!empty($customerCode) && $customerCode !== '#N/A' && $customerCode !== 'N/A') {
+                    $q->orWhere('customer_code', $customerCode);
+                }
+            });
+        } else {
+            $query->where('customer_code', $customerCode);
+        }
+
+        $overpayments = $query->get();
+
+        $credits = [];
+        $totalAvailable = 0;
+
+        foreach ($overpayments as $op) {
+            // Check both legacy single-credit and new multi-credit junction table
+            $usedLegacy = (float)Payment::where('credit_from_payment_id', $op->id)
+                ->sum('credit_applied');
+            $usedJunction = (float)DB::table('payment_credit_applications')
+                ->where('credit_source_payment_id', $op->id)
+                ->sum('amount');
+            $used = max($usedLegacy, $usedJunction); // Use the higher value to avoid double-counting
+            $remaining = (float)$op->overpayment - $used;
+
+            if ($remaining > 0) {
+                $credits[] = [
+                    'payment_id' => $op->id,
+                    'collection_receipt_number' => $op->collection_receipt_number,
+                    'date' => $op->collection_receipt_date,
+                    'original_amount' => (float)$op->amount,
+                    'overpayment' => (float)$op->overpayment,
+                    'remaining_credit' => $remaining,
+                    'invoice_no' => $op->invoice_no,
+                    'dr_no' => $op->dr_no,
+                ];
+                $totalAvailable += $remaining;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'credits' => $credits,
+            'total' => $totalAvailable,
+        ]);
+    }
+
+    /**
+     * Show edit form for a payment
+     */
+    public function edit($id)
+    {
+        $payment = DB::table('payments')->where('id', $id)->first();
+        if (!$payment) {
+            return redirect()->route('payments.entry')->with('error', 'Payment not found.');
+        }
+
+        $paymentMeans = json_decode($payment->payment_means_data ?? '{}', true);
+
+        return view('payments.edit', compact('payment', 'paymentMeans'));
+    }
+
+    /**
+     * Update a payment directly (Joey / IT only)
+     */
+    public function update(Request $request, $id)
+    {
+        $payment = DB::table('payments')->where('id', $id)->first();
+        if (!$payment) {
+            return redirect()->route('payments.entry')->with('error', 'Payment not found.');
+        }
+
+        $validated = $request->validate([
+            'collection_receipt_number' => 'required|string|max:255',
+            'collection_receipt_date' => 'required|date',
+            'payment_posting_date' => 'required|date',
+            'dr_no' => 'required|string|max:255',
+            'invoice_no' => 'nullable|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'tax' => 'nullable|numeric|min:0',
+            'net' => 'nullable|numeric|min:0',
+            'payment_method' => 'required|in:check,bank_transfer,cash',
+            'bank' => 'nullable|string|max:255',
+            'reference_no' => 'nullable|string|max:255',
+            'payment_notes' => 'nullable|string|max:1000',
+        ]);
+
+        // Check duplicate CR number (exclude self)
+        $exists = DB::table('payments')
+            ->where('collection_receipt_number', $validated['collection_receipt_number'])
+            ->where('id', '!=', $id)
+            ->exists();
+
+        if ($exists) {
+            return back()->withErrors(['collection_receipt_number' => 'This receipt number has already been used.'])->withInput();
+        }
+
+        $grossAmount = (float)$validated['amount'];
+        $ewtAmount = (float)($validated['tax'] ?? 0);
+        $netAmount = (float)($validated['net'] ?? ($grossAmount - $ewtAmount));
+
+        DB::table('payments')->where('id', $id)->update([
+            'collection_receipt_number' => $validated['collection_receipt_number'],
+            'collection_receipt_date' => $validated['collection_receipt_date'],
+            'deposit_date' => $validated['collection_receipt_date'],
+            'payment_posting_date' => $validated['payment_posting_date'],
+            'payment_date' => $validated['payment_posting_date'],
+            'dr_no' => $validated['dr_no'],
+            'invoice_no' => $validated['invoice_no'],
+            'amount' => $grossAmount,
+            'gross_amount' => $grossAmount,
+            'tax' => $ewtAmount,
+            'ewt' => $ewtAmount,
+            'net' => $netAmount,
+            'check_amount' => $netAmount,
+            'payment_method' => $validated['payment_method'],
+            'bank' => $validated['bank'],
+            'reference_no' => $validated['reference_no'],
+            'payment_notes' => $validated['payment_notes'],
+        ]);
+
+        return redirect()->route('payments.show', $id)->with('success', 'Payment updated successfully.');
+    }
+
+    /**
+     * Submit an edit request (for non-Joey CC roles)
+     */
+    public function submitEditRequest(Request $request, $id)
+    {
+        $payment = DB::table('payments')->where('id', $id)->first();
+        if (!$payment) {
+            return redirect()->route('payments.entry')->with('error', 'Payment not found.');
+        }
+
+        $validated = $request->validate([
+            'collection_receipt_number' => 'required|string|max:255',
+            'collection_receipt_date' => 'required|date',
+            'payment_posting_date' => 'required|date',
+            'dr_no' => 'required|string|max:255',
+            'invoice_no' => 'nullable|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'tax' => 'nullable|numeric|min:0',
+            'net' => 'nullable|numeric|min:0',
+            'payment_method' => 'required|in:check,bank_transfer,cash',
+            'bank' => 'nullable|string|max:255',
+            'reference_no' => 'nullable|string|max:255',
+            'payment_notes' => 'nullable|string|max:1000',
+            'edit_reason' => 'required|string|max:500',
+            'attachment' => 'nullable|file|max:5120|mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx',
+        ]);
+
+        // Handle file upload
+        $attachmentPath = null;
+        $attachmentName = null;
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $attachmentName = $file->getClientOriginalName();
+            $attachmentPath = $file->store('payment-edit-attachments', 'public');
+        }
+
+        $originalData = [
+            'collection_receipt_number' => $payment->collection_receipt_number,
+            'collection_receipt_date' => $payment->collection_receipt_date,
+            'payment_posting_date' => $payment->payment_posting_date,
+            'dr_no' => $payment->dr_no,
+            'invoice_no' => $payment->invoice_no,
+            'amount' => $payment->amount,
+            'tax' => $payment->tax,
+            'net' => $payment->net,
+            'payment_method' => $payment->payment_method,
+            'bank' => $payment->bank,
+            'reference_no' => $payment->reference_no,
+            'payment_notes' => $payment->payment_notes,
+        ];
+
+        $proposedData = [
+            'collection_receipt_number' => $validated['collection_receipt_number'],
+            'collection_receipt_date' => $validated['collection_receipt_date'],
+            'payment_posting_date' => $validated['payment_posting_date'],
+            'dr_no' => $validated['dr_no'],
+            'invoice_no' => $validated['invoice_no'],
+            'amount' => $validated['amount'],
+            'tax' => $validated['tax'] ?? 0,
+            'net' => $validated['net'] ?? 0,
+            'payment_method' => $validated['payment_method'],
+            'bank' => $validated['bank'],
+            'reference_no' => $validated['reference_no'],
+            'payment_notes' => $validated['payment_notes'],
+        ];
+
+        DB::table('payment_edit_requests')->insert([
+            'payment_id' => $id,
+            'requested_by' => auth()->id(),
+            'requested_by_name' => auth()->user()->name,
+            'original_data' => json_encode($originalData),
+            'proposed_data' => json_encode($proposedData),
+            'reason' => $validated['edit_reason'],
+            'attachment_path' => $attachmentPath,
+            'attachment_name' => $attachmentName,
+            'status' => 'Pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('payments.show', $id)->with('success', 'Edit request submitted. Awaiting approval from Joey Fernandez.');
+    }
+
+    /**
+     * List pending edit requests (for Joey / IT)
+     */
+    public function editRequests()
+    {
+        $query = DB::table('payment_edit_requests')
+            ->join('payments', 'payments.id', '=', 'payment_edit_requests.payment_id')
+            ->select(
+                'payment_edit_requests.*',
+                'payments.customer_name',
+                'payments.collection_receipt_number as cr_number',
+                'payments.dr_no'
+            );
+
+        // CC roles only see their own requests; Joey/IT sees all
+        $user = auth()->user();
+        if (!$user->canApprovePaymentEditRequests()) {
+            $query->where('payment_edit_requests.requested_by', $user->id);
+        }
+
+        $requests = $query
+            ->orderByRaw("CASE WHEN payment_edit_requests.status = 'Pending' THEN 0 ELSE 1 END")
+            ->orderBy('payment_edit_requests.created_at', 'desc')
+            ->get();
+
+        return view('payments.edit-requests', compact('requests'));
+    }
+
+    /**
+     * Approve an edit request
+     */
+    public function approveEditRequest($requestId)
+    {
+        $editRequest = DB::table('payment_edit_requests')->where('id', $requestId)->first();
+        if (!$editRequest || $editRequest->status !== 'Pending') {
+            return back()->with('error', 'Edit request not found or already processed.');
+        }
+
+        $proposedData = json_decode($editRequest->proposed_data, true);
+        $grossAmount = (float)($proposedData['amount'] ?? 0);
+        $ewtAmount = (float)($proposedData['tax'] ?? 0);
+        $netAmount = (float)($proposedData['net'] ?? ($grossAmount - $ewtAmount));
+
+        // Apply the edit
+        DB::table('payments')->where('id', $editRequest->payment_id)->update([
+            'collection_receipt_number' => $proposedData['collection_receipt_number'],
+            'collection_receipt_date' => $proposedData['collection_receipt_date'],
+            'deposit_date' => $proposedData['collection_receipt_date'],
+            'payment_posting_date' => $proposedData['payment_posting_date'],
+            'payment_date' => $proposedData['payment_posting_date'],
+            'dr_no' => $proposedData['dr_no'],
+            'invoice_no' => $proposedData['invoice_no'],
+            'amount' => $grossAmount,
+            'gross_amount' => $grossAmount,
+            'tax' => $ewtAmount,
+            'ewt' => $ewtAmount,
+            'net' => $netAmount,
+            'check_amount' => $netAmount,
+            'payment_method' => $proposedData['payment_method'],
+            'bank' => $proposedData['bank'] ?? null,
+            'reference_no' => $proposedData['reference_no'] ?? null,
+            'payment_notes' => $proposedData['payment_notes'] ?? null,
+        ]);
+
+        // Mark request as approved
+        DB::table('payment_edit_requests')->where('id', $requestId)->update([
+            'status' => 'Approved',
+            'reviewed_by' => auth()->id(),
+            'reviewed_by_name' => auth()->user()->name,
+            'reviewed_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Edit request approved and payment updated.');
+    }
+
+    /**
+     * Reject an edit request
+     */
+    public function rejectEditRequest(Request $request, $requestId)
+    {
+        $editRequest = DB::table('payment_edit_requests')->where('id', $requestId)->first();
+        if (!$editRequest || $editRequest->status !== 'Pending') {
+            return back()->with('error', 'Edit request not found or already processed.');
+        }
+
+        DB::table('payment_edit_requests')->where('id', $requestId)->update([
+            'status' => 'Rejected',
+            'reviewed_by' => auth()->id(),
+            'reviewed_by_name' => auth()->user()->name,
+            'review_notes' => $request->input('review_notes'),
+            'reviewed_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Edit request rejected.');
     }
 }
