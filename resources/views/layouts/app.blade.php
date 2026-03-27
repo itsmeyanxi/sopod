@@ -546,6 +546,7 @@
                     @if(auth()->user()->canAccessModule('fixed_assets'))
                         <a href="{{ route('fixed_assets.index') }}" class="block hover:underline">Fixed Asset Capitalization</a>
                         <a href="{{ route('fixed_assets.summary') }}" class="block hover:underline">Lapsing Schedule</a>
+                        <a href="{{ route('disposals.index') }}" class="block hover:underline">Disposals</a>
                     @endif
                     @if(auth()->user()->canAccessModule('journal_vouchers'))
                         <a href="{{ route('journal_vouchers.index') }}" class="block hover:underline">Journal Vouchers</a>
