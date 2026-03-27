@@ -244,9 +244,13 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-700 mb-2">Disposal Amount *</label>
-                        <input type="number" name="disposal_amount" step="0.01" min="0" value="0" required
+                        <div class="text-xs text-gray-600 mb-2">
+                            Suggested: <strong>₱{{ number_format($asset->net_book_value, 2) }}</strong> (Net Book Value)
+                        </div>
+                        <input type="number" name="disposal_amount" id="disposal-amount" step="0.01" min="0" value="{{ $asset->net_book_value }}" required
                                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                                placeholder="Enter proceeds or salvage value">
+                        <p class="text-xs text-gray-500 mt-1">You can edit this amount if different from net book value</p>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-700 mb-2">Reason for Disposal *</label>

@@ -63,7 +63,7 @@ class FixedAssetController extends Controller
 
     public function show($id)
     {
-        $asset = FixedAsset::findOrFail($id);
+        $asset = FixedAsset::withDisposed()->findOrFail($id);
         return view('fixed_assets.show', compact('asset'));
     }
 
