@@ -222,7 +222,7 @@ public function store(Request $request)
         $validated = $request->validate([
             'transaction_date' => 'required|date',
             'reference_number' => 'required|string|max:255|unique:ar_adjustments,reference_number',
-            'transaction_type' => 'required|in:atd,offset,credit_memo,debit_memo,adjustment,write_off',
+            'transaction_type' => 'required|in:atd,offset,credit_memo,debit_memo,adjustment,write_off,sales_return_allowances,price_adjustment,rebates,distribution_fees,penalty,promotional_expenses,small_balance_adjustment',
             'dr_no' => 'nullable|string|max:255',
             'invoice_number' => 'nullable|string|max:255',
             'customer_code' => 'nullable|string|max:255',
@@ -348,7 +348,7 @@ public function store(Request $request)
             $validated = $request->validate([
                 'transaction_date' => 'required|date',
                 'reference_number' => 'required|string|max:255|unique:ar_adjustments,reference_number,' . $id,
-                'transaction_type' => 'required|in:atd,offset,credit_memo,debit_memo,adjustment,write_off',
+                'transaction_type' => 'required|in:atd,offset,credit_memo,debit_memo,adjustment,write_off,sales_return_allowances,price_adjustment,rebates,distribution_fees,penalty,promotional_expenses,small_balance_adjustment',
                 'dr_no' => 'nullable|string|max:255',
                 'invoice_number' => 'nullable|string|max:255',
                 'customer_code' => 'nullable|string|max:255',
@@ -426,6 +426,15 @@ public function store(Request $request)
 
             return back()->withInput()->with('error', 'Failed to update adjustment: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Print a single adjustment as a credit/debit memo
+     */
+    public function printDoc($id)
+    {
+        $adjustment = ArAdjustment::with(['delivery', 'receivingReport', 'glAccount'])->findOrFail($id);
+        return view('ar_adjustments.print', compact('adjustment'));
     }
 
     /**

@@ -201,6 +201,9 @@
             <a href="{{ route('ar_adjustments.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
                 <i class="fas fa-arrow-left mr-1"></i> Back to List
             </a>
+            <a href="{{ route('ar_adjustments.print', $adjustment->id) }}" target="_blank" class="bg-green-700 text-white px-6 py-2 rounded hover:bg-green-800 transition">
+                <i class="fas fa-print mr-1"></i> Print
+            </a>
             <a href="{{ route('ar_adjustments.edit', $adjustment->id) }}" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                 <i class="fas fa-edit mr-1"></i> Edit
             </a>

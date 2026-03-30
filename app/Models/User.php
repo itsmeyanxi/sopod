@@ -31,10 +31,10 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'is_locked' => 'boolean',
-        'locked_at' => 'datetime',
-        'roles' => 'array', // Cast JSON to array
+        'password'          => 'hashed',
+        'is_locked'         => 'boolean',
+        'locked_at'         => 'datetime',
+        'roles'             => 'array',
     ];
 
     public function setPasswordAttribute($value)
@@ -47,11 +47,9 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::creating(function ($user) {
-            // If roles array is empty, default to 'User'
             if (empty($user->roles)) {
                 $user->roles = ['User'];
             }
-            // Set legacy role field to first role
             if (empty($user->role) && !empty($user->roles)) {
                 $user->role = $user->roles[0];
             }
@@ -59,23 +57,21 @@ class User extends Authenticatable
     }
 
     /**
-     * 🔧 FIX: Fallback to single 'role' if 'roles' is empty
-     * This ensures backward compatibility
+     * Fallback to single 'role' if 'roles' is empty (backward compatibility).
      */
     public function getRolesAttribute($value)
     {
         $roles = json_decode($value, true);
-        
-        // Fallback: if roles is empty/null, use legacy 'role' field
+
         if (empty($roles) && !empty($this->attributes['role'])) {
             return [$this->attributes['role']];
         }
-        
+
         return $roles ?? [];
     }
 
     /**
-     * Check if user has ANY of the specified roles
+     * Check if user has ANY of the specified roles.
      */
     public function hasRole($role)
     {
@@ -86,7 +82,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has ALL of the specified roles
+     * Check if user has ALL of the specified roles.
      */
     public function hasAllRoles(array $roles)
     {
@@ -94,7 +90,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get display name for roles (comma-separated)
+     * Get display name for roles (comma-separated).
      */
     public function getRolesDisplayAttribute()
     {
@@ -110,7 +106,6 @@ class User extends Authenticatable
 
     public function canCreateSalesOrders()
     {
-        // CC and Accounting cannot create sales orders
         if ($this->hasRole(['Credit & Collection', 'Accounting'])) {
             return false;
         }
@@ -126,7 +121,6 @@ class User extends Authenticatable
 
     public function canManageItems()
     {
-        // Delivery cannot access items
         if ($this->isDeliveryOnlyRole()) {
             return false;
         }
@@ -135,7 +129,6 @@ class User extends Authenticatable
 
     public function canAddItems()
     {
-        // CC cannot create items
         if ($this->hasRole('Credit & Collection')) {
             return false;
         }
@@ -161,39 +154,42 @@ class User extends Authenticatable
 
     public function canManageCustomers()
     {
-        // Delivery cannot access customers
         if ($this->isDeliveryOnlyRole()) {
             return false;
         }
+        if ($this->isAdminUser()) return true;
         return $this->canAccessModule('customers');
     }
 
     public function canAddCustomers()
     {
-        // Only Joey Fernandez can create customers
-        return $this->isJoeyFernandez();
+        if ($this->isAdminUser()) return true;
+        if ($this->isJoeyFernandez()) return true;
+        return $this->canPerformInModule('can_create', 'customers');
     }
 
     public function canEditCustomers()
     {
-        // Only Joey Fernandez can directly edit customers
-        return $this->isJoeyFernandez();
+        if ($this->isAdminUser()) return true;
+        if ($this->isJoeyFernandez()) return true;
+        return $this->canPerformInModule('can_edit', 'customers');
     }
 
     public function canRequestCustomerEdit()
     {
-        // CC roles can submit edit requests (Joey approves/rejects)
         return $this->isCCRole() && !$this->isJoeyFernandez();
     }
 
     public function canApproveCustomerEditRequests()
     {
-        return $this->isJoeyFernandez();
+        return $this->isAdminUser() || $this->isJoeyFernandez();
     }
 
     public function canDeleteCustomers()
     {
-        return $this->isJoeyFernandez();
+        if ($this->isAdminUser()) return true;
+        if ($this->isJoeyFernandez()) return true;
+        return $this->canPerformInModule('can_delete', 'customers');
     }
 
     // ==================== DELIVERY PERMISSIONS ====================
@@ -217,7 +213,6 @@ class User extends Authenticatable
 
     public function canAccessReimbursementForms()
     {
-        // Delivery cannot access reimbursement forms
         if ($this->isDeliveryOnlyRole()) {
             return false;
         }
@@ -238,7 +233,6 @@ class User extends Authenticatable
 
     public function canAccessCashAdvanceRequests()
     {
-        // Delivery cannot access cash advance requests
         if ($this->isDeliveryOnlyRole()) {
             return false;
         }
@@ -259,15 +253,13 @@ class User extends Authenticatable
 
     public function canManageUsers()
     {
-        // Check new RBAC system OR legacy IT role for backward compatibility
-        return $this->canAccessModule('user_management') || $this->hasRole('IT') || $this->role === 'IT';
+        return $this->isAdminUser() || $this->canAccessModule('user_management');
     }
 
     // ==================== IMPORT PERMISSIONS ====================
 
     public function canImportItems()
     {
-        // CC cannot import items
         if ($this->hasRole('Credit & Collection')) {
             return false;
         }
@@ -283,7 +275,6 @@ class User extends Authenticatable
 
     public function canManageSuppliers()
     {
-        // CC and Delivery cannot manage suppliers
         if ($this->hasRole(['Credit & Collection', 'Delivery'])) {
             return false;
         }
@@ -304,20 +295,18 @@ class User extends Authenticatable
 
     public function isJoeyFernandez()
     {
-        return $this->id === 28; // Joey Albert U. Fernandez — sole customer admin
+        return $this->id === 28;
     }
 
     // ==================== DELIVERY ROLE RESTRICTIONS ====================
 
     public function isDeliveryOnlyRole()
     {
-        // Check if user is Delivery role - they have restricted access
         return $this->hasRole('Delivery');
     }
 
     public function isPOCreatorRole()
     {
-        // Check if user is PO Creator sub-department - they can only create POs
         return $this->userRoles()
             ->whereHas('subDepartment', function ($query) {
                 $query->where('name', 'PO Creator');
@@ -353,7 +342,6 @@ class User extends Authenticatable
 
     public function canManagePurchaseRequests()
     {
-        // Delivery cannot access purchase requests
         if ($this->isDeliveryOnlyRole()) {
             return false;
         }
@@ -372,28 +360,28 @@ class User extends Authenticatable
 
     public function canApprovePurchaseRequestsAsDH()
     {
-        return $this->hasPermission('can_approve', 16); // Department Head sub-dept
+        return $this->hasPermission('can_approve', 16);
     }
 
     public function canApprovePurchaseRequestsAsManagement()
     {
-        return $this->userRoles()->whereIn('sub_department_id', [17, 18])->where('can_approve', true)->exists() || $this->isAdminUser();
+        return $this->userRoles()->whereIn('sub_department_id', [17, 18])->where('can_approve', true)->exists()
+            || $this->isAdminUser();
     }
 
     public function canApprovePurchaseRequestsAsExecutive()
     {
-        return $this->userRoles()->whereIn('sub_department_id', [19, 20])->where('can_approve', true)->exists() || $this->isAdminUser();
+        return $this->userRoles()->whereIn('sub_department_id', [19, 20])->where('can_approve', true)->exists()
+            || $this->isAdminUser();
     }
 
     // ==================== PURCHASE ORDER ROLES ====================
 
     public function canManagePurchaseOrders()
     {
-        // Delivery cannot access purchase orders
         if ($this->isDeliveryOnlyRole()) {
             return false;
         }
-        // PO Creator can only create, allow access to the module
         if ($this->isPOCreatorRole()) {
             return true;
         }
@@ -402,7 +390,6 @@ class User extends Authenticatable
 
     public function canCreatePurchaseOrders()
     {
-        // PO Creator can create
         if ($this->isPOCreatorRole()) {
             return true;
         }
@@ -411,7 +398,6 @@ class User extends Authenticatable
 
     public function canApprovePurchaseOrders()
     {
-        // PO Creator cannot approve
         if ($this->isPOCreatorRole()) {
             return false;
         }
@@ -420,36 +406,34 @@ class User extends Authenticatable
 
     public function canApprovePurchaseOrdersAsDH()
     {
-        // PO Creator cannot approve
         if ($this->isPOCreatorRole()) {
             return false;
         }
-        return $this->hasPermission('can_approve', 16); // Department Head sub-dept
+        return $this->hasPermission('can_approve', 16);
     }
 
     public function canApprovePurchaseOrdersAsManagement()
     {
-        // PO Creator cannot approve
         if ($this->isPOCreatorRole()) {
             return false;
         }
-        return $this->userRoles()->whereIn('sub_department_id', [17, 18])->where('can_approve', true)->exists() || $this->isAdminUser();
+        return $this->userRoles()->whereIn('sub_department_id', [17, 18])->where('can_approve', true)->exists()
+            || $this->isAdminUser();
     }
 
     public function canApprovePurchaseOrdersAsExecutive()
     {
-        // PO Creator cannot approve
         if ($this->isPOCreatorRole()) {
             return false;
         }
-        return $this->userRoles()->whereIn('sub_department_id', [19, 20])->where('can_approve', true)->exists() || $this->isAdminUser();
+        return $this->userRoles()->whereIn('sub_department_id', [19, 20])->where('can_approve', true)->exists()
+            || $this->isAdminUser();
     }
 
     // ==================== REQUEST FOR PAYMENT ROLES ====================
 
     public function canManageRequestForPayments()
     {
-        // Delivery cannot access request for payments
         if ($this->isDeliveryOnlyRole()) {
             return false;
         }
@@ -463,33 +447,37 @@ class User extends Authenticatable
 
     public function canApproveRequestForPayments()
     {
-        return $this->canPerformInModule('can_approve', 'rfp') || $this->canApproveRFPAsDH() || $this->canApproveRFPAsAccounting() || $this->canApproveRFPAsExecutive();
+        return $this->canPerformInModule('can_approve', 'rfp')
+            || $this->canApproveRFPAsDH()
+            || $this->canApproveRFPAsAccounting()
+            || $this->canApproveRFPAsExecutive();
     }
 
     public function canApproveRFPAsDH()
     {
-        return $this->hasPermission('can_approve', 16); // Department Head sub-dept
+        return $this->hasPermission('can_approve', 16);
     }
 
     public function canApproveRFPAsAccounting()
     {
-        return $this->hasPermission('can_approve', 26); // Accounting sub-dept
+        return $this->hasPermission('can_approve', 26);
     }
 
     public function canApproveRFPAsExecutive()
     {
-        return $this->userRoles()->whereIn('sub_department_id', [18, 19, 20])->where('can_approve', true)->exists() || $this->isAdminUser();
+        return $this->userRoles()->whereIn('sub_department_id', [18, 19, 20])->where('can_approve', true)->exists()
+            || $this->isAdminUser();
     }
 
     // APV permissions
     public function canApproveAPVAsDH()
     {
-        return $this->hasPermission('can_approve', 16); // Department Head sub-dept
+        return $this->hasPermission('can_approve', 16);
     }
 
     public function canApproveAPV()
     {
-        return $this->hasPermission('can_approve', 26); // Accounting sub-dept
+        return $this->hasPermission('can_approve', 26);
     }
 
     public function canApproveAPVInvoices()
@@ -500,12 +488,12 @@ class User extends Authenticatable
     // CV permissions
     public function canApproveCVAsAccounting()
     {
-        return $this->hasPermission('can_approve', 26); // Accounting sub-dept
+        return $this->hasPermission('can_approve', 26);
     }
 
     public function canApproveCV()
     {
-        return $this->hasPermission('can_approve', 26); // Accounting sub-dept
+        return $this->hasPermission('can_approve', 26);
     }
 
     // ==================== OTHER PERMISSIONS ====================
@@ -539,10 +527,8 @@ class User extends Authenticatable
 
     // ==================== MODULE ↔ SUB-DEPARTMENT MAPPING ====================
 
-    // Admin/IT sub-departments — users here get access to ALL modules
-    const ADMIN_SUB_DEPARTMENTS = [5, 12]; // General Administration, IT Operations
+    const ADMIN_SUB_DEPARTMENTS = [5, 12];
 
-    // Each module maps to sub-department IDs that grant access
     const MODULE_SUB_DEPARTMENTS = [
         'sales_orders'       => [13, 15, 26],                    // Sales, Credit & Collection, Accounting
         'customers'          => [15, 26, 12],                  // Credit & Collection, Accounting, IT Operations
@@ -584,12 +570,9 @@ class User extends Authenticatable
         'inhouse_bom'        => [30],                                     // Operations NBC
     ];
 
-    // Sub-departments that can perform actions (create/edit/etc.) in a module.
-    // If a module is NOT listed here, all its MODULE_SUB_DEPARTMENTS can perform actions.
-    // If listed, only these sub-departments are checked for action permissions.
     const MODULE_ACTION_DEPARTMENTS = [
-        'sales_orders' => [13, 15, 26],       // Sales, Credit & Collection, Accounting (NOT Delivery)
-        'deliveries'   => [15, 25],              // Credit & Collection, Delivery
+        'sales_orders' => [13, 15, 26],
+        'deliveries'   => [15, 25],
     ];
 
     // ==================== MODULE OVERRIDE RELATIONSHIP ====================
@@ -602,77 +585,107 @@ class User extends Authenticatable
     // ==================== RBAC HELPER METHODS ====================
 
     /**
-     * Check if user is in an Admin/IT sub-department (full access).
+     * Check if user is IT/Admin — these users bypass ALL restrictions.
      */
     public function isAdminUser(): bool
     {
-        // Check new RBAC system OR legacy IT/Admin role
+        // Anyone in the "Information System" department has full unrestricted access
+        $inInfoSystemDept = $this->userRoles()
+            ->whereHas('subDepartment', function ($q) {
+                $q->whereHas('department', function ($q2) {
+                    $q2->where('name', 'Information System');
+                });
+            })
+            ->exists();
+
+        if ($inInfoSystemDept) return true;
+
+        // Fallback: hardcoded admin sub-departments or legacy IT/Admin role
         return $this->userRoles()
-            ->whereIn('sub_department_id', self::ADMIN_SUB_DEPARTMENTS)
-            ->exists() || $this->hasRole(['IT', 'Admin']) || in_array($this->role, ['IT', 'Admin']);
+                ->whereIn('sub_department_id', self::ADMIN_SUB_DEPARTMENTS)
+                ->exists()
+            || $this->hasRole(['IT', 'Admin', 'Information System'])
+            || in_array($this->role, ['IT', 'Admin', 'Information System']);
     }
 
     /**
-     * Check a specific nav item override (dot-notation key like 'sales_orders.create').
+     * Check a specific nav item override (dot-notation key).
      * Returns true/false if override exists, or calls $default closure if no override.
+     * NOTE: Admin users bypass this entirely.
      */
     public function navAccess(string $key, callable $default): bool
     {
+        // IT/Admin always has access — overrides cannot block them
+        if ($this->isAdminUser()) {
+            return true;
+        }
+
         $override = $this->moduleOverrides()->where('module', $key)->first();
         if ($override !== null) {
             return (bool) $override->allowed;
         }
+
         return $default();
     }
 
     /**
-     * Check if user can access a module based on their sub-department assignments.
-     * Per-user overrides in user_module_overrides take priority over role defaults.
+     * Check if user can access a module.
+     *
+     * Priority order:
+     * 1. IT/Admin → always full access, nothing blocks this
+     * 2. Sub-department match (primary OR secondary) → auto access
+     * 3. Explicit grant override by IT/Admin → extra access on top
+     * 4. No match → denied
      */
     public function canAccessModule(string $module): bool
     {
-        // Per-user override takes priority over everything
-        $override = $this->moduleOverrides()->where('module', $module)->first();
-        if ($override !== null) {
-            return (bool) $override->allowed;
-        }
-
+        // 1. IT/Admin unconditionally passes — overrides cannot block admins
         if ($this->isAdminUser()) {
             return true;
         }
 
         $subDeptIds = self::MODULE_SUB_DEPARTMENTS[$module] ?? [];
 
-        // Empty array means all users can access
+        // Empty array = all users can access (cash_advance, reimbursement, etc.)
         if (empty($subDeptIds)) {
             return true;
         }
 
-        return $this->userRoles()
-            ->whereIn('sub_department_id', $subDeptIds)
+        // 2. Sub-department assignment (primary + secondary both count)
+        if ($this->userRoles()->whereIn('sub_department_id', $subDeptIds)->exists()) {
+            return true;
+        }
+
+        // 3. Explicit grant override (adds extra access on top of sub-dept)
+        return $this->moduleOverrides()
+            ->where('module', $module)
+            ->where('allowed', true)
             ->exists();
     }
 
     /**
-     * Check if user has a specific permission flag in ANY sub-department
-     * that maps to the given module. Uses MODULE_ACTION_DEPARTMENTS if defined
-     * for the module, so view-only departments are excluded from action checks.
+     * Check if user has a specific permission flag in a module.
+     *
+     * IT/Admin always passes.
+     * Others need the permission flag set in their sub-department role assignment.
      */
     public function canPerformInModule(string $flag, string $module): bool
     {
+        // 1. IT/Admin always passes
         if ($this->isAdminUser()) {
             return true;
         }
 
-        // Use action-specific departments if defined, otherwise fall back to all module departments
         $subDeptIds = self::MODULE_ACTION_DEPARTMENTS[$module]
             ?? self::MODULE_SUB_DEPARTMENTS[$module]
             ?? [];
 
+        // Empty = all users can perform this action
         if (empty($subDeptIds)) {
             return true;
         }
 
+        // 2. Check sub-department has this permission flag enabled
         return $this->userRoles()
             ->whereIn('sub_department_id', $subDeptIds)
             ->where($flag, true)
@@ -726,7 +739,7 @@ class User extends Authenticatable
             ->exists();
     }
 
-    // =================== MODULE ACCESS METHODS (delegate to RBAC) ===================
+    // =================== MODULE ACCESS METHODS ===================
 
     public function canAccessPayments()
     {
@@ -745,38 +758,42 @@ class User extends Authenticatable
 
     public function canAccessAgingReports()
     {
-        // Per-user override takes priority (even over CC role block)
-        $override = $this->moduleOverrides()->where('module', 'aging_reports')->first();
-        if ($override !== null) {
-            return (bool) $override->allowed;
-        }
-        // CC roles cannot access AR Aging reports by default — only collections
+        // IT/Admin always wins — nothing blocks them
+        if ($this->isAdminUser()) return true;
+
+        // CC roles cannot access AR Aging reports by default
         if ($this->isCCRole()) {
-            return false;
+            // Unless explicitly granted by IT/Admin
+            return $this->moduleOverrides()
+                ->where('module', 'aging_reports')
+                ->where('allowed', true)
+                ->exists();
         }
+
         return $this->canAccessModule('aging_reports');
     }
 
     public function canAccessCollections()
     {
-        // CC roles, Accounting, Admin, IT can access collections
-        // Also checks new RBAC sub-department 15 (Credit & Collection) and 26 (Accounting)
-        return $this->isCCRole()
+        return $this->isAdminUser()
+            || $this->isCCRole()
             || $this->canAccessModule('payments')
-            || in_array($this->role, ['IT', 'Admin', 'Accounting_Approver', 'Accounting_Creator']);
+            || in_array($this->role, ['Accounting_Approver', 'Accounting_Creator']);
     }
 
     public function canAccessARDashboard()
     {
-        // Per-user override takes priority
-        $override = $this->moduleOverrides()->where('module', 'ar_dashboard')->first();
-        if ($override !== null) {
-            return (bool) $override->allowed;
-        }
+        // IT/Admin always wins
+        if ($this->isAdminUser()) return true;
+
         // CC cannot access the AR dashboard by default
         if ($this->isCCRole()) {
-            return false;
+            return $this->moduleOverrides()
+                ->where('module', 'ar_dashboard')
+                ->where('allowed', true)
+                ->exists();
         }
+
         return $this->canAccessModule('ar_dashboard');
     }
 
@@ -792,7 +809,6 @@ class User extends Authenticatable
 
     public function canAccessSalesAnalytics()
     {
-        // Delivery cannot access sales analytics
         if ($this->isDeliveryOnlyRole()) {
             return false;
         }
@@ -813,8 +829,6 @@ class User extends Authenticatable
 
     public function isPresidentOrVicePresident()
     {
-        // Check if user has President or Vice President role
         return $this->hasRole(['President', 'Vice President']);
     }
-
 }

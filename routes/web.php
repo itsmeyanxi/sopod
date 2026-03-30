@@ -170,6 +170,9 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
     // Store new adjustment
     Route::post('/', [ArAdjustmentController::class, 'store'])->name('store');
 
+    // Print adjustment (credit/debit memo)
+    Route::get('/{id}/print', [ArAdjustmentController::class, 'printDoc'])->name('print');
+
     // Show single adjustment
     Route::get('/{id}', [ArAdjustmentController::class, 'show'])->name('show');
 

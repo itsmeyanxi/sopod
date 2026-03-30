@@ -4,6 +4,13 @@
 <div class="p-6 bg-gray-50 min-h-screen text-gray-800">
     <h1 class="text-2xl font-bold mb-6">Customers</h1>
 
+    @if(session('success'))
+        <div class="bg-green-600 text-white px-4 py-3 rounded mb-4">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">{{ session('error') }}</div>
+    @endif
+
     <!-- 🔍 Search, Filters & Create -->
     <form method="GET" action="{{ route('customers.index') }}" id="filterForm">
         <div class="flex flex-col gap-4 mb-4">
