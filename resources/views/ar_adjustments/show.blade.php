@@ -248,6 +248,10 @@
                 <a href="{{ route('ar_adjustments.print_memo', ['id' => $adjustment->id, 'type' => 'debit']) }}" target="_blank" class="bg-orange-600 text-white px-6 py-2 rounded hover:bg-orange-700 transition">
                     <i class="fas fa-print mr-1"></i> Print Debit Memo
                 </a>
+            @else
+                <a href="{{ route('ar_adjustments.print', $adjustment->id) }}" target="_blank" class="bg-green-700 text-white px-6 py-2 rounded hover:bg-green-800 transition">
+                    <i class="fas fa-print mr-1"></i> Print
+                </a>
             @endif
             <a href="{{ route('ar_adjustments.edit', $adjustment->id) }}" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                 <i class="fas fa-edit mr-1"></i> Edit

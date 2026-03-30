@@ -50,8 +50,8 @@ class CustomerController extends Controller
     // Show create form
     public function create()
     {
-        if (!RoleHelper::canManageCustomers()) {
-            return RoleHelper::unauthorized();
+        if (!auth()->user()->canAddCustomers()) {
+            return response()->view('errors.noaccess', [], 403);
         }
 
         $nextCode = $this->generateNextCustomerCode();
@@ -148,8 +148,8 @@ class CustomerController extends Controller
     // Save new customer to database
     public function store(Request $request)
     {
-        if (!RoleHelper::canManageCustomers()) {
-            return RoleHelper::unauthorized();
+        if (!auth()->user()->canAddCustomers()) {
+            return response()->view('errors.noaccess', [], 403);
         }
 
         $validated = $request->validate([
@@ -220,8 +220,8 @@ class CustomerController extends Controller
     // Update customer
     public function update(Request $request, $id)
     {
-        if (!RoleHelper::canManageCustomers()) {
-            return RoleHelper::unauthorized();
+        if (!auth()->user()->canEditCustomers()) {
+            return response()->view('errors.noaccess', [], 403);
         }
 
         $customer = Customer::findOrFail($id);
@@ -284,8 +284,8 @@ class CustomerController extends Controller
     // Delete customer
     public function destroy($id)
     {
-        if (!RoleHelper::canManageCustomers()) {
-            return RoleHelper::unauthorized();
+        if (!auth()->user()->canDeleteCustomers()) {
+            return response()->view('errors.noaccess', [], 403);
         }
 
         $customer = Customer::findOrFail($id);
@@ -319,16 +319,11 @@ class CustomerController extends Controller
     // Toggle customer status
     public function toggleStatus($id)
     {
-        if (!RoleHelper::canManageCustomers()) {
-            return RoleHelper::unauthorized();
+        if (!auth()->user()->canEditCustomers()) {
+            return response()->view('errors.noaccess', [], 403);
         }
 
         $customer = Customer::findOrFail($id);
-
-        if ($customer->is_locked) {
-            return redirect()->back()
-                ->with('error', 'This Customer is locked and cannot be modified.');
-        }
 
         $customer->status = $customer->status === 'enabled' ? 'disabled' : 'enabled';
         $customer->save();
@@ -354,11 +349,6 @@ class CustomerController extends Controller
         }
 
         $customer = Customer::findOrFail($id);
-
-        if ($customer->is_locked) {
-            return redirect()->back()
-                ->with('error', 'This Customer is locked and cannot be modified.');
-        }
 
         $customer->is_flagged = !$customer->is_flagged;
         $customer->save();

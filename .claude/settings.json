@@ -61,7 +61,8 @@
       "Bash(php read_pdf.php)",
       "Bash(/tmp/analysis.txt:*)",
       "Read(//tmp/**)",
-      "Bash(php -l app/Http/Controllers/StatementOfAccountController.php app/Http/Controllers/AgingReportController.php app/Http/Controllers/PaymentController.php)"
+      "Bash(php -l app/Http/Controllers/StatementOfAccountController.php app/Http/Controllers/AgingReportController.php app/Http/Controllers/PaymentController.php)",
+      "Bash(head -5:*)"
     ],
     "additionalDirectories": [
       "c:\\xampp\\apache\\conf\\extra"

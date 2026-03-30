@@ -2478,6 +2478,7 @@ public function debugAdjustments($customerCode)
         // Sum actual collection amounts (real payments + synthetic from ar_aging)
         $actualCollections = 0;
         foreach ($collections as $coll) {
+            // Keep EWT from payments table for breakdown display only
             $summary['ewt_total'] += (float)($coll['ewt'] ?? 0);
             $actualCollections += (float)($coll['gross_amount'] ?? $coll['check_amount'] ?? 0);
         }
