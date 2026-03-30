@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', isset($parentBom) ? 'Extend BOM — '.$parentBom->cycle_ref : 'Create In-House BOM')
+@section('title', !empty($parentBom) ? 'Extend BOM — '.$parentBom->cycle_ref : 'Create In-House BOM')
 
 @section('content')
 <style>
@@ -81,6 +81,7 @@
             <i class="fas fa-save"></i> Save BOM
         </button>
     </div>
+    
 </div>
 
 <form id="bom-form" method="POST" action="{{ route('inhouse_bom.store') }}">

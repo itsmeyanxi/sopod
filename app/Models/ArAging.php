@@ -75,5 +75,6 @@ class ArAging extends Model
         'status',
         'include_flag',
         'ar_class',
+        'remarks',
     ];
 }

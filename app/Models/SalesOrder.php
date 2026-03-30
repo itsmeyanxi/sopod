@@ -83,7 +83,7 @@ class SalesOrder extends Model
      * Check if all items are delivered and close SO if needed
      * Returns true if SO was closed, false otherwise
      */
-   public function checkAndClose()
+    public function checkAndClose()
 {
     try {
         Log::info('🔄 Checking SO closure', [

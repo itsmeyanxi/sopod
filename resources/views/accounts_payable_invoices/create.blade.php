@@ -192,13 +192,22 @@
                         <label class="block font-semibold text-gray-500 mb-2">COST CENTER:</label>
                         <input type="text" name="cost_center" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('cost_center') }}">
                     </div>
-                    <div>
-                        <label class="block font-semibold text-gray-500 mb-2">ACCOUNT CODE:</label>
-                        <input type="text" name="account_code" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('account_code') }}">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-500 mb-2">ACCOUNT NAME:</label>
-                        <input type="text" name="account_name" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('account_name') }}">
+                    <div class="md:col-span-2">
+                        <label class="block font-semibold text-gray-500 mb-2">ACCOUNT CODE / NAME:</label>
+                        @include('partials.gl_account_selector', ['field' => 'account_code', 'label' => '', 'uid' => 'apv_account', 'value' => old('account_code'), 'glAccounts' => $glAccounts])
+                        <input type="hidden" name="account_name" id="apv_account_name_hidden" value="{{ old('account_name') }}">
+                        @include('partials.gl_account_selector_js')
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            document.getElementById('gl_dropdown_apv_account')
+                                ?.querySelectorAll('.gl-option')
+                                .forEach(function (opt) {
+                                    opt.addEventListener('click', function () {
+                                        document.getElementById('apv_account_name_hidden').value = this.dataset.name;
+                                    });
+                                });
+                        });
+                        </script>
                     </div>
                 </div>
             </div>

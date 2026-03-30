@@ -56,9 +56,12 @@ use App\Http\Controllers\{
     PaymentConfirmationController,
     TreasurySummaryController,
     TreasuryBankController,
+    AssetClassController,
     FixedAssetController,
     DisposalController,
-    JournalVoucherController
+    JournalVoucherController,
+    DepreciationRunController,
+    LoanController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -464,13 +467,27 @@ Route::post('/excel/import/gl-accounts', [ExcelImportController::class, 'importG
     ->name('excel.import.gl_accounts')
     ->middleware(['auth']);
 
+// ===================== ASSET CLASSES MASTERDATA =====================
+Route::prefix('accounting/asset-classes')->name('asset_classes.')->middleware(['auth', 'module:asset_classes'])->group(function () {
+    Route::get('/',           [AssetClassController::class, 'index'])->name('index');
+    Route::get('/create',     [AssetClassController::class, 'create'])->name('create');
+    Route::post('/',          [AssetClassController::class, 'store'])->name('store');
+    Route::get('/{assetClass}/edit', [AssetClassController::class, 'edit'])->name('edit');
+    Route::put('/{assetClass}',      [AssetClassController::class, 'update'])->name('update');
+    Route::delete('/{assetClass}',   [AssetClassController::class, 'destroy'])->name('destroy');
+});
+
 // ===================== FIXED ASSET CAPITALIZATION =====================
 Route::prefix('accounting/fixed-assets')->name('fixed_assets.')->middleware(['auth', 'module:fixed_assets'])->group(function () {
     Route::get('/',             [FixedAssetController::class, 'index'])->name('index');
     Route::get('/summary',      [FixedAssetController::class, 'summary'])->name('summary');
+    Route::get('/report/depreciation',  [FixedAssetController::class, 'reportDepreciation'])->name('report_depreciation');
+    Route::get('/report/transactions',  [FixedAssetController::class, 'reportTransactions'])->name('report_transactions');
+    Route::get('/report/cost-center',   [FixedAssetController::class, 'reportCostCenter'])->name('report_cost_center');
     Route::get('/create',       [FixedAssetController::class, 'create'])->name('create');
     Route::post('/',            [FixedAssetController::class, 'store'])->name('store');
     Route::post('/import',      [FixedAssetController::class, 'import'])->name('import');
+    Route::get('/po-items/{poId}', [FixedAssetController::class, 'getPoItems'])->name('po_items');
     Route::post('/{id}/dispose', [FixedAssetController::class, 'dispose'])->name('dispose');
     Route::get('/{id}',         [FixedAssetController::class, 'show'])->name('show');
     Route::get('/{id}/edit',    [FixedAssetController::class, 'edit'])->name('edit');
@@ -482,6 +499,29 @@ Route::prefix('accounting/fixed-assets')->name('fixed_assets.')->middleware(['au
 Route::prefix('accounting/disposals')->name('disposals.')->middleware(['auth', 'module:disposals'])->group(function () {
     Route::get('/',      [DisposalController::class, 'index'])->name('index');
     Route::get('/{id}',  [DisposalController::class, 'show'])->name('show');
+});
+
+// ===================== DEPRECIATION RUNS =====================
+Route::prefix('accounting/depreciation-runs')->name('depreciation_runs.')->middleware(['auth', 'module:depreciation_runs'])->group(function () {
+    Route::get('/',             [DepreciationRunController::class, 'index'])->name('index');
+    Route::get('/create',       [DepreciationRunController::class, 'create'])->name('create');
+    Route::post('/',            [DepreciationRunController::class, 'store'])->name('store');
+    Route::get('/{id}',         [DepreciationRunController::class, 'show'])->name('show');
+    Route::post('/{id}/post',   [DepreciationRunController::class, 'post'])->name('post');
+    Route::post('/{id}/void',   [DepreciationRunController::class, 'void'])->name('void');
+    Route::delete('/{id}',      [DepreciationRunController::class, 'destroy'])->name('destroy');
+});
+
+// ===================== LOANS =====================
+Route::prefix('banking/loans')->name('loans.')->middleware(['auth', 'module:loans'])->group(function () {
+    Route::get('/',                 [LoanController::class, 'index'])->name('index');
+    Route::get('/create',           [LoanController::class, 'create'])->name('create');
+    Route::post('/',                [LoanController::class, 'store'])->name('store');
+    Route::get('/{id}',             [LoanController::class, 'show'])->name('show');
+    Route::get('/{id}/edit',        [LoanController::class, 'edit'])->name('edit');
+    Route::put('/{id}',             [LoanController::class, 'update'])->name('update');
+    Route::post('/{id}/payment',    [LoanController::class, 'storePayment'])->name('payment');
+    Route::post('/{id}/void',       [LoanController::class, 'markVoid'])->name('void');
 });
 
 // ===================== JOURNAL VOUCHERS =====================

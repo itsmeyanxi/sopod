@@ -602,7 +602,11 @@ class User extends Authenticatable
         'ap_dashboard'       => [22, 26, 24, 5, 6, 16, 17, 18, 19, 20], // FAS Trade, Accounting, Treasury, Admin, Purchasing, Executive
         'ap_reports'         => [22, 26, 24, 16, 17, 18, 19, 20],       // FAS Trade, Accounting, Treasury, Executive
         'inhouse_bom'        => [30],                                     // Operations NBC
+        'asset_classes'      => [26, 5, 12],                              // Accounting, General Administration, IT Operations
         'fixed_assets'       => [26, 5, 12],                              // Accounting, General Administration, IT Operations
+        'disposals'          => [26, 5, 12],                              // Accounting, General Administration, IT Operations
+        'depreciation_runs'  => [26, 5, 12],                              // Accounting, General Administration, IT Operations
+        'loans'              => [26, 24, 5, 12],                          // Accounting, Treasury, General Administration, IT Operations
         'journal_vouchers'   => [26, 5, 12],                              // Accounting, General Administration, IT Operations
         'treasury'           => [24, 26, 5, 12],                          // Treasury, Accounting, General Administration, IT Operations
         'soa'                => [15, 26, 5, 12],                          // Credit & Collection, Accounting, General Administration, IT Operations

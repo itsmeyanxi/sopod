@@ -135,7 +135,9 @@ class AccountsPayableInvoiceController extends Controller
             }
         }
 
-        return view('accounts_payable_invoices.create', compact('apvNo', 'selectedRFP', 'supplierInfo'));
+        $glAccounts = $this->getGlAccounts();
+
+        return view('accounts_payable_invoices.create', compact('apvNo', 'selectedRFP', 'supplierInfo', 'glAccounts'));
     }
 
     /**
@@ -361,9 +363,10 @@ class AccountsPayableInvoiceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $invoice = AccountsPayableInvoice::findOrFail($id);
+        $invoice    = AccountsPayableInvoice::findOrFail($id);
+        $glAccounts = $this->getGlAccounts();
 
-        return view('accounts_payable_invoices.edit', compact('invoice'));
+        return view('accounts_payable_invoices.edit', compact('invoice', 'glAccounts'));
     }
 
     /**
@@ -598,5 +601,17 @@ class AccountsPayableInvoiceController extends Controller
     {
         $apv = AccountsPayableInvoice::with(['creator', 'approver', 'departmentHeadApprover'])->findOrFail($id);
         return view('accounts_payable_invoices.print', ['apv' => $apv]);
+    }
+
+    private function getGlAccounts(): array
+    {
+        return \App\Models\GlAccount::orderBy('account_code')
+            ->get(['account_code', 'account_name'])
+            ->map(fn($a) => [
+                'code'    => $a->account_code,
+                'name'    => $a->account_name,
+                'display' => $a->account_code . ' — ' . $a->account_name,
+                'search'  => strtolower($a->account_code . ' ' . $a->account_name),
+            ])->toArray();
     }
 }
