@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AssetClass;
 use App\Models\FixedAsset;
 use App\Models\GlAccount;
 use Illuminate\Http\Request;
@@ -64,7 +65,13 @@ class FixedAssetController extends Controller
     public function show($id)
     {
         $asset = FixedAsset::withDisposed()->findOrFail($id);
-        return view('fixed_assets.show', compact('asset'));
+
+        $glAccounts = GlAccount::orderBy('account_code')
+            ->get(['id', 'account_code', 'account_name'])
+            ->map(fn($a) => ['code' => $a->account_code, 'name' => $a->account_name])
+            ->toArray();
+
+        return view('fixed_assets.show', compact('asset', 'glAccounts'));
     }
 
     public function create()
@@ -91,7 +98,31 @@ class FixedAssetController extends Controller
                 ];
             });
 
-        return view('fixed_assets.create', compact('assetGroups', 'glAccounts'));
+        // Approved POs for the PO selector
+        $approvedPos = DB::table('purchase_orders')
+            ->where('status', 'Approved')
+            ->orderBy('order_date', 'desc')
+            ->get(['id', 'po_no', 'supplier', 'order_date']);
+
+        // Asset classes for auto-fill on select
+        $assetClasses = AssetClass::active()
+            ->orderBy('asset_group')
+            ->orderBy('asset_class')
+            ->get(['id', 'asset_group', 'asset_class', 'useful_life_months', 'gl_account', 'depreciation_account', 'dep_type']);
+
+        return view('fixed_assets.create', compact('assetGroups', 'glAccounts', 'approvedPos', 'assetClasses'));
+    }
+
+    /**
+     * Return PO items as JSON for the PO selector AJAX call.
+     */
+    public function getPoItems(int $poId)
+    {
+        $items = DB::table('purchase_order_items')
+            ->where('purchase_order_id', $poId)
+            ->get(['id', 'item_no', 'description', 'qty', 'unit_price', 'total']);
+
+        return response()->json($items);
     }
 
     public function store(Request $request)
@@ -111,12 +142,29 @@ class FixedAssetController extends Controller
         $cost            = (float)($data['cost'] ?? 0);
         $salvage         = (float)($data['salvage_value'] ?? 0);
 
-        $data['useful_life_months']   = (int)round($usefulLifeYears * 12);
-        $data['remaining_life_months']= $data['useful_life_months'];
-        $data['yearly_depreciation']  = $usefulLifeYears > 0 ? round(($cost - $salvage) / $usefulLifeYears, 2) : 0;
-        $data['monthly_depreciation'] = $data['useful_life_months'] > 0 ? round(($cost - $salvage) / $data['useful_life_months'], 2) : 0;
-        $data['net_book_value']       = $cost - ($data['accumulated_depreciation'] ?? 0);
+        // If useful_life_months was submitted directly (from asset class auto-fill), use it; otherwise derive from years
+        $usefulLifeMonths = isset($data['useful_life_months']) && (int)$data['useful_life_months'] > 0
+            ? (int)$data['useful_life_months']
+            : (int)round($usefulLifeYears * 12);
+
+        $data['useful_life_months']   = $usefulLifeMonths;
+        $data['useful_life_years']    = $usefulLifeMonths > 0 ? round($usefulLifeMonths / 12, 2) : $usefulLifeYears;
+        $data['remaining_life_months']= $usefulLifeMonths;
+        $data['yearly_depreciation']  = $data['useful_life_years'] > 0 ? round(($cost - $salvage) / $data['useful_life_years'], 2) : 0;
+        $data['monthly_depreciation'] = $usefulLifeMonths > 0 ? round(($cost - $salvage) / $usefulLifeMonths, 2) : 0;
+        $data['net_book_value']       = $cost - ($data['accumulated_depreciation'] ?? 0) - ($data['disposal_amount'] ?? 0);
         $data['status']               = 'Active';
+
+        // Auto-calculate dep_end_date if dep_start_date and useful_life_months are set
+        if (!empty($data['dep_start_date']) && $usefulLifeMonths > 0 && empty($data['dep_end_date'])) {
+            $data['dep_end_date'] = \Carbon\Carbon::parse($data['dep_start_date'])
+                ->addMonths($usefulLifeMonths)
+                ->format('Y-m-d');
+        }
+
+        // Clean up PO fields
+        $data['purchase_order_id']      = $request->integer('purchase_order_id') ?: null;
+        $data['purchase_order_item_id'] = $request->integer('purchase_order_item_id') ?: null;
 
         FixedAsset::create($data);
 
@@ -149,7 +197,12 @@ class FixedAssetController extends Controller
                 ];
             });
 
-        return view('fixed_assets.edit', compact('asset', 'assetGroups', 'glAccounts'));
+        $assetClasses = AssetClass::active()
+            ->orderBy('asset_group')
+            ->orderBy('asset_class')
+            ->get(['id', 'asset_group', 'asset_class', 'useful_life_months', 'gl_account', 'depreciation_account', 'dep_type']);
+
+        return view('fixed_assets.edit', compact('asset', 'assetGroups', 'glAccounts', 'assetClasses'));
     }
 
     public function update(Request $request, $id)
@@ -160,19 +213,29 @@ class FixedAssetController extends Controller
             'asset_group'       => 'required|string',
             'asset_description' => 'required|string',
             'cost'              => 'required|numeric|min:0',
-            'useful_life_years' => 'required|numeric|min:0',
+            'useful_life_months'=> 'nullable|integer|min:0',
         ]);
 
         $data = $request->all();
 
-        $usefulLifeYears = (float)($data['useful_life_years'] ?? 0);
         $cost            = (float)($data['cost'] ?? 0);
         $salvage         = (float)($data['salvage_value'] ?? 0);
+        $usefulLifeMonths = isset($data['useful_life_months']) && (int)$data['useful_life_months'] > 0
+            ? (int)$data['useful_life_months']
+            : $asset->useful_life_months;
 
-        $data['useful_life_months']   = (int)round($usefulLifeYears * 12);
-        $data['yearly_depreciation']  = $usefulLifeYears > 0 ? round(($cost - $salvage) / $usefulLifeYears, 2) : 0;
-        $data['monthly_depreciation'] = $data['useful_life_months'] > 0 ? round(($cost - $salvage) / $data['useful_life_months'], 2) : 0;
-        $data['net_book_value']       = $cost - (float)($data['accumulated_depreciation'] ?? 0);
+        $data['useful_life_months']   = $usefulLifeMonths;
+        $data['useful_life_years']    = $usefulLifeMonths > 0 ? round($usefulLifeMonths / 12, 2) : 0;
+        $data['yearly_depreciation']  = $data['useful_life_years'] > 0 ? round(($cost - $salvage) / $data['useful_life_years'], 2) : 0;
+        $data['monthly_depreciation'] = $usefulLifeMonths > 0 ? round(($cost - $salvage) / $usefulLifeMonths, 2) : 0;
+        $data['net_book_value']       = $cost - (float)($data['accumulated_depreciation'] ?? 0) - (float)($data['disposal_amount'] ?? 0);
+
+        // Auto-calculate dep_end_date if dep_start_date and useful_life_months are set and dep_end_date is empty
+        if (!empty($data['dep_start_date']) && $usefulLifeMonths > 0 && empty($data['dep_end_date'])) {
+            $data['dep_end_date'] = \Carbon\Carbon::parse($data['dep_start_date'])
+                ->addMonths($usefulLifeMonths)
+                ->format('Y-m-d');
+        }
 
         $asset->update($data);
 
@@ -199,13 +262,20 @@ class FixedAssetController extends Controller
             'disposal_date' => 'required|date',
             'disposal_amount' => 'required|numeric|min:0',
             'disposal_reason' => 'required|string|max:1000',
+            'gain_loss_gl_account' => 'nullable|string',
         ]);
+
+        // Recalculate NBV at time of disposal
+        $nbv = $asset->cost - $asset->accumulated_depreciation;
+        $gainLoss = $validated['disposal_amount'] - $nbv;
 
         $asset->update([
             'disposal_date' => $validated['disposal_date'],
             'disposal_amount' => $validated['disposal_amount'],
             'disposal_reason' => $validated['disposal_reason'],
+            'gain_loss_gl_account' => $validated['gain_loss_gl_account'] ?? null,
             'disposed_by' => Auth::user()->name ?? 'System',
+            'net_book_value' => 0,
             'status' => 'Disposed',
         ]);
 
@@ -251,6 +321,126 @@ class FixedAssetController extends Controller
         ];
 
         return view('fixed_assets.summary', compact('summaryData', 'totals', 'groups'));
+    }
+
+    /**
+     * Report: Depreciation per month / year / cost center
+     */
+    public function reportDepreciation(Request $request)
+    {
+        $year  = $request->input('year', date('Y'));
+        $costCenter = $request->input('cost_center');
+
+        $query = FixedAsset::withDisposed()
+            ->whereNotNull('dep_start_date')
+            ->where('monthly_depreciation', '>', 0);
+
+        if ($costCenter) {
+            $query->where('cost_center_name', $costCenter);
+        }
+
+        $assets = $query->orderBy('asset_group')->orderBy('asset_code')->get();
+
+        // Build monthly depreciation grid
+        $depData = [];
+        foreach ($assets as $asset) {
+            $start = $asset->dep_start_date;
+            $end   = $asset->dep_end_date ?? $start->copy()->addMonths($asset->useful_life_months);
+
+            $row = [
+                'asset'   => $asset,
+                'months'  => [],
+                'total'   => 0,
+            ];
+
+            for ($m = 1; $m <= 12; $m++) {
+                $monthDate = \Carbon\Carbon::createFromDate($year, $m, 1);
+                $isActive  = $monthDate->gte($start->startOfMonth()) && $monthDate->lte($end->startOfMonth());
+                $amount    = $isActive ? (float)$asset->monthly_depreciation : 0;
+                $row['months'][$m] = $amount;
+                $row['total']     += $amount;
+            }
+
+            if ($row['total'] > 0) {
+                $depData[] = $row;
+            }
+        }
+
+        $costCenters = FixedAsset::withDisposed()
+            ->select('cost_center_name')
+            ->distinct()
+            ->whereNotNull('cost_center_name')
+            ->where('cost_center_name', '!=', '')
+            ->orderBy('cost_center_name')
+            ->pluck('cost_center_name');
+
+        return view('fixed_assets.report_depreciation', compact('depData', 'year', 'costCenter', 'costCenters'));
+    }
+
+    /**
+     * Report: Asset Transaction Summary
+     */
+    public function reportTransactions(Request $request)
+    {
+        $query = FixedAsset::withDisposed();
+
+        if ($request->filled('asset_group')) {
+            $query->where('asset_group', $request->asset_group);
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('acquisition_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('acquisition_date', '<=', $request->date_to);
+        }
+
+        $assets = $query->orderBy('asset_group')->orderBy('acquisition_date', 'desc')->paginate(100)->withQueryString();
+
+        $groups = [
+            'Leasehold Improvement', 'Transportation Equipment', 'Machineries And Equipment',
+            'Office Equipment', 'Furniture And Fixtures', 'Tools', 'Building',
+            'Right of Use Asset', 'Fixed Asset Clearing',
+        ];
+
+        $summary = [
+            'total_cost'       => $query->sum('cost'),
+            'total_accum_dep'  => $query->sum('accumulated_depreciation'),
+            'total_disposal'   => $query->sum('disposal_amount'),
+            'total_nbv'        => $query->sum('net_book_value'),
+            'total_assets'     => $query->count(),
+        ];
+
+        return view('fixed_assets.report_transactions', compact('assets', 'groups', 'summary'));
+    }
+
+    /**
+     * Report: Assets per Cost Center
+     */
+    public function reportCostCenter(Request $request)
+    {
+        $selectedCenter = $request->input('cost_center');
+
+        $costCenters = FixedAsset::withDisposed()
+            ->select('cost_center_name')
+            ->selectRaw('COUNT(*) as asset_count')
+            ->selectRaw('SUM(cost) as total_cost')
+            ->selectRaw('SUM(accumulated_depreciation) as total_accum_dep')
+            ->selectRaw('SUM(net_book_value) as total_nbv')
+            ->selectRaw('SUM(monthly_depreciation) as total_monthly_dep')
+            ->groupBy('cost_center_name')
+            ->orderBy('cost_center_name')
+            ->get();
+
+        $assets = null;
+        if ($selectedCenter) {
+            $assets = FixedAsset::withDisposed()
+                ->where('cost_center_name', $selectedCenter)
+                ->orderBy('asset_group')
+                ->orderBy('asset_code')
+                ->get();
+        }
+
+        return view('fixed_assets.report_cost_center', compact('costCenters', 'assets', 'selectedCenter'));
     }
 
     public function import(Request $request)

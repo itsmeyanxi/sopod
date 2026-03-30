@@ -191,13 +191,20 @@
                     </div>
                 </div>
 
-                @if($asset->disposal_amount != $asset->net_book_value)
+                @php $nbv_at_disposal = $asset->cost - $asset->accumulated_depreciation; @endphp
+                @php $gain_loss = $asset->disposal_amount - $nbv_at_disposal; @endphp
+                @if($gain_loss != 0)
                 <div class="border-t pt-3">
-                    @php $gain_loss = $asset->disposal_amount - $asset->net_book_value; @endphp
                     <div class="flex justify-between font-semibold {{ $gain_loss > 0 ? 'text-green-700' : 'text-red-700' }}">
                         <span>{{ $gain_loss > 0 ? 'Gain' : 'Loss' }} on Disposal</span>
-                        <span>₱{{ number_format(abs($gain_loss), 2) }}</span>
+                        <span>{{ $gain_loss < 0 ? '(' : '' }}₱{{ number_format(abs($gain_loss), 2) }}{{ $gain_loss < 0 ? ')' : '' }}</span>
                     </div>
+                    @if($asset->gain_loss_gl_account)
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>GL Account</span>
+                        <span class="font-mono">{{ $asset->gain_loss_gl_account }}</span>
+                    </div>
+                    @endif
                 </div>
                 @endif
             </div>

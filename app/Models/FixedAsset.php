@@ -20,6 +20,8 @@ class FixedAsset extends Model
     protected $table = 'fixed_assets';
 
     protected $fillable = [
+        'purchase_order_id',
+        'purchase_order_item_id',
         'serial_engine_no',
         'asset_group',
         'date_posted',
@@ -29,6 +31,7 @@ class FixedAsset extends Model
         'disposal_date',
         'disposed_by',
         'disposal_reason',
+        'gain_loss_gl_account',
         'dep_type',
         'reference_apv_jv',
         'reference_reversal',

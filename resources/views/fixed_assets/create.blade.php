@@ -18,15 +18,39 @@
             </div>
         @endif
 
-        <form action="{{ route('fixed_assets.store') }}" method="POST">
+        <form action="{{ route('fixed_assets.store') }}" method="POST" id="fa-form">
             @csrf
 
-            <!-- Asset Identification -->
+            {{-- PO Link --}}
+            <h3 class="text-lg font-semibold text-gray-700 mb-3">Purchase Order (Optional)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Select Approved PO</label>
+                    <select id="po_select" class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white">
+                        <option value="">— Select PO —</option>
+                        @foreach($approvedPos as $po)
+                            <option value="{{ $po->id }}" data-supplier="{{ $po->supplier }}" data-date="{{ $po->order_date }}">
+                                {{ $po->po_no }} — {{ $po->supplier }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <input type="hidden" name="purchase_order_id" id="purchase_order_id_hidden">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">PO Line Item</label>
+                    <select id="po_item_select" class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white" disabled>
+                        <option value="">— Select PO first —</option>
+                    </select>
+                    <input type="hidden" name="purchase_order_item_id" id="purchase_order_item_id_hidden">
+                </div>
+            </div>
+
+            {{-- Asset Class Auto-fill --}}
             <h3 class="text-lg font-semibold text-gray-700 mb-3">Asset Identification</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Asset Group <span class="text-red-700">*</span></label>
-                    <select name="asset_group" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                    <select name="asset_group" id="asset_group" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Select --</option>
                         @foreach($assetGroups as $group)
                             <option value="{{ $group }}" {{ old('asset_group') == $group ? 'selected' : '' }}>{{ $group }}</option>
@@ -34,18 +58,31 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Code</label>
-                    <input type="text" name="asset_code" value="{{ old('asset_code') }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm" placeholder="e.g. TRA220100001-1">
+                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Class</label>
+                    <select name="asset_class" id="asset_class_select" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                        <option value="">-- Select asset group first --</option>
+                        @foreach($assetClasses as $ac)
+                            <option value="{{ $ac->asset_class }}"
+                                data-group="{{ $ac->asset_group }}"
+                                data-months="{{ $ac->useful_life_months }}"
+                                data-gl="{{ $ac->gl_account }}"
+                                data-dep="{{ $ac->depreciation_account }}"
+                                data-deptype="{{ $ac->dep_type }}"
+                                {{ old('asset_class') == $ac->asset_class ? 'selected' : '' }}>
+                                {{ $ac->asset_class }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Class</label>
-                    <input type="text" name="asset_class" value="{{ old('asset_class') }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm" placeholder="e.g. Delivery Trucks">
+                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Code</label>
+                    <input type="text" name="asset_code" value="{{ old('asset_code') }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm" placeholder="e.g. TRA220100001-1">
                 </div>
             </div>
 
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-500 mb-1">Asset Description <span class="text-red-700">*</span></label>
-                <textarea name="asset_description" required rows="2" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">{{ old('asset_description') }}</textarea>
+                <textarea name="asset_description" id="asset_description" required rows="2" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">{{ old('asset_description') }}</textarea>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -76,11 +113,11 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Dep. Start Date</label>
-                    <input type="date" name="dep_start_date" value="{{ old('dep_start_date') }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="date" name="dep_start_date" id="dep_start_date" value="{{ old('dep_start_date') }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Dep. End Date</label>
-                    <input type="date" name="dep_end_date" value="{{ old('dep_end_date') }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <label class="block text-sm font-medium text-gray-500 mb-1">Dep. End Date <span class="text-xs text-blue-500">(auto)</span></label>
+                    <input type="date" name="dep_end_date" id="dep_end_date" value="{{ old('dep_end_date') }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
@@ -89,64 +126,24 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Cost <span class="text-red-700">*</span></label>
-                    <input type="number" name="cost" value="{{ old('cost', 0) }}" step="0.01" min="0" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="number" name="cost" id="cost" value="{{ old('cost', 0) }}" step="0.01" min="0" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Salvage Value</label>
                     <input type="number" name="salvage_value" value="{{ old('salvage_value', 0) }}" step="0.01" min="0" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Useful Life (Years) <span class="text-red-700">*</span></label>
-                    <input type="number" name="useful_life_years" value="{{ old('useful_life_years', 0) }}" step="0.01" min="0" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <label class="block text-sm font-medium text-gray-500 mb-1">Useful Life (Months) <span class="text-red-700">*</span> <span class="text-xs text-blue-500">(from asset class)</span></label>
+                    <input type="number" name="useful_life_months" id="useful_life_months" value="{{ old('useful_life_months', 0) }}" min="0" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="hidden" name="useful_life_years" id="useful_life_years" value="{{ old('useful_life_years', 0) }}">
                 </div>
             </div>
 
             <!-- Accounting -->
             <h3 class="text-lg font-semibold text-gray-700 mb-3">Accounting</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-
-                {{-- GL Account — searchable dropdown (same pattern as Account Code in Journal Voucher) --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">GL Account</label>
-                    <div class="relative acct-search-container" style="position: relative;">
-                        <input
-                            type="text"
-                            id="gl_account_search"
-                            class="acct-search w-full bg-white border-2 border-gray-300 rounded-lg px-3 py-2 pr-10 text-gray-800 placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors text-sm"
-                            placeholder="Type to search GL accounts..."
-                            autocomplete="off"
-                            value="{{ old('gl_account') ? old('gl_account') . ' — ' . '' : '' }}"
-                        >
-                        <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        <div
-                            id="gl_account_dropdown"
-                            class="acct-dropdown absolute z-[9999] w-full bg-white border-2 border-gray-300 rounded-lg mt-1 shadow-2xl hidden max-h-60 overflow-y-auto"
-                            style="position: absolute; left: 0;"
-                        >
-                            <div class="sticky top-0 bg-gray-100 px-3 py-2 text-xs text-gray-500 font-semibold border-b border-gray-300">Select a GL account</div>
-                            @foreach($glAccounts as $acct)
-                                <div
-                                    class="acct-option px-4 py-2 hover:bg-blue-600 hover:text-white cursor-pointer text-gray-800 border-b border-gray-200 last:border-b-0 transition-colors"
-                                    data-code="{{ $acct['code'] }}"
-                                    data-name="{{ $acct['name'] }}"
-                                    data-search="{{ strtolower($acct['code'] . ' ' . $acct['name']) }}"
-                                >
-                                    <div class="font-semibold text-sm font-mono">{{ $acct['code'] }}</div>
-                                    <div class="text-xs text-gray-500">{{ $acct['name'] }}</div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    {{-- Hidden input carries the selected code as the actual form value --}}
-                    <input type="hidden" name="gl_account" id="gl_account_hidden" value="{{ old('gl_account') }}">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Depreciation Account</label>
-                    <input type="text" name="depreciation_account" value="{{ old('depreciation_account') }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
-                </div>
+                @include('partials.gl_account_selector', ['field' => 'gl_account', 'label' => 'GL Account', 'uid' => 'fa_gl_account', 'value' => old('gl_account'), 'glAccounts' => $glAccounts])
+                @include('partials.gl_account_selector', ['field' => 'depreciation_account', 'label' => 'Depreciation Account', 'uid' => 'fa_dep_account', 'value' => old('depreciation_account'), 'glAccounts' => $glAccounts])
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Cost Center</label>
                     <input type="text" name="cost_center_name" value="{{ old('cost_center_name') }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
@@ -177,8 +174,8 @@
                     <input type="text" name="reference_apv_jv" value="{{ old('reference_apv_jv') }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Dep. Type</label>
-                    <select name="dep_type" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <label class="block text-sm font-medium text-gray-500 mb-1">Dep. Type <span class="text-xs text-blue-500">(from asset class)</span></label>
+                    <select name="dep_type" id="dep_type" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                         <option value="Straight Line" {{ old('dep_type') == 'Straight Line' ? 'selected' : '' }}>Straight Line</option>
                         <option value="Declining Balance" {{ old('dep_type') == 'Declining Balance' ? 'selected' : '' }}>Declining Balance</option>
                     </select>
@@ -197,74 +194,134 @@
 
 <script>
 (function () {
-    const searchInput  = document.getElementById('gl_account_search');
-    const dropdown     = document.getElementById('gl_account_dropdown');
-    const hiddenInput  = document.getElementById('gl_account_hidden');
+    // ── PO Selector ──────────────────────────────────────────────────────
+    const poSelect       = document.getElementById('po_select');
+    const poItemSelect   = document.getElementById('po_item_select');
+    const poIdHidden     = document.getElementById('purchase_order_id_hidden');
+    const poItemIdHidden = document.getElementById('purchase_order_item_id_hidden');
+    const descField      = document.getElementById('asset_description');
+    const costField      = document.getElementById('cost');
 
-    // Cache original options HTML so filtering can reset cleanly
-    const originalHTML = dropdown.innerHTML;
+    poSelect.addEventListener('change', function () {
+        const poId = this.value;
+        poIdHidden.value = poId;
+        poItemSelect.innerHTML = '<option value="">Loading...</option>';
+        poItemSelect.disabled = true;
 
-    function filterOptions(term) {
-        // Reset to full list before filtering
-        dropdown.innerHTML = originalHTML;
-        bindOptionClicks();
-
-        if (term === '') {
-            dropdown.querySelectorAll('.acct-option').forEach(o => o.style.display = 'block');
+        if (!poId) {
+            poItemSelect.innerHTML = '<option value="">— Select PO first —</option>';
             return;
         }
 
-        let visible = 0;
-        dropdown.querySelectorAll('.acct-option').forEach(function (opt) {
-            if (opt.getAttribute('data-search').includes(term)) {
-                opt.style.display = 'block';
-                visible++;
-            } else {
-                opt.style.display = 'none';
+        fetch('{{ route("fixed_assets.po_items", ":id") }}'.replace(':id', poId))
+            .then(r => r.json())
+            .then(items => {
+                poItemSelect.innerHTML = '<option value="">— Select line item —</option>';
+                items.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.id;
+                    opt.dataset.description = item.description ?? '';
+                    opt.dataset.total = item.total ?? '';
+                    opt.textContent = `#${item.item_no} — ${item.description} (${item.qty})`;
+                    poItemSelect.appendChild(opt);
+                });
+                poItemSelect.disabled = false;
+            })
+            .catch(() => {
+                poItemSelect.innerHTML = '<option value="">Error loading items</option>';
+            });
+    });
+
+    poItemSelect.addEventListener('change', function () {
+        const opt = this.options[this.selectedIndex];
+        poItemIdHidden.value = this.value;
+
+        if (this.value) {
+            if (opt.dataset.description && !descField.value.trim()) {
+                descField.value = opt.dataset.description;
+            }
+            if (opt.dataset.total && parseFloat(costField.value) === 0) {
+                costField.value = parseFloat(opt.dataset.total).toFixed(2);
+            }
+        }
+    });
+
+    // ── Asset Group → filter Asset Class options ──────────────────────────
+    const assetGroupSel  = document.getElementById('asset_group');
+    const assetClassSel  = document.getElementById('asset_class_select');
+    const allClassOptions = Array.from(assetClassSel.options);
+
+    function filterClasses(group) {
+        const current = assetClassSel.value;
+        assetClassSel.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = group ? '-- Select class --' : '-- Select asset group first --';
+        assetClassSel.appendChild(placeholder);
+
+        allClassOptions.forEach(opt => {
+            if (!opt.value) return;
+            if (!group || opt.dataset.group === group) {
+                assetClassSel.appendChild(opt.cloneNode(true));
             }
         });
 
-        if (visible === 0) {
-            const empty = document.createElement('div');
-            empty.className = 'px-4 py-6 text-center text-gray-400';
-            empty.innerHTML = '<div class="font-medium text-sm">No accounts found</div><div class="text-xs mt-1">Try a different search term</div>';
-            dropdown.appendChild(empty);
-        }
+        assetClassSel.value = current;
     }
 
-    function bindOptionClicks() {
-        dropdown.querySelectorAll('.acct-option').forEach(function (opt) {
-            opt.addEventListener('click', function () {
-                const code = this.getAttribute('data-code');
-                const name = this.getAttribute('data-name');
-                searchInput.value  = code + ' — ' + name;
-                hiddenInput.value  = code;
-                dropdown.classList.add('hidden');
-            });
-        });
+    assetGroupSel.addEventListener('change', function () {
+        filterClasses(this.value);
+    });
+
+    // ── Asset Class → auto-fill useful life, GL accounts, dep type ───────
+    const usefulLifeMonthsField = document.getElementById('useful_life_months');
+    const usefulLifeYearsField  = document.getElementById('useful_life_years');
+    const depEndDateField       = document.getElementById('dep_end_date');
+    const depStartDateField     = document.getElementById('dep_start_date');
+    const depTypeField          = document.getElementById('dep_type');
+
+    assetClassSel.addEventListener('change', function () {
+        const opt = this.options[this.selectedIndex];
+        if (!this.value) return;
+
+        const months = parseInt(opt.dataset.months || '0');
+        usefulLifeMonthsField.value = months;
+        usefulLifeYearsField.value  = months > 0 ? (months / 12).toFixed(2) : 0;
+
+        if (opt.dataset.deptype) {
+            depTypeField.value = opt.dataset.deptype;
+        }
+
+        // Trigger GL account selectors to select by code
+        if (opt.dataset.gl) {
+            window.setGlSelectorValue && window.setGlSelectorValue('fa_gl_account', opt.dataset.gl);
+        }
+        if (opt.dataset.dep) {
+            window.setGlSelectorValue && window.setGlSelectorValue('fa_dep_account', opt.dataset.dep);
+        }
+
+        recalcDepEndDate();
+    });
+
+    depStartDateField.addEventListener('change', recalcDepEndDate);
+    usefulLifeMonthsField.addEventListener('input', recalcDepEndDate);
+
+    function recalcDepEndDate() {
+        const startVal = depStartDateField.value;
+        const months   = parseInt(usefulLifeMonthsField.value || '0');
+        if (!startVal || months <= 0) return;
+
+        const start = new Date(startVal);
+        start.setMonth(start.getMonth() + months);
+        const y = start.getFullYear();
+        const m = String(start.getMonth() + 1).padStart(2, '0');
+        const d = String(start.getDate()).padStart(2, '0');
+        depEndDateField.value = `${y}-${m}-${d}`;
     }
 
-    // Show dropdown on focus
-    searchInput.addEventListener('focus', function () {
-        filterOptions(this.value.toLowerCase());
-        dropdown.classList.remove('hidden');
-    });
-
-    // Filter while typing
-    searchInput.addEventListener('input', function () {
-        filterOptions(this.value.toLowerCase());
-        dropdown.classList.remove('hidden');
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function (e) {
-        if (!searchInput.closest('.acct-search-container').contains(e.target)) {
-            dropdown.classList.add('hidden');
-        }
-    });
-
-    // Initial bind
-    bindOptionClicks();
+    // Init filter on load
+    filterClasses(assetGroupSel.value);
 })();
 </script>
+@include('partials.gl_account_selector_js')
 @endsection

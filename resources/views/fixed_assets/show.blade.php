@@ -253,6 +253,17 @@
                         <p class="text-xs text-gray-500 mt-1">You can edit this amount if different from net book value</p>
                     </div>
                     <div>
+                        <label class="block font-semibold text-gray-700 mb-2">Gain/Loss GL Account</label>
+                        @include('partials.gl_account_selector', [
+                            'field'      => 'gain_loss_gl_account',
+                            'label'      => '',
+                            'uid'        => 'disposal_gl',
+                            'value'      => '703000002',
+                            'glAccounts' => $glAccounts,
+                        ])
+                        <p class="text-xs text-gray-500 mt-1">Default: 703000002 — Gain/Loss on Retirement of Fixed Assets</p>
+                    </div>
+                    <div>
                         <label class="block font-semibold text-gray-700 mb-2">Reason for Disposal *</label>
                         <textarea name="disposal_reason" required rows="4"
                                   class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
@@ -272,4 +283,5 @@
         </div>
     </div>
 </div>
+@include('partials.gl_account_selector_js')
 @endsection

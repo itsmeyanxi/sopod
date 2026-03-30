@@ -60,13 +60,18 @@ class ARAdjustment extends Model
     }
 
     /**
-     * Get the receiving report if linked (via receiving_report_id, fallback to DR number)
+     * Get the receiving report by ID
      */
     public function receivingReport()
     {
-        if ($this->receiving_report_id) {
-            return $this->belongsTo(ReceivingReport::class, 'receiving_report_id');
-        }
+        return $this->belongsTo(ReceivingReport::class, 'receiving_report_id');
+    }
+
+    /**
+     * Get the receiving report by DR number (fallback)
+     */
+    public function receivingReportByDr()
+    {
         return $this->belongsTo(ReceivingReport::class, 'dr_no', 'delivery_batch');
     }
 
@@ -107,25 +112,25 @@ class ARAdjustment extends Model
     // }
 
     public function getFormattedTypeAttribute()
-{
-    return match($this->transaction_type) {
-        'debit_memo' => 'Debit Memo',
-        'credit_memo' => 'Credit Memo',
-        'sales_return_allowances' => 'Sales Return and Allowances',
-        'price_adjustment' => 'Price Adjustment',
-        'rebates' => 'Rebates',
-        'distribution_fees' => 'Distribution Fees',
-        'penalty' => 'Penalty',
-        'promotional_expenses' => 'Promotional Expenses',
-        'small_balance_adjustment' => 'Small balance adjustment',
-        'atd' => 'ATD',
-        'offset' => 'Offset',
-        default => ucfirst(str_replace('_', ' ', $this->transaction_type))
-    };
-}
+    {
+        return match($this->transaction_type) {
+            'debit_memo' => 'Debit Memo',
+            'credit_memo' => 'Credit Memo',
+            'sales_return_allowances' => 'Sales Return and Allowances',
+            'price_adjustment' => 'Price Adjustment',
+            'rebates' => 'Rebates',
+            'distribution_fees' => 'Distribution Fees',
+            'penalty' => 'Penalty',
+            'promotional_expenses' => 'Promotional Expenses',
+            'small_balance_adjustment' => 'Small balance adjustment',
+            'atd' => 'ATD',
+            'offset' => 'Offset',
+            default => ucfirst(str_replace('_', ' ', $this->transaction_type))
+        };
+    }
 
-public function getAbsoluteAmountAttribute()
-{
-    return abs($this->amount);
-}
+    public function getAbsoluteAmountAttribute()
+    {
+        return abs($this->amount ?? 0);
+    }
 }

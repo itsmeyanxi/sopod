@@ -845,6 +845,7 @@ private $arAdjustmentColumnMap = [
                 'status' => 'status',
                 'include' => 'include_flag', 'include_flag' => 'include_flag', 'includeflag' => 'include_flag',
                 'ar_class' => 'ar_class', 'arclass' => 'ar_class',
+                'remarks' => 'remarks',
                 // Columns to skip (map to null/ignore)
                 'adjusted_aging' => '_skip', 'adjustedaging' => '_skip',
             ];
@@ -899,7 +900,7 @@ private $arAdjustmentColumnMap = [
                     'net_of_cwt', 'net_ar_balance', 'factored_ar_amount',
                     'ewt', 'annual', 'factoring', 'factoring_interest',
                     'others_particulars', 'others_amount', 'check_amount',
-                    'status', 'include_flag', 'ar_class'
+                    'status', 'include_flag', 'ar_class', 'remarks'
                 ];
 
                 $hasAnyData = false;

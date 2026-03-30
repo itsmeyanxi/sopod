@@ -28,19 +28,35 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Asset Group <span class="text-red-700">*</span></label>
-                    <select name="asset_group" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <select name="asset_group" id="asset_group" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                         @foreach($assetGroups as $group)
                             <option value="{{ $group }}" {{ old('asset_group', $asset->asset_group) == $group ? 'selected' : '' }}>{{ $group }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Code</label>
-                    <input type="text" name="asset_code" value="{{ old('asset_code', $asset->asset_code) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Class</label>
+                    <select name="asset_class" id="asset_class_select" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                        <option value="">-- Select --</option>
+                        @foreach($assetClasses as $ac)
+                            <option value="{{ $ac->asset_class }}"
+                                data-group="{{ $ac->asset_group }}"
+                                data-months="{{ $ac->useful_life_months }}"
+                                data-gl="{{ $ac->gl_account }}"
+                                data-dep="{{ $ac->depreciation_account }}"
+                                data-deptype="{{ $ac->dep_type }}"
+                                {{ old('asset_class', $asset->asset_class) == $ac->asset_class ? 'selected' : '' }}>
+                                {{ $ac->asset_class }}
+                            </option>
+                        @endforeach
+                        @if($asset->asset_class && !$assetClasses->contains('asset_class', $asset->asset_class))
+                            <option value="{{ $asset->asset_class }}" selected>{{ $asset->asset_class }}</option>
+                        @endif
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Class</label>
-                    <input type="text" name="asset_class" value="{{ old('asset_class', $asset->asset_class) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Code</label>
+                    <input type="text" name="asset_code" value="{{ old('asset_code', $asset->asset_code) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
@@ -77,11 +93,11 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Dep. Start Date</label>
-                    <input type="date" name="dep_start_date" value="{{ old('dep_start_date', $asset->dep_start_date?->format('Y-m-d')) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="date" name="dep_start_date" id="dep_start_date" value="{{ old('dep_start_date', $asset->dep_start_date?->format('Y-m-d')) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Dep. End Date</label>
-                    <input type="date" name="dep_end_date" value="{{ old('dep_end_date', $asset->dep_end_date?->format('Y-m-d')) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <label class="block text-sm font-medium text-gray-500 mb-1">Dep. End Date <span class="text-xs text-blue-500">(auto)</span></label>
+                    <input type="date" name="dep_end_date" id="dep_end_date" value="{{ old('dep_end_date', $asset->dep_end_date?->format('Y-m-d')) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
@@ -108,8 +124,8 @@
                     <input type="number" name="salvage_value" value="{{ old('salvage_value', $asset->salvage_value) }}" step="0.01" min="0" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Useful Life (Years) <span class="text-red-700">*</span></label>
-                    <input type="number" name="useful_life_years" value="{{ old('useful_life_years', $asset->useful_life_years) }}" step="0.01" min="0" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <label class="block text-sm font-medium text-gray-500 mb-1">Useful Life (Months) <span class="text-red-700">*</span></label>
+                    <input type="number" name="useful_life_months" id="useful_life_months" value="{{ old('useful_life_months', $asset->useful_life_months) }}" min="0" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
@@ -135,14 +151,8 @@
             <!-- Accounting -->
             <h3 class="text-lg font-semibold text-gray-700 mb-3">Accounting</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">GL Account</label>
-                    <input type="text" name="gl_account" value="{{ old('gl_account', $asset->gl_account) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Depreciation Account</label>
-                    <input type="text" name="depreciation_account" value="{{ old('depreciation_account', $asset->depreciation_account) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
-                </div>
+                @include('partials.gl_account_selector', ['field' => 'gl_account',           'label' => 'GL Account',           'uid' => 'fa_gl_account',  'value' => old('gl_account',           $asset->gl_account),           'glAccounts' => $glAccounts])
+                @include('partials.gl_account_selector', ['field' => 'depreciation_account', 'label' => 'Depreciation Account', 'uid' => 'fa_dep_account', 'value' => old('depreciation_account', $asset->depreciation_account), 'glAccounts' => $glAccounts])
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Cost Center</label>
                     <input type="text" name="cost_center_name" value="{{ old('cost_center_name', $asset->cost_center_name) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
@@ -173,7 +183,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Dep. Type</label>
-                    <select name="dep_type" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <select name="dep_type" id="dep_type" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
                         <option value="Straight Line" {{ old('dep_type', $asset->dep_type) == 'Straight Line' ? 'selected' : '' }}>Straight Line</option>
                         <option value="Declining Balance" {{ old('dep_type', $asset->dep_type) == 'Declining Balance' ? 'selected' : '' }}>Declining Balance</option>
                     </select>
@@ -189,4 +199,60 @@
         </form>
     </div>
 </div>
+
+<script>
+(function () {
+    const assetGroupSel  = document.getElementById('asset_group');
+    const assetClassSel  = document.getElementById('asset_class_select');
+    const allClassOptions = Array.from(assetClassSel.options);
+    const usefulLifeMonthsField = document.getElementById('useful_life_months');
+    const depEndDateField       = document.getElementById('dep_end_date');
+    const depStartDateField     = document.getElementById('dep_start_date');
+    const depTypeField          = document.getElementById('dep_type');
+
+    function filterClasses(group) {
+        const current = assetClassSel.value;
+        assetClassSel.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '-- Select --';
+        assetClassSel.appendChild(placeholder);
+        allClassOptions.forEach(opt => {
+            if (!opt.value) return;
+            if (!group || opt.dataset.group === group) {
+                assetClassSel.appendChild(opt.cloneNode(true));
+            }
+        });
+        assetClassSel.value = current;
+    }
+
+    assetGroupSel.addEventListener('change', function () { filterClasses(this.value); });
+
+    assetClassSel.addEventListener('change', function () {
+        const opt = this.options[this.selectedIndex];
+        if (!this.value || !opt.dataset.months) return;
+        const months = parseInt(opt.dataset.months || '0');
+        usefulLifeMonthsField.value = months;
+        if (opt.dataset.deptype) depTypeField.value = opt.dataset.deptype;
+        if (opt.dataset.gl) window.setGlSelectorValue && window.setGlSelectorValue('fa_gl_account', opt.dataset.gl);
+        if (opt.dataset.dep) window.setGlSelectorValue && window.setGlSelectorValue('fa_dep_account', opt.dataset.dep);
+        recalcDepEndDate();
+    });
+
+    depStartDateField.addEventListener('change', recalcDepEndDate);
+    usefulLifeMonthsField.addEventListener('input', recalcDepEndDate);
+
+    function recalcDepEndDate() {
+        const startVal = depStartDateField.value;
+        const months   = parseInt(usefulLifeMonthsField.value || '0');
+        if (!startVal || months <= 0) return;
+        const start = new Date(startVal);
+        start.setMonth(start.getMonth() + months);
+        depEndDateField.value = start.toISOString().slice(0, 10);
+    }
+
+    filterClasses(assetGroupSel.value);
+})();
+</script>
+@include('partials.gl_account_selector_js')
 @endsection

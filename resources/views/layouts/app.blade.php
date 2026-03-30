@@ -340,25 +340,29 @@
         </div>
         @endif
 
-        <!-- =================== TREASURY =================== -->
-        @if(auth()->user()->canAccessModule('treasury') || auth()->user()->canAccessModule('cv'))
+        <!-- =================== BANKING =================== -->
+        @if(auth()->user()->canAccessModule('treasury') || auth()->user()->canAccessModule('cv') || auth()->user()->canAccessCollections() || auth()->user()->canAccessModule('loans'))
         <div>
             <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                 <span class="flex items-center space-x-2">
                     <span>🏦</span>
-                    <span class="sidebar-text">Treasury</span>
+                    <span class="sidebar-text">Banking</span>
                 </span>
                 <span class="chevron">▼</span>
             </button>
             <div class="submenu ml-8 space-y-1 hidden">
+                @if(auth()->user()->canAccessCollections())
+                    <a href="{{ route('payments.entry') }}" class="block hover:underline">Cash Receipts</a>
+                @endif
+                @if(auth()->user()->canAccessModule('cv'))
+                    <a href="{{ route('check_vouchers.index') }}" class="block hover:underline">Cash Disbursements</a>
+                @endif
+                @if(auth()->user()->canAccessModule('loans'))
+                    <a href="{{ route('loans.index') }}" class="block hover:underline">Loans</a>
+                @endif
                 @if(auth()->user()->canAccessModule('treasury'))
                     <a href="{{ route('treasury.confirmation') }}" class="block hover:underline">Payment Confirmation</a>
                     <a href="{{ route('treasury.summary') }}" class="block hover:underline">Treasury Summary</a>
-                @endif
-                @if(auth()->user()->canAccessModule('cv'))
-                    <a href="{{ route('check_vouchers.index') }}" class="block hover:underline">Check Voucher (CV)</a>
-                @endif
-                @if(auth()->user()->canAccessModule('treasury'))
                     <a href="{{ route('treasury.banks', 'peso') }}" class="block hover:underline">Peso Accounts</a>
                     <a href="{{ route('treasury.banks', 'dollar') }}" class="block hover:underline">Dollar Accounts</a>
                 @endif
@@ -530,7 +534,7 @@
         @endif
 
         <!-- =================== ACCOUNTING =================== -->
-        @if(auth()->user()->canAccessModule('gl_accounts') || auth()->user()->canAccessModule('fixed_assets') || auth()->user()->canAccessModule('journal_vouchers'))
+        @if(auth()->user()->canAccessModule('gl_accounts') || auth()->user()->canAccessModule('fixed_assets') || auth()->user()->canAccessModule('journal_vouchers') || auth()->user()->canAccessModule('depreciation_runs') || auth()->user()->canAccessModule('asset_classes'))
             <div>
                 <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                     <span class="flex items-center space-x-2">
@@ -543,10 +547,19 @@
                     @if(auth()->user()->canAccessModule('gl_accounts'))
                         <a href="{{ route('gl_accounts.index') }}" class="block hover:underline">Chart of Accounts</a>
                     @endif
+                    @if(auth()->user()->canAccessModule('asset_classes'))
+                        <a href="{{ route('asset_classes.index') }}" class="block hover:underline">Asset Classes</a>
+                    @endif
                     @if(auth()->user()->canAccessModule('fixed_assets'))
                         <a href="{{ route('fixed_assets.index') }}" class="block hover:underline">Fixed Asset Capitalization</a>
                         <a href="{{ route('fixed_assets.summary') }}" class="block hover:underline">Lapsing Schedule</a>
                         <a href="{{ route('disposals.index') }}" class="block hover:underline">Disposals</a>
+                        <a href="{{ route('fixed_assets.report_depreciation') }}" class="block hover:underline text-xs pl-2">Depreciation Report</a>
+                        <a href="{{ route('fixed_assets.report_transactions') }}" class="block hover:underline text-xs pl-2">Asset Transaction Summary</a>
+                        <a href="{{ route('fixed_assets.report_cost_center') }}" class="block hover:underline text-xs pl-2">Assets by Cost Center</a>
+                    @endif
+                    @if(auth()->user()->canAccessModule('depreciation_runs'))
+                        <a href="{{ route('depreciation_runs.index') }}" class="block hover:underline">Depreciation Run</a>
                     @endif
                     @if(auth()->user()->canAccessModule('journal_vouchers'))
                         <a href="{{ route('journal_vouchers.index') }}" class="block hover:underline">Journal Vouchers</a>
