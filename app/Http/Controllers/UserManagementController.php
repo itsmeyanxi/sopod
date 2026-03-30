@@ -12,7 +12,7 @@ use App\Helpers\RoleHelper;
 class UserManagementController extends Controller
 {
     /**
-     * Display list of all users (IT only - for user list page).
+     * Display list of all users.
      */
     public function index()
     {
@@ -37,7 +37,7 @@ class UserManagementController extends Controller
     }
 
     /**
-     * Store a newly created user in the database.
+     * Store a newly created user.
      */
     public function store(Request $request)
     {
@@ -47,27 +47,27 @@ class UserManagementController extends Controller
 
         try {
             $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users',
+                'name'     => 'required|string|max:255',
+                'email'    => 'required|email|unique:users',
                 'password' => 'required|min:6',
             ]);
 
             $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => $request->password,
-                'roles' => ['User'],
-                'role' => 'User',
+                'name'           => $request->name,
+                'email'          => $request->email,
+                'password'       => $request->password,
+                'roles'          => ['User'],
+                'role'           => 'User',
                 'login_attempts' => 0,
             ]);
 
             Activity::create([
                 'user_name' => auth()->user()->name,
-                'action' => 'Created',
-                'item' => $user->name,
-                'target' => 'User Account',
-                'type' => 'User Management',
-                'message' => "User account created",
+                'action'    => 'Created',
+                'item'      => $user->name,
+                'target'    => 'User Account',
+                'type'      => 'User Management',
+                'message'   => 'User account created',
             ]);
 
             return redirect()->route('admin.users.create')
@@ -75,7 +75,7 @@ class UserManagementController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Error creating user: ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error creating account: ' . $e->getMessage());
@@ -91,14 +91,14 @@ class UserManagementController extends Controller
             return RoleHelper::unauthorized();
         }
 
-        $user = User::with(['lockedBy', 'moduleOverrides'])->findOrFail($id);
+        $user      = User::with(['lockedBy', 'moduleOverrides'])->findOrFail($id);
         $overrides = $user->moduleOverrides->keyBy('module');
 
         return view('admin.users.edit', compact('user', 'overrides'));
     }
 
     /**
-     * Update the user in the database.
+     * Update the user.
      */
     public function update(Request $request, $id)
     {
@@ -109,41 +109,41 @@ class UserManagementController extends Controller
         try {
             $user = User::findOrFail($id);
 
-            // Check if this is a password reset from the user list
+            // Password reset from user list
             if ($request->has('password_reset')) {
                 $request->validate([
                     'password' => 'required|min:6',
                 ]);
 
-                $user->password = $request->password;
+                $user->password       = $request->password;
                 $user->login_attempts = 0;
                 $user->save();
 
                 Activity::create([
                     'user_name' => auth()->user()->name,
-                    'action' => 'Reset Password',
-                    'item' => $user->name,
-                    'target' => 'User Account',
-                    'type' => 'User Management',
-                    'message' => "Password reset by " . auth()->user()->name,
+                    'action'    => 'Reset Password',
+                    'item'      => $user->name,
+                    'target'    => 'User Account',
+                    'type'      => 'User Management',
+                    'message'   => 'Password reset by ' . auth()->user()->name,
                 ]);
 
                 return redirect()->route('admin.users.index')
                     ->with('success', 'Password reset successfully! Login attempts have been cleared.');
             }
 
-            // Normal update flow
+            // Normal update
             $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email,' . $id,
+                'name'     => 'required|string|max:255',
+                'email'    => 'required|email|unique:users,email,' . $id,
                 'password' => 'nullable|min:6',
             ]);
 
-            $user->name = $request->name;
+            $user->name  = $request->name;
             $user->email = $request->email;
 
             if ($request->filled('password')) {
-                $user->password = $request->password;
+                $user->password       = $request->password;
                 $user->login_attempts = 0;
             }
 
@@ -151,11 +151,11 @@ class UserManagementController extends Controller
 
             Activity::create([
                 'user_name' => auth()->user()->name,
-                'action' => 'Updated',
-                'item' => $user->name,
-                'target' => 'User Account',
-                'type' => 'User Management',
-                'message' => "User account updated",
+                'action'    => 'Updated',
+                'item'      => $user->name,
+                'target'    => 'User Account',
+                'type'      => 'User Management',
+                'message'   => 'User account updated',
             ]);
 
             return redirect()->route('admin.users.index')
@@ -163,7 +163,7 @@ class UserManagementController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Error updating user: ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error updating account: ' . $e->getMessage());
@@ -182,7 +182,6 @@ class UserManagementController extends Controller
         try {
             $user = User::findOrFail($id);
 
-            // Prevent deleting yourself
             if ($user->id === Auth::id()) {
                 return redirect()->route('admin.users.index')
                     ->with('error', 'You cannot delete your own account!');
@@ -193,11 +192,11 @@ class UserManagementController extends Controller
 
             Activity::create([
                 'user_name' => auth()->user()->name,
-                'action' => 'Deleted',
-                'item' => $userName,
-                'target' => 'User Account',
-                'type' => 'User Management',
-                'message' => "User account deleted by " . auth()->user()->name,
+                'action'    => 'Deleted',
+                'item'      => $userName,
+                'target'    => 'User Account',
+                'type'      => 'User Management',
+                'message'   => 'User account deleted by ' . auth()->user()->name,
             ]);
 
             return redirect()->route('admin.users.index')
@@ -205,7 +204,7 @@ class UserManagementController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Error deleting user: ' . $e->getMessage());
-            
+
             return redirect()->route('admin.users.index')
                 ->with('error', 'Error deleting account: ' . $e->getMessage());
         }
@@ -213,7 +212,12 @@ class UserManagementController extends Controller
 
     /**
      * Set or remove a per-user module access override.
-     * override: 'grant' = always allow, 'deny' = always block, 'default' = remove override
+     * override: 'grant' = always allow, 'default' = remove override
+     *
+     * NOTE: 'deny' has been removed. Access restriction is handled naturally
+     * by sub-department assignments. Grant overrides only ADD extra access
+     * on top of what sub-departments already provide.
+     * IT/Admin users are never affected by overrides.
      */
     public function updateModuleOverride(Request $request, $id)
     {
@@ -223,22 +227,23 @@ class UserManagementController extends Controller
 
         $request->validate([
             'module'   => 'required|string',
-            'override' => 'required|in:default,grant,deny',
+            'override' => 'required|in:default,grant',
         ]);
 
         $user   = User::findOrFail($id);
         $module = $request->module;
 
         if ($request->override === 'default') {
+            // Remove any existing override — sub-dept rules take over
             $user->moduleOverrides()->where('module', $module)->delete();
             $action = 'removed';
         } else {
-            $allowed = $request->override === 'grant';
+            // Grant extra access on top of sub-dept assignment
             $user->moduleOverrides()->updateOrCreate(
                 ['module' => $module],
-                ['allowed' => $allowed]
+                ['allowed' => true]
             );
-            $action = $allowed ? 'granted' : 'denied';
+            $action = 'granted';
         }
 
         Activity::create([
@@ -254,11 +259,10 @@ class UserManagementController extends Controller
     }
 
     /**
-     * Toggle lock/unlock user account
+     * Toggle lock/unlock user account.
      */
     public function toggleLock($user)
     {
-        // If $user is passed as ID (string/int), fetch the model
         if (!$user instanceof \App\Models\User) {
             $user = User::findOrFail($user);
         }
@@ -268,45 +272,41 @@ class UserManagementController extends Controller
         }
 
         try {
-            // Prevent locking yourself
             if ($user->id === Auth::id()) {
                 return redirect()->route('admin.users.index')
                     ->with('error', 'You cannot lock your own account!');
             }
 
-            // ✅ FIX: Check if account is EFFECTIVELY locked (either manually OR via failed attempts)
             $isEffectivelyLocked = $user->is_locked || $user->login_attempts >= 6;
 
             if ($isEffectivelyLocked) {
-                // ✅ UNLOCK THE ACCOUNT - Clear BOTH manual lock AND login attempts
                 $user->update([
-                    'is_locked' => false,
-                    'locked_at' => null,
-                    'locked_by' => null,
-                    'login_attempts' => 0, 
+                    'is_locked'      => false,
+                    'locked_at'      => null,
+                    'locked_by'      => null,
+                    'login_attempts' => 0,
                 ]);
-                
+
                 Activity::create([
                     'user_name' => auth()->user()->name,
-                    'action' => 'Unlocked',
-                    'item' => $user->name,
-                    'target' => 'User Account',
-                    'type' => 'User Management',
-                    'message' => "Account unlocked by " . auth()->user()->name,
+                    'action'    => 'Unlocked',
+                    'item'      => $user->name,
+                    'target'    => 'User Account',
+                    'type'      => 'User Management',
+                    'message'   => 'Account unlocked by ' . auth()->user()->name,
                 ]);
 
                 \Log::info('Account unlocked', [
-                    'unlocked_user' => $user->name,
-                    'unlocked_by' => auth()->user()->name,
-                    'was_manually_locked' => $user->is_locked,
-                    'had_failed_attempts' => $user->login_attempts,
-                    'login_attempts_reset' => true,
+                    'unlocked_user'          => $user->name,
+                    'unlocked_by'            => auth()->user()->name,
+                    'was_manually_locked'    => $user->is_locked,
+                    'had_failed_attempts'    => $user->login_attempts,
+                    'login_attempts_reset'   => true,
                 ]);
 
                 return redirect()->route('admin.users.index')
                     ->with('success', "Account for {$user->name} has been unlocked! Login attempts have been reset.");
             } else {
-                // ✅ LOCK THE ACCOUNT
                 $user->update([
                     'is_locked' => true,
                     'locked_at' => now(),
@@ -315,17 +315,17 @@ class UserManagementController extends Controller
 
                 Activity::create([
                     'user_name' => auth()->user()->name,
-                    'action' => 'Locked',
-                    'item' => $user->name,
-                    'target' => 'User Account',
-                    'type' => 'User Management',
-                    'message' => "Account locked by " . auth()->user()->name,
+                    'action'    => 'Locked',
+                    'item'      => $user->name,
+                    'target'    => 'User Account',
+                    'type'      => 'User Management',
+                    'message'   => 'Account locked by ' . auth()->user()->name,
                 ]);
 
                 \Log::warning('Account locked', [
                     'locked_user' => $user->name,
-                    'locked_by' => auth()->user()->name,
-                    'reason' => 'Manual lock by administrator',
+                    'locked_by'   => auth()->user()->name,
+                    'reason'      => 'Manual lock by administrator',
                 ]);
 
                 return redirect()->route('admin.users.index')
@@ -335,9 +335,9 @@ class UserManagementController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error toggling account lock: ' . $e->getMessage(), [
                 'user_id' => $user->id ?? 'unknown',
-                'trace' => $e->getTraceAsString()
+                'trace'   => $e->getTraceAsString(),
             ]);
-            
+
             return redirect()->route('admin.users.index')
                 ->with('error', 'Error toggling account lock: ' . $e->getMessage());
         }
