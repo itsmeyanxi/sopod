@@ -102,7 +102,7 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 text-sm">
-                        <span class="text-gray-500">{{ $fieldDisplay }}</span>
+                        <span class="text-gray-300">{{ $fieldDisplay }}</span>
                     </td>
                     <td class="px-6 py-4 text-sm">
                         <div class="max-w-md">

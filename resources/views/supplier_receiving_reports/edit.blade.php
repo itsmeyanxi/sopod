@@ -89,22 +89,22 @@
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="report_type" value="purchased" {{ old('report_type', $report->report_type) == 'purchased' ? 'checked' : '' }}
                                     class="text-purple-500 focus:ring-purple-500">
-                                <span class="text-gray-500">Purchased</span>
+                                <span class="text-gray-300">Purchased</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="report_type" value="stock_transfer" {{ old('report_type', $report->report_type) == 'stock_transfer' ? 'checked' : '' }}
                                     class="text-purple-500 focus:ring-purple-500">
-                                <span class="text-gray-500">Stock Transfer</span>
+                                <span class="text-gray-300">Stock Transfer</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="report_type" value="backload" {{ old('report_type', $report->report_type) == 'backload' ? 'checked' : '' }}
                                     class="text-purple-500 focus:ring-purple-500">
-                                <span class="text-gray-500">Backload</span>
+                                <span class="text-gray-300">Backload</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="report_type" value="returned" {{ old('report_type', $report->report_type) == 'returned' ? 'checked' : '' }}
                                     class="text-purple-500 focus:ring-purple-500">
-                                <span class="text-gray-500">Returned</span>
+                                <span class="text-gray-300">Returned</span>
                             </label>
                         </div>
                     </div>

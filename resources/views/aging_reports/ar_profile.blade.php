@@ -27,18 +27,18 @@
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-blue-700 mb-3">Customer Details</h3>
                 <div class="space-y-2 text-sm">
-                    <div><span class="text-gray-500">Name:</span> <span class="text-white font-medium">{{ $customerInfo['customer_name'] }}</span></div>
-                    <div><span class="text-gray-500">Code:</span> <span class="text-gray-200">{{ $customerInfo['customer_code'] }}</span></div>
-                    <div><span class="text-gray-500">Branch:</span> <span class="text-gray-200">{{ $customerInfo['branch'] }}</span></div>
+                    <div><span class="text-gray-300">Name:</span> <span class="text-white font-medium">{{ $customerInfo['customer_name'] }}</span></div>
+                    <div><span class="text-gray-300">Code:</span> <span class="text-gray-200">{{ $customerInfo['customer_code'] }}</span></div>
+                    <div><span class="text-gray-300">Branch:</span> <span class="text-gray-200">{{ $customerInfo['branch'] }}</span></div>
                 </div>
             </div>
 
             <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-purple-700 mb-3">Sales Information</h3>
                 <div class="space-y-2 text-sm">
-                    <div><span class="text-gray-500">SE:</span> <span class="text-white font-medium">{{ $customerInfo['sales_executive'] }}</span></div>
-                    <div><span class="text-gray-500">SE2:</span> <span class="text-gray-200">{{ $customerInfo['se2'] }}</span></div>
-                    <div><span class="text-gray-500">Terms:</span> <span class="text-gray-200">{{ $customerInfo['terms'] }}</span></div>
+                    <div><span class="text-gray-300">SE:</span> <span class="text-white font-medium">{{ $customerInfo['sales_executive'] }}</span></div>
+                    <div><span class="text-gray-300">SE2:</span> <span class="text-gray-200">{{ $customerInfo['se2'] }}</span></div>
+                    <div><span class="text-gray-300">Terms:</span> <span class="text-gray-200">{{ $customerInfo['terms'] }}</span></div>
                 </div>
             </div>
 

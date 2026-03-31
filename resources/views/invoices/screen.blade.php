@@ -463,7 +463,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const distributionHTML = `
             <div>
                 <div class="flex justify-between text-sm mb-1">
-                    <span class="text-gray-500">Current</span>
+                    <span class="text-gray-300">Current</span>
                     <span class="text-white font-semibold">${((totals.current / total) * 100).toFixed(1)}%</span>
                 </div>
                 <div class="w-full bg-gray-800 rounded-full h-3">
@@ -472,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div>
                 <div class="flex justify-between text-sm mb-1">
-                    <span class="text-gray-500">1-30 days</span>
+                    <span class="text-gray-300">1-30 days</span>
                     <span class="text-white font-semibold">${((totals['1_30'] / total) * 100).toFixed(1)}%</span>
                 </div>
                 <div class="w-full bg-gray-800 rounded-full h-3">
@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div>
                 <div class="flex justify-between text-sm mb-1">
-                    <span class="text-gray-500">31-60 days</span>
+                    <span class="text-gray-300">31-60 days</span>
                     <span class="text-white font-semibold">${((totals['31_60'] / total) * 100).toFixed(1)}%</span>
                 </div>
                 <div class="w-full bg-gray-800 rounded-full h-3">
@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div>
                 <div class="flex justify-between text-sm mb-1">
-                    <span class="text-gray-500">61-90 days</span>
+                    <span class="text-gray-300">61-90 days</span>
                     <span class="text-white font-semibold">${((totals['61_90'] / total) * 100).toFixed(1)}%</span>
                 </div>
                 <div class="w-full bg-gray-800 rounded-full h-3">
@@ -499,7 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div>
                 <div class="flex justify-between text-sm mb-1">
-                    <span class="text-gray-500">91-120 days</span>
+                    <span class="text-gray-300">91-120 days</span>
                     <span class="text-white font-semibold">${((totals['91_120'] / total) * 100).toFixed(1)}%</span>
                 </div>
                 <div class="w-full bg-gray-800 rounded-full h-3">
@@ -508,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div>
                 <div class="flex justify-between text-sm mb-1">
-                    <span class="text-gray-500">>120 days</span>
+                    <span class="text-gray-300">>120 days</span>
                     <span class="text-white font-semibold">${((totals.over_120 / total) * 100).toFixed(1)}%</span>
                 </div>
                 <div class="w-full bg-gray-800 rounded-full h-3">

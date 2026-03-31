@@ -89,7 +89,7 @@
                 <div class="space-y-2">
                     @foreach($warehouse->documents as $doc)
                     <div class="flex items-center justify-between bg-gray-800 rounded px-3 py-2">
-                        <span class="text-gray-500"><i class="fas fa-file mr-2 text-purple-700"></i>{{ $doc['name'] }}</span>
+                        <span class="text-gray-300"><i class="fas fa-file mr-2 text-purple-700"></i>{{ $doc['name'] }}</span>
                         <a href="{{ Storage::url($doc['path']) }}" target="_blank" class="text-blue-700 hover:text-blue-700 text-sm"><i class="fas fa-download mr-1"></i>View</a>
                     </div>
                     @endforeach

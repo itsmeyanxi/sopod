@@ -132,7 +132,7 @@
                     <div id="exchange_rate_row" class="{{ old('currency', 'PHP') === 'PHP' ? 'hidden' : '' }}">
                         <label class="block font-semibold text-gray-500 mb-1">EXCHANGE RATE <span class="text-gray-500 text-xs" id="rate_label">(1 USD = ? PHP)</span>:</label>
                         <div class="flex items-center gap-2">
-                            <span class="text-gray-500">₱</span>
+                            <span class="text-gray-300">₱</span>
                             <input type="number" step="0.0001" name="exchange_rate" id="exchange_rate" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('exchange_rate', 1) }}">
                         </div>
                         <p class="text-gray-500 text-xs mt-1">Auto-filled from current rate. You may override.</p>
@@ -295,15 +295,15 @@
                     <h3 class="font-semibold text-purple-700 mb-2">PHP Equivalent Summary</h3>
                     <div class="flex flex-wrap gap-6 text-sm">
                         <div>
-                            <span class="text-gray-500">Total (<span id="summary_currency">USD</span>):</span>
+                            <span class="text-gray-300">Total (<span id="summary_currency">USD</span>):</span>
                             <span class="text-white font-bold ml-2" id="summary_foreign_total">0.00</span>
                         </div>
                         <div>
-                            <span class="text-gray-500">Exchange Rate:</span>
+                            <span class="text-gray-300">Exchange Rate:</span>
                             <span class="text-white ml-2">1 <span id="summary_code">USD</span> = ₱<span id="summary_rate">0.00</span></span>
                         </div>
                         <div>
-                            <span class="text-gray-500">Total (PHP):</span>
+                            <span class="text-gray-300">Total (PHP):</span>
                             <span class="text-green-700 font-bold ml-2">₱<span id="summary_php_total">0.00</span></span>
                         </div>
                     </div>

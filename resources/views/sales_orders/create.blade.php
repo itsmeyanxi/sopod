@@ -40,7 +40,7 @@
 
             <!-- Searchable Customer Code Dropdown -->
         <div class="mb-4">
-            <label for="customer_code" class="block text-sm font-medium text-gray-500 mb-1">
+            <label for="customer_code" class="block text-sm font-medium text-gray-400 mb-1">
                 Customer Code <span class="text-red-500">*</span>
             </label>
             <div class="relative customer-search-container">
@@ -58,7 +58,7 @@
                 
                 <!-- Dropdown Container -->
                 <div id="customer_dropdown" class="absolute z-[9999] w-full bg-gray-800 border-2 border-gray-600 rounded-lg mt-1 shadow-2xl hidden max-h-80 overflow-y-auto">
-                    <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-500 font-semibold border-b border-gray-600">
+                    <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-300 font-semibold border-b border-gray-600">
                         Select a customer
                     </div>
                     @foreach($customers as $customer)
@@ -69,8 +69,8 @@
                                 data-name="{{ $customer->customer_name }}"
                                 data-search="{{ strtolower($customer->customer_code . ' ' . $customer->customer_name) }}">
                                 <div class="font-semibold text-base mb-1">{{ $customer->customer_code }}</div>
-                                <div class="text-sm text-gray-500">{{ $customer->customer_name }}</div>
-                                <div class="text-sm text-gray-500">{{ $customer->branch }}</div>
+                                <div class="text-sm text-gray-300">{{ $customer->customer_name }}</div>
+                                <div class="text-sm text-gray-300">{{ $customer->branch }}</div>
                             </div>
                         @endif
                     @endforeach
@@ -83,43 +83,43 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label for="customer_name" class="block text-sm font-medium text-gray-500 mb-1">Customer Name</label>
+                    <label for="customer_name" class="block text-sm font-medium text-gray-400 mb-1">Customer Name</label>
                     <input type="text" id="customer_name" name="customer_name" readonly
                         class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500" />
                 </div>
                 <div>
-                    <label for="business_style" class="block text-sm font-medium text-gray-500 mb-1">Business Style</label>
+                    <label for="business_style" class="block text-sm font-medium text-gray-400 mb-1">Business Style</label>
                     <input type="text" id="business_style" name="business_style" readonly
                         class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500" />
                 </div>
             </div>
 
             <div class="mt-4">
-                <label for="billing_address" class="block text-sm font-medium text-gray-500 mb-1">Billing Address</label>
+                <label for="billing_address" class="block text-sm font-medium text-gray-400 mb-1">Billing Address</label>
                 <input type="text" id="billing_address" name="billing_address" readonly
                     class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500" />
             </div>
 
             <div class="mt-4">
-                <label for="tin_no" class="block text-sm font-medium text-gray-500 mb-1">TIN</label>
+                <label for="tin_no" class="block text-sm font-medium text-gray-400 mb-1">TIN</label>
                 <input type="text" id="tin_no" name="tin_no" readonly
                     class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500" />
             </div>
 
             <div class="mt-4">
-                <label for="shipping_address" class="block text-sm font-medium text-gray-500 mb-1">Shipping Address</label>
+                <label for="shipping_address" class="block text-sm font-medium text-gray-400 mb-1">Shipping Address</label>
                 <input type="text" id="shipping_address" name="shipping_address" 
                     class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500" />
             </div>
 
             <div class="mb-4">
-                <label for="sales_rep" class="block text-sm font-medium text-gray-500 mb-1">Sales Representative</label>
+                <label for="sales_rep" class="block text-sm font-medium text-gray-400 mb-1">Sales Representative</label>
                 <input type="text" id="sales_rep" name="sales_rep" readonly
                   class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div class="mt-4">
-                <label for="additional_instructions" class="block text-sm font-medium text-gray-500 mb-1">Additional Delivery Instructions</label>
+                <label for="additional_instructions" class="block text-sm font-medium text-gray-400 mb-1">Additional Delivery Instructions</label>
                 <textarea id="additional_instructions" name="additional_instructions" rows="2"
                     class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500"></textarea>
             </div>
@@ -214,7 +214,7 @@
                                         </svg>
                                     </div>
                                     <div class="item-dropdown absolute z-[9999] w-full bg-gray-800 border-2 border-gray-600 rounded-lg mt-1 shadow-2xl hidden max-h-80 overflow-y-auto" style="position: absolute; left: 0;">
-                                        <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-500 font-semibold border-b border-gray-600">
+                                        <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-300 font-semibold border-b border-gray-600">
                                             Select an item
                                         </div>
                                         @foreach($items as $item)
@@ -229,10 +229,10 @@
                                                     data-price="{{ $item->unit_price }}"
                                                     data-search="{{ strtolower($item->item_description . ' ' . $item->item_code . ' ' . $item->item_category . ' ' . $item->brand) }}">
                                                     <div class="font-semibold text-base mb-1">{{ $item->item_description ?? '' }}</div>
-                                                    <div class="text-sm text-gray-500 flex items-center gap-3">
+                                                    <div class="text-sm text-gray-300 flex items-center gap-3">
                                                         <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">{{ $item->brand ?? '' }}</span>
-                                                        <span class="text-gray-500">{{ $item->item_category ?? '' }}</span>
-                                                        <span class="text-gray-500">Code: {{ $item->item_code ?? '' }}</span>
+                                                        ${1}300${2}{{ $item->item_category ?? '' }}</span>
+                                                        ${1}300${2}Code: {{ $item->item_code ?? '' }}</span>
                                                     </div>
                                                 </div>
                                             @endif
@@ -247,25 +247,25 @@
                                 <input type="hidden" name="items[0][brand]" class="item-brand-hidden">
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
-                                <input type="text" name="items[0][code_display]" class="item-code w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-500" readonly>
+                                <input type="text" name="items[0][code_display]" class="item-code w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
-                                <input type="text" name="items[0][category_display]" class="item-category w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-500" readonly>
+                                <input type="text" name="items[0][category_display]" class="item-category w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
-                                <input type="text" name="items[0][brand_display]" class="item-brand w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-500" readonly>
+                                <input type="text" name="items[0][brand_display]" class="item-brand w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
                                 <input type="number" name="items[0][quantity]" class="item-quantity w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-white" min="0.01" step="0.01" required>
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
-                                <input type="text" name="items[0][unit]" value="Kgs" class="item-unit w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-500 text-center" readonly>
+                                <input type="text" name="items[0][unit]" value="Kgs" class="item-unit w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300 text-center" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
                                 <input type="number" name="items[0][price]" class="item-price w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-white" step="0.01" required>
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
-                                <input type="text" name="items[0][amount]" class="item-amount w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-500" readonly>
+                                <input type="text" name="items[0][amount]" class="item-amount w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300" readonly>
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
                                 <textarea 
@@ -819,7 +819,7 @@ window.validateForm = function() {
             const newRow = document.createElement("tr");
 
             // Build dropdown HTML from items data
-            let dropdownHTML = '<div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-500 font-semibold border-b border-gray-600">Select an item</div>';
+            let dropdownHTML = '<div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-300 font-semibold border-b border-gray-600">Select an item</div>';
             itemsData.forEach(item => {
                 dropdownHTML += `
                     <div 
@@ -832,10 +832,10 @@ window.validateForm = function() {
                         data-price="${item.price}"
                         data-search="${item.search}">
                         <div class="font-semibold text-base mb-1">${item.description}</div>
-                        <div class="text-sm text-gray-500 flex items-center gap-3">
+                        <div class="text-sm text-gray-300 flex items-center gap-3">
                             <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">${item.brand}</span>
-                            <span class="text-gray-500">${item.category}</span>
-                            <span class="text-gray-500">Code: ${item.code}</span>
+                            ${1}300${2}${item.category}</span>
+                            ${1}300${2}Code: ${item.code}</span>
                         </div>
                     </div>
                 `;
@@ -865,25 +865,25 @@ window.validateForm = function() {
                     <input type="hidden" name="items[${rowCount}][brand]" class="item-brand-hidden">
                 </td>
                 <td class="border border-gray-700 px-2 py-1">
-                    <input type="text" name="items[${rowCount}][code_display]" class="item-code w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-500" readonly>
+                    <input type="text" name="items[${rowCount}][code_display]" class="item-code w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300" readonly>
                 </td>
                 <td class="border border-gray-700 px-2 py-1">
-                    <input type="text" name="items[${rowCount}][category_display]" class="item-category w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-500" readonly>
+                    <input type="text" name="items[${rowCount}][category_display]" class="item-category w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300" readonly>
                 </td>
                 <td class="border border-gray-700 px-2 py-1">
-                    <input type="text" name="items[${rowCount}][brand_display]" class="item-brand w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-500" readonly>
+                    <input type="text" name="items[${rowCount}][brand_display]" class="item-brand w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300" readonly>
                 </td>
                 <td class="border border-gray-700 px-2 py-1">
                     <input type="number" name="items[${rowCount}][quantity]" class="item-quantity w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-white" min="0.01" step="0.01" required>
                 </td>
                 <td class="border border-gray-700 px-2 py-1">
-                    <input type="text" name="items[${rowCount}][unit]" value="Kgs" class="item-unit w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-500 text-center" readonly>
+                    <input type="text" name="items[${rowCount}][unit]" value="Kgs" class="item-unit w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300 text-center" readonly>
                 </td>
                 <td class="border border-gray-700 px-2 py-1">
                     <input type="number" name="items[${rowCount}][price]" class="item-price w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-white" step="0.01" required>
                 </td>
                 <td class="border border-gray-700 px-2 py-1">
-                    <input type="text" name="items[${rowCount}][amount]" class="item-amount w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-500" readonly>
+                    <input type="text" name="items[${rowCount}][amount]" class="item-amount w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300" readonly>
                 </td>
                 <td class="border border-gray-700 px-2 py-1">
                     <textarea 

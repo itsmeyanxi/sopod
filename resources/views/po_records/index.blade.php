@@ -247,7 +247,7 @@
                                     @if($record->apv_no)
                                         <span class="text-blue-700">{{ $record->apv_no }}</span>
                                     @else
-                                        <span class="text-gray-500">N/A</span>
+                                        <span class="text-gray-300">N/A</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $record->supplier_name }}</td>

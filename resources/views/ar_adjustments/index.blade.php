@@ -855,7 +855,7 @@ function filterAdjustmentList() {
                     </td>
                     <td class="px-3 py-3 text-sm">${customerDisplay}</td>
                     <td class="px-3 py-3">
-                        ${adj.dr_no ? `<a href="javascript:void(0)" onclick="viewDeliveryByDrNo('${adj.dr_no}')" class="text-blue-700 hover:text-blue-700 font-mono text-sm cursor-pointer">${adj.dr_no}</a>` : '<span class="text-gray-500">N/A</span>'}
+                        ${adj.dr_no ? `<a href="javascript:void(0)" onclick="viewDeliveryByDrNo('${adj.dr_no}')" class="text-blue-700 hover:text-blue-700 font-mono text-sm cursor-pointer">${adj.dr_no}</a>` : '<span class="text-gray-300">N/A</span>'}
                     </td>
                     <td class="px-3 py-3">${drStatusDisplay}</td>
                     <td class="px-3 py-3">

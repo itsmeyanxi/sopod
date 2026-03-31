@@ -201,37 +201,37 @@
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     @if(!empty($bankName))
                     <div>
-                        <span class="text-gray-500">Bank</span>
+                        <span class="text-gray-300">Bank</span>
                         <p class="font-semibold text-white">{{ $bankName }}</p>
                     </div>
                     @endif
                     @if(!empty($checkNumber) && $method === 'check')
                     <div>
-                        <span class="text-gray-500">Check Number</span>
+                        <span class="text-gray-300">Check Number</span>
                         <p class="font-semibold text-white">{{ $checkNumber }}</p>
                     </div>
                     @endif
                     @if(!empty($reference) && $method === 'bank_transfer')
                     <div>
-                        <span class="text-gray-500">Reference No</span>
+                        <span class="text-gray-300">Reference No</span>
                         <p class="font-semibold text-white">{{ $reference }}</p>
                     </div>
                     @endif
                     @if(!empty($dueDate))
                     <div>
-                        <span class="text-gray-500">Due Date</span>
+                        <span class="text-gray-300">Due Date</span>
                         <p class="font-semibold text-white">{{ \Carbon\Carbon::parse($dueDate)->format('M d, Y') }}</p>
                     </div>
                     @endif
                     @if(!empty($glAccount))
                     <div>
-                        <span class="text-gray-500">G/L Account</span>
+                        <span class="text-gray-300">G/L Account</span>
                         <p class="font-semibold text-white">{{ $glAccount }}</p>
                     </div>
                     @endif
                     @if(!empty($meansAmount))
                     <div>
-                        <span class="text-gray-500">Check/Transfer Amount</span>
+                        <span class="text-gray-300">Check/Transfer Amount</span>
                         <p class="font-semibold text-white">₱{{ number_format((float)$meansAmount, 2) }}</p>
                     </div>
                     @endif

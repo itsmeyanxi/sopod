@@ -65,14 +65,14 @@
                                 @if($voucher->check_no)
                                     <span class="text-purple-700">{{ $voucher->check_no }}</span>
                                 @else
-                                    <span class="text-gray-500">Pending</span>
+                                    <span class="text-gray-300">Pending</span>
                                 @endif
                             </td>
                             <td class="px-4 py-2 border-b border-gray-700 text-gray-500">
                                 @if($voucher->apv_no)
                                     <span class="text-blue-700">{{ $voucher->apv_no }}</span>
                                 @else
-                                    <span class="text-gray-500">N/A</span>
+                                    <span class="text-gray-300">N/A</span>
                                 @endif
                             </td>
                             <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $voucher->supplier_name }}</td>

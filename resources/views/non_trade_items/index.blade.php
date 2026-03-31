@@ -93,7 +93,7 @@
                                 @if($item->supplier)
                                     <span class="text-purple-600">{{ $item->supplier->supplier_name }}</span>
                                 @else
-                                    <span class="text-gray-500">-</span>
+                                    <span class="text-gray-300">-</span>
                                 @endif
                             </td>
                             <td class="border border-gray-700 px-3 py-2 text-center">
@@ -132,7 +132,7 @@
         <p class="text-gray-500 text-sm mb-4">
             Supported column headers (order doesn't matter):<br>
             <strong class="text-gray-200">Item Code, Item Description, Group, Brand, UoM, Trading UoM, Conversion, Status</strong><br>
-            <span class="text-gray-500">Optional: <strong>Supplier</strong> column to link items to suppliers.</span><br>
+            <span class="text-gray-300">Optional: <strong>Supplier</strong> column to link items to suppliers.</span><br>
             First row must be the header row — it will be skipped automatically.<br>
             <span class="text-yellow-600">Duplicates (same item code or same name + supplier) will be updated.</span>
         </p>
@@ -164,7 +164,7 @@
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label class="block text-gray-300 text-sm mb-1">Item Code <span class="text-gray-500">(auto-generated if blank)</span></label>
+                    <label class="block text-gray-300 text-sm mb-1">Item Code <span class="text-gray-300">(auto-generated if blank)</span></label>
                     <input type="text" name="item_code" maxlength="100"
                         class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                         placeholder="Leave blank to auto-generate">

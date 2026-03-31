@@ -37,7 +37,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <!-- CR Number -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Collection Receipt Number <span class="text-red-600">*</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Collection Receipt Number <span class="text-red-600">*</span></label>
                     <input type="text" name="collection_receipt_number"
                         value="{{ old('collection_receipt_number', $payment->collection_receipt_number) }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -46,7 +46,7 @@
 
                 <!-- DR No -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">DR Number <span class="text-red-600">*</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">DR Number <span class="text-red-600">*</span></label>
                     <input type="text" name="dr_no"
                         value="{{ old('dr_no', $payment->dr_no) }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -55,7 +55,7 @@
 
                 <!-- Invoice No -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Invoice Number</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Invoice Number</label>
                     <input type="text" name="invoice_no"
                         value="{{ old('invoice_no', $payment->invoice_no) }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -63,7 +63,7 @@
 
                 <!-- CR Date -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Collection Receipt Date <span class="text-red-600">*</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Collection Receipt Date <span class="text-red-600">*</span></label>
                     <input type="date" name="collection_receipt_date"
                         value="{{ old('collection_receipt_date', $payment->collection_receipt_date ? \Carbon\Carbon::parse($payment->collection_receipt_date)->format('Y-m-d') : '') }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -72,7 +72,7 @@
 
                 <!-- Posting Date -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Payment Posting Date <span class="text-red-600">*</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Payment Posting Date <span class="text-red-600">*</span></label>
                     <input type="date" name="payment_posting_date"
                         value="{{ old('payment_posting_date', $payment->payment_posting_date ? \Carbon\Carbon::parse($payment->payment_posting_date)->format('Y-m-d') : '') }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -81,7 +81,7 @@
 
                 <!-- Amount -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Gross Amount <span class="text-red-600">*</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Gross Amount <span class="text-red-600">*</span></label>
                     <input type="number" step="0.01" name="amount"
                         value="{{ old('amount', number_format((float)($payment->gross_amount ?? $payment->amount ?? 0), 2, '.', '')) }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -90,7 +90,7 @@
 
                 <!-- EWT -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">EWT</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">EWT</label>
                     <input type="number" step="0.01" name="tax"
                         value="{{ old('tax', number_format((float)($payment->ewt ?? $payment->tax ?? 0), 2, '.', '')) }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -99,7 +99,7 @@
 
                 <!-- Net -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Net Amount</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Net Amount</label>
                     <input type="number" step="0.01" name="net"
                         value="{{ old('net', number_format((float)($payment->check_amount ?? $payment->net ?? 0), 2, '.', '')) }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -109,7 +109,7 @@
 
             <!-- Payment Method -->
             <div class="mt-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Payment Method <span class="text-red-600">*</span></label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Payment Method <span class="text-red-600">*</span></label>
                 <select name="payment_method"
                     class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required id="edit_payment_method" onchange="togglePaymentFields()">
@@ -121,7 +121,7 @@
 
             <!-- Bank -->
             <div class="mt-4" id="bank_field">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Bank</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Bank</label>
                 <input type="text" name="bank"
                     value="{{ old('bank', $payment->bank ?? $paymentMeans['bank_name'] ?? '') }}"
                     class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -129,7 +129,7 @@
 
             <!-- Reference No -->
             <div class="mt-4" id="reference_field">
-                <label class="block text-sm font-medium text-gray-500 mb-1" id="reference_label">Check Number / Reference</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1" id="reference_label">Check Number / Reference</label>
                 <input type="text" name="reference_no"
                     value="{{ old('reference_no', $payment->reference_no ?? $paymentMeans['check_number'] ?? $paymentMeans['reference'] ?? '') }}"
                     class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -137,7 +137,7 @@
 
             <!-- Notes -->
             <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Payment Notes</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Payment Notes</label>
                 <textarea name="payment_notes" rows="2"
                     class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('payment_notes', $payment->payment_notes) }}</textarea>
             </div>
@@ -145,7 +145,7 @@
             @if(!auth()->user()->canEditPayments())
             <!-- Edit Reason (required for edit requests) -->
             <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Reason for Edit <span class="text-red-600">*</span></label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Reason for Edit <span class="text-red-600">*</span></label>
                 <textarea name="edit_reason" rows="2" required
                     class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Explain why this payment needs to be edited...">{{ old('edit_reason') }}</textarea>
@@ -153,7 +153,7 @@
 
             <!-- File Attachment -->
             <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Attachment (optional)</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Attachment (optional)</label>
                 <input type="file" name="attachment"
                     accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
                     class="w-full bg-gray-900 border border-gray-700 rounded-md p-2 text-gray-200 text-sm file:mr-3 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">

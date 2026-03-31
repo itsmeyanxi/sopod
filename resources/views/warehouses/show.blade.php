@@ -18,13 +18,13 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="bg-gray-900 border border-gray-700 rounded p-4 space-y-3">
                 <h3 class="font-semibold text-white border-b border-gray-700 pb-2">Basic Information</h3>
-                <div><span class="text-gray-500">Code:</span> <span class="ml-2 font-mono text-purple-700">{{ $warehouse->warehouse_code }}</span></div>
-                <div><span class="text-gray-500">Name:</span> <span class="ml-2">{{ $warehouse->warehouse_name }}</span></div>
-                <div><span class="text-gray-500">Address:</span> <span class="ml-2">{{ $warehouse->address ?? '—' }}</span></div>
-                <div><span class="text-gray-500">Email:</span> <span class="ml-2">{{ $warehouse->email ?? '—' }}</span></div>
-                <div><span class="text-gray-500">Contact:</span> <span class="ml-2">{{ $warehouse->contact_number ?? '—' }}</span></div>
-                <div><span class="text-gray-500">TIN:</span> <span class="ml-2">{{ $warehouse->tin ?? '—' }}</span></div>
-                <div><span class="text-gray-500">Status:</span>
+                <div><span class="text-gray-300">Code:</span> <span class="ml-2 font-mono text-purple-700">{{ $warehouse->warehouse_code }}</span></div>
+                <div><span class="text-gray-300">Name:</span> <span class="ml-2">{{ $warehouse->warehouse_name }}</span></div>
+                <div><span class="text-gray-300">Address:</span> <span class="ml-2">{{ $warehouse->address ?? '—' }}</span></div>
+                <div><span class="text-gray-300">Email:</span> <span class="ml-2">{{ $warehouse->email ?? '—' }}</span></div>
+                <div><span class="text-gray-300">Contact:</span> <span class="ml-2">{{ $warehouse->contact_number ?? '—' }}</span></div>
+                <div><span class="text-gray-300">TIN:</span> <span class="ml-2">{{ $warehouse->tin ?? '—' }}</span></div>
+                <div><span class="text-gray-300">Status:</span>
                     <span class="ml-2 px-2 py-1 rounded text-xs font-semibold {{ $warehouse->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                         {{ strtoupper($warehouse->status) }}
                     </span>
@@ -32,9 +32,9 @@
             </div>
             <div class="bg-gray-900 border border-gray-700 rounded p-4 space-y-3">
                 <h3 class="font-semibold text-white border-b border-gray-700 pb-2">Bank Information</h3>
-                <div><span class="text-gray-500">Bank:</span> <span class="ml-2">{{ $warehouse->bank ?? '—' }}</span></div>
-                <div><span class="text-gray-500">Account Name:</span> <span class="ml-2">{{ $warehouse->account_name ?? '—' }}</span></div>
-                <div><span class="text-gray-500">Account Number:</span> <span class="ml-2">{{ $warehouse->account_number ?? '—' }}</span></div>
+                <div><span class="text-gray-300">Bank:</span> <span class="ml-2">{{ $warehouse->bank ?? '—' }}</span></div>
+                <div><span class="text-gray-300">Account Name:</span> <span class="ml-2">{{ $warehouse->account_name ?? '—' }}</span></div>
+                <div><span class="text-gray-300">Account Number:</span> <span class="ml-2">{{ $warehouse->account_number ?? '—' }}</span></div>
             </div>
         </div>
 
@@ -44,7 +44,7 @@
             <div class="space-y-2">
                 @foreach($warehouse->documents as $doc)
                 <div class="flex items-center justify-between bg-gray-800 rounded px-3 py-2">
-                    <span class="text-gray-500"><i class="fas fa-file mr-2 text-purple-700"></i>{{ $doc['name'] }}</span>
+                    <span class="text-gray-300"><i class="fas fa-file mr-2 text-purple-700"></i>{{ $doc['name'] }}</span>
                     <a href="{{ Storage::url($doc['path']) }}" target="_blank" class="text-blue-700 hover:text-blue-700 text-sm"><i class="fas fa-download mr-1"></i>Download</a>
                 </div>
                 @endforeach

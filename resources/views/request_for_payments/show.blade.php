@@ -65,7 +65,7 @@
                         @foreach($methods as $method)
                             <div class="flex items-center p-2 bg-gray-800 rounded">
                                 <span class="text-green-700 mr-2">&#10003;</span>
-                                <span class="text-gray-500">{{ $methodLabels[$method] ?? ucfirst($method) }}</span>
+                                <span class="text-gray-300">{{ $methodLabels[$method] ?? ucfirst($method) }}</span>
                             </div>
                         @endforeach
                     @else
@@ -298,7 +298,7 @@
                             @elseif($rfp->department_head_approved_by)
                                 <span class="text-yellow-700">Pending</span>
                             @else
-                                <span class="text-gray-500">Locked</span>
+                                <span class="text-gray-300">Locked</span>
                             @endif
                         </p>
                     </div>
@@ -334,7 +334,7 @@
                             @elseif($rfp->accounting_approved_by)
                                 <span class="text-yellow-700">Pending</span>
                             @else
-                                <span class="text-gray-500">Locked</span>
+                                <span class="text-gray-300">Locked</span>
                             @endif
                         </p>
                     </div>

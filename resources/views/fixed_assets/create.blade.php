@@ -49,7 +49,7 @@
             <h3 class="text-lg font-semibold text-gray-200 mb-3">Asset Identification</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Group <span class="text-red-700">*</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Asset Group <span class="text-red-700">*</span></label>
                     <select name="asset_group" id="asset_group" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Select --</option>
                         @foreach($assetGroups as $group)
@@ -58,7 +58,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Class</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Asset Class</label>
                     <select name="asset_class" id="asset_class_select" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                         <option value="">-- Select asset group first --</option>
                         @foreach($assetClasses as $ac)
@@ -75,27 +75,27 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Asset Code</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Asset Code</label>
                     <input type="text" name="asset_code" value="{{ old('asset_code') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="e.g. TRA220100001-1">
                 </div>
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Asset Description <span class="text-red-700">*</span></label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Asset Description <span class="text-red-700">*</span></label>
                 <textarea name="asset_description" id="asset_description" required rows="2" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">{{ old('asset_description') }}</textarea>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Serial / Engine No.</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Serial / Engine No.</label>
                     <input type="text" name="serial_engine_no" value="{{ old('serial_engine_no') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Plate No.</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Plate No.</label>
                     <input type="text" name="plate_no" value="{{ old('plate_no') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Quantity</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Quantity</label>
                     <input type="number" name="quantity" value="{{ old('quantity', 1) }}" min="1" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
@@ -104,19 +104,19 @@
             <h3 class="text-lg font-semibold text-gray-200 mb-3">Dates</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Acquisition Date</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Acquisition Date</label>
                     <input type="date" name="acquisition_date" value="{{ old('acquisition_date') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Date Posted</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Date Posted</label>
                     <input type="date" name="date_posted" value="{{ old('date_posted') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Dep. Start Date</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Dep. Start Date</label>
                     <input type="date" name="dep_start_date" id="dep_start_date" value="{{ old('dep_start_date') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Dep. End Date <span class="text-xs text-blue-500">(auto)</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Dep. End Date <span class="text-xs text-blue-500">(auto)</span></label>
                     <input type="date" name="dep_end_date" id="dep_end_date" value="{{ old('dep_end_date') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
@@ -125,15 +125,15 @@
             <h3 class="text-lg font-semibold text-gray-200 mb-3">Financial Information</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Cost <span class="text-red-700">*</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Cost <span class="text-red-700">*</span></label>
                     <input type="number" name="cost" id="cost" value="{{ old('cost', 0) }}" step="0.01" min="0" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Salvage Value</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Salvage Value</label>
                     <input type="number" name="salvage_value" value="{{ old('salvage_value', 0) }}" step="0.01" min="0" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Useful Life (Months) <span class="text-red-700">*</span> <span class="text-xs text-blue-500">(from asset class)</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Useful Life (Months) <span class="text-red-700">*</span> <span class="text-xs text-blue-500">(from asset class)</span></label>
                     <input type="number" name="useful_life_months" id="useful_life_months" value="{{ old('useful_life_months', 0) }}" min="0" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                     <input type="hidden" name="useful_life_years" id="useful_life_years" value="{{ old('useful_life_years', 0) }}">
                 </div>
@@ -145,7 +145,7 @@
                 @include('partials.gl_account_selector', ['field' => 'gl_account', 'label' => 'GL Account', 'uid' => 'fa_gl_account', 'value' => old('gl_account'), 'glAccounts' => $glAccounts])
                 @include('partials.gl_account_selector', ['field' => 'depreciation_account', 'label' => 'Depreciation Account', 'uid' => 'fa_dep_account', 'value' => old('depreciation_account'), 'glAccounts' => $glAccounts])
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Cost Center</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Cost Center</label>
                     <input type="text" name="cost_center_name" value="{{ old('cost_center_name') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
@@ -154,15 +154,15 @@
             <h3 class="text-lg font-semibold text-gray-200 mb-3">Assignment</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Assigned Person</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Assigned Person</label>
                     <input type="text" name="assigned_person" value="{{ old('assigned_person') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Employee Name</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Employee Name</label>
                     <input type="text" name="employee_name" value="{{ old('employee_name') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Vendor</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Vendor</label>
                     <input type="text" name="vendor_name" value="{{ old('vendor_name') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
@@ -170,11 +170,11 @@
             <!-- References -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Reference APV/JV</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Reference APV/JV</label>
                     <input type="text" name="reference_apv_jv" value="{{ old('reference_apv_jv') }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Dep. Type <span class="text-xs text-blue-500">(from asset class)</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Dep. Type <span class="text-xs text-blue-500">(from asset class)</span></label>
                     <select name="dep_type" id="dep_type" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                         <option value="Straight Line" {{ old('dep_type') == 'Straight Line' ? 'selected' : '' }}>Straight Line</option>
                         <option value="Declining Balance" {{ old('dep_type') == 'Declining Balance' ? 'selected' : '' }}>Declining Balance</option>

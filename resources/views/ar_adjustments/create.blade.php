@@ -164,7 +164,7 @@
         <div id="gl_dropdown"
             class="absolute z-50 w-full bg-gray-800 border border-gray-700 rounded mt-1 shadow-lg hidden max-h-64 overflow-y-auto">
 
-            <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-500 font-semibold border-b border-gray-700">
+            <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-300 font-semibold border-b border-gray-700">
                 Select a GL Account
             </div>
 

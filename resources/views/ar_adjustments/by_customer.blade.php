@@ -11,7 +11,7 @@
                 <h1 class="text-3xl font-bold">AR Adjustments</h1>
                 <p class="text-gray-500 mt-1">
                     <strong>{{ $customer->customer_name }}</strong>
-                    <span class="text-gray-500">({{ $customer->customer_code }})</span>
+                    <span class="text-gray-300">({{ $customer->customer_code }})</span>
                 </p>
             </div>
             <div class="flex gap-3">

@@ -148,42 +148,42 @@
                                 @if($row['current'] > 0)
                                     <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => 'current', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-green-700 font-semibold hover:underline cursor-pointer transition hover:text-green-700">₱{{ number_format($row['current'], 2) }}</a>
                                 @else
-                                    <span class="text-gray-500">-</span>
+                                    <span class="text-gray-300">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['1_30'] > 0)
                                     <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => '1_30', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-yellow-700 font-semibold hover:underline cursor-pointer transition hover:text-yellow-700">₱{{ number_format($row['1_30'], 2) }}</a>
                                 @else
-                                    <span class="text-gray-500">-</span>
+                                    <span class="text-gray-300">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['31_60'] > 0)
                                     <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => '31_60', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-orange-700 font-semibold hover:underline cursor-pointer transition hover:text-orange-700">₱{{ number_format($row['31_60'], 2) }}</a>
                                 @else
-                                    <span class="text-gray-500">-</span>
+                                    <span class="text-gray-300">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['61_90'] > 0)
                                     <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => '61_90', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-red-700 font-semibold hover:underline cursor-pointer transition hover:text-red-700">₱{{ number_format($row['61_90'], 2) }}</a>
                                 @else
-                                    <span class="text-gray-500">-</span>
+                                    <span class="text-gray-300">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['91_120'] > 0)
                                     <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => '91_120', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-red-500 font-semibold hover:underline cursor-pointer transition hover:text-red-700">₱{{ number_format($row['91_120'], 2) }}</a>
                                 @else
-                                    <span class="text-gray-500">-</span>
+                                    <span class="text-gray-300">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if($row['over_120'] > 0)
                                     <a href="{{ route('aging_reports.detail', ['customer_code' => $row['customer_code'], 'bucket' => 'over_120', 'filter_date' => $filterDate, 'include' => $include]) }}" class="text-red-600 font-bold hover:underline cursor-pointer transition hover:text-red-500">₱{{ number_format($row['over_120'], 2) }}</a>
                                 @else
-                                    <span class="text-gray-500">-</span>
+                                    <span class="text-gray-300">-</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right font-bold text-white bg-gray-800">

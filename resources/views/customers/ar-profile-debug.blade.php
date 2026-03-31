@@ -24,19 +24,19 @@
                 <h3 class="text-white font-semibold mb-3">🔍 Query Results</h3>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Query 1 (customer_code = '{{ $customerCode }}'):</span>
+                        <span class="text-gray-300">Query 1 (customer_code = '{{ $customerCode }}'):</span>
                         <span class="text-yellow-700 font-bold">{{ $query1Count }} records</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Query 2 (client_name = '{{ $customerCode }}'):</span>
+                        <span class="text-gray-300">Query 2 (client_name = '{{ $customerCode }}'):</span>
                         <span class="text-yellow-700 font-bold">{{ $query2Count }} records</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Query 3 (client_name LIKE '%{{ $customerCode }}%'):</span>
+                        <span class="text-gray-300">Query 3 (client_name LIKE '%{{ $customerCode }}%'):</span>
                         <span class="text-yellow-700 font-bold">{{ $query3Count }} records</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Query 4 (OR condition):</span>
+                        <span class="text-gray-300">Query 4 (OR condition):</span>
                         <span class="text-yellow-700 font-bold">{{ $query4Count }} records</span>
                     </div>
                 </div>

@@ -301,12 +301,12 @@
             <div class="flex justify-between text-xs text-gray-500 pt-4 border-t border-gray-700">
                 <div>
                     <span>Created:</span>
-                    <span class="text-gray-500">{{ $receivingReport->created_at->format('M d, Y h:i A') }}</span>
+                    <span class="text-gray-300">{{ $receivingReport->created_at->format('M d, Y h:i A') }}</span>
                 </div>
                 @if($receivingReport->updated_at != $receivingReport->created_at)
                 <div>
                     <span>Last Updated:</span>
-                    <span class="text-gray-500">{{ $receivingReport->updated_at->format('M d, Y h:i A') }}</span>
+                    <span class="text-gray-300">{{ $receivingReport->updated_at->format('M d, Y h:i A') }}</span>
                 </div>
                 @endif
             </div>

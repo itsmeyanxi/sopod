@@ -286,7 +286,7 @@
                         @if($order->deliveries && $order->deliveries->request_delivery_date)
                             {{ \Carbon\Carbon::parse($order->deliveries->request_delivery_date)->format('Y-m-d') }}
                         @else
-                            <span class="text-gray-500">N/A</span>
+                            <span class="text-gray-300">N/A</span>
                         @endif
                     </td>                   
                     <td class="px-4 py-3">

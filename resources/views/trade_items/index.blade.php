@@ -86,7 +86,7 @@
                                 @if($item->supplier)
                                     <span class="text-purple-700">{{ $item->supplier->supplier_name }}</span>
                                 @else
-                                    <span class="text-gray-500">-</span>
+                                    <span class="text-gray-300">-</span>
                                 @endif
                             </td>
                             <td class="border border-gray-700 px-4 py-3 text-sm">{{ $item->account ?? '-' }}</td>
@@ -97,7 +97,7 @@
                                         {{ $item->local_or_import }}
                                     </span>
                                 @else
-                                    <span class="text-gray-500">-</span>
+                                    <span class="text-gray-300">-</span>
                                 @endif
                             </td>
                             <td class="border border-gray-700 px-4 py-3">{{ $item->created_at->format('M d, Y') }}</td>
@@ -178,7 +178,7 @@
                     placeholder="e.g. Electrical Materials">
             </div>
             <div class="mb-4">
-                <label class="block text-gray-500 text-sm mb-1">Item Code <span class="text-gray-500">(auto-generated if blank)</span></label>
+                <label class="block text-gray-500 text-sm mb-1">Item Code <span class="text-gray-300">(auto-generated if blank)</span></label>
                 <input type="text" name="item_code" maxlength="100"
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Leave blank to auto-generate">

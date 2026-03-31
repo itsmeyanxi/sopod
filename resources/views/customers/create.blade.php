@@ -25,7 +25,7 @@
             @csrf
 
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Customer Code <span class="text-red-700">*</span></label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Customer Code <span class="text-red-700">*</span></label>
                 <input
                     type="text"
                     name="customer_code"
@@ -37,7 +37,7 @@
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Customer Name <span class="text-red-700">*</span></label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Customer Name <span class="text-red-700">*</span></label>
                 <input 
                     type="text" 
                     name="customer_name" 
@@ -48,7 +48,7 @@
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Branch</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Branch</label>
                 <input 
                     type="text" 
                     name="branch" 
@@ -58,7 +58,7 @@
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Sales Representative</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Sales Representative</label>
                 <input 
                     type="text" 
                     name="sales_rep" 
@@ -68,7 +68,7 @@
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Business Style</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Business Style</label>
                 <input 
                     type="text" 
                     name="business_style" 
@@ -78,7 +78,7 @@
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Billing Address</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Billing Address</label>
                 <textarea 
                     name="billing_address" 
                     rows="2"
@@ -88,7 +88,7 @@
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">TIN No</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">TIN No</label>
                 <input 
                     type="text" 
                     name="tin_no" 
@@ -98,7 +98,7 @@
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Shipping Address</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Shipping Address</label>
                 <textarea 
                     name="shipping_address" 
                     rows="2"

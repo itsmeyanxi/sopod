@@ -304,7 +304,7 @@
                             @elseif($invoice->department_head_approved_by)
                                 <span class="text-yellow-700">Pending</span>
                             @else
-                                <span class="text-gray-500">Locked</span>
+                                <span class="text-gray-300">Locked</span>
                             @endif
                         </p>
                     </div>

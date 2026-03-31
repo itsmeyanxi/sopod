@@ -21,11 +21,11 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">JV Date <span class="text-red-700">*</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">JV Date <span class="text-red-700">*</span></label>
                     <input type="date" name="jv_date" value="{{ old('jv_date', $voucher->jv_date->format('Y-m-d')) }}" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Transaction Type <span class="text-red-700">*</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Transaction Type <span class="text-red-700">*</span></label>
                     <select name="transaction_type" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                         @foreach(['bank_interest'=>'Bank Interest','bank_charges'=>'Bank Charges','reclassification'=>'Reclassification','adjustment'=>'Adjustment','correction'=>'Correction','accrual'=>'Accrual','reversal'=>'Reversal','depreciation'=>'Depreciation','tax_adjustment'=>'Tax Adjustment','intercompany'=>'Intercompany','other'=>'Other'] as $val => $label)
                             <option value="{{ $val }}" {{ old('transaction_type', $voucher->transaction_type) == $val ? 'selected' : '' }}>{{ $label }}</option>
@@ -33,33 +33,33 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Reference No.</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Reference No.</label>
                     <input type="text" name="reference_no" value="{{ old('reference_no', $voucher->reference_no) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Description <span class="text-red-700">*</span></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Description <span class="text-red-700">*</span></label>
                     <textarea name="description" rows="2" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">{{ old('description', $voucher->description) }}</textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Remarks</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Remarks</label>
                     <textarea name="remarks" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">{{ old('remarks', $voucher->remarks) }}</textarea>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Prepared By</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Prepared By</label>
                     <input type="text" name="prepared_by" value="{{ old('prepared_by', $voucher->prepared_by) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Checked By</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Checked By</label>
                     <input type="text" name="checked_by" value="{{ old('checked_by', $voucher->checked_by) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Approved By</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Approved By</label>
                     <input type="text" name="approved_by" value="{{ old('approved_by', $voucher->approved_by) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
@@ -93,7 +93,7 @@
                                     <input type="text" class="acct-search w-full bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 pr-10 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors" value="{{ $line->account_code }} — {{ $line->account_name }}" autocomplete="off">
                                     <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                     <div class="acct-dropdown absolute z-[9999] w-full bg-gray-800 border-2 border-gray-600 rounded-lg mt-1 shadow-2xl hidden max-h-60 overflow-y-auto" style="position:absolute; left:0;">
-                                        <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-500 font-semibold border-b border-gray-600">Select an account</div>
+                                        <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-300 font-semibold border-b border-gray-600">Select an account</div>
                                         @foreach($glAccounts as $acct)
                                         <div class="acct-option px-4 py-2 hover:bg-blue-600 hover:text-white cursor-pointer text-white border-b border-gray-700 last:border-b-0 transition-colors"
                                             data-code="{{ $acct['code'] }}"
@@ -156,7 +156,7 @@
 
 {{-- Hidden template for dropdown options used by addLine() --}}
 <template id="acctOptionsTemplate">
-    <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-500 font-semibold border-b border-gray-600">Select an account</div>
+    <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-300 font-semibold border-b border-gray-600">Select an account</div>
     @foreach($glAccounts as $acct)
     <div class="acct-option px-4 py-2 hover:bg-blue-600 hover:text-white cursor-pointer text-white border-b border-gray-700 last:border-b-0 transition-colors"
         data-code="{{ $acct['code'] }}"

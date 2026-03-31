@@ -119,7 +119,7 @@
                             @foreach($reimbursement->proof_documents as $index => $doc)
                                 <li>
                                     <a href="{{ asset('storage/' . $doc['path']) }}" target="_blank" class="text-purple-700 hover:text-purple-700">{{ $doc['name'] }}</a>
-                                    <span class="text-gray-500">({{ number_format($doc['size'] / 1024, 2) }} KB)</span>
+                                    <span class="text-gray-300">({{ number_format($doc['size'] / 1024, 2) }} KB)</span>
                                 </li>
                             @endforeach
                         </ul>

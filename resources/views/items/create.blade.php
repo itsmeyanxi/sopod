@@ -11,7 +11,7 @@
 
             {{-- 🔹 Item Description --}}
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Item Description</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Item Description</label>
                 <input 
                     type="text" 
                     name="item_description" 
@@ -22,7 +22,7 @@
 
             {{-- 🔹 Item Code --}}
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Item Code</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Item Code</label>
                 <input 
                     type="text" 
                     name="item_code" 
@@ -33,7 +33,7 @@
 
             {{-- 🔹 Category --}}
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Category</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Category</label>
                 <input 
                     type="text" 
                     name="item_category" 
@@ -44,7 +44,7 @@
 
             {{-- 🔹 Brand --}}
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Brand</label>
+                <label class="block text-sm font-medium text-gray-400 mb-1">Brand</label>
                 <input 
                     type="text" 
                     name="brand" 
