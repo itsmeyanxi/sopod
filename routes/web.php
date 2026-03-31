@@ -440,6 +440,7 @@ Route::prefix('lock')->name('lock.')->group(function () {
     ->middleware(['auth']);
 
 Route::post('/excel/import/bom-materials', [ExcelImportController::class, 'importBomMaterials'])->name('excel.import.bom_materials');
+Route::post('/excel/import/asset-classes', [ExcelImportController::class, 'importAssetClasses'])->name('excel.import.asset_classes');
 
 // ✅ NEW: AR Adjustments Import Route
 Route::post('/excel/import/ar-adjustments', [ExcelImportController::class, 'importArAdjustments'])

@@ -13,6 +13,7 @@ use App\Models\Payment;
 use App\Models\ArAdjustment; 
 use App\Models\User;
 use App\Models\BomMaterial;
+use App\Models\AssetClass;
 use Illuminate\Support\Facades\Mail;
 
 class ExcelImportController extends Controller
@@ -1943,6 +1944,141 @@ private $arAdjustmentColumnMap = [
                 'trace' => $e->getTraceAsString()
             ]);
             return redirect()->back()->with('error', 'Error importing BOM materials: ' . $e->getMessage());
+        }
+    }
+
+    public function importAssetClasses(Request $request)
+    {
+        $request->validate(['file' => 'required|file|mimes:xlsx,xls,csv|max:10240']);
+
+        $duplicateMode = $request->input('duplicate_mode', 'update');
+
+        // GL Account name → asset_group mapping
+        $groupMap = [
+            'transportation equipment'       => 'Transportation Equipment',
+            'machineries and equipment'      => 'Machineries And Equipment',
+            'machineries & equipment'        => 'Machineries And Equipment',
+            'office equipment'               => 'Office Equipment',
+            'furniture and fixtures'         => 'Furniture And Fixtures',
+            'furniture & fixtures'           => 'Furniture And Fixtures',
+            'tools'                          => 'Tools',
+            'leasehold improvement'          => 'Leasehold Improvement',
+            'building'                       => 'Building',
+            'right of use asset'             => 'Right of Use Asset',
+            'fixed asset clearing'           => 'Fixed Asset Clearing',
+        ];
+
+        try {
+            $spreadsheet = IOFactory::load($request->file('file')->getPathname());
+
+            // Try to find the FA Asset Class List sheet, fall back to active sheet
+            $sheet = $spreadsheet->getSheetByName('FA Asset Class List') ?? $spreadsheet->getActiveSheet();
+            $rows  = $sheet->toArray(null, true, true, true);
+
+            // Find header row (contains "Code" or "Name")
+            $headerRow = null;
+            $headerIndex = null;
+            foreach ($rows as $i => $row) {
+                $vals = array_map(fn($v) => strtolower(trim((string)$v)), array_values($row));
+                if (in_array('code', $vals) && in_array('name', $vals)) {
+                    $headerRow   = array_values($row);
+                    $headerIndex = $i;
+                    break;
+                }
+            }
+
+            if (!$headerRow) {
+                return redirect()->back()->with('error', 'Could not find header row. Make sure the file has columns: Code, Name, Acquisition GL Code, Acquisition GL Account, Deprciation GL Code, Depreciaion Type, Useful Life');
+            }
+
+            // Map column letters to field names
+            $colKeys = array_keys($rows[$headerIndex]);
+            $colMap  = [];
+            foreach ($colKeys as $idx => $letter) {
+                $h = strtolower(trim((string)$rows[$headerIndex][$letter]));
+                $colMap[$letter] = $h;
+            }
+
+            $created = 0; $updated = 0; $skipped = 0; $errors = [];
+
+            foreach ($rows as $i => $row) {
+                if ($i <= $headerIndex) continue;
+
+                // Extract values by column header
+                $data = [];
+                foreach ($colMap as $letter => $header) {
+                    $data[$header] = trim((string)($row[$letter] ?? ''));
+                }
+
+                $assetCode = $data['code'] ?? '';
+                if (!$assetCode) { $skipped++; continue; }
+
+                $assetClassName = $data['name'] ?? '';
+                if (!$assetClassName) { $skipped++; continue; }
+
+                // Determine asset group from acquisition GL account name
+                $glAccountName = strtolower($data['acquisition gl account'] ?? '');
+                $assetGroup    = 'Office Equipment'; // default
+                foreach ($groupMap as $key => $group) {
+                    if (str_contains($glAccountName, $key)) {
+                        $assetGroup = $group;
+                        break;
+                    }
+                }
+
+                // Normalize dep type
+                $depType = $data['depreciaion type'] ?? $data['depreciation type'] ?? 'Straight Line';
+                if (stripos($depType, 'straight') !== false) {
+                    $depType = 'Straight Line';
+                } elseif (stripos($depType, 'declin') !== false) {
+                    $depType = 'Declining Balance';
+                } else {
+                    $depType = 'Straight Line';
+                }
+
+                $usefulLife = (int)preg_replace('/[^0-9]/', '', $data['useful life'] ?? '0');
+
+                $record = [
+                    'asset_code'           => $assetCode,
+                    'asset_class'          => $assetClassName,
+                    'asset_group'          => $assetGroup,
+                    'gl_account'           => $data['acquisition gl code'] ?? null,
+                    'depreciation_account' => $data['deprciation gl code'] ?? null,
+                    'dep_type'             => $depType,
+                    'useful_life_months'   => $usefulLife,
+                    'is_active'            => true,
+                    'created_by'           => auth()->user()->name ?? 'import',
+                ];
+
+                try {
+                    $existing = AssetClass::where('asset_code', $assetCode)->first();
+
+                    if ($existing) {
+                        if ($duplicateMode === 'update') {
+                            $existing->update($record);
+                            $updated++;
+                        } else {
+                            $skipped++;
+                        }
+                    } else {
+                        AssetClass::create($record);
+                        $created++;
+                    }
+                } catch (\Exception $e) {
+                    $errors[] = "Row {$i} ({$assetCode}): " . $e->getMessage();
+                }
+            }
+
+            $msg = "Import complete: {$created} created, {$updated} updated, {$skipped} skipped.";
+            if ($errors) {
+                $msg .= "\nErrors:\n" . implode("\n", array_slice($errors, 0, 10));
+            }
+
+            return redirect()->back()->with('success', $msg);
+
+        } catch (\Exception $e) {
+            \Log::error('Asset Classes import failed', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Error importing asset classes: ' . $e->getMessage());
         }
     }
 }

@@ -9,6 +9,7 @@ class AssetClass extends Model
     protected $table = 'asset_classes';
 
     protected $fillable = [
+        'asset_code',
         'asset_group',
         'asset_class',
         'useful_life_months',

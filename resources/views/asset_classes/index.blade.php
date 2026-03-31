@@ -12,18 +12,18 @@
         </div>
 
         @if(session('success'))
-            <div class="bg-green-100 text-green-800 px-4 py-3 rounded mb-4 text-sm">{{ session('success') }}</div>
+            <div class="bg-green-700 text-white px-4 py-3 rounded mb-4 text-sm">{{ session('success') }}</div>
         @endif
 
         {{-- Filters --}}
         <form method="GET" class="flex flex-wrap gap-3 mb-6">
-            <select name="asset_group" class="border border-gray-600 rounded px-3 py-2 text-sm">
+            <select name="asset_group" class="bg-gray-800 text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All Groups</option>
                 @foreach($assetGroups as $g)
                     <option value="{{ $g }}" {{ request('asset_group') == $g ? 'selected' : '' }}>{{ $g }}</option>
                 @endforeach
             </select>
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search asset class..." class="border border-gray-600 rounded px-3 py-2 text-sm w-64">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search asset class..." class="bg-gray-800 text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button type="submit" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">Filter</button>
             <a href="{{ route('asset_classes.index') }}" class="bg-gray-600 text-gray-200 px-4 py-2 rounded text-sm">Reset</a>
         </form>
@@ -32,6 +32,7 @@
             <table class="w-full text-sm border-collapse">
                 <thead>
                     <tr class="bg-gray-700 text-gray-300 uppercase text-xs">
+                        <th class="px-4 py-3 text-left">Code</th>
                         <th class="px-4 py-3 text-left">Asset Group</th>
                         <th class="px-4 py-3 text-left">Asset Class</th>
                         <th class="px-4 py-3 text-right">Useful Life (Months)</th>
@@ -45,6 +46,7 @@
                 <tbody class="divide-y divide-gray-700">
                     @forelse($classes as $class)
                         <tr class="hover:bg-gray-900">
+                            <td class="px-4 py-3 font-mono text-xs text-gray-300">{{ $class->asset_code ?? '—' }}</td>
                             <td class="px-4 py-3">{{ $class->asset_group }}</td>
                             <td class="px-4 py-3 font-medium">{{ $class->asset_class }}</td>
                             <td class="px-4 py-3 text-right font-mono">{{ number_format($class->useful_life_months) }}</td>
@@ -53,7 +55,7 @@
                             <td class="px-4 py-3">{{ $class->dep_type }}</td>
                             <td class="px-4 py-3 text-center">
                                 @if($class->is_active)
-                                    <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">Active</span>
+                                    <span class="bg-green-600 text-white px-2 py-0.5 rounded text-xs">Active</span>
                                 @else
                                     <span class="bg-gray-700 text-gray-300 px-2 py-0.5 rounded text-xs">Inactive</span>
                                 @endif
@@ -68,7 +70,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-400">No asset classes found.</td>
+                            <td colspan="9" class="px-4 py-8 text-center text-gray-400">No asset classes found.</td>
                         </tr>
                     @endforelse
                 </tbody>

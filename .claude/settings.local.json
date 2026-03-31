@@ -49,7 +49,26 @@
       "Bash(git reset HEAD .claude/settings.local.json public/po_images/1773215105_Screenshot_2026-03-11_154947.png app/Http/Controllers/CustomerARProfileController.php)",
       "Bash(php -l app/Http/Controllers/ExcelImportController.php)",
       "Bash(php -l app/Http/Controllers/ArAdjustmentController.php)",
-      "Bash(php artisan tinker --execute=\":*)"
+      "Bash(php artisan tinker --execute=\":*)",
+      "Bash(git pull:*)",
+      "Bash(php /c/xampp/htdocs/sopod/artisan route:list)",
+      "Bash(php /c/xampp/htdocs/sopod/artisan config:clear)",
+      "Bash(php /c/xampp/htdocs/sopod/artisan cache:clear)",
+      "Bash(php /c/xampp/htdocs/sopod/artisan view:clear)",
+      "Bash(php /c/xampp/htdocs/sopod/artisan route:clear)",
+      "Bash(php /c/xampp/htdocs/sopod/artisan migrate:status)",
+      "Bash(php /c/xampp/htdocs/sopod/artisan migrate)",
+      "Bash(php /c/xampp/htdocs/sopod/artisan migrate --force)",
+      "Bash(php /c/xampp/htdocs/sopod/artisan tinker --execute=\"var_dump\\(\\\\DB::select\\(\"\"SHOW TABLES LIKE ''%bom%''\"\"\\)\\);\")",
+      "Bash(ls c:/xampp/htdocs/sopod/resources/views/dashboard*)",
+      "Bash(php -l resources/views/layouts/app.blade.php)",
+      "Bash(php -l resources/views/dashboard.blade.php)",
+      "Bash(\"c:/xampp/apache/bin/openssl.exe\" req:*)",
+      "Bash(OPENSSL_CONF=\"c:/xampp/apache/conf/openssl.cnf\" \"c:/xampp/apache/bin/openssl.exe\" req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout ssl.key/nomsuite.key -out ssl.crt/nomsuite.crt -subj \"/CN=nomsuite.meatplus.ph/O=SOPOD/C=PH\" -addext \"subjectAltName=DNS:nomsuite.meatplus.ph\")",
+      "Bash(OPENSSL_CONF=\"c:/xampp/apache/conf/openssl.cnf\" \"c:/xampp/apache/bin/openssl.exe\" req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout \"c:/xampp/apache/conf/ssl.key/nomsuite.key\" -out \"c:/xampp/apache/conf/ssl.crt/nomsuite.crt\" -subj \"//CN=nomsuite.meatplus.ph\\\\O=SOPOD\\\\C=PH\" -addext \"subjectAltName=DNS:nomsuite.meatplus.ph\")",
+      "Bash(grep -ho \"[A-Z][A-Za-z]*Controller::class, ''''[^'''']*''''\" routes/web.php)",
+      "Bash(for model:*)",
+      "Bash(do basename:*)"
     ],
     "additionalDirectories": [
       "c:\\Windows\\System32\\drivers\\etc"

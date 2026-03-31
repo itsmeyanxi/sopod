@@ -12,7 +12,7 @@
         </div>
 
         @if($errors->any())
-            <div class="bg-red-100 text-red-800 px-4 py-3 rounded mb-4">
+            <div class="bg-red-700 text-white px-4 py-3 rounded mb-4">
                 <ul class="list-disc list-inside text-sm">
                     @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
                 </ul>
@@ -24,8 +24,13 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Asset Code</label>
+                    <input type="text" name="asset_code" value="{{ old('asset_code', $assetClass->asset_code) }}"
+                           class="w-full bg-gray-700 text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. ACS01">
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-300 mb-1">Asset Group <span class="text-red-600">*</span></label>
-                    <select name="asset_group" required class="w-full border border-gray-600 rounded px-3 py-2 text-sm">
+                    <select name="asset_group" required class="w-full bg-gray-700 text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @foreach($assetGroups as $g)
                             <option value="{{ $g }}" {{ old('asset_group', $assetClass->asset_group) == $g ? 'selected' : '' }}>{{ $g }}</option>
                         @endforeach
@@ -34,7 +39,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-1">Asset Class <span class="text-red-600">*</span></label>
                     <input type="text" name="asset_class" value="{{ old('asset_class', $assetClass->asset_class) }}" required
-                           class="w-full border border-gray-600 rounded px-3 py-2 text-sm">
+                           class="w-full bg-gray-700 text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
             </div>
 
@@ -42,11 +47,11 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-1">Useful Life (Months) <span class="text-red-600">*</span></label>
                     <input type="number" name="useful_life_months" value="{{ old('useful_life_months', $assetClass->useful_life_months) }}" required min="0"
-                           class="w-full border border-gray-600 rounded px-3 py-2 text-sm">
+                           class="w-full bg-gray-700 text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-1">Depreciation Type <span class="text-red-600">*</span></label>
-                    <select name="dep_type" required class="w-full border border-gray-600 rounded px-3 py-2 text-sm">
+                    <select name="dep_type" required class="w-full bg-gray-700 text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="Straight Line" {{ old('dep_type', $assetClass->dep_type) == 'Straight Line' ? 'selected' : '' }}>Straight Line</option>
                         <option value="Declining Balance" {{ old('dep_type', $assetClass->dep_type) == 'Declining Balance' ? 'selected' : '' }}>Declining Balance</option>
                     </select>
