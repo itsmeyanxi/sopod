@@ -100,7 +100,8 @@
       "Bash(head -40 grep -n assetGroupss*= /c/sopod/app/Http/Controllers/FixedAssetController.php)",
       "Read(//dev/**)",
       "Bash(head -20 grep -rn \"ar_aging\\\\|ArAging\" /c/sopod/routes/web.php)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(1 grep:*)"
     ],
     "additionalDirectories": [
       "c:\\xampp\\apache\\conf\\extra",
