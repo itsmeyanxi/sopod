@@ -52,29 +52,29 @@
 
         /* Active state styling for sidebar links */
         .sidebar nav a.active {
-            background-color: #eff6ff;
+            background-color: #1e3a5f;
             border-left: 3px solid #3b82f6;
-            color: #1d4ed8;
+            color: #93c5fd;
         }
 
         .sidebar nav .submenu a.active {
-            background-color: #dbeafe;
+            background-color: #1e3a5f;
             border-left: 3px solid #60a5fa;
-            color: #1d4ed8;
+            color: #93c5fd;
             font-weight: 500;
         }
 
         .sidebar nav button.parent-active {
-            background-color: #f3f4f6;
+            background-color: #1f2937;
         }
 
         /* Hover states */
         .sidebar nav a:hover:not(.active) {
-            background-color: #f3f4f6;
+            background-color: #1f2937;
         }
 
         .sidebar nav .submenu a:hover:not(.active) {
-            background-color: #f3f4f6;
+            background-color: #1f2937;
         }
 
         /* Fix collapsed sidebar - make it completely invisible/minimal */
