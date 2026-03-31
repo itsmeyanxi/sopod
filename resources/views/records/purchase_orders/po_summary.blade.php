@@ -313,12 +313,12 @@
     {{-- ── Header ── --}}
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-gray-800 font-semibold text-xl tracking-tight">PO Summary Monitor</h1>
+            <h1 class="text-white font-semibold text-xl tracking-tight">PO Summary Monitor</h1>
             <p class="text-gray-500 text-xs mt-0.5 mono">{{ now()->format('l, F j Y · H:i') }} · Real-time snapshot</p>
         </div>
         <div class="flex items-center gap-2">
             {{-- Company filter tabs --}}
-            <div class="flex items-center gap-1 bg-gray-50 border border-gray-800 rounded-md p-1">
+            <div class="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-md p-1">
                 <button class="company-tab" :class="{ active: activeCompany === 'all' }" @click="setCompany('all')">All</button>
                 <button class="company-tab" :class="{ active: activeCompany === 'NBC' }" @click="setCompany('NBC')">NBC</button>
                 <button class="company-tab" :class="{ active: activeCompany === 'PMAI' }" @click="setCompany('PMAI')">PMAI</button>
@@ -504,7 +504,7 @@
                     <tbody>
                         <template x-if="filteredPOs.length === 0">
                             <tr>
-                                <td colspan="9" class="text-center py-8 text-gray-600 mono text-xs">No records match your filters.</td>
+                                <td colspan="9" class="text-center py-8 text-gray-300 mono text-xs">No records match your filters.</td>
                             </tr>
                         </template>
                         <template x-for="po in filteredPOs.slice(0, 60)" :key="po.po_number + po.supplier">
