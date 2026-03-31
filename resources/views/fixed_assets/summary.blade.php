@@ -81,7 +81,7 @@
                             <span>{{ Str::limit($group, 25) }}</span>
                             <span>{{ number_format($pct, 1) }}%</span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded h-2">
+                        <div class="w-full bg-gray-600 rounded h-2">
                             <div class="bg-blue-600 h-2 rounded" style="width: {{ min($pct, 100) }}%"></div>
                         </div>
                     </div>
@@ -134,7 +134,7 @@
                             <span class="text-green-700 font-semibold">Active</span>
                             <span>{{ $activeCount }} ({{ number_format(($activeCount / $total) * 100, 1) }}%)</span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded h-3">
+                        <div class="w-full bg-gray-600 rounded h-3">
                             <div class="bg-green-500 h-3 rounded" style="width: {{ ($activeCount / $total) * 100 }}%"></div>
                         </div>
                     </div>
@@ -143,7 +143,7 @@
                             <span class="text-yellow-700 font-semibold">Fully Depreciated</span>
                             <span>{{ $fullyDepCount }} ({{ number_format(($fullyDepCount / $total) * 100, 1) }}%)</span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded h-3">
+                        <div class="w-full bg-gray-600 rounded h-3">
                             <div class="bg-yellow-500 h-3 rounded" style="width: {{ ($fullyDepCount / $total) * 100 }}%"></div>
                         </div>
                     </div>
@@ -152,7 +152,7 @@
                             <span class="text-red-700 font-semibold">Disposed</span>
                             <span>{{ $disposedCount }} ({{ number_format(($disposedCount / $total) * 100, 1) }}%)</span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded h-3">
+                        <div class="w-full bg-gray-600 rounded h-3">
                             <div class="bg-red-500 h-3 rounded" style="width: {{ ($disposedCount / $total) * 100 }}%"></div>
                         </div>
                     </div>

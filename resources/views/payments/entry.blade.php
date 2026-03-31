@@ -22,7 +22,7 @@
             <div class="flex items-center space-x-4">
                 <div class="flex-1">
                     <input type="text" id="customer_search" placeholder="Enter Customer Name, Code, or DR Number"
-                           class="w-full bg-gray-200 text-white border border-gray-600 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full bg-gray-600 text-white border border-gray-600 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button type="button" id="search_customer_btn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-search"></i>
@@ -46,15 +46,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Date From</label>
-                        <input type="date" id="report_date_from" class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
+                        <input type="date" id="report_date_from" class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Date To</label>
-                        <input type="date" id="report_date_to" class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
+                        <input type="date" id="report_date_to" class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Customer</label>
-                        <input type="text" id="report_customer_filter" placeholder="Filter by customer" class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
+                        <input type="text" id="report_customer_filter" placeholder="Filter by customer" class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div class="flex items-end gap-2">
                         <button type="button" onclick="filterPaymentList()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
@@ -418,7 +418,7 @@
             <button type="button" onclick="savePaymentMeans()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition">
                 <i class="fas fa-check mr-2"></i>Save
             </button>
-            <button type="button" onclick="closePaymentMeansPanel()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded font-medium transition">
+            <button type="button" onclick="closePaymentMeansPanel()" class="flex-1 bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded font-medium transition">
                 Cancel
             </button>
         </div>

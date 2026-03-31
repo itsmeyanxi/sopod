@@ -45,7 +45,7 @@
                 <i class="fas fa-search mr-1"></i> Search
             </button>
             @if(request('search') || request('account'))
-                <a href="{{ route('trade_items.index') }}" class="bg-gray-200 text-white px-4 py-2 rounded text-sm hover:bg-gray-500 transition">Clear</a>
+                <a href="{{ route('trade_items.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded text-sm hover:bg-gray-600 transition">Clear</a>
             @endif
         </form>
 
@@ -154,7 +154,7 @@
             </div>
             <div class="flex justify-end gap-3">
                 <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')"
-                    class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-500 transition">
+                    class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
                     Cancel
                 </button>
                 <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
@@ -216,7 +216,7 @@
             </div>
             <div class="flex justify-end gap-3">
                 <button type="button" onclick="document.getElementById('addItemModal').classList.add('hidden')"
-                    class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-500 transition">
+                    class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
                     Cancel
                 </button>
                 <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">

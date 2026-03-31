@@ -145,7 +145,7 @@
             </div>
 
             <div class="flex justify-end gap-4">
-                <a href="{{ route('journal_vouchers.show', $voucher->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">Cancel</a>
+                <a href="{{ route('journal_vouchers.show', $voucher->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">Cancel</a>
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     <i class="fas fa-save mr-1"></i> Update
                 </button>

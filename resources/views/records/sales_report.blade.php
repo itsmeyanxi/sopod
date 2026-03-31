@@ -16,7 +16,7 @@
         <form method="GET" action="{{ route('sales.report') }}" class="flex items-center gap-4">
             <label for="year" class="text-white font-semibold">Select Year:</label>
             <select name="year" id="year" 
-                    class="bg-gray-200 text-white border border-gray-600 rounded px-4 py-2"
+                    class="bg-gray-600 text-white border border-gray-600 rounded px-4 py-2"
                     onchange="this.form.submit()">
                 @foreach($availableYears as $year)
                     <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>

@@ -63,7 +63,7 @@
                     <p class="text-sm text-gray-500 mb-2">Still having trouble?</p>
                     <a href="http://mtcresolveit.meatplus.ph/public/ticket/index.php?entity=1" 
                        target="_blank" 
-                       class="inline-block px-6 py-3 bg-gray-700 hover:bg-gray-200 rounded-lg transition text-gray-200 font-medium">
+                       class="inline-block px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-gray-200 font-medium">
                         📧 Contact IT Support
                     </a>
                     <p class="text-sm text-gray-500 mt-4">

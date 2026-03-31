@@ -86,7 +86,7 @@
             {{-- Actions --}}
             <div class="flex gap-3">
                 <a href="{{ route('aging_reports.view') }}" 
-                   class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded transition">
+                   class="bg-gray-600 hover:bg-gray-600 text-white px-6 py-2 rounded transition">
                     ← Back to Reports
                 </a>
                 <button onclick="window.location.reload()" 

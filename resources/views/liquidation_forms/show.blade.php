@@ -213,7 +213,7 @@
                                 <i class="fas fa-check text-white"></i>
                             </div>
                         @else
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @endif
@@ -243,7 +243,7 @@
                                 <i class="fas fa-check text-white"></i>
                             </div>
                         @elseif($liquidation->department_head_approved_by)
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @else
@@ -348,7 +348,7 @@
                 <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-700">
+                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                     Cancel
                 </button>
                 <button type="submit" id="dh_submit_btn" class="bg-gray-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -373,7 +373,7 @@
                 <div id="exec_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-700">
+                <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                     Cancel
                 </button>
                 <button type="submit" id="exec_submit_btn" class="bg-gray-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
@@ -395,7 +395,7 @@
                 <textarea name="rejection_reason" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeRejectModal()" class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-700">
+                <button type="button" onclick="closeRejectModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">

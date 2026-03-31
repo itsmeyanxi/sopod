@@ -164,7 +164,7 @@
         <!-- Back Button -->
         <div class="flex justify-end mt-8">
             <a href="{{ route('records.index') }}" 
-               class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded-lg transition">
+               class="bg-gray-600 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition">
                 Back to List
             </a>
         </div>

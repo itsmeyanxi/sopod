@@ -146,7 +146,7 @@
                                     <button type="submit"
                                         class="text-white text-xs font-medium px-3 py-1 rounded transition
                                                {{ $item->is_enabled 
-                                                  ? 'bg-gray-200 hover:bg-gray-300' 
+                                                  ? 'bg-gray-600 hover:bg-gray-600' 
                                                   : 'bg-green-600 hover:bg-green-700' }}">
                                         {{ $item->is_enabled ? 'Disable' : 'Enable' }}
                                     </button>

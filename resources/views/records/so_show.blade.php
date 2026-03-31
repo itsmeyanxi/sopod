@@ -43,7 +43,7 @@
                             'Pending' => 'bg-yellow-500 text-black',
                             'Approved' => 'bg-green-600 text-white',
                             'Declined' => 'bg-red-600 text-white',
-                            'Cancelled' => 'bg-gray-200 text-white',
+                            'Cancelled' => 'bg-gray-600 text-white',
                             'New' => 'bg-purple-600 text-white'
                         ];
                         $statusClass = $statusColors[$salesOrder->status] ?? 'bg-gray-700 text-white';

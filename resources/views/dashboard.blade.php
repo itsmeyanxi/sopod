@@ -90,7 +90,7 @@
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm text-left text-white">
-                    <thead class="text-xs uppercase bg-gray-200 text-white">
+                    <thead class="text-xs uppercase bg-gray-600 text-white">
                         <tr>
                             <th class="px-4 py-2">Date</th>
                             <th class="px-4 py-2">Activity</th>

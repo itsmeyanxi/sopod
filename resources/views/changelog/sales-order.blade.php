@@ -31,7 +31,7 @@
                 <span class="px-3 py-1 rounded-full text-sm 
                     @if($salesOrder->status === 'Approved') bg-green-600
                     @elseif($salesOrder->status === 'Pending') bg-yellow-600
-                    @else bg-gray-200 @endif">
+                    @else bg-gray-600 @endif">
                     {{ $salesOrder->status }}
                 </span>
             </p>

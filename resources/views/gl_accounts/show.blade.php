@@ -76,7 +76,7 @@
     {{-- Action Buttons --}}
     <div class="flex justify-end gap-4">
         <a href="{{ route('gl_accounts.index') }}"
-            class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">
+            class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
             <i class="fas fa-arrow-left mr-1"></i> Back to List
         </a>
         <a href="{{ route('gl_accounts.edit', $account->id) }}"

@@ -166,7 +166,7 @@
                     <i class="fas fa-save mr-1"></i>
                     {{ auth()->user()->canEditPayments() ? 'Save Changes' : 'Submit Edit Request' }}
                 </button>
-                <a href="{{ route('payments.show', $payment->id) }}" class="bg-gray-200 hover:bg-gray-300 text-gray-200 px-6 py-2.5 rounded-md font-medium transition">
+                <a href="{{ route('payments.show', $payment->id) }}" class="bg-gray-600 hover:bg-gray-600 text-gray-200 px-6 py-2.5 rounded-md font-medium transition">
                     Cancel
                 </a>
             </div>

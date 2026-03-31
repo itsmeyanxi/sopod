@@ -5,7 +5,7 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-white">{{ $pageTitle ?? 'All Recent Activities' }}</h1>
         <a href="{{ $backRoute ?? route('dashboard') }}"
-           class="bg-gray-200 hover:bg-gray-300 text-white text-sm px-4 py-2 rounded-lg">
+           class="bg-gray-600 hover:bg-gray-600 text-white text-sm px-4 py-2 rounded-lg">
             ← Back to Dashboard
         </a>
     </div>

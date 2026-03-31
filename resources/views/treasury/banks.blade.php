@@ -42,7 +42,7 @@
     </div>
     <div class="flex gap-2">
         <a href="{{ route('treasury.summary') }}"
-           class="flex items-center gap-1.5 px-3 py-2 text-sm bg-gray-700 text-gray-200 rounded-md hover:bg-gray-200 font-semibold border border-gray-600">
+           class="flex items-center gap-1.5 px-3 py-2 text-sm bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 font-semibold border border-gray-600">
             <i class="fas fa-arrow-left"></i> Back
         </a>
         @if($cur === 'PHP')
@@ -143,7 +143,7 @@
                             <span class="text-gray-300">—</span>
                         @endif
                     </td>
-                    <td class="r font-bold text-gray-900">{{ $cur === 'PHP' ? '₱' : '$' }} {{ number_format($acct->display_balance ?? $acct->cash_balance, 2) }}</td>
+                    <td class="r font-bold text-white">{{ $cur === 'PHP' ? '₱' : '$' }} {{ number_format($acct->display_balance ?? $acct->cash_balance, 2) }}</td>
                     <td class="text-xs text-gray-500">{{ $acct->balance_as_of ? $acct->balance_as_of->format('M d, Y') : '—' }}</td>
                 </tr>
             @endforeach
@@ -151,7 +151,7 @@
             <tfoot>
                 <tr>
                     <td colspan="6" class="text-right text-gray-300">TOTAL:</td>
-                    <td class="r text-gray-900" style="font-size:.95rem;">{{ $cur === 'PHP' ? '₱' : '$' }} {{ number_format($totalBalance, 2) }}</td>
+                    <td class="r text-white" style="font-size:.95rem;">{{ $cur === 'PHP' ? '₱' : '$' }} {{ number_format($totalBalance, 2) }}</td>
                     <td></td>
                 </tr>
             </tfoot>

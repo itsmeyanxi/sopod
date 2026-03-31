@@ -24,7 +24,7 @@
                         <i class="fas fa-edit mr-1"></i> Edit
                     </a>
                 @endif
-                <a href="{{ route('loans.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded hover:bg-gray-300 text-sm">
+                <a href="{{ route('loans.index') }}" class="bg-gray-600 text-gray-200 px-4 py-2 rounded hover:bg-gray-600 text-sm">
                     <i class="fas fa-arrow-left mr-1"></i> Back
                 </a>
             </div>
@@ -64,7 +64,7 @@
                 <span>Payoff Progress</span>
                 <span>{{ $loan->payoff_percentage }}%</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="w-full bg-gray-600 rounded-full h-2">
                 <div class="bg-green-500 h-2 rounded-full transition-all" style="width: {{ min(100, $loan->payoff_percentage) }}%"></div>
             </div>
         </div>

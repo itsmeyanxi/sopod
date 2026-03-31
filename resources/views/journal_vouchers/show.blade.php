@@ -150,7 +150,7 @@
 
         <!-- Actions -->
         <div class="flex justify-end gap-3 flex-wrap">
-            <a href="{{ route('journal_vouchers.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">
+            <a href="{{ route('journal_vouchers.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
             <a href="{{ route('journal_vouchers.print', $voucher->id) }}" target="_blank" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 transition">

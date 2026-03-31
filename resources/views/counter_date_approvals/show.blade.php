@@ -186,7 +186,7 @@
                 <div>
                     <h3 class="font-bold text-white mb-3 flex items-center gap-2">
                         <i class="fas fa-boxes text-gray-500"></i> Delivery Items
-                        <span class="text-xs bg-gray-200 text-gray-300 px-2 py-0.5 rounded-full">{{ $delivery->items->count() }}</span>
+                        <span class="text-xs bg-gray-600 text-gray-300 px-2 py-0.5 rounded-full">{{ $delivery->items->count() }}</span>
                     </h3>
                     <div class="overflow-x-auto border border-gray-700 rounded-lg">
                         <table class="min-w-full text-sm">

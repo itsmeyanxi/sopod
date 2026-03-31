@@ -6,7 +6,7 @@
     <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">ASSET TRANSACTION SUMMARY</h1>
-            <a href="{{ route('fixed_assets.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded hover:bg-gray-300 text-sm">
+            <a href="{{ route('fixed_assets.index') }}" class="bg-gray-600 text-gray-200 px-4 py-2 rounded hover:bg-gray-600 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
         </div>
@@ -46,7 +46,7 @@
             <input type="date" name="date_from" value="{{ request('date_from') }}" class="border border-gray-600 rounded px-3 py-2 text-sm" placeholder="From">
             <input type="date" name="date_to" value="{{ request('date_to') }}" class="border border-gray-600 rounded px-3 py-2 text-sm" placeholder="To">
             <button type="submit" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">Filter</button>
-            <a href="{{ route('fixed_assets.report_transactions') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded text-sm">Reset</a>
+            <a href="{{ route('fixed_assets.report_transactions') }}" class="bg-gray-600 text-gray-200 px-4 py-2 rounded text-sm">Reset</a>
         </form>
 
         <div class="overflow-x-auto">

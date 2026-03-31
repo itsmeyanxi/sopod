@@ -93,7 +93,7 @@
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition flex-1">
                         <i class="fas fa-filter mr-1"></i> Filter
                     </button>
-                    <a href="{{ route('fixed_assets.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded text-sm hover:bg-gray-300 transition">
+                    <a href="{{ route('fixed_assets.index') }}" class="bg-gray-600 text-gray-200 px-4 py-2 rounded text-sm hover:bg-gray-600 transition">
                         <i class="fas fa-times"></i>
                     </a>
                 </div>
@@ -201,7 +201,7 @@
                 <p class="text-xs text-gray-400 mt-1">Upload your Lapsing Schedule Excel file. The system will read the "Monthly Depreciation Sched" sheet.</p>
             </div>
             <div class="flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="bg-gray-200 text-gray-200 px-4 py-2 rounded text-sm">Cancel</button>
+                <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="bg-gray-600 text-gray-200 px-4 py-2 rounded text-sm">Cancel</button>
                 <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">
                     <i class="fas fa-upload mr-1"></i> Import
                 </button>

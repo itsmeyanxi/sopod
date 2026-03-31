@@ -15,7 +15,7 @@
                 </p>
             </div>
             <div class="flex gap-3">
-                <a href="{{ route('ar_adjustments.index') }}" class="bg-gray-700 hover:bg-gray-200 text-white px-4 py-2 rounded transition flex items-center gap-2">
+                <a href="{{ route('ar_adjustments.index') }}" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition flex items-center gap-2">
                     <i class="fas fa-arrow-left"></i> Back to All
                 </a>
                 <a href="{{ route('customers.show', $customer->id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition flex items-center gap-2">

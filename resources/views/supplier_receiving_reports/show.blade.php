@@ -14,7 +14,7 @@
                     <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $report->srr_code }}</span>
                 </div>
                 <span class="px-3 py-1 rounded font-semibold
-                    @if($report->status === 'draft') bg-gray-200 text-white
+                    @if($report->status === 'draft') bg-gray-600 text-white
                     @elseif($report->status === 'saved') bg-teal-600 text-white
                     @elseif($report->status === 'pending') bg-yellow-600 text-white
                     @elseif($report->status === 'approved') bg-green-600 text-white
@@ -177,7 +177,7 @@
 
         <!-- Action Buttons -->
         <div class="flex justify-between items-center border-t border-gray-700 pt-4">
-            <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-200 text-white px-6 py-2 rounded hover:bg-gray-500 transition">
+            <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
                 <i class="fas fa-arrow-left mr-1"></i> Back to List
             </a>
             <div class="flex gap-3">

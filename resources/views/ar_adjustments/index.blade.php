@@ -389,7 +389,7 @@
 
                     {{-- Action Buttons --}}
                     <div class="flex gap-3 pt-4 border-t border-gray-700">
-                        <button type="button" onclick="closeImportModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded font-medium transition">
+                        <button type="button" onclick="closeImportModal()" class="flex-1 bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded font-medium transition">
                             Cancel
                         </button>
                         <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition flex items-center justify-center space-x-2">
@@ -560,7 +560,7 @@ function displayDRSelection(records) {
         records.forEach(record => {
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = 'w-full bg-gray-700 hover:bg-gray-200 text-white px-4 py-3 rounded text-left transition flex justify-between items-center';
+            button.className = 'w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded text-left transition flex justify-between items-center';
 
             // ✅ Determine status badge color and icon
             const isFullyPaid = parseFloat(record.net_ar_balance || 0) <= 0;

@@ -45,7 +45,7 @@
                        placeholder="Enter new password (min. 6 characters)">
                 <button type="button"
                         id="togglePassword"
-                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-200 hover:bg-gray-300 text-white px-3 py-1 rounded">
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-600 hover:bg-gray-600 text-white px-3 py-1 rounded">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
@@ -57,7 +57,7 @@
         </div>
 
         <div class="flex justify-end space-x-3 mt-6">
-            <a href="{{ route('admin.users.index') }}" class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded-lg">Cancel</a>
+            <a href="{{ route('admin.users.index') }}" class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</a>
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Update User</button>
         </div>
     </form>
@@ -241,14 +241,14 @@ document.querySelectorAll('.module-override-select').forEach(function(select) {
         sel.classList.remove(
             'bg-green-800','border-green-600','text-green-700',
             'bg-red-100','border-red-200','text-red-700',
-            'bg-gray-200','border-gray-600','text-white'
+            'bg-gray-600','border-gray-600','text-white'
         );
         if (sel.value === 'grant') {
             sel.classList.add('bg-green-800','border-green-600','text-green-700');
         } else if (sel.value === 'deny') {
             sel.classList.add('bg-red-100','border-red-200','text-red-700');
         } else {
-            sel.classList.add('bg-gray-200','border-gray-600','text-white');
+            sel.classList.add('bg-gray-600','border-gray-600','text-white');
         }
     }
     updateColor(select);

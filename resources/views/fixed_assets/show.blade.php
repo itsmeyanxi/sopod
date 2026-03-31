@@ -205,7 +205,7 @@
 
         <!-- Actions -->
         <div class="flex justify-end gap-4">
-            <a href="{{ route('fixed_assets.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">
+            <a href="{{ route('fixed_assets.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
                 <i class="fas fa-arrow-left mr-1"></i> Back to List
             </a>
             @if(!$asset->disposal_date)
@@ -271,7 +271,7 @@
                     </div>
                     <div class="flex gap-3 justify-end pt-4 border-t">
                         <button type="button" onclick="document.getElementById('dispose-modal').classList.add('hidden')"
-                                class="px-4 py-2 bg-gray-200 text-white rounded hover:bg-gray-300 font-semibold">
+                                class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-600 font-semibold">
                             Cancel
                         </button>
                         <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-semibold">

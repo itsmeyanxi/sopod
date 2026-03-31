@@ -7,7 +7,7 @@
 
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">NEW LOAN</h1>
-            <a href="{{ route('loans.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded hover:bg-gray-300 text-sm">
+            <a href="{{ route('loans.index') }}" class="bg-gray-600 text-gray-200 px-4 py-2 rounded hover:bg-gray-600 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
         </div>
@@ -156,7 +156,7 @@
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 text-sm">
                     <i class="fas fa-save mr-1"></i> Save Loan
                 </button>
-                <a href="{{ route('loans.index') }}" class="bg-gray-200 text-gray-200 px-6 py-2 rounded hover:bg-gray-300 text-sm">Cancel</a>
+                <a href="{{ route('loans.index') }}" class="bg-gray-600 text-gray-200 px-6 py-2 rounded hover:bg-gray-600 text-sm">Cancel</a>
             </div>
         </form>
     </div>

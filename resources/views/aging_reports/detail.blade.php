@@ -19,7 +19,7 @@
                     <span>View All Buckets</span>
                 </a>
                 <a href="{{ route('aging_reports.summary', ['filter_date' => $filterDate, 'include' => $include]) }}"
-                   class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded font-medium transition flex items-center space-x-2">
+                   class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-arrow-left"></i>
                     <span>Back to Summary</span>
                 </a>
@@ -104,7 +104,7 @@
                                     @elseif($invoice['status'] === 'Closed' || $invoice['status'] === 'closed')
                                         <span class="bg-green-600 text-white px-2 py-1 rounded text-xs">{{ ucfirst($invoice['status']) }}</span>
                                     @else
-                                        <span class="bg-gray-200 text-white px-2 py-1 rounded text-xs">{{ ucfirst($invoice['status']) }}</span>
+                                        <span class="bg-gray-600 text-white px-2 py-1 rounded text-xs">{{ ucfirst($invoice['status']) }}</span>
                                     @endif
                                 </td>
                             </tr>

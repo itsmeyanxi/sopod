@@ -21,7 +21,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Select Week End Date</label>
                     <input type="date" id="week_end_date" value="{{ now()->format('Y-m-d') }}"
-                           class="w-full bg-gray-200 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full bg-gray-600 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="bg-gray-800 rounded-lg p-4 flex flex-col justify-center">
                     <p class="text-gray-500 text-xs mb-1">Week Number</p>

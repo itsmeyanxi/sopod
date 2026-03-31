@@ -122,7 +122,7 @@
             <input type="text" name="search" value="{{ request('search') }}" class="search-input" style="width:220px;" placeholder="Search customer, CR#, invoice...">
             <input type="date" name="date_from" value="{{ request('date_from') }}" class="search-input" style="width:140px;" placeholder="From">
             <input type="date" name="date_to" value="{{ request('date_to') }}" class="search-input" style="width:140px;" placeholder="To">
-            <button type="submit" class="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs font-semibold text-gray-200 hover:bg-gray-200">
+            <button type="submit" class="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs font-semibold text-gray-200 hover:bg-gray-600">
                 <i class="fas fa-search"></i> Filter
             </button>
             @if(request()->hasAny(['search','date_from','date_to']))

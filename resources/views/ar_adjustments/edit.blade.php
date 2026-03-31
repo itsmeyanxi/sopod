@@ -138,7 +138,7 @@
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-4">
-                <a href="{{ route('ar_adjustments.show', $adjustment->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">
+                <a href="{{ route('ar_adjustments.show', $adjustment->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
                     Cancel
                 </a>
                 <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">

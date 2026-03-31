@@ -63,7 +63,7 @@
             <i class="fas fa-search mr-1"></i> Filter
         </button>
         @if($search || $bomId)
-        <a href="{{ route('daily_feed_usage.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-200 px-4 py-2 rounded-md text-sm font-medium transition">Clear</a>
+        <a href="{{ route('daily_feed_usage.index') }}" class="bg-gray-600 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-md text-sm font-medium transition">Clear</a>
         @endif
     </form>
 </div>

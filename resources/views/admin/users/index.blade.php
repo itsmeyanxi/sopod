@@ -106,7 +106,7 @@
                                    class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-white font-mono text-sm w-48" 
                                    id="password-{{ $user->id }}"
                                    readonly>
-                            <button class="bg-gray-200 hover:bg-gray-300 text-white px-3 py-1 rounded toggle-password" 
+                            <button class="bg-gray-600 hover:bg-gray-600 text-white px-3 py-1 rounded toggle-password" 
                                     data-target="password-{{ $user->id }}"
                                     type="button"
                                     title="Show/Hide Hash">

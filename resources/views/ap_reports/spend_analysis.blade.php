@@ -52,7 +52,7 @@
                             <td class="border border-gray-700 px-4 py-3 text-right font-semibold text-white">{{ number_format($item->amount, 2) }}</td>
                             <td class="border border-gray-700 px-4 py-3 text-right text-gray-300">{{ number_format($pct, 1) }}%</td>
                             <td class="border border-gray-700 px-4 py-3">
-                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="w-full bg-gray-600 rounded-full h-2.5">
                                     <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ min($pct, 100) }}%"></div>
                                 </div>
                             </td>

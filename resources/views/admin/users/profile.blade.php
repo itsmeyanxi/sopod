@@ -58,7 +58,7 @@
                        placeholder="Enter new password (min. 6 characters)">
                 <button type="button" 
                         id="togglePassword"
-                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-200 hover:bg-gray-300 text-white px-3 py-1 rounded">
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-600 hover:bg-gray-600 text-white px-3 py-1 rounded">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
@@ -75,14 +75,14 @@
                        placeholder="Confirm new password">
                 <button type="button" 
                         id="togglePasswordConfirm"
-                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-200 hover:bg-gray-300 text-white px-3 py-1 rounded">
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-600 hover:bg-gray-600 text-white px-3 py-1 rounded">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
         </div>
 
         <div class="flex justify-end space-x-3 mt-6">
-            <a href="{{ route('dashboard') }}" class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded-lg">Cancel</a>
+            <a href="{{ route('dashboard') }}" class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</a>
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Update Profile</button>
         </div>
     </form>

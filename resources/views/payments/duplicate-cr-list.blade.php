@@ -7,7 +7,7 @@
     <div class="bg-gray-800 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-white">Duplicate CR Numbers</h1>
-            <a href="{{ route('payments.entry') }}" class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded">
+            <a href="{{ route('payments.entry') }}" class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded">
                 Back to Payments
             </a>
         </div>

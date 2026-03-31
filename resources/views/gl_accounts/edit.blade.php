@@ -81,7 +81,7 @@
         {{-- Form Action Buttons --}}
         <div class="flex justify-end gap-4">
             <a href="{{ route('gl_accounts.show', $account->id) }}"
-                class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">
+                class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
                 Cancel
             </a>
             <button type="submit"

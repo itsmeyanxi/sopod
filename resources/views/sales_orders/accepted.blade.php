@@ -45,7 +45,7 @@
                             @elseif($status === 'declined')
                                 <span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">Declined</span>
                             @elseif($status === 'cancelled')
-                                <span class="bg-gray-200 text-white px-2 py-1 rounded text-xs font-semibold">Cancelled</span>
+                                <span class="bg-gray-600 text-white px-2 py-1 rounded text-xs font-semibold">Cancelled</span>
                             @endif
                         </td>
                         <td class="px-4 py- text-gray-500">

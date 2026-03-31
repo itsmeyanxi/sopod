@@ -13,7 +13,7 @@
                 <p class="text-gray-500 text-sm">Complete AR Summary for All Aging Periods</p>
             </div>
             <a href="{{ route('aging_reports.summary', ['filter_date' => $filterDate, 'include' => $include]) }}"
-               class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded font-medium transition flex items-center space-x-2">
+               class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded font-medium transition flex items-center space-x-2">
                 <i class="fas fa-arrow-left"></i>
                 <span>Back to Summary</span>
             </a>

@@ -98,7 +98,7 @@
                     </button>
                 </div>
                 <div>
-                    <a href="{{ route('po_records.index', ['type' => $type]) }}" class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-500 transition inline-block">
+                    <a href="{{ route('po_records.index', ['type' => $type]) }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-600 transition inline-block">
                         <i class="fas fa-times mr-1"></i> Clear
                     </a>
                 </div>
@@ -176,7 +176,7 @@
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('purchase_requests.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
                                         @if($record->status === 'approved')
-                                            <a href="{{ route('purchase_requests.print', $record->id) }}" target="_blank" class="bg-gray-200 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</a>
+                                            <a href="{{ route('purchase_requests.print', $record->id) }}" target="_blank" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition"><i class="fas fa-print"></i> Print</a>
                                         @else
                                             <span class="bg-gray-700 text-gray-500 px-3 py-1 rounded text-xs cursor-not-allowed" title="Must be approved to print"><i class="fas fa-print"></i> Print</span>
                                         @endif
@@ -196,7 +196,7 @@
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('purchase_orders.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
                                         @if($record->status === 'approved')
-                                            <a href="{{ route('purchase_orders.print', $record->id) }}" target="_blank" class="bg-gray-200 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</a>
+                                            <a href="{{ route('purchase_orders.print', $record->id) }}" target="_blank" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition"><i class="fas fa-print"></i> Print</a>
                                         @else
                                             <span class="bg-gray-700 text-gray-500 px-3 py-1 rounded text-xs cursor-not-allowed" title="Must be approved to print"><i class="fas fa-print"></i> Print</span>
                                         @endif
@@ -216,7 +216,7 @@
                                 <td class="px-4 py-2 border-b border-gray-700 text-center">
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('request_for_payments.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
-                                        <button onclick="window.open('{{ route('request_for_payments.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-200 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
+                                        <button onclick="window.open('{{ route('request_for_payments.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition"><i class="fas fa-print"></i> Print</button>
                                     </div>
                                 </td>
                             @elseif($type === 'apv')
@@ -238,7 +238,7 @@
                                 <td class="px-4 py-2 border-b border-gray-700 text-center">
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('accounts_payable_invoices.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
-                                        <button onclick="window.open('{{ route('accounts_payable_invoices.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-200 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
+                                        <button onclick="window.open('{{ route('accounts_payable_invoices.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition"><i class="fas fa-print"></i> Print</button>
                                     </div>
                                 </td>
                             @elseif($type === 'check_vouchers')
@@ -260,7 +260,7 @@
                                 <td class="px-4 py-2 border-b border-gray-700 text-center">
                                     <div class="flex justify-center gap-2">
                                         <a href="{{ route('check_vouchers.show', $record->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">View</a>
-                                        <button onclick="window.open('{{ route('check_vouchers.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-200 text-white px-3 py-1 rounded text-xs hover:bg-gray-500 transition"><i class="fas fa-print"></i> Print</button>
+                                        <button onclick="window.open('{{ route('check_vouchers.show', $record->id) }}', '_blank', 'width=900,height=700')" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition"><i class="fas fa-print"></i> Print</button>
                                     </div>
                                 </td>
                             @endif

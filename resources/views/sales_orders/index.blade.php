@@ -145,7 +145,7 @@
             </button>
 
             <a href="{{ route('sales_orders.index') }}" 
-            class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded transition">
+            class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded transition">
                 Clear
             </a>
 
@@ -279,7 +279,7 @@
                         @elseif($order->status === 'Declined')
                             <span class="bg-red-600 text-white px-2 py-1 rounded text-xs">Declined</span>
                         @elseif($order->status === 'Cancelled')
-                            <span class="bg-gray-200 text-white px-2 py-1 rounded text-xs">Cancelled</span>
+                            <span class="bg-gray-600 text-white px-2 py-1 rounded text-xs">Cancelled</span>
                         @endif
                     </td>
                     <td class="px-4 py-3">
@@ -295,7 +295,7 @@
                             
                             if (!$delivery) {
                                 $drStatus = ($order->status === 'Approved') ? 'Awaiting Delivery' : 'Not Delivered';
-                                $statusClass = 'bg-gray-200';
+                                $statusClass = 'bg-gray-600';
                             } else {
                                 if ($delivery->is_pulled_out) {
                                     $drStatus = 'Pulled Out';
@@ -329,7 +329,7 @@
                                     $statusClass = 'bg-indigo-600';
                                 } else {
                                     $drStatus = $delivery->status ?? 'Pending';
-                                    $statusClass = 'bg-gray-200';
+                                    $statusClass = 'bg-gray-600';
                                 }
                             }
                         @endphp
@@ -395,7 +395,7 @@
                     @endif
 
                     @if($isDelivered)
-                        <span class="bg-gray-200 text-white px-3 py-1 rounded text-xs ml-2" title="Order has been delivered">
+                        <span class="bg-gray-600 text-white px-3 py-1 rounded text-xs ml-2" title="Order has been delivered">
                             🔒 Locked
                         </span>
                     @endif
@@ -440,7 +440,7 @@
             
             <div class="flex justify-end gap-3">
                 <button type="button" onclick="closeDeclineModal()"
-                    class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded">
+                    class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded">
                     Cancel
                 </button>
                 <button type="submit"

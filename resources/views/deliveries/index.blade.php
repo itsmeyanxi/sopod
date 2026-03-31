@@ -106,7 +106,7 @@
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="show_hidden" value="1" {{ request('show_hidden') ? 'checked' : '' }}
                                class="sr-only peer" onchange="this.form.submit()">
-                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-800 after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-800 after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                     </label>
                     <span class="text-sm font-medium text-red-700">Show Hidden DRs</span>
                     @if(request('show_hidden'))
@@ -132,7 +132,7 @@
                 </a>
 
                 @if(request('delivery_date_from') || request('delivery_date_to') || request('search') || request('status') || request('approval_status'))
-                    <div class="h-8 w-px bg-gray-300"></div>
+                    <div class="h-8 w-px bg-gray-600"></div>
                     
                     <button type="button" onclick="printList()" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,7 +352,7 @@
                             @elseif($delivery->status === 'Delivered')
                                 <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">Delivered</span>
                             @else
-                                <span class="bg-gray-200 text-white px-2 py-1 rounded text-xs">{{ $delivery->status }}</span>
+                                <span class="bg-gray-600 text-white px-2 py-1 rounded text-xs">{{ $delivery->status }}</span>
                             @endif
                         </td>
                         
@@ -481,7 +481,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closeRejectModal()"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white rounded">
+                        class="px-4 py-2 bg-gray-600 hover:bg-gray-600 text-white rounded">
                     Cancel
                 </button>
                 <button type="submit"
@@ -515,7 +515,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closePulloutModal()"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white rounded">
+                        class="px-4 py-2 bg-gray-600 hover:bg-gray-600 text-white rounded">
                     Cancel
                 </button>
                 <button type="submit"
@@ -650,7 +650,7 @@
             <div class="flex gap-3 justify-end pt-4 border-t border-gray-700">
                 <button type="button" 
                         onclick="closeEditModal()"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white rounded transition">
+                        class="px-4 py-2 bg-gray-600 hover:bg-gray-600 text-white rounded transition">
                     Cancel
                 </button>
                 <button type="submit"
@@ -691,7 +691,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closeRejectEditModal()"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white rounded">
+                        class="px-4 py-2 bg-gray-600 hover:bg-gray-600 text-white rounded">
                     Cancel
                 </button>
                 <button type="submit"
@@ -726,7 +726,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closeBatchRejectModal()"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white rounded">
+                        class="px-4 py-2 bg-gray-600 hover:bg-gray-600 text-white rounded">
                     Cancel
                 </button>
                 <button type="submit"

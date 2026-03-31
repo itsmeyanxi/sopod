@@ -12,7 +12,7 @@
                 <a href="{{ route('storages.edit', $storage->id) }}" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded transition">
                     <i class="fas fa-edit mr-1"></i> Edit
                 </a>
-                <a href="{{ route('storages.index') }}" class="bg-gray-700 hover:bg-gray-200 text-white px-4 py-2 rounded transition">
+                <a href="{{ route('storages.index') }}" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition">
                     <i class="fas fa-list mr-1"></i> Back to List
                 </a>
             </div>

@@ -20,10 +20,10 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-6">
     <div>
-        <h1 class="text-3xl font-bold text-gray-900">Disposal Module</h1>
+        <h1 class="text-3xl font-bold text-white">Disposal Module</h1>
         <p class="text-gray-300 mt-1">Archived assets marked for disposal</p>
     </div>
-    <a href="{{ route('fixed_assets.index') }}" class="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-200 font-semibold">
+    <a href="{{ route('fixed_assets.index') }}" class="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 font-semibold">
         ← Back to Fixed Assets
     </a>
 </div>
@@ -89,7 +89,7 @@
                 <i class="fas fa-search mr-1"></i> Search
             </button>
             @if(request()->hasAny(['search', 'asset_group', 'asset_class', 'disposal_date_from', 'disposal_date_to']))
-            <a href="{{ route('disposals.index') }}" class="px-4 py-2 bg-gray-200 text-gray-200 rounded-lg hover:bg-gray-300">Clear</a>
+            <a href="{{ route('disposals.index') }}" class="px-4 py-2 bg-gray-600 text-gray-200 rounded-lg hover:bg-gray-600">Clear</a>
             @endif
         </form>
     </div>

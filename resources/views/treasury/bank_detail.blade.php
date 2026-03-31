@@ -56,7 +56,7 @@
     </div>
     <div class="flex gap-2">
         <a href="{{ route('treasury.banks', $account->currency === 'PHP' ? 'peso' : 'dollar') }}"
-           class="flex items-center gap-1.5 px-3 py-2 text-sm bg-gray-700 text-gray-200 rounded-md hover:bg-gray-200 font-semibold border border-gray-600">
+           class="flex items-center gap-1.5 px-3 py-2 text-sm bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 font-semibold border border-gray-600">
             <i class="fas fa-arrow-left"></i> Back to {{ $account->currency === 'PHP' ? 'Peso' : 'Dollar' }} Accounts
         </a>
         <button onclick="document.getElementById('add-txn-modal').classList.remove('hidden')"
@@ -123,7 +123,7 @@
                 <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
                 @endforeach
             </select>
-            <button type="submit" class="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs font-semibold text-gray-200 hover:bg-gray-200">
+            <button type="submit" class="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs font-semibold text-gray-200 hover:bg-gray-600">
                 <i class="fas fa-search"></i> Filter
             </button>
             @if(request()->hasAny(['date_from','date_to','type']))
@@ -231,7 +231,7 @@
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="document.getElementById('add-txn-modal').classList.add('hidden')"
-                        class="px-4 py-2 text-sm bg-gray-700 text-gray-200 rounded-md border border-gray-600 font-semibold hover:bg-gray-200">Cancel</button>
+                        class="px-4 py-2 text-sm bg-gray-700 text-gray-200 rounded-md border border-gray-600 font-semibold hover:bg-gray-600">Cancel</button>
                 <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-700 text-white rounded-md font-semibold hover:bg-blue-800">
                     <i class="fas fa-save mr-1"></i> Save Transaction

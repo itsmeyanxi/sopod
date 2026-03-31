@@ -76,7 +76,7 @@
                 </div>
                 <div class="flex gap-2">
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 flex-1"><i class="fas fa-filter mr-1"></i> Filter</button>
-                    <a href="{{ route('journal_vouchers.index') }}" class="bg-gray-200 text-gray-200 px-3 py-2 rounded text-sm hover:bg-gray-300"><i class="fas fa-times"></i></a>
+                    <a href="{{ route('journal_vouchers.index') }}" class="bg-gray-600 text-gray-200 px-3 py-2 rounded text-sm hover:bg-gray-600"><i class="fas fa-times"></i></a>
                 </div>
             </div>
         </form>

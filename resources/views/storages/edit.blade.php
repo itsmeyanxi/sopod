@@ -5,7 +5,7 @@
     <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">EDIT STORAGE</h1>
-            <a href="{{ route('storages.show', $storage->id) }}" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-200 transition">
+            <a href="{{ route('storages.show', $storage->id) }}" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
         </div>
@@ -77,7 +77,7 @@
             </div>
 
             <div class="flex justify-end gap-4">
-                <a href="{{ route('storages.show', $storage->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">Cancel</a>
+                <a href="{{ route('storages.show', $storage->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-600 transition">Cancel</a>
                 <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                     <i class="fas fa-save mr-1"></i> Update Storage
                 </button>

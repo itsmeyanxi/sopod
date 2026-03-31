@@ -115,7 +115,7 @@
                 🔄 Refresh Page
             </button>
             <a href="{{ route('dashboard') }}" 
-               class="px-6 py-3 bg-gray-200 text-white rounded-lg hover:bg-gray-700 transition font-semibold">
+               class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-semibold">
                 🏠 Go to Dashboard
             </a>
             <button onclick="copyError()" 

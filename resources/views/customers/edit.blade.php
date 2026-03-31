@@ -354,7 +354,7 @@
 
             <!-- Action Buttons -->
             <div class="flex justify-end space-x-4 mt-8">
-                <a href="{{ route('customers.index') }}" class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded-lg transition">
+                <a href="{{ route('customers.index') }}" class="bg-gray-600 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition">
                     Cancel
                 </a>
                 <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition">

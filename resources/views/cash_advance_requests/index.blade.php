@@ -52,7 +52,7 @@
                                     @elseif($car->status === 'approved') bg-green-600 text-white
                                     @elseif($car->status === 'rejected') bg-red-600 text-white
                                     @elseif($car->status === 'liquidated') bg-blue-600 text-white
-                                    @else bg-gray-200 text-white
+                                    @else bg-gray-600 text-white
                                     @endif">
                                     {{ ucfirst($car->status) }}
                                 </span>

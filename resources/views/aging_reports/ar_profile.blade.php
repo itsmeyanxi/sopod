@@ -15,7 +15,7 @@
                 <p class="text-gray-500 text-sm mt-1">Complete AR History: Invoices + Collections + Adjustments</p>
             </div>
             <a href="{{ route('aging_reports.view') }}" 
-               class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded transition flex items-center gap-2">
+               class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded transition flex items-center gap-2">
                 <i class="fas fa-arrow-left"></i>
                 Back to Reports
             </a>

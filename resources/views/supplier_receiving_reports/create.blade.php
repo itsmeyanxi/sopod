@@ -218,7 +218,7 @@
 
             <!-- Submit Buttons -->
             <div class="flex justify-end gap-3 border-t border-gray-700 pt-4">
-                <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-200 text-white px-6 py-2 rounded hover:bg-gray-500 transition">
+                <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
                     Cancel
                 </a>
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">

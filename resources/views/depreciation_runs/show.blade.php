@@ -19,7 +19,7 @@
                 @else
                     <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded text-sm font-semibold">Draft</span>
                 @endif
-                <a href="{{ route('depreciation_runs.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded hover:bg-gray-300 text-sm">
+                <a href="{{ route('depreciation_runs.index') }}" class="bg-gray-600 text-gray-200 px-4 py-2 rounded hover:bg-gray-600 text-sm">
                     <i class="fas fa-arrow-left mr-1"></i> Back
                 </a>
             </div>

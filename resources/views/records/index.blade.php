@@ -334,7 +334,7 @@
                                     @if($record->status === 'Delivered' || $record->status === 'Approved') bg-green-600
                                     @elseif($record->status === 'Declined' || $record->status === 'Cancelled') bg-red-600
                                     @elseif($record->status === 'Pending') bg-yellow-600
-                                    @else bg-gray-200 @endif">
+                                    @else bg-gray-600 @endif">
                                     {{ $record->status ?? '—' }}
                                 </span>
                             </td>

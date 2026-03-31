@@ -61,7 +61,7 @@
                     <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition text-sm">
                         <i class="fas fa-search mr-1"></i> Filter
                     </button>
-                    <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-500 transition text-sm">
+                    <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-600 transition text-sm">
                         Clear
                     </a>
                 </div>
@@ -100,7 +100,7 @@
                             <td class="border border-gray-700 px-4 py-3 text-center">{{ number_format($report->items->sum('net_weight'), 2) }}</td>
                             <td class="border border-gray-700 px-4 py-3">
                                 <span class="px-3 py-1 rounded text-xs font-semibold
-                                    @if($report->status === 'draft') bg-gray-200 text-white
+                                    @if($report->status === 'draft') bg-gray-600 text-white
                                     @elseif($report->status === 'saved') bg-teal-600 text-white
                                     @elseif($report->status === 'pending') bg-yellow-600 text-white
                                     @elseif($report->status === 'approved') bg-green-600 text-white

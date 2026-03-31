@@ -26,11 +26,11 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Record Date</label>
                     <input type="date" name="filter_date" value="{{ $filterDate }}"
-                           class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
+                           class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Include</label>
-                    <select name="include" class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
+                    <select name="include" class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                         <option value="all" {{ $include === 'all' ? 'selected' : '' }}>All Records</option>
                         <option value="yes" {{ $include === 'yes' ? 'selected' : '' }}>Included Only</option>
                         <option value="no" {{ $include === 'no' ? 'selected' : '' }}>Excluded Only</option>
@@ -38,7 +38,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">View</label>
-                    <select name="view" id="view_selector" class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
+                    <select name="view" id="view_selector" class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                         <option value="list" {{ $view === 'list' ? 'selected' : '' }}>AR Aging List</option>
                         <option value="summary" {{ $view === 'summary' ? 'selected' : '' }}>Summary Report</option>
                         <option value="collections" {{ $view === 'collections' ? 'selected' : '' }}>Collections</option>
@@ -188,7 +188,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Net Amount (After Tax)</label>
                     <input type="text" id="net_amount_display" readonly
-                           class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2 font-bold text-green-700">
+                           class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2 font-bold text-green-700">
                     <p class="text-xs text-gray-500 mt-1">Auto-calculated: Check Amount - EWT</p>
                 </div>
 
@@ -201,7 +201,7 @@
 
             <div class="flex justify-end gap-4 mt-6">
                 <button type="button" onclick="closeCollectionModal()"
-                        class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded font-medium">
+                        class="bg-gray-600 hover:bg-gray-600 text-white px-6 py-2 rounded font-medium">
                     Cancel
                 </button>
                 <button type="submit"
@@ -310,7 +310,7 @@
 
             <div class="flex justify-end gap-4 mt-6">
                 <button type="button" onclick="closeAdjustmentModal()"
-                        class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded font-medium">
+                        class="bg-gray-600 hover:bg-gray-600 text-white px-6 py-2 rounded font-medium">
                     Cancel
                 </button>
                 <button type="submit"

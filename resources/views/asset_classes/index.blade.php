@@ -25,7 +25,7 @@
             </select>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search asset class..." class="border border-gray-600 rounded px-3 py-2 text-sm w-64">
             <button type="submit" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">Filter</button>
-            <a href="{{ route('asset_classes.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded text-sm">Reset</a>
+            <a href="{{ route('asset_classes.index') }}" class="bg-gray-600 text-gray-200 px-4 py-2 rounded text-sm">Reset</a>
         </form>
 
         <div class="overflow-x-auto">

@@ -52,7 +52,7 @@
                 <i class="fas fa-search mr-2"></i>Search
             </button>
             <button type="button" onclick="clearSearch()"
-                class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded font-medium transition">
+                class="bg-gray-600 hover:bg-gray-600 text-white px-6 py-2 rounded font-medium transition">
                 Clear
             </button>
         </div>
@@ -123,7 +123,7 @@
             {{-- Modal Action Buttons --}}
             <div class="flex gap-3 pt-4 border-t border-gray-700">
                 <button type="button" onclick="closeImportModal()"
-                    class="flex-1 bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded font-medium transition">
+                    class="flex-1 bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded font-medium transition">
                     Cancel
                 </button>
                 <button type="submit"

@@ -15,11 +15,11 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-6">
     <div>
-        <h1 class="text-3xl font-bold text-gray-900">{{ $asset->asset_description }}</h1>
+        <h1 class="text-3xl font-bold text-white">{{ $asset->asset_description }}</h1>
         <p class="text-gray-300 mt-1">Asset Code: <strong>{{ $asset->asset_code ?? 'N/A' }}</strong></p>
     </div>
     <div class="flex gap-3">
-        <a href="{{ route('disposals.index') }}" class="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-200 font-semibold">
+        <a href="{{ route('disposals.index') }}" class="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 font-semibold">
             ← Back to Disposals
         </a>
     </div>
@@ -30,7 +30,7 @@
     <div class="flex items-center gap-3">
         <i class="fas fa-archive text-red-600 text-2xl"></i>
         <div>
-            <div class="font-bold text-gray-900">Asset Disposed</div>
+            <div class="font-bold text-white">Asset Disposed</div>
             <div class="text-sm text-gray-200">This asset has been permanently disposed and removed from active capitalization.</div>
         </div>
         <span class="badge badge-disposed ml-auto">DISPOSED</span>
@@ -42,7 +42,7 @@
     <!-- LEFT COLUMN: ASSET DETAILS -->
     <div class="col-span-2">
         <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-4">Asset Information</h2>
+            <h2 class="text-lg font-bold text-white mb-4">Asset Information</h2>
             <div class="info-grid">
                 <div>
                     <div class="info-row">
@@ -85,7 +85,7 @@
 
         <!-- FINANCIAL DETAILS -->
         <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-4">Financial Details</h2>
+            <h2 class="text-lg font-bold text-white mb-4">Financial Details</h2>
             <div class="info-grid">
                 <div>
                     <div class="info-row">
@@ -159,7 +159,7 @@
     <!-- RIGHT COLUMN: SUMMARY -->
     <div>
         <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 sticky top-4">
-            <h3 class="font-bold text-gray-900 mb-4">Summary</h3>
+            <h3 class="font-bold text-white mb-4">Summary</h3>
 
             <div class="space-y-3 text-sm">
                 <div class="flex justify-between">

@@ -196,7 +196,7 @@
                             'Partial' => 'bg-blue-600 text-white',
                             'Full' => 'bg-green-600 text-white',
                         ];
-                        $typeClass = $typeColors[$deliveryType] ?? 'bg-gray-200 text-white';
+                        $typeClass = $typeColors[$deliveryType] ?? 'bg-gray-600 text-white';
                         $displayText = $deliveryType ?: 'Not Set';
                     @endphp
                     <span class="px-2 py-1 rounded text-xs {{ $typeClass }}">
@@ -217,7 +217,7 @@
                             'Pending' => 'bg-yellow-500 text-black',
                             'Approved' => 'bg-green-600 text-white',
                             'Declined' => 'bg-red-600 text-white',
-                            'Cancelled' => 'bg-gray-200 text-white',
+                            'Cancelled' => 'bg-gray-600 text-white',
                             'New' => 'bg-purple-600 text-white'
                         ];
                         $statusClass = $statusColors[$salesOrder->status] ?? 'bg-gray-700 text-white';
