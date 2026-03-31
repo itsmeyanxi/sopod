@@ -10,7 +10,7 @@
             <h1 class="text-2xl font-bold text-white">PURCHASE ORDER</h1>
             <div class="flex items-center gap-4">
                 <div class="text-right">
-                    <label class="font-semibold text-gray-500">PO NO:</label>
+                    <label class="font-semibold text-gray-300">PO NO:</label>
                     <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $purchaseOrder->po_no }}</span>
                 </div>
                 <span class="px-3 py-1 rounded font-semibold
@@ -49,23 +49,23 @@
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Department Head Approval</span>
                             @if($purchaseOrder->department_head_approved_by && $purchaseOrder->departmentHeadApprover)
                                 <span class="text-green-700">✓ Approved</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $purchaseOrder->departmentHeadApprover->name }}
                                     on {{ $purchaseOrder->department_head_approved_at->format('M d, Y h:i A') }}
                                 </small>
                                 @if($purchaseOrder->department_head_approved_latitude && $purchaseOrder->department_head_approved_longitude)
                                     <br>
-                                    <small class="text-gray-500">
+                                    <small class="text-gray-300">
                                         <i class="fas fa-map-marker-alt"></i>
                                         Coordinates: {{ $purchaseOrder->department_head_approved_latitude }}, {{ $purchaseOrder->department_head_approved_longitude }}
                                         @if($purchaseOrder->department_head_approved_location)
@@ -89,27 +89,27 @@
                             </div>
                         @elseif($purchaseOrder->department_head_approved_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
-                                <i class="fas fa-lock text-gray-500"></i>
+                                <i class="fas fa-lock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Management Approval (GM)</span>
                             @if($purchaseOrder->management_approved_by && $purchaseOrder->managementApprover)
                                 <span class="text-green-700">✓ Approved</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $purchaseOrder->managementApprover->name }}
                                     on {{ $purchaseOrder->management_approved_at->format('M d, Y h:i A') }}
                                 </small>
                                 @if($purchaseOrder->management_approved_latitude && $purchaseOrder->management_approved_longitude)
                                     <br>
-                                    <small class="text-gray-500">
+                                    <small class="text-gray-300">
                                         <i class="fas fa-map-marker-alt"></i>
                                         Coordinates: {{ $purchaseOrder->management_approved_latitude }}, {{ $purchaseOrder->management_approved_longitude }}
                                         @if($purchaseOrder->management_approved_location)
@@ -135,27 +135,27 @@
                             </div>
                         @elseif($purchaseOrder->management_approved_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
-                                <i class="fas fa-lock text-gray-500"></i>
+                                <i class="fas fa-lock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Executive Approval (President/VP)</span>
                             @if($purchaseOrder->status === 'approved' && $purchaseOrder->approver)
                                 <span class="text-green-700">✓ Approved</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $purchaseOrder->approver->name }}
                                     on {{ $purchaseOrder->approved_at->format('M d, Y h:i A') }}
                                 </small>
                                 @if($purchaseOrder->approved_latitude && $purchaseOrder->approved_longitude)
                                     <br>
-                                    <small class="text-gray-500">
+                                    <small class="text-gray-300">
                                         <i class="fas fa-map-marker-alt"></i>
                                         Coordinates: {{ $purchaseOrder->approved_latitude }}, {{ $purchaseOrder->approved_longitude }}
                                         @if($purchaseOrder->approved_location)
@@ -192,7 +192,7 @@
                                 @endif
                             </p>
                             @if($purchaseOrder->rejection_reason)
-                                <p class="text-gray-500 mt-2">
+                                <p class="text-gray-300 mt-2">
                                     <strong>Reason:</strong> {{ $purchaseOrder->rejection_reason }}
                                 </p>
                             @endif
@@ -246,7 +246,7 @@
 
         <!-- Company -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-2">COMPANY:</label>
+            <label class="block font-semibold text-gray-300 mb-2">COMPANY:</label>
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->company }}</p>
         </div>
 
@@ -255,15 +255,15 @@
             <!-- Left Column -->
             <div class="space-y-4">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">CONSIGNEE:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->consignee ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">CONSIGNEE ADDRESS:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE ADDRESS:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200 min-h-[60px]">{{ $purchaseOrder->consignee_address ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">DELIVERY ADDRESS:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">DELIVERY ADDRESS:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200 min-h-[60px]">{{ $purchaseOrder->delivery_address ?? 'N/A' }}</p>
                 </div>
             </div>
@@ -271,27 +271,27 @@
             <!-- Right Column -->
             <div class="space-y-4">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">ORDER DATE:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">ORDER DATE:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->order_date->format('F d, Y') }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">EXPECTED DELIVERY DATE:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">EXPECTED DELIVERY DATE:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->expected_delivery_date ? $purchaseOrder->expected_delivery_date->format('F d, Y') : 'N/A' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">PAYMENT TERMS:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">PAYMENT TERMS:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->payment_terms ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">LOCATION:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">LOCATION:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->location ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">HOUSE:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">HOUSE:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->house ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">PR#:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">PR#:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">
                         @if($purchaseOrder->purchaseRequest)
                             <a href="{{ route('purchase_requests.show', $purchaseOrder->purchaseRequest->id) }}" class="text-purple-700 hover:text-purple-700">
@@ -304,16 +304,16 @@
                 </div>
                 @if($purchaseOrder->purchaseRequest && $purchaseOrder->purchaseRequest->reason_for_requisition)
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">REASON FOR REQUISITION:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">REASON FOR REQUISITION:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->purchaseRequest->reason_for_requisition }}</p>
                 </div>
                 @endif
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">LC PRICE:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">LC PRICE:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->lc_price ? '₱' . number_format($purchaseOrder->lc_price, 2) : 'N/A' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">CREATED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">CREATED BY:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->creator->name ?? 'N/A' }}</p>
                 </div>
             </div>
@@ -324,7 +324,7 @@
             <h3 class="text-lg font-semibold text-white mb-2">Items</h3>
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse border border-gray-700">
-                    <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+                    <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                         <tr>
                             <th class="border border-gray-700 px-4 py-3">NO.</th>
                             <th class="border border-gray-700 px-4 py-3">ITEM CODE</th>
@@ -339,7 +339,7 @@
                             <th class="border border-gray-700 px-4 py-3">NOTE</th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-500 divide-y divide-gray-700">
+                    <tbody class="text-gray-200 divide-y divide-gray-700">
                         @foreach($purchaseOrder->items as $item)
                             <tr class="hover:bg-gray-700/40">
                                 <td class="border border-gray-700 px-4 py-3 text-center">{{ $item->item_no }}</td>
@@ -388,7 +388,7 @@
                     </a>
                 </div>
             @else
-                <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-gray-500">
+                <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-gray-300">
                     No quotation file uploaded
                 </div>
             @endif
@@ -403,9 +403,9 @@
                     </colgroup>
                     <thead>
                         <tr class="bg-gray-700">
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Prepared By:</th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Noted By:</th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm" colspan="3">Approved By:</th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Prepared By:</th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Noted By:</th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm" colspan="3">Approved By:</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -416,7 +416,7 @@
                             <td class="border border-gray-700 px-4 py-8 text-center align-bottom">
                                 <span class="text-white font-semibold text-sm">{{ $purchaseOrder->departmentHeadApprover->name ?? '' }}</span>
                                 @if($purchaseOrder->departmentHeadApprover && $purchaseOrder->department_head_approved_at)
-                                    <div class="text-xs text-gray-500 italic mt-1">
+                                    <div class="text-xs text-gray-300 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $purchaseOrder->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($purchaseOrder->department_head_approved_latitude && $purchaseOrder->department_head_approved_longitude)
@@ -429,7 +429,7 @@
                             <td class="border border-gray-700 px-4 py-8 text-center align-bottom">
                                 <span class="text-white font-semibold text-sm">{{ $purchaseOrder->managementApprover->name ?? '' }}</span>
                                 @if($purchaseOrder->managementApprover && $purchaseOrder->management_approved_at)
-                                    <div class="text-xs text-gray-500 italic mt-1">
+                                    <div class="text-xs text-gray-300 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $purchaseOrder->management_approved_at->format('d M Y | H:i') }}
                                         @if($purchaseOrder->management_approved_latitude && $purchaseOrder->management_approved_longitude)
@@ -443,7 +443,7 @@
                             <td class="border border-gray-700 px-4 py-8 text-center align-bottom">
                                 <span class="text-white font-semibold text-sm">{{ $purchaseOrder->approver->name ?? '' }}</span>
                                 @if($purchaseOrder->approver && $purchaseOrder->approved_at)
-                                    <div class="text-xs text-gray-500 italic mt-1">
+                                    <div class="text-xs text-gray-300 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $purchaseOrder->approved_at->format('d M Y | H:i') }}
                                         @if($purchaseOrder->approved_latitude && $purchaseOrder->approved_longitude)
@@ -454,7 +454,7 @@
                                 @endif
                             </td>
                         </tr>
-                        <tr class="bg-gray-700 text-gray-500 text-xs italic">
+                        <tr class="bg-gray-700 text-gray-300 text-xs italic">
                             <td class="border border-gray-700 px-4 py-2 text-center">Requisitioner</td>
                             <td class="border border-gray-700 px-4 py-2 text-center">Department Head</td>
                             <td class="border border-gray-700 px-4 py-2 text-center">GM</td>
@@ -499,8 +499,8 @@
             <input type="hidden" name="longitude" id="dh_longitude">
             <input type="hidden" name="location" id="dh_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="dh_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveDHModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</button>
@@ -522,8 +522,8 @@
             <input type="hidden" name="longitude" id="mgmt_longitude">
             <input type="hidden" name="location" id="mgmt_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="mgmt_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="mgmt_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveManagementModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</button>
@@ -545,8 +545,8 @@
             <input type="hidden" name="longitude" id="exec_longitude">
             <input type="hidden" name="location" id="exec_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="exec_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="exec_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</button>
@@ -565,7 +565,7 @@
         <form action="{{ route('purchase_orders.reject', $purchaseOrder->id) }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-500 mb-2">Rejection Reason (Optional):</label>
+                <label class="block text-gray-300 mb-2">Rejection Reason (Optional):</label>
                 <textarea name="rejection_reason" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">

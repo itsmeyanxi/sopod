@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">EDIT SUPPLY RECEIVING REPORT</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-500">SRR CODE:</label>
+                <label class="font-semibold text-gray-300">SRR CODE:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $report->srr_code }}</span>
             </div>
         </div>
@@ -33,12 +33,12 @@
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DATE: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-1">DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="report_date" value="{{ old('report_date', $report->report_date->format('Y-m-d')) }}" required
                             class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">SUPPLY:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">SUPPLY:</label>
                         <select name="supplier_id" id="supplier_id"
                             class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                             <option value="">-- Select Supply --</option>
@@ -50,7 +50,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">CV NO:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">CV NO:</label>
                         <input type="text" name="cv_no" value="{{ old('cv_no', $report->cv_no) }}" placeholder="Check Voucher Number"
                             class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
@@ -58,7 +58,7 @@
                 <!-- Right Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">STORAGE:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">STORAGE:</label>
                         <select name="storage" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                             <option value="">-- Select Warehouse / Storage --</option>
                             @foreach([
@@ -75,7 +75,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">PO NO:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">PO NO:</label>
                         <div class="relative">
                             <input type="text" name="po_no" id="po_no" value="{{ old('po_no', $report->po_no) }}" placeholder="Search or type PO number..."
                                 class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" autocomplete="off">
@@ -84,7 +84,7 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">TYPE: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-2">TYPE: <span class="text-red-700">*</span></label>
                         <div class="flex flex-wrap gap-4">
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="report_type" value="purchased" {{ old('report_type', $report->report_type) == 'purchased' ? 'checked' : '' }}
@@ -114,14 +114,14 @@
             <!-- Items Table -->
             <div class="mb-6">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold text-lg text-gray-500">ITEMS</h3>
+                    <h3 class="font-semibold text-lg text-gray-300">ITEMS</h3>
                     <button type="button" onclick="addRow()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm hover:bg-purple-700 transition">
                         <i class="fas fa-plus mr-1"></i> Add Row
                     </button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full border-collapse border border-gray-700" id="itemsTable">
-                        <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+                        <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                             <tr>
                                 <th class="border border-gray-700 px-2 py-2 w-10">#</th>
                                 <th class="border border-gray-700 px-2 py-2">ITEM CODE</th>
@@ -180,7 +180,7 @@
                         </tbody>
                         <tfoot class="bg-gray-700">
                             <tr>
-                                <td colspan="4" class="border border-gray-700 px-4 py-2 text-right font-semibold text-gray-500">TOTALS:</td>
+                                <td colspan="4" class="border border-gray-700 px-4 py-2 text-right font-semibold text-gray-300">TOTALS:</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center font-semibold text-white" id="totalBoxes">0</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center font-semibold text-white" id="totalWeight">0.00</td>
                                 <td colspan="5" class="border border-gray-700"></td>
@@ -192,7 +192,7 @@
 
             <!-- Note -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-1">NOTE:</label>
+                <label class="block font-semibold text-gray-300 mb-1">NOTE:</label>
                 <textarea name="note" rows="3" placeholder="Additional notes..."
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('note', $report->note) }}</textarea>
             </div>
@@ -200,23 +200,23 @@
             <!-- Signature Fields -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">PREPARED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">PREPARED BY:</label>
                     <input type="text" value="{{ $report->prepared_by }}" readonly
-                        class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-500 cursor-not-allowed">
+                        class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-300 cursor-not-allowed">
                     <input type="hidden" name="prepared_by" value="{{ $report->prepared_by }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">CHECKED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">CHECKED BY:</label>
                     <input type="text" name="checked_by" value="{{ old('checked_by', $report->checked_by) }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">RECEIVED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">RECEIVED BY:</label>
                     <input type="text" name="received_by" value="{{ old('received_by', $report->received_by) }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">VERIFIED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">VERIFIED BY:</label>
                     <input type="text" name="verified_by" value="{{ old('verified_by', $report->verified_by) }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
@@ -355,7 +355,7 @@ poInput.addEventListener('input', function() {
             const pos = await response.json();
 
             if (pos.length === 0) {
-                poResults.innerHTML = '<div class="p-3 text-gray-500 text-center text-sm">No POs found</div>';
+                poResults.innerHTML = '<div class="p-3 text-gray-300 text-center text-sm">No POs found</div>';
                 poResults.classList.remove('hidden');
                 return;
             }
@@ -364,7 +364,7 @@ poInput.addEventListener('input', function() {
             pos.forEach(po => {
                 html += `<div class="p-3 hover:bg-gray-700 cursor-pointer text-sm" onclick="selectPO('${po.po_no}')">
                     <span class="font-semibold text-white">${po.po_no}</span>
-                    <span class="text-gray-500 ml-2">${po.supplier || ''}</span>
+                    <span class="text-gray-300 ml-2">${po.supplier || ''}</span>
                 </div>`;
             });
             html += '</div>';

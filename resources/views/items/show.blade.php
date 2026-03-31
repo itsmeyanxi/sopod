@@ -40,22 +40,22 @@
         <div class="bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="text-gray-500 text-sm">Item Code</label>
+                    <label class="text-gray-300 text-sm">Item Code</label>
                     <p class="text-white text-lg font-semibold">{{ $item->item_code }}</p>
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="text-gray-500 text-sm"> Item Description</label>
+                    <label class="text-gray-300 text-sm"> Item Description</label>
                     <p class="text-white">{{ $item->item_description }}</p>
                 </div>
 
                 <div>
-                    <label class="text-gray-500 text-sm">Brand</label>
+                    <label class="text-gray-300 text-sm">Brand</label>
                     <p class="text-white">{{ $item->brand ?? 'N/A' }}</p>
                 </div>
 
                 <div>
-                    <label class="text-gray-500 text-sm">Category</label>
+                    <label class="text-gray-300 text-sm">Category</label>
                     <p class="text-white">{{ $item->item_category ?? 'N/A' }}</p>
                 </div>
             </div>
@@ -65,7 +65,7 @@
         @if($item->approval_status === 'pending' && auth()->check() && auth()->user()->canApproveItems())
             <div class="bg-yellow-100 border border-yellow-600 rounded-xl p-6 mb-6">
                 <h3 class="text-xl font-bold text-yellow-700 mb-4">⚠️ Approval Required</h3>
-                <p class="text-gray-500 mb-4">This item is pending approval. Please review and take action:</p>
+                <p class="text-gray-300 mb-4">This item is pending approval. Please review and take action:</p>
                 
                 <div class="flex gap-4">
                     <form action="{{ route('items.approve', $item->id) }}" method="POST" class="inline">
@@ -93,13 +93,13 @@
         @if($item->approval_status === 'rejected' && $item->rejection_reason)
             <div class="bg-red-100 border border-red-600 rounded-xl p-6 mb-6">
                 <h3 class="text-xl font-bold text-red-700 mb-2">Rejection Reason</h3>
-                <p class="text-gray-500">{{ $item->rejection_reason }}</p>
+                <p class="text-gray-300">{{ $item->rejection_reason }}</p>
             </div>
         @endif
 
         <!-- Approval Info (if approved) -->
         @if($item->approval_status === 'approved' && $item->approver)
-            <div class="bg-gray-800 rounded-xl p-4 text-sm text-gray-500">
+            <div class="bg-gray-800 rounded-xl p-4 text-sm text-gray-300">
                 <p>Approved by <span class="text-green-700 font-semibold">{{ $item->approver->name }}</span> 
                    on {{ $item->approved_at->format('M d, Y h:i A') }}</p>
             </div>

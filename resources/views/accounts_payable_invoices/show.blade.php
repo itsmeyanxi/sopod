@@ -191,7 +191,7 @@
                         <p class="font-semibold">{{ $invoice->departmentHeadApprover->name ?? ($invoice->reviewed_by ?? '___________________') }}</p>
                         <p class="text-xs text-gray-300">Reviewed By (Dept Head)</p>
                         @if($invoice->departmentHeadApprover && $invoice->department_head_approved_at)
-                            <p class="text-xs text-gray-500 italic mt-1">
+                            <p class="text-xs text-gray-300 italic mt-1">
                                 Digitally Signed<br>
                                 {{ $invoice->department_head_approved_at->format('d M Y | H:i') }}
                                 @if($invoice->department_head_approved_latitude && $invoice->department_head_approved_longitude)
@@ -206,7 +206,7 @@
                         <p class="font-semibold">{{ $invoice->approver->name ?? ($invoice->approved_by ?? '___________________') }}</p>
                         <p class="text-xs text-gray-300">Approved By (Accounting Manager)</p>
                         @if($invoice->approver && $invoice->approved_at)
-                            <p class="text-xs text-gray-500 italic mt-1">
+                            <p class="text-xs text-gray-300 italic mt-1">
                                 Digitally Signed<br>
                                 {{ $invoice->approved_at->format('d M Y | H:i') }}
                                 @if($invoice->approved_latitude && $invoice->approved_longitude)
@@ -220,7 +220,7 @@
             </div>
 
             <!-- Footer -->
-            <div class="mt-8 pt-4 border-t border-gray-600 text-xs text-gray-500">
+            <div class="mt-8 pt-4 border-t border-gray-600 text-xs text-gray-300">
                 <div class="flex justify-between">
                     <div>
                         <p>Status:
@@ -253,17 +253,17 @@
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Department Head Review</span>
                             @if($invoice->department_head_approved_by && $invoice->departmentHeadApprover)
                                 <span class="text-green-700">✓ Reviewed</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $invoice->departmentHeadApprover->name }}
                                     on {{ $invoice->department_head_approved_at->format('M d, Y h:i A') }}
                                 </small>
@@ -283,21 +283,21 @@
                             </div>
                         @elseif($invoice->department_head_approved_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
-                                <i class="fas fa-lock text-gray-500"></i>
+                                <i class="fas fa-lock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Accounting Manager Approval</span>
                             @if($invoice->status === 'approved' && $invoice->approver)
                                 <span class="text-green-700">✓ Approved</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $invoice->approver->name }}
                                     on {{ $invoice->approved_at->format('M d, Y h:i A') }}
                                 </small>
@@ -323,7 +323,7 @@
                                 <span class="font-semibold">Rejected</span>
                             </p>
                             @if($invoice->rejection_reason)
-                                <p class="text-gray-500 mt-2">
+                                <p class="text-gray-300 mt-2">
                                     <strong>Reason:</strong> {{ $invoice->rejection_reason }}
                                 </p>
                             @endif
@@ -368,8 +368,8 @@
             <input type="hidden" name="longitude" id="dh_longitude">
             <input type="hidden" name="location" id="dh_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="dh_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveDHModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
@@ -393,8 +393,8 @@
             <input type="hidden" name="longitude" id="acct_longitude">
             <input type="hidden" name="location" id="acct_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="acct_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="acct_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
@@ -415,7 +415,7 @@
         <form action="{{ route('accounts_payable_invoices.reject', $invoice->id) }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-500 mb-2">Rejection Reason (Optional):</label>
+                <label class="block text-gray-300 mb-2">Rejection Reason (Optional):</label>
                 <textarea name="rejection_reason" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">
@@ -567,7 +567,7 @@ function getLocationName(lat, lng, prefix) {
 <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-gray-800 rounded-lg p-6 w-96">
         <h3 class="text-xl font-bold text-white mb-4">Delete Invoice</h3>
-        <p class="text-gray-500 mb-4">Are you sure you want to delete invoice <strong>{{ $invoice->apv_no }}</strong>? This action cannot be undone.</p>
+        <p class="text-gray-300 mb-4">Are you sure you want to delete invoice <strong>{{ $invoice->apv_no }}</strong>? This action cannot be undone.</p>
         <form action="{{ route('accounts_payable_invoices.destroy', $invoice->id) }}" method="POST">
             @csrf
             @method('DELETE')

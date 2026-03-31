@@ -21,20 +21,20 @@
 
         @if(count($duplicates) > 0)
             <div class="bg-gray-700 rounded-lg p-4">
-                <p class="text-gray-500 mb-4">
+                <p class="text-gray-300 mb-4">
                     <strong>Found {{ count($duplicates) }} CR numbers with duplicates</strong>
                 </p>
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-gray-800 rounded-lg">
                         <thead>
-                            <tr class="bg-gray-900 text-gray-500 text-sm">
+                            <tr class="bg-gray-900 text-gray-300 text-sm">
                                 <th class="px-4 py-3 text-left">CR Number</th>
                                 <th class="px-4 py-3 text-center">Number of Records</th>
                                 <th class="px-4 py-3 text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-500">
+                        <tbody class="text-gray-200">
                             @foreach($duplicates as $duplicate)
                             <tr class="border-b border-gray-700 hover:bg-gray-900">
                                 <td class="px-4 py-3 font-semibold">
@@ -66,7 +66,7 @@
         @else
             <div class="bg-gray-700 rounded-lg p-8 text-center">
                 <i class="fas fa-check-circle text-green-500 text-4xl mb-4"></i>
-                <p class="text-gray-500 text-lg">No duplicate CR numbers found!</p>
+                <p class="text-gray-300 text-lg">No duplicate CR numbers found!</p>
             </div>
         @endif
     </div>

@@ -8,7 +8,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <div>
                 <h1 class="text-2xl font-bold text-white">LAPSING SCHEDULE</h1>
-                <p class="text-sm text-gray-500 mt-1">MEATPLUS TRADING - Fixed Asset Summary</p>
+                <p class="text-sm text-gray-300 mt-1">MEATPLUS TRADING - Fixed Asset Summary</p>
             </div>
             <a href="{{ route('fixed_assets.index') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-sm">
                 <i class="fas fa-list mr-1"></i> Asset List

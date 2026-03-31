@@ -5,7 +5,7 @@
 @section('content')
 <div class="container mx-auto max-w-3xl">
     <div class="mb-4">
-        <a href="{{ route('payments.show', $payment->id) }}" class="text-sm text-gray-500 hover:text-gray-200">
+        <a href="{{ route('payments.show', $payment->id) }}" class="text-sm text-gray-300 hover:text-gray-200">
             <i class="fas fa-arrow-left mr-1"></i> Back to Payment Details
         </a>
     </div>

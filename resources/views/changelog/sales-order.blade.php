@@ -11,7 +11,7 @@
                 ← Back to Change Log
             </a>
             <h1 class="text-3xl font-bold">📜 Change History</h1>
-            <p class="text-gray-500 mt-2">Sales Order: <span class="text-white font-semibold">{{ $salesOrder->sales_order_number }}</span></p>
+            <p class="text-gray-300 mt-2">Sales Order: <span class="text-white font-semibold">{{ $salesOrder->sales_order_number }}</span></p>
         </div>
         <a href="{{ route('sales_orders.show', $salesOrder->id) }}" 
            class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">
@@ -22,11 +22,11 @@
     <!-- Sales Order Info Card -->
     <div class="bg-gray-800 p-6 rounded-lg mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-            <p class="text-gray-500 text-sm">Customer</p>
+            <p class="text-gray-300 text-sm">Customer</p>
             <p class="text-white font-semibold">{{ $salesOrder->customer_name ?? 'N/A' }}</p>
         </div>
         <div>
-            <p class="text-gray-500 text-sm">Status</p>
+            <p class="text-gray-300 text-sm">Status</p>
             <p class="text-white font-semibold">
                 <span class="px-3 py-1 rounded-full text-sm 
                     @if($salesOrder->status === 'Approved') bg-green-600
@@ -37,7 +37,7 @@
             </p>
         </div>
         <div>
-            <p class="text-gray-500 text-sm">Total Amount</p>
+            <p class="text-gray-300 text-sm">Total Amount</p>
             <p class="text-white font-semibold">₱{{ number_format($salesOrder->total_amount ?? 0, 2) }}</p>
         </div>
     </div>
@@ -47,7 +47,7 @@
         <h2 class="text-xl font-bold mb-6">Change Timeline</h2>
         
         @if($changes->isEmpty())
-            <p class="text-gray-500 text-center py-8">No changes recorded for this sales order</p>
+            <p class="text-gray-300 text-center py-8">No changes recorded for this sales order</p>
         @else
             <div class="space-y-6">
                 @foreach($changes as $change)
@@ -94,7 +94,7 @@
                                         {{ ucfirst($actionType) }}
                                     </span>
                                 </div>
-                                <div class="text-right text-sm text-gray-500">
+                                <div class="text-right text-sm text-gray-300">
                                     <p class="font-semibold">{{ $change->created_at->format('M d, Y') }}</p>
                                     <p>{{ $change->created_at->format('h:i A') }}</p>
                                 </div>
@@ -133,7 +133,7 @@
                                 @elseif($isJson)
                                     <!-- For Item Updates - Show what changed in summary -->
                                     <div class="bg-gray-800 rounded p-3 mb-3 text-sm">
-                                        <p class="text-gray-500">
+                                        <p class="text-gray-300">
                                             <i class="fas fa-info-circle text-blue-700 mr-2"></i>
                                             <strong>What Changed:</strong>
                                             @php
@@ -184,7 +184,7 @@
                                                 <div class="bg-red-100 border-2 border-red-900/50 rounded-lg p-4">
                                                     @foreach($changedFields as $key => $values)
                                                         <div class="mb-3 last:mb-0">
-                                                            <span class="text-gray-500 text-xs block mb-1">{{ ucwords(str_replace('_', ' ', $key)) }}</span>
+                                                            <span class="text-gray-300 text-xs block mb-1">{{ ucwords(str_replace('_', ' ', $key)) }}</span>
                                                             <span class="text-red-700 font-semibold text-lg">
                                                                 @if($key === 'unit_price')
                                                                     ₱{{ number_format($values['old'], 2) }}
@@ -207,7 +207,7 @@
                                                 <div class="bg-green-100 border-2 border-green-900/50 rounded-lg p-4">
                                                     @foreach($changedFields as $key => $values)
                                                         <div class="mb-3 last:mb-0">
-                                                            <span class="text-gray-500 text-xs block mb-1">{{ ucwords(str_replace('_', ' ', $key)) }}</span>
+                                                            <span class="text-gray-300 text-xs block mb-1">{{ ucwords(str_replace('_', ' ', $key)) }}</span>
                                                             <span class="text-green-700 font-semibold text-lg">
                                                                 @if($key === 'unit_price')
                                                                     ₱{{ number_format($values['new'], 2) }}
@@ -222,7 +222,7 @@
                                                 </div>
                                             </div>
                                         @else
-                                            <div class="col-span-2 text-center text-gray-500 py-4">
+                                            <div class="col-span-2 text-center text-gray-300 py-4">
                                                 No specific field changes detected
                                             </div>
                                         @endif
@@ -263,7 +263,7 @@
                                         <div class="space-y-2">
                                             @foreach($newData as $key => $value)
                                                 <div class="flex justify-between">
-                                                    <span class="text-gray-500 text-sm">{{ ucwords(str_replace('_', ' ', $key)) }}:</span>
+                                                    <span class="text-gray-300 text-sm">{{ ucwords(str_replace('_', ' ', $key)) }}:</span>
                                                     <span class="text-green-700 font-semibold text-sm">
                                                         @if($key === 'unit_price')
                                                             ₱{{ number_format($value, 2) }}
@@ -292,7 +292,7 @@
                                         <div class="space-y-2">
                                             @foreach($oldData as $key => $value)
                                                 <div class="flex justify-between">
-                                                    <span class="text-gray-500 text-sm">{{ ucwords(str_replace('_', ' ', $key)) }}:</span>
+                                                    <span class="text-gray-300 text-sm">{{ ucwords(str_replace('_', ' ', $key)) }}:</span>
                                                     <span class="text-red-700 font-semibold text-sm">
                                                         @if($key === 'unit_price')
                                                             ₱{{ number_format($value, 2) }}
@@ -313,11 +313,11 @@
 
                             <!-- Changed By Footer -->
                             <div class="pt-3 border-t border-gray-600 flex justify-between items-center">
-                                <p class="text-gray-500 text-xs">
+                                <p class="text-gray-300 text-xs">
                                     <i class="fas fa-user-circle mr-1"></i>
                                     Changed by: <span class="text-white font-semibold">{{ $change->user->name ?? 'System' }}</span>
                                 </p>
-                                <p class="text-gray-500 text-xs">
+                                <p class="text-gray-300 text-xs">
                                     <i class="far fa-clock mr-1"></i>
                                     {{ $change->created_at->diffForHumans() }}
                                 </p>

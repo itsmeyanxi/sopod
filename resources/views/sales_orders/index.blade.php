@@ -98,26 +98,26 @@
         <!-- FILTER FORM (LEFT) -->
         <form action="{{ route('sales_orders.index') }}" method="GET" class="flex items-end gap-4">
             <div>
-                <label class="block text-sm text-gray-500 mb-1">Delivery Date From</label>
+                <label class="block text-sm text-gray-300 mb-1">Delivery Date From</label>
                 <input type="date" name="date_from" value="{{ request('date_from') }}"
                     class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm text-gray-500 mb-1">Delivery Date To</label>
+                <label class="block text-sm text-gray-300 mb-1">Delivery Date To</label>
                 <input type="date" name="date_to" value="{{ request('date_to') }}"
                     class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm text-gray-500 mb-1">Search</label>
+                <label class="block text-sm text-gray-300 mb-1">Search</label>
                 <input type="text" name="search" placeholder="Search..."
                     value="{{ request('search') }}"
                     class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 w-full">
             </div>
 
             <div>
-                <label class="block text-sm text-gray-500 mb-1">SO Status</label>
+                <label class="block text-sm text-gray-300 mb-1">SO Status</label>
                 <select name="so_status" class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
                     <option value="">All</option>
                     <option value="Pending" {{ request('so_status') === 'Pending' ? 'selected' : '' }}>Pending</option>
@@ -128,7 +128,7 @@
             </div>
 
             <div>
-                <label class="block text-sm text-gray-500 mb-1">DR Status</label>
+                <label class="block text-sm text-gray-300 mb-1">DR Status</label>
                 <select name="dr_status" class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
                     <option value="">All</option>
                     <option value="Awaiting Delivery" {{ request('dr_status') === 'Awaiting Delivery' ? 'selected' : '' }}>Awaiting Delivery</option>
@@ -222,7 +222,7 @@
 
     <!-- Sales Order Table -->
     <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2 text-sm text-gray-500">
+        <div class="flex items-center gap-2 text-sm text-gray-300">
             <span>Number of rows:</span>
             <select onchange="changePerPage(this.value)"
                 class="bg-gray-700 border border-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500">
@@ -235,7 +235,7 @@
     </div>
     <div class="bg-gray-800 rounded-xl shadow-md overflow-hidden">
         <table id="soTable" class="w-full text-sm">
-            <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+            <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                 <tr>
                     @if($hasPendingOrders)
                     <th class="px-4 py-3 text-center w-12">
@@ -417,7 +417,7 @@
     </div>
 
     <div class="mt-3 flex items-center justify-between">
-        <div class="text-sm text-gray-500">
+        <div class="text-sm text-gray-300">
             Showing {{ $salesOrders->firstItem() }}–{{ $salesOrders->lastItem() }} of {{ $salesOrders->total() }} record(s)
         </div>
         <div>{{ $salesOrders->onEachSide(1)->links('vendor.pagination.elegant') }}</div>
@@ -428,7 +428,7 @@
 <div id="declineModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
     <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
         <h3 class="text-xl font-bold mb-4">Decline Selected Orders</h3>
-        <p class="text-gray-500 mb-4">Please provide a reason for declining these sales orders:</p>
+        <p class="text-gray-300 mb-4">Please provide a reason for declining these sales orders:</p>
         
         <form id="bulkDeclineForm" action="{{ route('sales_orders.bulkDecline') }}" method="POST">
             @csrf

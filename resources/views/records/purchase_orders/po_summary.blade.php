@@ -314,7 +314,7 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-white font-semibold text-xl tracking-tight">PO Summary Monitor</h1>
-            <p class="text-gray-500 text-xs mt-0.5 mono">{{ now()->format('l, F j Y · H:i') }} · Real-time snapshot</p>
+            <p class="text-gray-300 text-xs mt-0.5 mono">{{ now()->format('l, F j Y · H:i') }} · Real-time snapshot</p>
         </div>
         <div class="flex items-center gap-2">
             {{-- Company filter tabs --}}

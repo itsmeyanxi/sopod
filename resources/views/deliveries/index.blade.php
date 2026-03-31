@@ -39,7 +39,7 @@
             {{-- Filter inputs (unchanged) --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                 <div class="relative">
-                    <label class="block text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
+                    <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
                         <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
@@ -50,7 +50,7 @@
                 </div>
 
                 <div class="relative">
-                    <label class="block text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
+                    <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
                         <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
@@ -61,7 +61,7 @@
                 </div>
 
                 <div class="relative">
-                    <label class="block text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
+                    <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
                         <svg class="w-4 h-4 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
@@ -70,7 +70,7 @@
                     <div class="relative">
                         <input type="text" name="search" placeholder="Search DR No, SO, Customer..." value="{{ request('search') }}"
                             class="w-full bg-gray-700/50 text-white px-4 py-2.5 pl-10 rounded-lg border border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none">
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
@@ -79,7 +79,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 p-4 bg-gray-900/30 rounded-xl border border-gray-700/30">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">📦 Delivery Status</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">📦 Delivery Status</label>
                     <select name="status" class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none cursor-pointer">
                         <option value="">All Status</option>
                         <option value="Pending" {{ request('status') == 'Pending' ? 'selected' : '' }}>⏳ Pending</option>
@@ -89,7 +89,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">✅ Approval Status</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">✅ Approval Status</label>
                     <select name="approval_status" class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-gray-600 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all outline-none cursor-pointer">
                         <option value="">All Approval Status</option>
                         <option value="Pending" {{ request('approval_status') == 'Pending' ? 'selected' : '' }}>⏳ Pending Approval</option>
@@ -153,7 +153,7 @@
             @if(request('delivery_date_from') || request('delivery_date_to') || request('status') || request('approval_status'))
                 <div class="mt-4 pt-4 border-t border-gray-700/50">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-sm font-medium text-gray-500 flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-300 flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                             </svg>
@@ -175,7 +175,7 @@
                         @endif
 
                         @if(request('status'))
-                            <span class="bg-gray-700 border border-gray-600/30 text-gray-500 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-gray-700/30 transition-all">
+                            <span class="bg-gray-700 border border-gray-600/30 text-gray-300 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-gray-700/30 transition-all">
                                 📦 Status: {{ request('status') }}
                                 <a href="{{ route('deliveries.index', request()->except('status')) }}" class="hover:text-white">×</a>
                             </span>
@@ -207,7 +207,7 @@
                     <button onclick="selectAllPending()" class="text-sm text-blue-700 hover:text-blue-700 underline">
                         Select All Pending
                     </button>
-                    <button onclick="clearSelection()" class="text-sm text-gray-500 hover:text-gray-500 underline">
+                    <button onclick="clearSelection()" class="text-sm text-gray-300 hover:text-gray-300 underline">
                         Clear Selection
                     </button>
                 </div>
@@ -235,7 +235,7 @@
 
     {{-- 📋 Deliveries Table --}}
     <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2 text-sm text-gray-500">
+        <div class="flex items-center gap-2 text-sm text-gray-300">
             <span>Number of rows:</span>
             <select onchange="changePerPage(this.value)"
                 class="bg-gray-700 border border-gray-600 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500">
@@ -249,7 +249,7 @@
     <div class="bg-gray-800 rounded-xl shadow-md overflow-hidden">
         <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
             <table id="deliveriesTable" class="min-w-full text-sm border-collapse">
-                <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                     <tr>
                         {{-- ✅ Checkbox column for batch selection --}}
                         @if(\App\Helpers\RoleHelper::canApproveDeliveries())
@@ -313,7 +313,7 @@
                                     📦 {{ $batchDate }}
                                 </span>
                             @else
-                                <span class="text-gray-500 text-xs">—</span>
+                                <span class="text-gray-300 text-xs">—</span>
                             @endif
                         </td>
                         <td class="px-4 py-3">
@@ -328,7 +328,7 @@
                                     {{ \Carbon\Carbon::parse($delivery->request_delivery_date)->format('M d, Y') }}
                                 </span>
                             @else
-                                <span class="text-gray-500 text-xs">—</span>
+                                <span class="text-gray-300 text-xs">—</span>
                             @endif
                         </td>
                         <td class="px-4 py-3">{{ number_format($delivery->quantity ?? 0, 2) }}</td>
@@ -448,7 +448,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center text-gray-500 py-4">No deliveries found.</td>
+                        <td colspan="9" class="text-center text-gray-300 py-4">No deliveries found.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -457,7 +457,7 @@
     </div>
 
     <div class="mt-3 flex items-center justify-between">
-        <div class="text-sm text-gray-500">
+        <div class="text-sm text-gray-300">
             Showing {{ $deliveries->firstItem() }}-{{ $deliveries->lastItem() }} of {{ $deliveries->total() }} record(s)
         </div>
         <div>{{ $deliveries->onEachSide(1)->links('vendor.pagination.elegant') }}</div>
@@ -471,7 +471,7 @@
         <form id="rejectForm">
             <input type="hidden" id="rejectDeliveryId">
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Rejection Reason</label>
                 <textarea id="rejectionReason" 
                           class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
                           rows="4" 
@@ -505,7 +505,7 @@
         <form id="pulloutForm">
             <input type="hidden" id="pulloutDeliveryId">
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-500 mb-2">Pullout Reason</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Pullout Reason</label>
                 <textarea id="pulloutReason" 
                           class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
                           rows="4" 
@@ -532,7 +532,7 @@
     <div class="bg-gray-800 rounded-lg p-6 max-w-5xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-bold text-white">Edit Delivery</h3>
-            <button onclick="closeEditModal()" class="text-gray-500 hover:text-white text-2xl">×</button>
+            <button onclick="closeEditModal()" class="text-gray-300 hover:text-white text-2xl">×</button>
         </div>
         
         <form id="editForm">
@@ -540,22 +540,22 @@
             
             {{-- Read-only Information --}}
             <div class="mb-6 bg-gray-700/50 p-4 rounded-lg">
-                <h4 class="text-sm font-semibold text-gray-500 mb-3">Delivery Information (Read-Only)</h4>
+                <h4 class="text-sm font-semibold text-gray-300 mb-3">Delivery Information (Read-Only)</h4>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                        <label class="block text-gray-500 mb-1">Sales Order</label>
+                        <label class="block text-gray-300 mb-1">Sales Order</label>
                         <input type="text" id="edit_sales_order" readonly 
-                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-500 cursor-not-allowed">
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-300 cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="block text-gray-500 mb-1">Customer</label>
+                        <label class="block text-gray-300 mb-1">Customer</label>
                         <input type="text" id="edit_customer" readonly 
-                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-500 cursor-not-allowed">
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-300 cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="block text-gray-500 mb-1">Batch</label>
+                        <label class="block text-gray-300 mb-1">Batch</label>
                         <input type="text" id="edit_batch" readonly 
-                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-500 cursor-not-allowed">
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-300 cursor-not-allowed">
                     </div>
                 </div>
             </div>
@@ -568,7 +568,7 @@
                          onclick="openPOImageFullscreen()" 
                          title="Click to view full size">
                     <div>
-                        <p class="text-sm text-gray-500 mb-2">File: <span id="poImageFileName" class="text-blue-700"></span></p>
+                        <p class="text-sm text-gray-300 mb-2">File: <span id="poImageFileName" class="text-blue-700"></span></p>
                         <button type="button" 
                                 onclick="openPOImageFullscreen()"
                                 class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
@@ -583,9 +583,9 @@
                 <h4 class="text-sm font-semibold text-green-700 mb-3">✎ Editable Fields</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
                             DR No. <span class="text-red-500">*</span>
-                            <span class="text-xs text-gray-500 ml-2">(Numbers, hyphens, and slashes only)</span>
+                            <span class="text-xs text-gray-300 ml-2">(Numbers, hyphens, and slashes only)</span>
                         </label>
                         <input type="text" 
                                id="edit_dr_no" 
@@ -597,23 +597,23 @@
                         <p id="dr_no_error" class="text-red-700 text-xs mt-1 hidden">Only numbers, hyphens (-), and forward slashes (/) are allowed</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">SI Invoice No.</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">SI Invoice No.</label>
                         <input type="text" id="edit_si_no"
                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">PO Number</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">PO Number</label>
                         <input type="text" id="edit_po_number"
                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Plate No.</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Plate No.</label>
                         <input type="text" id="edit_plate_no"
                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500">
                     </div>
                     {{-- ✅ NEW: Request Delivery Date Field --}}
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-500 mb-2">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
                             <i class="fas fa-calendar-alt text-blue-700 mr-1"></i>
                             Request Delivery Date <span class="text-red-500">*</span>
                         </label>
@@ -625,10 +625,10 @@
 
             {{-- Items Table --}}
             <div class="mb-4">
-                <h4 class="text-sm font-semibold text-gray-500 mb-3">Delivery Items - Edit Quantities</h4>
+                <h4 class="text-sm font-semibold text-gray-300 mb-3">Delivery Items - Edit Quantities</h4>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
-                        <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+                        <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                             <tr>
                                 <th class="px-3 py-2 text-left">Item Code</th>
                                 <th class="px-3 py-2 text-left">Description</th>
@@ -681,7 +681,7 @@
         <form id="rejectEditForm">
             <input type="hidden" id="rejectEditDeliveryId">
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Rejection Reason</label>
                 <textarea id="editRejectionReason" 
                           class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
                           rows="4" 
@@ -707,7 +707,7 @@
     <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
         <h3 class="text-xl font-bold mb-4 text-white">Batch Reject Deliveries</h3>
         <div class="mb-4">
-            <p class="text-gray-500 mb-3">
+            <p class="text-gray-300 mb-3">
                 You are about to reject <strong id="batchRejectCount" class="text-red-700">0</strong> delivery(ies):
             </p>
             <ul id="batchRejectList" class="bg-gray-900/50 border border-gray-700 rounded p-3 mb-4 max-h-40 overflow-y-auto">
@@ -716,7 +716,7 @@
         </div>
         <form id="batchRejectForm">
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason <span class="text-red-700">*</span></label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Rejection Reason <span class="text-red-700">*</span></label>
                 <textarea id="batchRejectionReason" 
                           class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
                           rows="4" 
@@ -1201,7 +1201,7 @@ function populateEditModal(data) {
             <td class="px-3 py-2">${item.item_code || '—'}</td>
             <td class="px-3 py-2">${item.item_description || '—'}</td>
             <td class="px-3 py-2">${parseFloat(item.original_quantity || 0).toFixed(2)}</td>
-            <td class="px-3 py-2 text-gray-500">${parseFloat(item.already_delivered || 0).toFixed(2)}</td>
+            <td class="px-3 py-2 text-gray-300">${parseFloat(item.already_delivered || 0).toFixed(2)}</td>
             <td class="px-3 py-2">
                 <input type="number"
                        step="0.01"

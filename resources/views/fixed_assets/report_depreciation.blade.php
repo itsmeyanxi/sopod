@@ -14,7 +14,7 @@
         {{-- Filters --}}
         <form method="GET" class="flex flex-wrap gap-3 mb-6">
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Year</label>
+                <label class="block text-xs text-gray-300 mb-1">Year</label>
                 <select name="year" class="border border-gray-600 rounded px-3 py-2 text-sm">
                     @for($y = date('Y'); $y >= date('Y') - 5; $y--)
                         <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
@@ -22,7 +22,7 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Cost Center</label>
+                <label class="block text-xs text-gray-300 mb-1">Cost Center</label>
                 <select name="cost_center" class="border border-gray-600 rounded px-3 py-2 text-sm">
                     <option value="">All Cost Centers</option>
                     @foreach($costCenters as $cc)

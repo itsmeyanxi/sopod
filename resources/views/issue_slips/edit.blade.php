@@ -8,7 +8,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">EDIT ISSUE SLIP</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-500">IS NO:</label>
+                <label class="font-semibold text-gray-300">IS NO:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $issueSlip->issue_slip_number }}</span>
             </div>
         </div>
@@ -35,23 +35,23 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DATE: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-1">DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('date', $issueSlip->date->format('Y-m-d')) }}" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">ORIGIN:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">ORIGIN:</label>
                         <input type="text" name="origin" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('origin', $issueSlip->origin) }}" placeholder="Warehouse / Source location">
                     </div>
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">SALES ORDER:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">SALES ORDER:</label>
                         <p class="bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white">
                             {{ $issueSlip->sales_order_number }} - {{ $issueSlip->customer_name }}
                         </p>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DESTINATION (Customer):</label>
+                        <label class="block font-semibold text-gray-300 mb-1">DESTINATION (Customer):</label>
                         <div class="relative">
                             <input type="text" id="dest_search" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Search customer name..." autocomplete="off" value="{{ old('destination', $issueSlip->destination) }}">
                             <input type="hidden" name="customer_id" id="customer_id" value="{{ old('customer_id', $issueSlip->customer_id) }}">
@@ -60,7 +60,7 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">REMARKS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">REMARKS:</label>
                         <textarea name="remarks" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Optional remarks...">{{ old('remarks', $issueSlip->remarks) }}</textarea>
                     </div>
                 </div>
@@ -69,19 +69,19 @@
             <!-- Signature Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">ISSUED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">ISSUED BY:</label>
                     <input type="text" name="issued_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('issued_by', $issueSlip->issued_by) }}" placeholder="Name / Signature">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">TRANSPORT:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">TRANSPORT:</label>
                     <input type="text" name="transport" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('transport', $issueSlip->transport) }}" placeholder="Name / Signature">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">SERVICE PROVIDERS CHECKER:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">SERVICE PROVIDERS CHECKER:</label>
                     <input type="text" name="service_providers_checker" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('service_providers_checker', $issueSlip->service_providers_checker) }}" placeholder="Name / Signature">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">RECEIVED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">RECEIVED BY:</label>
                     <input type="text" name="received_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('received_by', $issueSlip->received_by) }}" placeholder="Name / Signature">
                 </div>
             </div>
@@ -107,8 +107,8 @@
                         <tbody>
                             @foreach($issueSlip->items as $index => $item)
                             <tr>
-                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">
+                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">{{ $index + 1 }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">
                                     {{ $item->item_code }}
                                     <input type="hidden" name="items[{{ $index }}][sales_order_item_id]" value="{{ $item->sales_order_item_id }}">
                                     <input type="hidden" name="items[{{ $index }}][item_code]" value="{{ $item->item_code }}">
@@ -117,10 +117,10 @@
                                     <input type="hidden" name="items[{{ $index }}][item_category]" value="{{ $item->item_category }}">
                                     <input type="hidden" name="items[{{ $index }}][so_quantity]" value="{{ $item->so_quantity }}">
                                 </td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->item_description }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->brand }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->item_category }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">{{ $item->so_quantity }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->item_description }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->brand }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->item_category }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">{{ $item->so_quantity }}</td>
                                 <td class="border border-gray-700 px-2 py-2">
                                     <input type="number" step="0.01" name="items[{{ $index }}][number_of_boxes]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-center" value="{{ $item->number_of_boxes }}">
                                 </td>
@@ -172,7 +172,7 @@ destSearch.addEventListener('input', function() {
                 `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 dest-option"
                       data-id="${c.id}" data-name="${c.customer_name}">
                     <strong>${c.customer_name}</strong>
-                    <span class="text-gray-500 text-xs ml-1">${c.customer_code || ''}</span>
+                    <span class="text-gray-300 text-xs ml-1">${c.customer_code || ''}</span>
                 </div>`
             ).join('');
             destDropdown.classList.remove('hidden');

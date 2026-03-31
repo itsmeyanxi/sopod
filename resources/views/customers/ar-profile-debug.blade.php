@@ -9,14 +9,14 @@
         
         <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <h3 class="text-red-700 font-semibold mb-2">❌ No Records Found</h3>
-            <p class="text-gray-500">Searched for customer: <strong>{{ $customerCode }}</strong></p>
+            <p class="text-gray-300">Searched for customer: <strong>{{ $customerCode }}</strong></p>
         </div>
 
         <div class="space-y-6">
             {{-- Database Stats --}}
             <div class="bg-gray-700 rounded-lg p-4">
                 <h3 class="text-white font-semibold mb-3">📊 Database Statistics</h3>
-                <p class="text-gray-500">Total records in ar_aging table: <strong class="text-green-700">{{ $totalRecords }}</strong></p>
+                <p class="text-gray-300">Total records in ar_aging table: <strong class="text-green-700">{{ $totalRecords }}</strong></p>
             </div>
 
             {{-- Query Results --}}
@@ -49,13 +49,13 @@
                     <div class="overflow-x-auto">
                         <table class="min-w-full bg-gray-800 rounded text-sm">
                             <thead>
-                                <tr class="bg-gray-900 text-gray-500">
+                                <tr class="bg-gray-900 text-gray-300">
                                     <th class="px-3 py-2 text-left">Customer Code</th>
                                     <th class="px-3 py-2 text-left">Client Name</th>
                                     <th class="px-3 py-2 text-left">Invoice No</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-gray-500">
+                            <tbody class="text-gray-200">
                                 @foreach($sampleRecords as $record)
                                 <tr class="border-b border-gray-700">
                                     <td class="px-3 py-2">{{ $record->customer_code ?? 'NULL' }}</td>
@@ -67,14 +67,14 @@
                         </table>
                     </div>
                 @else
-                    <p class="text-gray-500">No records in the database</p>
+                    <p class="text-gray-300">No records in the database</p>
                 @endif
             </div>
 
             {{-- Recommendations --}}
             <div class="bg-blue-50 border border-blue-700 rounded-lg p-4">
                 <h3 class="text-blue-700 font-semibold mb-3">💡 Recommendations</h3>
-                <ul class="space-y-2 text-gray-500 text-sm">
+                <ul class="space-y-2 text-gray-300 text-sm">
                     <li>✓ Check if the customer code <strong>"{{ $customerCode }}"</strong> exactly matches the database</li>
                     <li>✓ The customer_code field might be case-sensitive</li>
                     <li>✓ The customer might be stored under a different code or name</li>

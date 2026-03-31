@@ -36,7 +36,7 @@
 <div class="flex items-center justify-between mb-5">
     <div>
         <h2 class="text-xl font-bold text-white">Payment Confirmation</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Treasury — Review and confirm posted payments</p>
+        <p class="text-xs text-gray-300 mt-0.5">Treasury — Review and confirm posted payments</p>
     </div>
     <a href="{{ route('treasury.summary') }}"
        class="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold shadow-sm">
@@ -78,7 +78,7 @@
                 <i class="fas fa-search"></i> Filter
             </button>
             @if(request()->hasAny(['search','date_from','date_to']))
-            <a href="{{ route('treasury.confirmation') }}" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-200">Clear</a>
+            <a href="{{ route('treasury.confirmation') }}" class="px-3 py-1.5 text-xs text-gray-300 hover:text-gray-200">Clear</a>
             @endif
         </form>
         <div class="flex items-center gap-2">
@@ -129,9 +129,9 @@
                     <td><input type="checkbox" class="row-check" value="{{ $payment->id }}" onchange="updateCount()"></td>
                     <td class="font-semibold text-blue-700">{{ $payment->collection_receipt_number ?: '—' }}</td>
                     <td>{{ $payment->customer_name ?: '—' }}</td>
-                    <td class="text-gray-500 text-xs">{{ $payment->invoice_no ?: '—' }}</td>
-                    <td class="text-gray-500 text-xs">{{ $payment->dr_no ?: '—' }}</td>
-                    <td class="text-gray-500 text-xs">{{ $payment->payment_date ? $payment->payment_date->format('M d, Y') : '—' }}</td>
+                    <td class="text-gray-300 text-xs">{{ $payment->invoice_no ?: '—' }}</td>
+                    <td class="text-gray-300 text-xs">{{ $payment->dr_no ?: '—' }}</td>
+                    <td class="text-gray-300 text-xs">{{ $payment->payment_date ? $payment->payment_date->format('M d, Y') : '—' }}</td>
                     <td>
                         @if($badgeClass)
                             <span class="{{ $badgeClass }}">{{ $methodLabel }}</span>

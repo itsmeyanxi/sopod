@@ -5,7 +5,7 @@
 @section('content')
 <div class="container mx-auto max-w-4xl">
     <div class="mb-4">
-        <a href="{{ route('payments.entry') }}" class="text-sm text-gray-500 hover:text-gray-200">
+        <a href="{{ route('payments.entry') }}" class="text-sm text-gray-300 hover:text-gray-200">
             <i class="fas fa-arrow-left mr-1"></i> Back to Payments
         </a>
     </div>
@@ -38,15 +38,15 @@
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Customer Information</h3>
                 <div class="space-y-2">
                     <div class="flex justify-between">
-                        <span class="text-sm text-gray-500">Customer Name</span>
+                        <span class="text-sm text-gray-300">Customer Name</span>
                         <span class="text-sm font-semibold text-white">{{ $payment->customer_name ?? '—' }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-sm text-gray-500">Customer Code</span>
+                        <span class="text-sm text-gray-300">Customer Code</span>
                         <span class="text-sm text-white">{{ $payment->customer_code ?? '—' }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-sm text-gray-500">Branch</span>
+                        <span class="text-sm text-gray-300">Branch</span>
                         <span class="text-sm text-white">{{ $payment->branch ?? '—' }}</span>
                     </div>
                 </div>
@@ -55,16 +55,16 @@
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Invoice / Delivery</h3>
                 <div class="space-y-2">
                     <div class="flex justify-between">
-                        <span class="text-sm text-gray-500">Invoice No</span>
+                        <span class="text-sm text-gray-300">Invoice No</span>
                         <span class="text-sm font-semibold text-white">{{ $payment->invoice_no ?? '—' }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-sm text-gray-500">DR No</span>
+                        <span class="text-sm text-gray-300">DR No</span>
                         <span class="text-sm text-white">{{ $payment->dr_no ?? '—' }}</span>
                     </div>
                     @if($payment->invoice_outstanding)
                     <div class="flex justify-between">
-                        <span class="text-sm text-gray-500">Outstanding at Payment</span>
+                        <span class="text-sm text-gray-300">Outstanding at Payment</span>
                         <span class="text-sm text-white">₱{{ number_format((float)$payment->invoice_outstanding, 2) }}</span>
                     </div>
                     @endif
@@ -91,7 +91,7 @@
                 <p class="text-sm text-white">
                     {{ $payment->created_at ? \Carbon\Carbon::parse($payment->created_at)->format('M d, Y h:i A') : '—' }}
                 </p>
-                <p class="text-xs text-gray-500">by {{ $payment->created_by ?? 'System' }}</p>
+                <p class="text-xs text-gray-300">by {{ $payment->created_by ?? 'System' }}</p>
             </div>
         </div>
 
@@ -153,7 +153,7 @@
                 </div>
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-sm text-purple-700">Remaining Credit</span>
-                    <span class="text-lg font-bold {{ $remainingCredit > 0 ? 'text-green-700' : 'text-gray-500' }}">
+                    <span class="text-lg font-bold {{ $remainingCredit > 0 ? 'text-green-700' : 'text-gray-300' }}">
                         ₱{{ number_format($remainingCredit, 2) }}
                     </span>
                 </div>
@@ -243,7 +243,7 @@
                 </div>
                 @if($payment->payment_notes)
                 <div class="mt-3 pt-3 border-t border-gray-700">
-                    <span class="text-xs text-gray-500">Notes</span>
+                    <span class="text-xs text-gray-300">Notes</span>
                     <p class="text-sm text-white">{{ $payment->payment_notes }}</p>
                 </div>
                 @endif

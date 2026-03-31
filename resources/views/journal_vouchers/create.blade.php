@@ -6,7 +6,7 @@
     <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">CREATE JOURNAL VOUCHER</h1>
-            <span class="bg-gray-700 text-gray-500 px-3 py-1 rounded text-sm font-mono">{{ $nextJvNumber }}</span>
+            <span class="bg-gray-700 text-gray-300 px-3 py-1 rounded text-sm font-mono">{{ $nextJvNumber }}</span>
         </div>
 
         @if($errors->any())
@@ -99,7 +99,7 @@
                             <td class="border border-gray-700 px-2 py-2" style="position:relative; overflow:visible;">
                                 <div class="relative acct-search-container" style="position:relative;">
                                     <input type="text" class="acct-search w-full bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 pr-10 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors" placeholder="Type to search accounts..." autocomplete="off">
-                                    <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                     <div class="acct-dropdown absolute z-[9999] w-full bg-gray-800 border-2 border-gray-600 rounded-lg mt-1 shadow-2xl hidden max-h-60 overflow-y-auto" style="position:absolute; left:0;">
                                         <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-300 font-semibold border-b border-gray-600">Select an account</div>
                                         @foreach($glAccounts as $acct)
@@ -108,7 +108,7 @@
                                             data-name="{{ $acct['name'] }}"
                                             data-search="{{ strtolower($acct['code'] . ' ' . $acct['name']) }}">
                                             <div class="font-semibold text-sm font-mono">{{ $acct['code'] }}</div>
-                                            <div class="text-xs text-gray-500">{{ $acct['name'] }}</div>
+                                            <div class="text-xs text-gray-300">{{ $acct['name'] }}</div>
                                         </div>
                                         @endforeach
                                     </div>
@@ -138,7 +138,7 @@
                             <td class="border border-gray-700 px-2 py-2" style="position:relative; overflow:visible;">
                                 <div class="relative acct-search-container" style="position:relative;">
                                     <input type="text" class="acct-search w-full bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 pr-10 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors" placeholder="Type to search accounts..." autocomplete="off">
-                                    <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                     <div class="acct-dropdown absolute z-[9999] w-full bg-gray-800 border-2 border-gray-600 rounded-lg mt-1 shadow-2xl hidden max-h-60 overflow-y-auto" style="position:absolute; left:0;">
                                         <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-300 font-semibold border-b border-gray-600">Select an account</div>
                                         @foreach($glAccounts as $acct)
@@ -147,7 +147,7 @@
                                             data-name="{{ $acct['name'] }}"
                                             data-search="{{ strtolower($acct['code'] . ' ' . $acct['name']) }}">
                                             <div class="font-semibold text-sm font-mono">{{ $acct['code'] }}</div>
-                                            <div class="text-xs text-gray-500">{{ $acct['name'] }}</div>
+                                            <div class="text-xs text-gray-300">{{ $acct['name'] }}</div>
                                         </div>
                                         @endforeach
                                     </div>
@@ -216,7 +216,7 @@
         data-name="{{ $acct['name'] }}"
         data-search="{{ strtolower($acct['code'] . ' ' . $acct['name']) }}">
         <div class="font-semibold text-sm font-mono">{{ $acct['code'] }}</div>
-        <div class="text-xs text-gray-500">{{ $acct['name'] }}</div>
+        <div class="text-xs text-gray-300">{{ $acct['name'] }}</div>
     </div>
     @endforeach
 </template>
@@ -302,7 +302,7 @@ function addLine() {
         <td class="border border-gray-700 px-2 py-2" style="position:relative; overflow:visible;">
             <div class="relative acct-search-container" style="position:relative;">
                 <input type="text" class="acct-search w-full bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 pr-10 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors" placeholder="Type to search accounts..." autocomplete="off">
-                <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 <div class="acct-dropdown absolute z-[9999] w-full bg-gray-800 border-2 border-gray-600 rounded-lg mt-1 shadow-2xl hidden max-h-60 overflow-y-auto" style="position:absolute; left:0;">${optionsHTML}</div>
             </div>
             <input type="hidden" name="lines[${lineIndex}][account_code]" class="acct-code-hidden" required>

@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">EDIT AR ADJUSTMENT</h1>
             <div>
-                <span class="px-3 py-1 rounded text-sm bg-gray-700 text-gray-500">Reference: {{ $adjustment->reference_number }}</span>
+                <span class="px-3 py-1 rounded text-sm bg-gray-700 text-gray-300">Reference: {{ $adjustment->reference_number }}</span>
             </div>
         </div>
 
@@ -30,11 +30,11 @@
             <!-- Transaction Date & Reference Number -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Transaction Date: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">Transaction Date: <span class="text-red-700">*</span></label>
                     <input type="date" name="transaction_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('transaction_date', $adjustment->transaction_date->format('Y-m-d')) }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Reference Number: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">Reference Number: <span class="text-red-700">*</span></label>
                     <input type="text" name="reference_number" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reference_number', $adjustment->reference_number) }}" required>
                 </div>
             </div>
@@ -42,7 +42,7 @@
             <!-- Transaction Type & Customer Info -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Transaction Type: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">Transaction Type: <span class="text-red-700">*</span></label>
                     <select name="transaction_type" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                         <option value="">-- Select Transaction Type --</option>
                         <option value="debit_memo" {{ old('transaction_type', $adjustment->transaction_type) == 'debit_memo' ? 'selected' : '' }}>Debit Memo</option>
@@ -59,7 +59,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Customer Name: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">Customer Name: <span class="text-red-700">*</span></label>
                     <input type="text" name="customer_name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('customer_name', $adjustment->customer_name) }}" required>
                 </div>
             </div>
@@ -67,11 +67,11 @@
             <!-- Customer Code & Branch -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Customer Code:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">Customer Code:</label>
                     <input type="text" name="customer_code" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('customer_code', $adjustment->customer_code) }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Branch:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">Branch:</label>
                     <input type="text" name="branch" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('branch', $adjustment->branch) }}">
                 </div>
             </div>
@@ -79,11 +79,11 @@
             <!-- DR & Invoice Numbers -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">DR Number:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">DR Number:</label>
                     <input type="text" name="dr_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('dr_no', $adjustment->dr_no) }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Invoice Number:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">Invoice Number:</label>
                     <input type="text" name="invoice_number" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('invoice_number', $adjustment->invoice_number) }}">
                 </div>
             </div>
@@ -91,15 +91,15 @@
             <!-- Amount & GL Account -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Amount: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">Amount: <span class="text-red-700">*</span></label>
                     <div class="relative">
-                        <span class="absolute left-3 top-2 text-gray-500 text-lg">₱</span>
+                        <span class="absolute left-3 top-2 text-gray-300 text-lg">₱</span>
                         <input type="text" name="amount" id="amountInput" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 pl-8 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount', ($adjustment->is_decrease ? '-' : '') . abs($adjustment->amount)) }}" required>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">Current: <span class="{{ $adjustment->is_decrease ? 'text-red-700' : 'text-green-700' }}">{{ ($adjustment->is_decrease ? '-' : '+') }}₱{{ number_format(abs($adjustment->amount), 2) }}</span></p>
+                    <p class="text-xs text-gray-300 mt-1">Current: <span class="{{ $adjustment->is_decrease ? 'text-red-700' : 'text-green-700' }}">{{ ($adjustment->is_decrease ? '-' : '+') }}₱{{ number_format(abs($adjustment->amount), 2) }}</span></p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">GL Account: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">GL Account: <span class="text-red-700">*</span></label>
                     <div class="relative">
                         <input type="hidden" name="gl_account_id" id="glAccountId" value="{{ old('gl_account_id', $adjustment->gl_account_id) }}">
                         <input type="hidden" name="gl_account" id="glAccountCode" value="{{ old('gl_account', $adjustment->gl_account) }}">
@@ -121,13 +121,13 @@
 
             <!-- Signed By -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">Signed By: <span class="text-red-700">*</span></label>
+                <label class="block font-semibold text-gray-300 mb-2">Signed By: <span class="text-red-700">*</span></label>
                 <input type="text" name="signed_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('signed_by', $adjustment->signed_by) }}" required>
             </div>
 
             <!-- Remarks -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">Remarks:</label>
+                <label class="block font-semibold text-gray-300 mb-2">Remarks:</label>
                 <textarea name="remarks" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('remarks', $adjustment->remarks) }}</textarea>
             </div>
 
@@ -176,12 +176,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         dropdown.innerHTML = data.accounts.map(account => `
                             <div class="px-3 py-2 hover:bg-purple-100 cursor-pointer text-white" onclick="selectGlAccount(${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')">
                                 <div class="font-semibold">${account.display}</div>
-                                <div class="text-xs text-gray-500">${account.fs_line_item || 'No FS Item'}</div>
+                                <div class="text-xs text-gray-300">${account.fs_line_item || 'No FS Item'}</div>
                             </div>
                         `).join('');
                         dropdown.classList.remove('hidden');
                     } else {
-                        dropdown.innerHTML = '<div class="px-3 py-2 text-gray-500">No GL accounts found</div>';
+                        dropdown.innerHTML = '<div class="px-3 py-2 text-gray-300">No GL accounts found</div>';
                         dropdown.classList.remove('hidden');
                     }
                 } catch (error) {

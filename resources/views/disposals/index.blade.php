@@ -118,7 +118,7 @@
             <tbody>
             @forelse($assets as $asset)
                 <tr>
-                    <td class="text-gray-500">{{ $loop->iteration }}</td>
+                    <td class="text-gray-300">{{ $loop->iteration }}</td>
                     <td><span class="asset-code">{{ $asset->asset_code ?? '—' }}</span></td>
                     <td>{{ $asset->asset_description }}</td>
                     <td>{{ $asset->asset_group }}</td>

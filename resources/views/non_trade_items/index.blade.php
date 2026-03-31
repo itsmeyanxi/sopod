@@ -8,7 +8,7 @@
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-white">NON-TRADE ITEMS LIBRARY</h1>
-                <p class="text-gray-500 text-sm mt-1">Master data for non-trade items. Used for autocomplete in Purchase Requests.</p>
+                <p class="text-gray-300 text-sm mt-1">Master data for non-trade items. Used for autocomplete in Purchase Requests.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="document.getElementById('addItemModal').classList.remove('hidden')"
@@ -45,7 +45,7 @@
         <!-- Table -->
         <div class="overflow-x-auto">
             <table class="w-full border-collapse border border-gray-700">
-                <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-3 py-3 text-left">#</th>
                         <th class="border border-gray-700 px-3 py-3 text-left">ITEM CODE</th>
@@ -63,7 +63,7 @@
                 <tbody class="text-gray-300">
                     @forelse($items as $item)
                         <tr class="hover:bg-gray-900">
-                            <td class="border border-gray-700 px-3 py-2 text-gray-500">{{ $items->firstItem() + $loop->index }}</td>
+                            <td class="border border-gray-700 px-3 py-2 text-gray-300">{{ $items->firstItem() + $loop->index }}</td>
                             <td class="border border-gray-700 px-3 py-2">
                                 <form action="{{ route('non_trade_items.update', $item->id) }}" method="POST" class="flex items-center gap-1">
                                     @csrf
@@ -109,7 +109,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" class="border border-gray-700 px-4 py-8 text-center text-gray-500">
+                            <td colspan="11" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No items in the library yet. Import a CSV/Excel or add items manually.
                             </td>
                         </tr>
@@ -119,7 +119,7 @@
         </div>
 
         <div class="mt-4 flex justify-between items-center">
-            <p class="text-gray-500 text-sm">{{ $items->total() }} item(s) total</p>
+            <p class="text-gray-300 text-sm">{{ $items->total() }} item(s) total</p>
             {{ $items->links() }}
         </div>
     </div>
@@ -129,7 +129,7 @@
 <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
     <div class="bg-gray-800 rounded-lg p-6 w-full max-w-lg mx-4">
         <h3 class="text-lg font-bold text-white mb-2">Import Items from CSV/Excel</h3>
-        <p class="text-gray-500 text-sm mb-4">
+        <p class="text-gray-300 text-sm mb-4">
             Supported column headers (order doesn't matter):<br>
             <strong class="text-gray-200">Item Code, Item Description, Group, Brand, UoM, Trading UoM, Conversion, Status</strong><br>
             <span class="text-gray-300">Optional: <strong>Supplier</strong> column to link items to suppliers.</span><br>

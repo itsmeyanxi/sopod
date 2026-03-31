@@ -18,19 +18,19 @@
         {{-- Filters --}}
         <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-gray-800/50 p-4 rounded-lg">
             <div>
-                <label class="block text-sm text-gray-500 mb-1">Date From</label>
+                <label class="block text-sm text-gray-300 mb-1">Date From</label>
                 <input type="date" name="date_from" value="{{ request('date_from') }}" 
                        class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2">
             </div>
             
             <div>
-                <label class="block text-sm text-gray-500 mb-1">Date To</label>
+                <label class="block text-sm text-gray-300 mb-1">Date To</label>
                 <input type="date" name="date_to" value="{{ request('date_to') }}" 
                        class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2">
             </div>
             
             <div>
-                <label class="block text-sm text-gray-500 mb-1">Status</label>
+                <label class="block text-sm text-gray-300 mb-1">Status</label>
                 <select name="status" class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2">
                     <option value="">All Statuses</option>
                     <option value="Received" {{ request('status') == 'Received' ? 'selected' : '' }}>Received</option>
@@ -40,7 +40,7 @@
             </div>
             
             <div>
-                <label class="block text-sm text-gray-500 mb-1">Search</label>
+                <label class="block text-sm text-gray-300 mb-1">Search</label>
                 <div class="flex gap-2">
                     <input type="text" name="search" value="{{ request('search') }}" 
                            placeholder="RR No, SO, Customer..." 
@@ -54,8 +54,8 @@
 
         {{-- Table --}}
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-gray-500">
-                <thead class="bg-gray-800 text-gray-500 uppercase text-xs">
+            <table class="w-full text-sm text-gray-300">
+                <thead class="bg-gray-800 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="px-4 py-3 text-left">RR Number</th>
                         <th class="px-4 py-3 text-left">Sales Order</th>
@@ -104,7 +104,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                        <td colspan="8" class="px-4 py-8 text-center text-gray-400">
                             No receiving reports found.
                         </td>
                     </tr>

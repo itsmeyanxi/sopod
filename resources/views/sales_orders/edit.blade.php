@@ -67,15 +67,15 @@
         <!-- General Info -->
         <div class="grid md:grid-cols-2 gap-6 mb-8">
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Customer</label>
+                <label class="block text-sm mb-1 text-gray-300">Customer</label>
                 <input type="text" 
                     value="{{ $salesOrder->customer->customer_name }}" 
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-500" readonly>
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300" readonly>
                 <input type="hidden" name="customer_id" value="{{ $salesOrder->customer_id }}">
             </div>
 
             <div>
-                <label class="block text-sm mb-1 text-gray-500">PO Number</label>
+                <label class="block text-sm mb-1 text-gray-300">PO Number</label>
                 <input type="text" name="po_number" id="po_number"
                     value="{{ old('po_number', $salesOrder->po_number) }}"
                     class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2"
@@ -87,33 +87,33 @@
                 @elseif($salesOrder->po_image)
                     <p class="text-xs text-blue-700 mt-1">💡 Enter a PO Number here to remove the current image</p>
                 @else
-                    <p class="text-xs text-gray-500 mt-1">Provide either PO Number OR upload image below</p>
+                    <p class="text-xs text-gray-300 mt-1">Provide either PO Number OR upload image below</p>
                 @endif
             </div>
 
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Request Delivery Date *</label>
+                <label class="block text-sm mb-1 text-gray-300">Request Delivery Date *</label>
                 <input type="date" name="request_delivery_date" 
                     value="{{ old('request_delivery_date', $salesOrder->request_delivery_date) }}"
                     class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2" required>
             </div>
 
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Sales Representative</label>
+                <label class="block text-sm mb-1 text-gray-300">Sales Representative</label>
                 <input type="text" name="sales_rep"
                     value="{{ old('sales_rep', $salesOrder->sales_rep) }}"
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-500" readonly>
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300" readonly>
             </div>
 
             <div>
-    <label class="block text-sm mb-1 text-gray-500">Shipping Address</label>
+    <label class="block text-sm mb-1 text-gray-300">Shipping Address</label>
     <textarea name="shipping_address" 
               rows="3"
               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white
                      focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
                      placeholder-gray-400"
               placeholder="Enter shipping address...">{{ old('shipping_address', $salesOrder->shipping_address ?? $salesOrder->customer->shipping_address) }}</textarea>
-    <p class="text-xs text-gray-500 mt-1">
+    <p class="text-xs text-gray-300 mt-1">
         Leave empty to use customer's default address
     </p>
 </div>
@@ -121,14 +121,14 @@
             {{-- ✅ PO Image Upload Section --}}
             <div class="col-span-2" id="po_image_container">
                 <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-4">
-                    <label class="block text-sm mb-2 text-gray-500 font-semibold">
+                    <label class="block text-sm mb-2 text-gray-300 font-semibold">
                         📸 PO Proof / Order Evidence
                     </label>
 
                     {{-- Current PO Image Display --}}
                     @if($salesOrder->po_image)
                         <div class="mb-3 bg-gray-900/50 border border-gray-700 rounded-lg p-3">
-                            <p class="text-xs text-gray-500 mb-2">Current PO Proof:</p>
+                            <p class="text-xs text-gray-300 mb-2">Current PO Proof:</p>
                             @if(Str::endsWith($salesOrder->po_image, '.pdf'))
                                 <a href="{{ asset('po_images/' . $salesOrder->po_image) }}"
                                    target="_blank"
@@ -146,7 +146,7 @@
                                         alt="Current PO Proof"
                                         class="max-w-xs rounded border border-gray-600 hover:border-blue-500 transition-all cursor-pointer">
                                 </a>
-                                <p class="text-xs text-gray-500 mt-2">Click to view full size</p>
+                                <p class="text-xs text-gray-300 mt-2">Click to view full size</p>
                             @endif
                             <p class="text-xs text-blue-700 mt-2">💡 To remove this image, provide a PO Number above</p>
                         </div>
@@ -154,7 +154,7 @@
 
                     {{-- Upload New PO Image --}}
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">
+                        <label class="block text-xs text-gray-300 mb-1">
                             @if($salesOrder->po_image)
                                 Replace PO Proof (will replace current proof)
                             @else
@@ -165,7 +165,7 @@
                             class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2
                                 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0
                                 file:bg-blue-600 file:text-white hover:file:bg-blue-500">
-                        <p class="text-xs text-gray-500 mt-2">
+                        <p class="text-xs text-gray-300 mt-2">
                             Accepts JPG, PNG, or PDF (max 4MB).
                             @if($salesOrder->po_image)
                                 Leave empty to keep current proof.
@@ -176,7 +176,7 @@
 
                         {{-- Preview for new upload --}}
                         <div id="po_image_preview" class="mt-3 hidden">
-                            <p class="text-xs text-gray-500 mb-2">New upload preview:</p>
+                            <p class="text-xs text-gray-300 mb-2">New upload preview:</p>
                             <img id="po_image_preview_img" src="" alt="New PO Preview"
                                 class="max-w-xs rounded border border-gray-700">
                         </div>
@@ -189,7 +189,7 @@
                                 <i class="fas fa-info-circle mr-1"></i>
                                 <strong>Want to use PO Number instead?</strong>
                             </p>
-                            <p class="text-xs text-gray-500">
+                            <p class="text-xs text-gray-300">
                                 Enter a PO Number in the field above to switch from image to number. The image will be removed automatically.
                             </p>
                         </div>
@@ -201,7 +201,7 @@
         {{-- ✅ Additional Delivery Instructions Section --}}
 <div class="col-span-2">
     <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-4">
-        <label class="block text-sm mb-2 text-gray-500 font-semibold">
+        <label class="block text-sm mb-2 text-gray-300 font-semibold">
             📋 Additional Delivery Instructions
         </label>
         <textarea name="additional_instructions" 
@@ -210,7 +210,7 @@
                          focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
                          placeholder-gray-500"
                   placeholder="Enter any special delivery instructions, requirements, or notes for this order...">{{ old('additional_instructions', $salesOrder->additional_instructions) }}</textarea>
-        <p class="text-xs text-gray-500 mt-2">
+        <p class="text-xs text-gray-300 mt-2">
             These instructions will appear on the printed sales order form and delivery documents.
         </p>
     </div>
@@ -229,7 +229,7 @@
             @foreach($salesOrder->items as $item)
                 <div class="item-row border border-gray-700 rounded-lg p-4 bg-gray-800/50" data-index="{{ $loop->index }}">
                     <div class="flex justify-between items-start mb-4">
-                        <h4 class="text-sm font-semibold text-gray-500">Item #{{ $loop->index + 1 }}</h4>
+                        <h4 class="text-sm font-semibold text-gray-300">Item #{{ $loop->index + 1 }}</h4>
                         <button type="button" onclick="removeItem(this)" 
                             class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition">
                             🗑️ Remove
@@ -238,7 +238,7 @@
 
                     <!-- Item Selection -->
                     <div class="mb-4">
-                        <label class="block text-sm mb-1 text-gray-500">Select Item *</label>
+                        <label class="block text-sm mb-1 text-gray-300">Select Item *</label>
                         <select name="items[{{ $loop->index }}][item_id]" 
                             class="item-select select2-items w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" 
                             onchange="updateItemDetails(this)"
@@ -261,28 +261,28 @@
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm mb-1 text-gray-500">Item Code</label>
+                            <label class="block text-sm mb-1 text-gray-300">Item Code</label>
                             <input type="text" name="items[{{ $loop->index }}][item_code]"
                                 value="{{ old('items.' . $loop->index . '.item_code', $item->item_code) }}" 
                                 class="item-code w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-500">Item Description</label>
+                            <label class="block text-sm mb-1 text-gray-300">Item Description</label>
                             <input type="text" name="items[{{ $loop->index }}][item_description]"
                                 value="{{ old('items.' . $loop->index . '.item_description', $item->item_description) }}" 
                                 class="item-description w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-500">Category</label>
+                            <label class="block text-sm mb-1 text-gray-300">Category</label>
                             <input type="text" name="items[{{ $loop->index }}][item_category]"
                                 value="{{ old('items.' . $loop->index . '.item_category', $item->item_category) }}" 
                                 class="item-category w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-500">Brand</label>
+                            <label class="block text-sm mb-1 text-gray-300">Brand</label>
                             <input type="text" name="items[{{ $loop->index }}][brand]"
                                 value="{{ old('items.' . $loop->index . '.brand', $item->brand) }}" 
                                 class="item-brand w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
@@ -291,7 +291,7 @@
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm mb-1 text-gray-500">Quantity *</label>
+                            <label class="block text-sm mb-1 text-gray-300">Quantity *</label>
                             <input type="number" name="items[{{ $loop->index }}][quantity]" 
                                    value="{{ old('items.' . $loop->index . '.quantity', $item->quantity) }}" 
                                    step="any" 
@@ -300,14 +300,14 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-500">Unit</label>
+                            <label class="block text-sm mb-1 text-gray-300">Unit</label>
                             <input type="text" name="items[{{ $loop->index }}][unit]"
                                    value="{{ old('items.' . $loop->index . '.unit', $item->unit) }}" 
                                    class="item-unit w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-500">Unit Price *</label>
+                            <label class="block text-sm mb-1 text-gray-300">Unit Price *</label>
                             <input type="number" name="items[{{ $loop->index }}][unit_price]" 
                                    value="{{ old('items.' . $loop->index . '.unit_price', $item->unit_price) }}" 
                                    step="any"
@@ -316,15 +316,15 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm mb-1 text-gray-500">Total Amount</label>
+                            <label class="block text-sm mb-1 text-gray-300">Total Amount</label>
                             <input type="text" name="items[{{ $loop->index }}][total_amount]" 
                                    value="{{ old('items.' . $loop->index . '.total_amount', $item->total_amount) }}" 
-                                   class="item-total w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-500" readonly>
+                                   class="item-total w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-300" readonly>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm mb-1 text-gray-500">Note</label>
+                        <label class="block text-sm mb-1 text-gray-300">Note</label>
                         <textarea name="items[{{ $loop->index }}][note]" 
                                   rows="2"
                                   class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
@@ -341,7 +341,7 @@
                 💾 Update Sales Order
             </button>
             <a href="{{ route('sales_orders.show', $salesOrder->id) }}" 
-               class="text-gray-500 hover:text-gray-200">Cancel</a>
+               class="text-gray-300 hover:text-gray-200">Cancel</a>
         </div>
     </form>
 </div>
@@ -554,7 +554,7 @@ function addNewItem() {
     
     newRow.innerHTML = `
         <div class="flex justify-between items-start mb-4">
-            <h4 class="text-sm font-semibold text-gray-500">Item #${itemIndex + 1}</h4>
+            <h4 class="text-sm font-semibold text-gray-300">Item #${itemIndex + 1}</h4>
             <button type="button" onclick="removeItem(this)" 
                 class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition">
                 🗑️ Remove
@@ -562,7 +562,7 @@ function addNewItem() {
         </div>
 
         <div class="mb-4">
-            <label class="block text-sm mb-1 text-gray-500">Select Item *</label>
+            <label class="block text-sm mb-1 text-gray-300">Select Item *</label>
             <select name="items[${itemIndex}][item_id]" 
                 class="item-select select2-items w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" 
                 onchange="updateItemDetails(this)"
@@ -574,22 +574,22 @@ function addNewItem() {
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Item Code</label>
+                <label class="block text-sm mb-1 text-gray-300">Item Code</label>
                 <input type="text" name="items[${itemIndex}][item_code]" 
                     class="item-code w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Item Description</label>
+                <label class="block text-sm mb-1 text-gray-300">Item Description</label>
                 <input type="text" name="items[${itemIndex}][item_description]" 
                     class="item-description w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Category</label>
+                <label class="block text-sm mb-1 text-gray-300">Category</label>
                 <input type="text" name="items[${itemIndex}][item_category]" 
                     class="item-category w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Brand</label>
+                <label class="block text-sm mb-1 text-gray-300">Brand</label>
                 <input type="text" name="items[${itemIndex}][brand]" 
                     class="item-brand w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
             </div>
@@ -597,31 +597,31 @@ function addNewItem() {
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Quantity *</label>
+                <label class="block text-sm mb-1 text-gray-300">Quantity *</label>
                 <input type="number" name="items[${itemIndex}][quantity]" step="any" 
                     class="item-quantity w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" 
                     oninput="calculateTotal(this)" required>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Unit</label>
+                <label class="block text-sm mb-1 text-gray-300">Unit</label>
                 <input type="text" name="items[${itemIndex}][unit]" 
                     class="item-unit w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Unit Price *</label>
+                <label class="block text-sm mb-1 text-gray-300">Unit Price *</label>
                 <input type="number" name="items[${itemIndex}][unit_price]" step="any" 
                     class="item-price w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
                     oninput="calculateTotal(this)" required>
             </div>
             <div>
-                <label class="block text-sm mb-1 text-gray-500">Total Amount</label>
+                <label class="block text-sm mb-1 text-gray-300">Total Amount</label>
                 <input type="text" name="items[${itemIndex}][total_amount]" 
-                    class="item-total w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-500" readonly>
+                    class="item-total w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-300" readonly>
             </div>
         </div>
 
         <div>
-            <label class="block text-sm mb-1 text-gray-500">Note</label>
+            <label class="block text-sm mb-1 text-gray-300">Note</label>
             <textarea name="items[${itemIndex}][note]" rows="2"
                 class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
                 placeholder="Add any notes for this item..."></textarea>

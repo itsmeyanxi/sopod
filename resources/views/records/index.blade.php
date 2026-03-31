@@ -22,7 +22,7 @@
                 class="relative px-6 py-2.5 rounded-md font-medium transition-all duration-200 ease-in-out
                 {{ $type === 'sales_orders'
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/50' 
-                    : 'text-gray-500 hover:text-white hover:bg-gray-700/50' }}">
+                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50' }}">
                 <span class="relative z-10 flex items-center gap-2">
                     <i class="fa-solid fa-file-invoice"></i> Sales Orders
                 </span>
@@ -33,7 +33,7 @@
                 class="relative px-6 py-2.5 rounded-md font-medium transition-all duration-200 ease-in-out
                 {{ $type === 'deliveries'
                     ? 'bg-green-600 text-white shadow-md shadow-green-600/50' 
-                    : 'text-gray-500 hover:text-white hover:bg-gray-700/50' }}">
+                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50' }}">
                 <span class="relative z-10 flex items-center gap-2">
                     <i class="fa-solid fa-truck"></i> Deliveries
                 </span>
@@ -44,7 +44,7 @@
                 class="relative px-6 py-2.5 rounded-md font-medium transition-all duration-200 ease-in-out
                 {{ $type === 'monthly_sales'
                     ? 'bg-purple-600 text-white shadow-md shadow-purple-600/50' 
-                    : 'text-gray-500 hover:text-white hover:bg-gray-700/50' }}">
+                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50' }}">
                 <span class="relative z-10 flex items-center gap-2">
                     <i class="fa-solid fa-chart-line"></i> Monthly Sales
                 </span>
@@ -132,14 +132,14 @@
         <input type="hidden" name="type" value="sales_orders">
 
         <div>
-            <label class="text-gray-500 text-sm">From SO #</label>
+            <label class="text-gray-300 text-sm">From SO #</label>
             <input type="text" name="from" value="{{ request('from') }}"
                 placeholder="SO-0010"
                 class="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 w-40">
         </div>
 
         <div>
-            <label class="text-gray-500 text-sm">To SO #</label>
+            <label class="text-gray-300 text-sm">To SO #</label>
             <input type="text" name="to" value="{{ request('to') }}"
                 placeholder="SO-0020"
                 class="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 w-40">
@@ -169,7 +169,7 @@
             <h2 class="text-2xl font-bold text-purple-700">
                 <i class="fa-solid fa-chart-bar"></i> Monthly Sales Summary
             </h2>
-            <div class="text-gray-500 text-sm">
+            <div class="text-gray-300 text-sm">
                 Total Records: {{ $records->count() }}
             </div>
         </div>
@@ -212,7 +212,7 @@
                     <tbody>
                         @foreach($records as $index => $record)
                         <tr class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
-                            <td class="px-6 py-4 text-gray-500">{{ $index + 1 }}</td>
+                            <td class="px-6 py-4 text-gray-300">{{ $index + 1 }}</td>
                             <td class="px-6 py-4 font-semibold text-purple-700">
                                 <i class="fa-solid fa-calendar-alt mr-2"></i>{{ $record->month }}
                             </td>
@@ -222,7 +222,7 @@
                             <td class="px-6 py-4 text-right font-mono text-green-700">
                                 ₱{{ number_format($record->php_amount, 2) }}
                             </td>
-                            <td class="px-6 py-4 text-center text-gray-500 text-sm">
+                            <td class="px-6 py-4 text-center text-gray-300 text-sm">
                                 {{ $record->updated_at->format('M d, Y') }}
                             </td>
                         </tr>
@@ -233,8 +233,8 @@
         @else
             <div class="text-center py-12">
                 <i class="fa-solid fa-chart-line text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500 text-lg">No monthly sales data available.</p>
-                <p class="text-gray-500 text-sm mt-2">Upload data through the Import module to see results here.</p>
+                <p class="text-gray-300 text-lg">No monthly sales data available.</p>
+                <p class="text-gray-300 text-sm mt-2">Upload data through the Import module to see results here.</p>
             </div>
         @endif
     </div>
@@ -369,7 +369,7 @@
         @endif
 
     @elseif($type !== 'monthly_sales')
-        <p class="text-gray-500">
+        <p class="text-gray-300">
             No {{ $report ? 'data found for this report' : ($type === 'deliveries' ? 'deliveries' : 'sales orders') }}.
         </p>
     @endif

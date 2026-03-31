@@ -38,24 +38,24 @@
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-blue-100 rounded p-4">
-                    <p class="text-gray-500 text-sm">Today's Adjustments</p>
+                    <p class="text-gray-300 text-sm">Today's Adjustments</p>
                     <p class="text-2xl font-bold text-blue-700" id="stat_today_count">-</p>
-                    <p class="text-gray-500 text-xs" id="stat_today_total">P0.00</p>
+                    <p class="text-gray-300 text-xs" id="stat_today_total">P0.00</p>
                 </div>
                 <div class="bg-green-100 rounded p-4">
-                    <p class="text-gray-500 text-sm">This Month</p>
+                    <p class="text-gray-300 text-sm">This Month</p>
                     <p class="text-2xl font-bold text-green-700" id="stat_month_count">-</p>
-                    <p class="text-gray-500 text-xs" id="stat_month_total">P0.00</p>
+                    <p class="text-gray-300 text-xs" id="stat_month_total">P0.00</p>
                 </div>
                 <div class="bg-purple-100 rounded p-4">
-                    <p class="text-gray-500 text-sm">Last 30 Days</p>
+                    <p class="text-gray-300 text-sm">Last 30 Days</p>
                     <p class="text-2xl font-bold text-purple-700" id="stat_30day_count">-</p>
-                    <p class="text-gray-500 text-xs" id="stat_30day_total">P0.00</p>
+                    <p class="text-gray-300 text-xs" id="stat_30day_total">P0.00</p>
                 </div>
                 <div class="bg-orange-100 rounded p-4">
-                    <p class="text-gray-500 text-sm">Pending Approvals</p>
+                    <p class="text-gray-300 text-sm">Pending Approvals</p>
                     <p class="text-2xl font-bold text-orange-700" id="stat_pending_count">-</p>
-                    <p class="text-gray-500 text-xs">Needs DR approval</p>
+                    <p class="text-gray-300 text-xs">Needs DR approval</p>
                 </div>
             </div>
         </div>
@@ -89,15 +89,15 @@
             <div class="bg-gray-800 rounded-lg p-4 mb-4">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Date From</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date From</label>
                         <input type="date" id="filter_start_date" class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Date To</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date To</label>
                         <input type="date" id="filter_end_date" class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Type</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Type</label>
                         <select id="filter_transaction_type" class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                             <option value="">All Types</option>
                             <option value="debit_memo">Debit Memo</option>
@@ -125,7 +125,7 @@
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-gray-800 rounded-lg text-sm">
                     <thead>
-                        <tr class="bg-gray-900 text-gray-500 text-xs">
+                        <tr class="bg-gray-900 text-gray-300 text-xs">
                             <th class="px-3 py-3 text-left">Date</th>
                             <th class="px-3 py-3 text-left">Ref No.</th>
                             <th class="px-3 py-3 text-left">Type</th>
@@ -139,9 +139,9 @@
                             <th class="px-3 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="adjustment_list_tbody" class="text-gray-500">
+                    <tbody id="adjustment_list_tbody" class="text-gray-300">
                         <tr>
-                            <td colspan="15" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="15" class="px-4 py-8 text-center text-gray-400">
                                 <i class="fas fa-file-invoice text-4xl mb-2"></i>
                                 <p>No adjustment data available</p>
                             </td>
@@ -172,19 +172,19 @@
                 </h4>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
                     <div>
-                        <label class="block text-gray-500 text-xs mb-1">Customer Name</label>
+                        <label class="block text-gray-300 text-xs mb-1">Customer Name</label>
                         <p class="text-white font-semibold" id="display_customer_name">—</p>
                     </div>
                     <div>
-                        <label class="block text-gray-500 text-xs mb-1">DR Number</label>
+                        <label class="block text-gray-300 text-xs mb-1">DR Number</label>
                         <p class="text-white font-semibold" id="display_dr_no">—</p>
                     </div>
                     <div>
-                        <label class="block text-gray-500 text-xs mb-1">Invoice Number</label>
+                        <label class="block text-gray-300 text-xs mb-1">Invoice Number</label>
                         <p class="text-white font-semibold" id="display_invoice_no">—</p>
                     </div>
                     <div>
-                        <label class="block text-gray-500 text-xs mb-1">Current AR Balance</label>
+                        <label class="block text-gray-300 text-xs mb-1">Current AR Balance</label>
                         <p class="text-red-700 font-bold text-lg" id="display_ar_balance">₱0.00</p>
                     </div>
                 </div>
@@ -202,18 +202,18 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Date *</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Date *</label>
                         <input type="date" id="transaction_date" required
                                class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Reference Number *</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Reference Number *</label>
                         <input type="text" id="reference_number" required
                                placeholder="e.g., ADJ-2026-001"
                                class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Type *</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Type *</label>
                         <select id="transaction_type" required
                                 class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select Type</option>
@@ -231,26 +231,26 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Amount *</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Amount *</label>
                         <input type="text" id="amount" required
                                placeholder="Enter amount (e.g., -100 to decrease AR by 100)"
                                class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <p class="text-xs text-gray-500 mt-1">Use negative value (e.g., -100) to decrease AR</p>
+                        <p class="text-xs text-gray-300 mt-1">Use negative value (e.g., -100) to decrease AR</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">GL Account *</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">GL Account *</label>
                         <input type="text" id="gl_account" required
                                placeholder="e.g., 1200-AR"
                                class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Signed By *</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Signed By *</label>
                         <input type="text" id="signed_by" required
                                placeholder="e.g., John Doe"
                                class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Remarks</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Remarks</label>
                         <textarea id="remarks" rows="3"
                                   placeholder="Optional remarks or notes"
                                   class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
@@ -261,9 +261,9 @@
 
         {{-- No Results Message --}}
         <div id="no_results_message" class="hidden bg-gray-700 rounded-lg p-8 text-center">
-            <i class="fas fa-user-slash text-5xl text-gray-500 mb-4"></i>
+            <i class="fas fa-user-slash text-5xl text-gray-300 mb-4"></i>
             <h3 class="text-xl font-semibold text-white mb-2">No Results Found</h3>
-            <p class="text-gray-500">The customer or DR number you searched for does not exist. Please check and try again.</p>
+            <p class="text-gray-300">The customer or DR number you searched for does not exist. Please check and try again.</p>
         </div>
 
         {{-- Delivery List View --}}
@@ -280,11 +280,11 @@
             <div class="bg-gray-800 rounded-lg p-4 mb-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Date From</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date From</label>
                         <input type="date" id="delivery_filter_start_date" class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Date To</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date To</label>
                         <input type="date" id="delivery_filter_end_date" class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div class="flex items-end gap-2">
@@ -296,14 +296,14 @@
                         </button>
                     </div>
                 </div>
-                <p class="text-gray-500 text-xs mt-2 px-2">💡 Leave dates empty to show all records, or set specific date range to filter.</p>
+                <p class="text-gray-300 text-xs mt-2 px-2">💡 Leave dates empty to show all records, or set specific date range to filter.</p>
             </div>
 
             {{-- Delivery List Table --}}
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-gray-800 rounded-lg text-sm">
                     <thead>
-                        <tr class="bg-gray-900 text-gray-500 text-xs">
+                        <tr class="bg-gray-900 text-gray-300 text-xs">
                             <th class="px-3 py-3 text-left">DR No.</th>
                             <th class="px-3 py-3 text-left">Customer</th>
                             <th class="px-3 py-3 text-left">Delivery Date</th>
@@ -312,9 +312,9 @@
                             <th class="px-3 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="delivery_list_tbody" class="text-gray-500">
+                    <tbody id="delivery_list_tbody" class="text-gray-300">
                         <tr>
-                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-400">
                                 <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
                                 <p>Loading deliveries...</p>
                             </td>
@@ -329,7 +329,7 @@
             <div class="bg-gray-800 rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-2xl font-bold text-white">Import AR Adjustments</h3>
-                    <button type="button" onclick="closeImportModal()" class="text-gray-500 hover:text-white text-2xl">×</button>
+                    <button type="button" onclick="closeImportModal()" class="text-gray-300 hover:text-white text-2xl">×</button>
                 </div>
 
                 {{-- Import Info --}}
@@ -346,9 +346,9 @@
                     {{-- File Upload with Drag & Drop --}}
                     <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 bg-gray-700/50 hover:bg-gray-700/70 transition cursor-pointer" id="drop_zone">
                         <div class="text-center">
-                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-3"></i>
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-300 mb-3"></i>
                             <p class="text-white font-semibold mb-1">Drag and drop your file here</p>
-                            <p class="text-gray-500 text-sm">or click to select a CSV/Excel file</p>
+                            <p class="text-gray-300 text-sm">or click to select a CSV/Excel file</p>
                             <input type="file" id="import_file" name="file" accept=".csv,.xlsx,.xls" class="hidden" required>
                         </div>
                     </div>
@@ -367,21 +367,21 @@
 
                         <label class="flex items-center space-x-3 cursor-pointer">
                             <input type="checkbox" id="merge_dr" checked class="w-4 h-4 bg-gray-800 border border-gray-600 rounded">
-                            <span class="text-gray-500 text-sm">
+                            <span class="text-gray-300 text-sm">
                                 <strong>Merge existing DRs:</strong> Combine adjustments if DR already has records
                             </span>
                         </label>
 
                         <label class="flex items-center space-x-3 cursor-pointer">
                             <input type="checkbox" id="auto_approve" checked class="w-4 h-4 bg-gray-800 border border-gray-600 rounded">
-                            <span class="text-gray-500 text-sm">
+                            <span class="text-gray-300 text-sm">
                                 <strong>Auto-approve deliveries:</strong> Mark linked deliveries as approved
                             </span>
                         </label>
 
                         <label class="flex items-center space-x-3 cursor-pointer">
                             <input type="checkbox" id="create_rr_link" class="w-4 h-4 bg-gray-800 border border-gray-600 rounded">
-                            <span class="text-gray-500 text-sm">
+                            <span class="text-gray-300 text-sm">
                                 <strong>Link to RR:</strong> Auto-link adjustments to Receiving Reports if available
                             </span>
                         </label>
@@ -576,7 +576,7 @@ function displayDRSelection(records) {
                             <i class="fas ${statusIcon} mr-1"></i>${statusText}
                         </span>
                     </div>
-                    <div class="text-xs text-gray-500 mt-1">
+                    <div class="text-xs text-gray-300 mt-1">
                         ${record.customer_name} | Invoice: ${record.invoice_no || 'N/A'} | Balance: ₱${parseFloat(record.net_ar_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}
                     </div>
                 </div>
@@ -794,7 +794,7 @@ function filterAdjustmentList() {
             if (!data.adjustments || data.adjustments.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="15" class="px-4 py-8 text-center text-gray-500">
+                        <td colspan="15" class="px-4 py-8 text-center text-gray-400">
                             <i class="fas fa-file-invoice text-4xl mb-2"></i>
                             <p>No adjustment data available</p>
                         </td>
@@ -836,10 +836,10 @@ function filterAdjustmentList() {
 
                 const drStatusDisplay = adj.dr_status
                     ? `<span class="bg-${drStatusColor}-900/30 border border-${drStatusColor}-700/50 px-2 py-1 rounded text-xs">${adj.dr_status}</span>`
-                    : '<span class="text-gray-500 text-xs">—</span>';
+                    : '<span class="text-gray-300 text-xs">—</span>';
 
                 // Customer display
-                const customerDisplay = adj.customer_name ? `<div class="font-semibold">${adj.customer_name}</div><div class="text-xs text-gray-500">${adj.customer_code || 'N/A'}</div>` : 'N/A';
+                const customerDisplay = adj.customer_name ? `<div class="font-semibold">${adj.customer_name}</div><div class="text-xs text-gray-300">${adj.customer_code || 'N/A'}</div>` : 'N/A';
 
                 row.innerHTML = `
                     <td class="px-3 py-3 text-sm">${new Date(adj.transaction_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
@@ -1191,7 +1191,7 @@ function loadDeliveryList() {
         if (!data.deliveries || data.deliveries.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-400">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>No pending deliveries or all deliveries have AR adjustments</p>
                     </td>
@@ -1225,7 +1225,7 @@ function loadDeliveryList() {
                 <td class="px-3 py-3 font-mono text-sm">${delivery.dr_no || 'N/A'}</td>
                 <td class="px-3 py-3 text-sm">
                     <div class="font-semibold">${delivery.customer_name || 'N/A'}</div>
-                    <div class="text-xs text-gray-500">${delivery.customer_code || 'N/A'}</div>
+                    <div class="text-xs text-gray-300">${delivery.customer_code || 'N/A'}</div>
                 </td>
                 <td class="px-3 py-3 text-sm">${delivery.request_delivery_date ? new Date(delivery.request_delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
                 <td class="px-3 py-3">
@@ -1238,9 +1238,9 @@ function loadDeliveryList() {
                 </td>
                 <td class="px-3 py-3 text-center">
                     ${delivery.has_adjustment
-                        ? '<span class="text-gray-500 text-sm">—</span>'
+                        ? '<span class="text-gray-300 text-sm">—</span>'
                         : !delivery.customer_code
-                            ? '<span class="text-gray-500 text-xs italic">No Customer Code</span>'
+                            ? '<span class="text-gray-300 text-xs italic">No Customer Code</span>'
                             : `<button onclick="createAdjustmentFromDelivery('${(delivery.dr_no || '').replace(/'/g, "\\'")}', '${(delivery.customer_code || '').replace(/'/g, "\\'")}', '${(delivery.customer_name || '').replace(/'/g, "\\'")}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="Create Adjustment">
                             <i class="fas fa-plus"></i> Create
                         </button>`
@@ -1314,7 +1314,7 @@ function filterDeliveriesByDate(startDate, endDate) {
         if (!data.deliveries || data.deliveries.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-400">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>No deliveries found for the selected date range</p>
                     </td>
@@ -1348,7 +1348,7 @@ function filterDeliveriesByDate(startDate, endDate) {
                 <td class="px-3 py-3 font-mono text-sm">${delivery.dr_no || 'N/A'}</td>
                 <td class="px-3 py-3 text-sm">
                     <div class="font-semibold">${delivery.customer_name || 'N/A'}</div>
-                    <div class="text-xs text-gray-500">${delivery.customer_code || 'N/A'}</div>
+                    <div class="text-xs text-gray-300">${delivery.customer_code || 'N/A'}</div>
                 </td>
                 <td class="px-3 py-3 text-sm">${delivery.request_delivery_date ? new Date(delivery.request_delivery_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
                 <td class="px-3 py-3">
@@ -1361,9 +1361,9 @@ function filterDeliveriesByDate(startDate, endDate) {
                 </td>
                 <td class="px-3 py-3 text-center">
                     ${delivery.has_adjustment
-                        ? '<span class="text-gray-500 text-sm">—</span>'
+                        ? '<span class="text-gray-300 text-sm">—</span>'
                         : !delivery.customer_code
-                            ? '<span class="text-gray-500 text-xs italic">No Customer Code</span>'
+                            ? '<span class="text-gray-300 text-xs italic">No Customer Code</span>'
                             : `<button onclick="createAdjustmentFromDelivery('${(delivery.dr_no || '').replace(/'/g, "\\'")}', '${(delivery.customer_code || '').replace(/'/g, "\\'")}', '${(delivery.customer_name || '').replace(/'/g, "\\'")}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition" title="Create Adjustment">
                             <i class="fas fa-plus"></i> Create
                         </button>`

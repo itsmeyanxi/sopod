@@ -26,7 +26,7 @@
 <div class="flex items-center justify-between mb-5">
     <div>
         <h2 class="text-xl font-bold text-white">Daily Feed Usage</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Track daily material consumption from approved BOMs</p>
+        <p class="text-xs text-gray-300 mt-0.5">Track daily material consumption from approved BOMs</p>
     </div>
     <a href="{{ route('daily_feed_usage.create') }}"
        class="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold shadow-sm">
@@ -44,12 +44,12 @@
 <div class="b p-4 mb-4">
     <form method="GET" action="{{ route('daily_feed_usage.index') }}" class="flex flex-wrap items-end gap-3">
         <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs text-gray-500 font-semibold mb-1">Search</label>
+            <label class="block text-xs text-gray-300 font-semibold mb-1">Search</label>
             <input type="text" name="search" value="{{ $search }}" placeholder="Cycle ref, grower..."
                 class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
         </div>
         <div>
-            <label class="block text-xs text-gray-500 font-semibold mb-1">BOM Cycle</label>
+            <label class="block text-xs text-gray-300 font-semibold mb-1">BOM Cycle</label>
             <select name="bom_id" class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200">
                 <option value="">All BOMs</option>
                 @foreach($boms as $bom)
@@ -99,8 +99,8 @@
                         {{ $house?->house_name ?: 'House '.$usage->house_number }}
                     </td>
                     <td class="r">{{ count($usage->materials_used ?? []) }} items</td>
-                    <td class="text-gray-500 text-xs">{{ \Str::limit($usage->notes, 40) ?: '—' }}</td>
-                    <td class="text-gray-500 text-xs">{{ $usage->logged_by ?? '—' }}</td>
+                    <td class="text-gray-300 text-xs">{{ \Str::limit($usage->notes, 40) ?: '—' }}</td>
+                    <td class="text-gray-300 text-xs">{{ $usage->logged_by ?? '—' }}</td>
                     <td>
                         <div class="flex gap-1">
                             <a href="{{ route('daily_feed_usage.show', $usage) }}" class="action-btn view">

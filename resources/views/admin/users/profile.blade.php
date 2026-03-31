@@ -34,21 +34,21 @@
 
         <div class="mb-4">
             <label class="block text-sm mb-1">Departments</label>
-            <div class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-gray-500">
+            <div class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-gray-300">
                 @php $userRoles = auth()->user()->userRoles()->with('subDepartment.department')->get(); @endphp
                 @forelse($userRoles as $ur)
                     <span class="inline-block bg-blue-600 text-white px-2 py-1 rounded text-xs mr-1 mb-1">{{ $ur->subDepartment->department->name }} - {{ $ur->subDepartment->name }}</span>
                 @empty
-                    <span class="text-gray-500 text-sm">No departments assigned</span>
+                    <span class="text-gray-300 text-sm">No departments assigned</span>
                 @endforelse
             </div>
-            <small class="text-gray-500 text-xs">Managed by admin via RBAC</small>
+            <small class="text-gray-300 text-xs">Managed by admin via RBAC</small>
         </div>
 
         <div class="mb-4">
             <label class="block text-sm mb-1">
                 New Password 
-                <span class="text-gray-500 text-xs">(Leave blank to keep current password)</span>
+                <span class="text-gray-300 text-xs">(Leave blank to keep current password)</span>
             </label>
             <div class="relative">
                 <input type="password" 
@@ -62,7 +62,7 @@
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
-            <small class="text-gray-500 text-xs">Minimum 6 characters</small>
+            <small class="text-gray-300 text-xs">Minimum 6 characters</small>
         </div>
 
         <div class="mb-4">

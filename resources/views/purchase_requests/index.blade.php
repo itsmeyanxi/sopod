@@ -40,7 +40,7 @@
         <!-- Table -->
         <div class="overflow-x-auto">
             <table class="w-full border-collapse border border-gray-700">
-                <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                     <tr>
                         @if(auth()->user()->canApprovePurchaseRequests())
                         <th class="border border-gray-700 px-3 py-3 w-10">
@@ -56,7 +56,7 @@
                         <th class="border border-gray-700 px-4 py-3 text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-500 divide-y divide-gray-700">
+                <tbody class="text-gray-200 divide-y divide-gray-700">
                     @forelse($purchaseRequests as $pr)
                         <tr class="hover:bg-gray-700/40 transition">
                             @if(auth()->user()->canApprovePurchaseRequests())
@@ -104,7 +104,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->canApprovePurchaseRequests() ? 8 : 7 }}" class="border border-gray-700 px-4 py-8 text-center text-gray-500">
+                            <td colspan="{{ auth()->user()->canApprovePurchaseRequests() ? 8 : 7 }}" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No purchase requests found. <a href="{{ route('purchase_requests.create') }}" class="text-blue-700 hover:underline">Create one now</a>
                             </td>
                         </tr>

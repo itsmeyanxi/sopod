@@ -38,7 +38,7 @@
 <div class="flex items-center justify-between mb-5">
     <div>
         <h2 class="text-xl font-bold text-white">{{ $label }}</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Treasury — Bank accounts ({{ $cur === 'PHP' ? '₱ Peso' : '$ Dollar' }})</p>
+        <p class="text-xs text-gray-300 mt-0.5">Treasury — Bank accounts ({{ $cur === 'PHP' ? '₱ Peso' : '$ Dollar' }})</p>
     </div>
     <div class="flex gap-2">
         <a href="{{ route('treasury.summary') }}"
@@ -106,7 +106,7 @@
 <!-- TABLE VIEW -->
 <div class="b">
     <div class="px-4 py-3 border-b border-gray-100">
-        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Detailed List</span>
+        <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Detailed List</span>
     </div>
     <div class="overflow-x-auto">
         <table class="bank-table">
@@ -136,7 +136,7 @@
                         </span>
                         @else — @endif
                     </td>
-                    <td class="text-xs text-gray-500">
+                    <td class="text-xs text-gray-300">
                         @if($acct->glAccount)
                             {{ $acct->glAccount->account_code }} — {{ $acct->glAccount->account_name }}
                         @else
@@ -144,7 +144,7 @@
                         @endif
                     </td>
                     <td class="r font-bold text-white">{{ $cur === 'PHP' ? '₱' : '$' }} {{ number_format($acct->display_balance ?? $acct->cash_balance, 2) }}</td>
-                    <td class="text-xs text-gray-500">{{ $acct->balance_as_of ? $acct->balance_as_of->format('M d, Y') : '—' }}</td>
+                    <td class="text-xs text-gray-300">{{ $acct->balance_as_of ? $acct->balance_as_of->format('M d, Y') : '—' }}</td>
                 </tr>
             @endforeach
             </tbody>

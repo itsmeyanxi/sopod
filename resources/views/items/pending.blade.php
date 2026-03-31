@@ -27,7 +27,7 @@
     <!-- Pending Items Table -->
     <div class="bg-gray-800 rounded-xl shadow-md overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+            <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                 <tr>
                     <th class="px-4 py-3 text-left">Item Code</th>
                     <th class="px-4 py-3 text-left">Description</th>
@@ -69,7 +69,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-6 text-center text-gray-500">
+                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">
                         No pending items for approval.
                     </td>
                 </tr>
@@ -79,7 +79,7 @@
     </div>
 
     <!-- Item Count -->
-    <div class="mt-4 text-sm text-gray-500 text-left">
+    <div class="mt-4 text-sm text-gray-300 text-left">
         Showing {{ $items->count() }} pending item{{ $items->count() !== 1 ? 's' : '' }}
     </div>
 </div>
@@ -91,7 +91,7 @@
         <form id="rejectForm" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-500 mb-2">Reason for Rejection</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Reason for Rejection</label>
                 <textarea 
                     name="rejection_reason" 
                     rows="4" 

@@ -28,26 +28,26 @@
         <!-- Header Info -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">JV Number:</label>
+                <label class="block font-semibold text-gray-300 mb-1">JV Number:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded font-mono font-bold text-blue-700">{{ $voucher->jv_number }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">JV Date:</label>
+                <label class="block font-semibold text-gray-300 mb-1">JV Date:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $voucher->jv_date->format('F d, Y') }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Reference No.:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Reference No.:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $voucher->reference_no ?? 'N/A' }}</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Description:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Description:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded min-h-[60px]">{{ $voucher->description }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Remarks:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Remarks:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded min-h-[60px]">{{ $voucher->remarks ?? 'N/A' }}</p>
             </div>
         </div>
@@ -75,7 +75,7 @@
                             <td class="border border-gray-700 px-3 py-2 font-mono text-blue-700 font-semibold">{{ $line->account_code }}</td>
                             <td class="border border-gray-700 px-3 py-2">{{ $line->account_name ?? '—' }}</td>
                             <td class="border border-gray-700 px-3 py-2 text-gray-300">{{ $line->line_description ?? '—' }}</td>
-                            <td class="border border-gray-700 px-3 py-2 text-gray-500 text-xs">{{ $line->cost_center ?? '—' }}</td>
+                            <td class="border border-gray-700 px-3 py-2 text-gray-300 text-xs">{{ $line->cost_center ?? '—' }}</td>
                             <td class="border border-gray-700 px-3 py-2 text-right font-semibold {{ $line->debit > 0 ? 'text-white' : 'text-gray-300' }}">
                                 {{ $line->debit > 0 ? number_format($line->debit, 2) : '' }}
                             </td>
@@ -105,15 +105,15 @@
         <!-- Signatories -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Prepared By:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Prepared By:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $voucher->prepared_by ?? 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Checked By:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Checked By:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $voucher->checked_by ?? 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Approved By:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Approved By:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $voucher->approved_by ?? 'N/A' }}</p>
             </div>
         </div>
@@ -121,7 +121,7 @@
         <!-- Attachment -->
         @if($voucher->attachment_path)
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-1">Attachment:</label>
+            <label class="block font-semibold text-gray-300 mb-1">Attachment:</label>
             <a href="{{ asset('storage/' . $voucher->attachment_path) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 border border-gray-700 rounded text-purple-700 hover:bg-purple-50 transition">
                 <i class="fas fa-paperclip"></i> {{ $voucher->attachment_name }}
             </a>
@@ -130,7 +130,7 @@
 
         <!-- Audit -->
         <div class="bg-gray-700 rounded-lg p-4 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-300">
                 <div>
                     <label class="font-semibold">Created By:</label>
                     <p>{{ $voucher->created_by ?? 'N/A' }}</p>

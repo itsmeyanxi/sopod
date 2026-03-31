@@ -16,8 +16,8 @@
 
         @if($storages->isEmpty())
             <div class="text-center py-12">
-                <i class="fas fa-inbox text-4xl text-gray-500 mb-3"></i>
-                <p class="text-gray-500">No storages created yet.</p>
+                <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-300">No storages created yet.</p>
             </div>
         @else
             <div class="overflow-x-auto">
@@ -42,7 +42,7 @@
                             <td class="px-4 py-3">{{ $storage->warehouse?->warehouse_name ?? 'N/A' }}</td>
                             <td class="px-4 py-3">{{ $storage->location ?? '-' }}</td>
                             <td class="px-4 py-3 text-center">
-                                <span class="px-2 py-1 rounded text-xs {{ $storage->temperature_controlled === 'Yes' ? 'bg-blue-100/50 text-blue-700' : 'bg-gray-700 text-gray-500' }}">
+                                <span class="px-2 py-1 rounded text-xs {{ $storage->temperature_controlled === 'Yes' ? 'bg-blue-100/50 text-blue-700' : 'bg-gray-700 text-gray-300' }}">
                                     {{ $storage->temperature_controlled }}
                                 </span>
                             </td>

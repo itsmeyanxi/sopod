@@ -61,7 +61,7 @@
             'Partial' => 'bg-orange-600/20 text-orange-700 border-orange-600',
             'Cancelled' => 'bg-red-600/20 text-red-700 border-red-600',
         ];
-        $statusColor = $statusColors[$delivery->status] ?? 'bg-gray-700 text-gray-500 border-gray-600';
+        $statusColor = $statusColors[$delivery->status] ?? 'bg-gray-700 text-gray-300 border-gray-600';
     @endphp
 
     <!-- Approval Actions (Show only if Pending and user can approve) -->
@@ -227,21 +227,21 @@
 
             <!-- DR No -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">DR No</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">DR No</label>
                 <input type="text" value="{{ $delivery->dr_no }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Sales Order -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Sales Order No</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Sales Order No</label>
                 <input type="text" value="{{ $delivery->sales_order_number }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Delivery Batch -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Delivery Batch</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Delivery Batch</label>
                 @if($delivery->delivery_batch)
                     @php
                         $parts = explode('-', $delivery->delivery_batch);
@@ -258,13 +258,13 @@
                     </div>
                 @else
                     <input type="text" value="Single Delivery" 
-                           class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-500" readonly>
+                           class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-300" readonly>
                 @endif
             </div>
 
             <!-- Delivery Status -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Delivery Status</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Delivery Status</label>
                 <div class="w-full px-4 py-2 rounded-lg border {{ $statusColor }} flex items-center gap-2">
                     @if($delivery->status === 'Delivered')
                         <span class="text-lg">✅</span>
@@ -279,14 +279,14 @@
             
             <!-- Approval Status -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Approval Status</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Approval Status</label>
                 @php
                     $approvalColors = [
                         'Pending' => 'bg-yellow-100 border-yellow-700 text-yellow-700',
                         'Approved' => 'bg-green-100 border-green-700 text-green-700',
                         'Rejected' => 'bg-red-100 border-red-700 text-red-700',
                     ];
-                    $approvalColor = $approvalColors[$delivery->approval_status] ?? 'bg-gray-700 text-gray-500 border-gray-600';
+                    $approvalColor = $approvalColors[$delivery->approval_status] ?? 'bg-gray-700 text-gray-300 border-gray-600';
                 @endphp
                 <div class="w-full px-4 py-2 rounded-lg border {{ $approvalColor }} flex items-center gap-2">
                     @if($delivery->approval_status === 'Approved')
@@ -302,77 +302,77 @@
 
             <!-- Customer Code -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Customer Code</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Customer Code</label>
                 <input type="text" value="{{ $customerCode }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Customer Name -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Customer Name</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Customer Name</label>
                 <input type="text" value="{{ $customerName }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- TIN  -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">TIN</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">TIN</label>
                 <input type="text" value="{{ $tinNo }}"  readonly
                     class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" />
             </div>
 
             <!-- Branch -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Branch</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Branch</label>
                 <input type="text" value="{{ $branch }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Sales Representative -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Sales Representative</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Sales Representative</label>
                 <input type="text" value="{{ $salesRep }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Sales Executive -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Sales Executive</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Sales Executive</label>
                 <input type="text" value="{{ $salesExec }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Plate No -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Plate No</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Plate No</label>
                 <input type="text" value="{{ $delivery->plate_no ?? '—' }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Sales Invoice -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Sales Invoice No</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Sales Invoice No</label>
                 <input type="text" value="{{ $delivery->sales_invoice_no ?? '—' }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- PO Number -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">PO Number</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">PO Number</label>
                 <input type="text" value="{{ $poNumber }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Request Delivery Date -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Request Delivery Date</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Request Delivery Date</label>
                 <input type="text" value="{{ $requestDeliveryDate }}"
                   class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Approved By -->
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Approved By</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Approved By</label>
                 <input type="text" value="{{ $approvedBy }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
@@ -380,13 +380,13 @@
             <!-- Approval Details (if approved or rejected) -->
             @if($delivery->approved_by_user && $delivery->approval_status !== 'Pending')
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">
+                <label class="block text-sm font-semibold text-gray-300 mb-2">
                     {{ $delivery->approval_status === 'Approved' ? 'Approved By' : 'Rejected By' }}
                 </label>
                 <div class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600">
                     <p class="text-gray-100">{{ $delivery->approved_by_user }}</p>
                     @if($delivery->approved_at)
-                        <p class="text-xs text-gray-500 mt-1">
+                        <p class="text-xs text-gray-300 mt-1">
                             {{ \Carbon\Carbon::parse($delivery->approved_at)->format('M d, Y h:i A') }}
                         </p>
                     @endif
@@ -397,7 +397,7 @@
             <!-- Created By -->
             @if($delivery->created_by)
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Created By</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Created By</label>
                 <input type="text" value="{{ $delivery->created_by }}" 
                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
@@ -406,7 +406,7 @@
             <!-- ✅ NEW: PO Image from Sales Order -->
             @if($so && $so->po_image)
             <div class="md:col-span-2">
-                <label class="block text-sm font-semibold text-gray-500 mb-2">📸 PO Proof / Order Evidence (from Sales Order)</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">📸 PO Proof / Order Evidence (from Sales Order)</label>
                 <div class="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
                     @if(Str::endsWith($so->po_image, '.pdf'))
                         {{-- PDF File --}}
@@ -428,7 +428,7 @@
                                  alt="PO Proof" 
                                  class="max-w-md w-full rounded border border-gray-600 hover:border-blue-500 transition-all hover:shadow-lg cursor-pointer">
                         </a>
-                        <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                        <p class="text-xs text-gray-300 mt-2 flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -443,7 +443,7 @@
             <!-- Notes from Sales Order -->
             @if($notes !== '—')
             <div class="md:col-span-2">
-                <label class="block text-sm font-semibold text-gray-500 mb-2">📝 Notes (from Sales Order)</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">📝 Notes (from Sales Order)</label>
                 <textarea class="w-full px-4 py-2 rounded-lg bg-blue-50 border border-blue-700 text-blue-700"
                         rows="2" readonly>{{ $notes }}</textarea>
             </div>
@@ -451,7 +451,7 @@
 
             <!-- Additional Instructions -->
             <div class="md:col-span-2">
-                <label class="block text-sm font-semibold text-gray-500 mb-2">Additional Instructions</label>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Additional Instructions</label>
                 <textarea class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100"
                         rows="3" readonly>{{ $additionalInstructions }}</textarea>
             </div>
@@ -505,15 +505,15 @@
 
         <div class="overflow-x-auto mt-6">
             <table class="w-full border border-gray-700 rounded-md overflow-hidden text-sm">
-                <thead class="bg-gray-700 text-gray-500 uppercase">
+                <thead class="bg-gray-700 text-gray-300 uppercase">
                     <tr>
                         <th class="px-4 py-2 text-left">Item Code</th>
                         <th class="px-4 py-2 text-left">Description</th>
                         <th class="px-4 py-2 text-left">Brand</th>
                         <th class="px-4 py-2 text-left">Category</th>
-                        <th class="px-4 py-2 text-right">Original Qty<br><span class="text-xs text-gray-500">(SO Qty)</span></th>
-                        <th class="px-4 py-2 text-right">This Batch Qty<br><span class="text-xs text-gray-500">(DR Qty)</span></th>
-                        <th class="px-4 py-2 text-right">Total Delivered<br><span class="text-xs text-gray-500">(All Batches)</span></th>
+                        <th class="px-4 py-2 text-right">Original Qty<br><span class="text-xs text-gray-300">(SO Qty)</span></th>
+                        <th class="px-4 py-2 text-right">This Batch Qty<br><span class="text-xs text-gray-300">(DR Qty)</span></th>
+                        <th class="px-4 py-2 text-right">Total Delivered<br><span class="text-xs text-gray-300">(All Batches)</span></th>
                         <th class="px-4 py-2 text-right">Remaining</th>
                         <th class="px-4 py-2 text-center">UOM</th>
                         <th class="px-4 py-2 text-right">Unit Price</th>
@@ -576,7 +576,7 @@
                                         {{ number_format($totalDelivered, 2) }}
                                     </span>
                                     @if($totalDelivered > $thisBatchQty)
-                                        <span class="text-xs text-gray-500">
+                                        <span class="text-xs text-gray-300">
                                             (Multi-batch)
                                         </span>
                                     @endif
@@ -610,13 +610,13 @@
                                 @if($item->notes)
                                     <span class="text-gray-200">{{ $item->notes }}</span>
                                 @else
-                                    <span class="text-gray-500 italic">—</span>
+                                    <span class="text-gray-300 italic">—</span>
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="12" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="12" class="px-4 py-8 text-center text-gray-400">
                                 No items found for this delivery
                             </td>
                         </tr>
@@ -665,7 +665,7 @@
             
             <!-- Rejection Reason (shown only for reject) -->
             <div id="rejectionReasonDiv" class="mb-4 hidden">
-                <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason <span class="text-red-700">*</span></label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Rejection Reason <span class="text-red-700">*</span></label>
                 <textarea name="rejection_reason" 
                           id="rejectionReason"
                           rows="4" 

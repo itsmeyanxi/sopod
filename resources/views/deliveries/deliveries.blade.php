@@ -16,7 +16,7 @@
 
     <!-- 🔍 Search by Sales Order Number -->
     <div class="mb-6 bg-gray-800/80 p-4 rounded-lg border border-gray-700">
-        <label class="block text-gray-500 font-medium mb-2">Search Sales Order Number</label>
+        <label class="block text-gray-300 font-medium mb-2">Search Sales Order Number</label>
         <div class="flex gap-2">
             <input type="text" id="so_search" placeholder="Enter SO Number (e.g. SO-2025-001)" 
                    class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2 focus:ring-2 focus:ring-blue-500">
@@ -35,7 +35,7 @@
                 class="w-full bg-gray-900 border border-yellow-700 text-gray-200 rounded-md p-2 focus:ring-2 focus:ring-yellow-500">
             <option value="">-- Select Delivery Batch --</option>
         </select>
-        <p class="text-xs text-gray-500 mt-2">This Sales Order has multiple delivery dates. Please select the batch you want to create/edit a delivery for.</p>
+        <p class="text-xs text-gray-300 mt-2">This Sales Order has multiple delivery dates. Please select the batch you want to create/edit a delivery for.</p>
     </div>
 
     {{-- ✅ Partial Delivery Warning --}}
@@ -71,7 +71,7 @@
                 'request_delivery_date' => 'Request Delivery Date'
             ] as $id => $label)
                 <div>
-                    <label class="block text-gray-500 text-sm">{{ $label }}</label>
+                    <label class="block text-gray-300 text-sm">{{ $label }}</label>
                     <input id="{{ $id }}" type="{{ $id === 'request_delivery_date' ? 'date' : 'text' }}" 
                            class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2" readonly>
                 </div>
@@ -84,21 +84,21 @@
     <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-1">Delivery Details</h3>
     <div class="grid grid-cols-2 gap-4">
         <div>
-            <label class="block text-gray-500 text-sm">Approved By</label>
+            <label class="block text-gray-300 text-sm">Approved By</label>
             <input id="approved_by" type="text" 
                    value="{{ auth()->user()->name }}" 
-                   class="w-full bg-gray-800 border border-gray-700 text-gray-500 rounded-md p-2" readonly>
+                   class="w-full bg-gray-800 border border-gray-700 text-gray-300 rounded-md p-2" readonly>
         </div>
 
         <div>
-            <label class="block text-gray-500 text-sm">Plate No</label>
+            <label class="block text-gray-300 text-sm">Plate No</label>
             <input id="plate_no" type="text"
                 class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
                 {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}>
         </div>
 
         <div>
-            <label class="block text-gray-500 text-sm">Sales Invoice No (Optional)</label>
+            <label class="block text-gray-300 text-sm">Sales Invoice No (Optional)</label>
             <input id="sales_invoice_no" type="text"
                 class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
                 {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}
@@ -107,21 +107,21 @@
 
         {{-- ✅ UPDATED: DR/RR Number (Dynamic based on status) --}}
         <div>
-            <label class="block text-gray-500 text-sm">
+            <label class="block text-gray-300 text-sm">
                 <span id="dr_rr_label">DR No</span>
             </label>
             <input id="dr_no" type="text"
                 class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
                 {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}
                 placeholder="Will be auto-generated for Backload">
-            <p id="dr_rr_hint" class="text-xs text-gray-500 mt-1 hidden">
+            <p id="dr_rr_hint" class="text-xs text-gray-300 mt-1 hidden">
                 🔄 RR Number will be auto-generated when saving a Backload
             </p>
         </div>
 
         {{-- ✅ NEW: Type of Delivery (Replaces Partial in Status) --}}
         <div>
-            <label class="block text-gray-500 text-sm mb-1">Type of Delivery</label>
+            <label class="block text-gray-300 text-sm mb-1">Type of Delivery</label>
             <select id="delivery_type"
                     class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
                     {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
@@ -132,7 +132,7 @@
 
         {{-- ✅ UPDATED: Status (Delivered, Cancelled, or Backload) --}}
         <div>
-            <label class="block text-gray-500 text-sm">Status</label>
+            <label class="block text-gray-300 text-sm">Status</label>
             <select id="status"
                     class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
                     {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
@@ -143,11 +143,11 @@
         </div>
 
         <div>
-            <label class="block text-gray-500 text-sm">Attachment (Optional)</label>
+            <label class="block text-gray-300 text-sm">Attachment (Optional)</label>
             <input id="attachment" type="file" accept="image/*,application/pdf"
                    class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-500"
                    {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
-            <p class="text-xs text-gray-500 mt-1">Upload an image or PDF file (JPG, PNG, PDF)</p>
+            <p class="text-xs text-gray-300 mt-1">Upload an image or PDF file (JPG, PNG, PDF)</p>
             <div id="current_attachment_container" class="mt-2 hidden">
                 <a id="current_attachment_link" href="#" target="_blank" class="text-blue-700 hover:text-blue-700 text-sm flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +159,7 @@
         </div>
 
         <div class="col-span-2">
-            <label class="block text-gray-500 text-sm">Additional Instructions</label>
+            <label class="block text-gray-300 text-sm">Additional Instructions</label>
             <textarea id="additional_instructions" readonly
                     class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2" rows="3"></textarea>
         </div>
@@ -493,7 +493,7 @@ function populateItemsTable(items, isViewOnly = false) {
             
             itemCard.innerHTML = `
     <div class="flex justify-between items-start mb-4">
-        <h4 class="text-sm font-semibold text-gray-500">Item #${index + 1}</h4>
+        <h4 class="text-sm font-semibold text-gray-300">Item #${index + 1}</h4>
         <div class="flex items-center gap-2">
             ${status === 'Backload' && !isViewOnly && canManageDeliveries ? `
             <label class="flex items-center gap-2 text-xs text-orange-700 bg-orange-100/20 px-3 py-1 rounded border border-orange-700">
@@ -523,21 +523,21 @@ function populateItemsTable(items, isViewOnly = false) {
                 <!-- Item Details Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Item Code</label>
+                        <label class="block text-xs text-gray-300 mb-1">Item Code</label>
                         <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm font-mono">
                             ${item.item_code || '—'}
                         </div>
                     </div>
                     
                     <div class="col-span-2">
-                        <label class="block text-xs text-gray-500 mb-1">Description</label>
+                        <label class="block text-xs text-gray-300 mb-1">Description</label>
                         <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm">
                             ${item.item_description || '—'}
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Brand</label>
+                        <label class="block text-xs text-gray-300 mb-1">Brand</label>
                         <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm">
                             ${item.brand || '—'}
                         </div>
@@ -546,22 +546,22 @@ function populateItemsTable(items, isViewOnly = false) {
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Category</label>
+                        <label class="block text-xs text-gray-300 mb-1">Category</label>
                         <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm">
                             ${item.item_category || '—'}
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Original Qty</label>
+                        <label class="block text-xs text-gray-300 mb-1">Original Qty</label>
                         <div class="bg-gray-900 border border-blue-600/50 text-blue-700 rounded-md px-3 py-2 text-center">
                             <div class="font-semibold">${originalQty}</div>
-                            <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
+                            <div class="text-xs text-gray-300">${item.uom || 'Kgs'}</div>
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Delivered Qty *</label>
+                        <label class="block text-xs text-gray-300 mb-1">Delivered Qty *</label>
                         <input type="number"
                             class="delivered-qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-center font-semibold"
                             value="${parseFloat(deliveredQty).toFixed(3)}"
@@ -573,31 +573,31 @@ function populateItemsTable(items, isViewOnly = false) {
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Remaining</label>
+                        <label class="block text-xs text-gray-300 mb-1">Remaining</label>
                         <div class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-center">
                             <div class="remaining-qty ${remainingClass}">${remainingDisplay}</div>
-                            <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
+                            <div class="text-xs text-gray-300">${item.uom || 'Kgs'}</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">UOM</label>
+                        <label class="block text-xs text-gray-300 mb-1">UOM</label>
                         <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm text-center">
                             ${item.uom || 'Kgs'}
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Unit Price</label>
+                        <label class="block text-xs text-gray-300 mb-1">Unit Price</label>
                         <div class="price-cell bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm text-right font-mono">
                             ${item.unit_price || 0}
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Amount</label>
+                        <label class="block text-xs text-gray-300 mb-1">Amount</label>
                         <input type="number" 
                             class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-right font-mono text-green-700" 
                             value="${((deliveredQty || 0) * (item.unit_price || 0)).toFixed(2)}" 
@@ -606,7 +606,7 @@ function populateItemsTable(items, isViewOnly = false) {
                 </div>
 
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1">Note</label>
+                    <label class="block text-xs text-gray-300 mb-1">Note</label>
                     <input type="text"
                         class="notes-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm"
                         value="${item.notes || ''}"
@@ -634,8 +634,8 @@ function populateItemsTable(items, isViewOnly = false) {
                 <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
-                <p class="text-gray-500 text-lg">No items available for delivery</p>
-                <p class="text-gray-500 text-sm mt-2">All items have been fully delivered or no items remaining</p>
+                <p class="text-gray-300 text-lg">No items available for delivery</p>
+                <p class="text-gray-300 text-sm mt-2">All items have been fully delivered or no items remaining</p>
             </div>
         `;
     }
@@ -670,7 +670,7 @@ function addDeliveryItem() {
                 <select id="restore-item-select" class="w-full border border-gray-600 rounded-md px-3 py-2">
                     ${optionsHTML}
                 </select>
-                <p class="text-xs text-gray-500 mt-2">💡 These items were temporarily removed but are still part of the Sales Order.</p>
+                <p class="text-xs text-gray-300 mt-2">💡 These items were temporarily removed but are still part of the Sales Order.</p>
             </div>
         `,
         showCancelButton: true,
@@ -961,9 +961,9 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         
         if (data.is_view_only) {
             bgClass = 'bg-gray-800/40 border-gray-600';
-            iconColor = 'text-gray-500';
-            textColor = 'text-gray-500';
-            badgeHtml = '<span class="px-2 py-1 bg-gray-700 text-gray-500 text-xs rounded border border-gray-600">View Only</span>';
+            iconColor = 'text-gray-300';
+            textColor = 'text-gray-300';
+            badgeHtml = '<span class="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded border border-gray-600">View Only</span>';
         } else if (data.is_edit_mode) {
             bgClass = 'bg-yellow-100/20 border-yellow-700';
             iconColor = 'text-yellow-700';
@@ -991,12 +991,12 @@ document.getElementById("search_btn").addEventListener("click", async () => {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                 </svg>
                 <div class="flex-1">
-                    <p class="text-sm text-gray-500">Delivery Batch</p>
+                    <p class="text-sm text-gray-300">Delivery Batch</p>
                     <p class="text-lg font-semibold ${textColor}">${batchValue}</p>
                 </div>
                 ${badgeHtml}
             </div>
-            ${data.so_status ? `<p class="text-xs text-gray-500 mt-2">SO Status: <span class="font-semibold">${data.so_status}</span></p>` : ''}
+            ${data.so_status ? `<p class="text-xs text-gray-300 mt-2">SO Status: <span class="font-semibold">${data.so_status}</span></p>` : ''}
         `;
         
         // Remove old batch display if exists
@@ -1147,14 +1147,14 @@ if (canManageDeliveries) {
                         ${itemsList}
                         <div class="bg-blue-50 border border-blue-700 rounded p-3 mt-3 mb-3">
                             <p class="text-sm text-blue-700 mb-2"><strong>What happens:</strong></p>
-                            <ul class="text-sm text-gray-500 space-y-1 ml-4">
+                            <ul class="text-sm text-gray-300 space-y-1 ml-4">
                                 <li>✓ RR Number auto-generated (e.g., RR-2026-001)</li>
                                 <li>✓ Only selected items will be included</li>
                                 <li>✓ Saved to <strong>Receiving Reports</strong> module</li>
                                 <li>✓ Tracks shortage quantities</li>
                             </ul>
                         </div>
-                        <p class="text-sm text-gray-500">Continue with backload creation?</p>
+                        <p class="text-sm text-gray-300">Continue with backload creation?</p>
                     </div>
                 `,
                 showCancelButton: true,
@@ -1344,7 +1344,7 @@ if (canManageDeliveries) {
                             <p class="mb-2">Receiving Report created successfully!</p>
                             <div class="bg-blue-50 border border-blue-700 rounded p-3 mt-3">
                                 <p class="text-sm text-blue-700">RR Number: <strong class="text-blue-700">${data.rr_number}</strong></p>
-                                <p class="text-sm text-gray-500 mt-1">Items: <strong>${data.items_count || 0}</strong> short-delivered item(s)</p>
+                                <p class="text-sm text-gray-300 mt-1">Items: <strong>${data.items_count || 0}</strong> short-delivered item(s)</p>
                             </div>
                         </div>
                     `;

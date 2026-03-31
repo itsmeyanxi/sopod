@@ -2,22 +2,23 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $roles = [
+            'Admin', 'IT', 'CSR', 'SCM',
+            'Delivery_Creator', 'Delivery_Approver',
+            'CC_Creator', 'CC_Approver',
+            'Accounting_Creator', 'Accounting_Approver',
+            'Requisitioner', 'PR_Approver',
+            'Purchasing', 'Procurement_Approver',
+        ];
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role]);
+        }
     }
 }

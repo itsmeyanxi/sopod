@@ -47,7 +47,7 @@
             class="absolute z-50 w-full bg-gray-800 border border-gray-600 rounded mt-1 shadow-lg hidden max-h-56 overflow-y-auto"
             style="position:absolute; left:0; top:100%;"
         >
-            <div class="sticky top-0 bg-gray-900 px-3 py-1 text-xs text-gray-500 font-semibold border-b border-gray-700">
+            <div class="sticky top-0 bg-gray-900 px-3 py-1 text-xs text-gray-300 font-semibold border-b border-gray-700">
                 Select an account
             </div>
             @foreach($glAccounts as $acct)

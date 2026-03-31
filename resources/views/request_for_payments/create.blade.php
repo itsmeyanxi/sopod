@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">REQUEST FOR PAYMENT</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-500">RFP NO:</label>
+                <label class="font-semibold text-gray-300">RFP NO:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $rfpNo }}</span>
             </div>
         </div>
@@ -51,39 +51,39 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Left Column - Payment Methods -->
                 <div class="bg-gray-900 border border-gray-700 rounded p-4">
-                    <label class="block font-semibold text-gray-500 mb-3">PAYMENT METHODS:</label>
+                    <label class="block font-semibold text-gray-300 mb-3">PAYMENT METHODS:</label>
                     <div class="space-y-2">
                         <label class="flex items-center p-2 hover:bg-gray-800 rounded cursor-pointer">
                             <input type="checkbox" name="payment_methods[]" value="managers_check" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 rounded">
-                            <span class="ml-3 text-gray-500">Manager's Check</span>
+                            <span class="ml-3 text-gray-300">Manager's Check</span>
                         </label>
                         <label class="flex items-center p-2 hover:bg-gray-800 rounded cursor-pointer">
                             <input type="checkbox" name="payment_methods[]" value="regular_check" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 rounded">
-                            <span class="ml-3 text-gray-500">Regular Check</span>
+                            <span class="ml-3 text-gray-300">Regular Check</span>
                         </label>
                         <label class="flex items-center p-2 hover:bg-gray-800 rounded cursor-pointer">
                             <input type="checkbox" name="payment_methods[]" value="wire_transfer" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 rounded">
-                            <span class="ml-3 text-gray-500">Wire Transfer</span>
+                            <span class="ml-3 text-gray-300">Wire Transfer</span>
                         </label>
                         <label class="flex items-center p-2 hover:bg-gray-800 rounded cursor-pointer">
                             <input type="checkbox" name="payment_methods[]" value="fund_transfer" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 rounded">
-                            <span class="ml-3 text-gray-500">Fund Transfer</span>
+                            <span class="ml-3 text-gray-300">Fund Transfer</span>
                         </label>
                         <label class="flex items-center p-2 hover:bg-gray-800 rounded cursor-pointer">
                             <input type="checkbox" name="payment_methods[]" value="pdc" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 rounded">
-                            <span class="ml-3 text-gray-500">PDC (Post-Dated Check)</span>
+                            <span class="ml-3 text-gray-300">PDC (Post-Dated Check)</span>
                         </label>
                         <label class="flex items-center p-2 hover:bg-gray-800 rounded cursor-pointer">
                             <input type="checkbox" name="payment_methods[]" value="cash" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 rounded">
-                            <span class="ml-3 text-gray-500">Cash</span>
+                            <span class="ml-3 text-gray-300">Cash</span>
                         </label>
                         <label class="flex items-center p-2 hover:bg-gray-800 rounded cursor-pointer">
                             <input type="checkbox" name="payment_methods[]" value="auto_debit" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 rounded">
-                            <span class="ml-3 text-gray-500">Auto Debit</span>
+                            <span class="ml-3 text-gray-300">Auto Debit</span>
                         </label>
                         <label class="flex items-center p-2 hover:bg-gray-800 rounded cursor-pointer">
                             <input type="checkbox" name="payment_methods[]" value="others" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 rounded">
-                            <span class="ml-3 text-gray-500">Others</span>
+                            <span class="ml-3 text-gray-300">Others</span>
                         </label>
                     </div>
                 </div>
@@ -91,19 +91,19 @@
                 <!-- Right Column - Dates and Reference Numbers -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">DATE: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-2">DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date', date('Y-m-d')) }}" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">DUE DATE:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">DUE DATE:</label>
                         <input type="date" name="due_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('due_date') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">RFP#:</label>
-                        <input type="text" readonly class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-500" value="{{ $rfpNo }}">
+                        <label class="block font-semibold text-gray-300 mb-2">RFP#:</label>
+                        <input type="text" readonly class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-300" value="{{ $rfpNo }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">LINKED PO:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">LINKED PO:</label>
                         <input type="hidden" name="purchase_order_id" id="purchase_order_id" value="{{ old('purchase_order_id', $selectedPO->id ?? '') }}">
                         <div id="linkedPODisplay">
                             @if($selectedPO)
@@ -112,7 +112,7 @@
                                     <button type="button" id="unlinkPO" class="text-red-700 hover:text-red-700 text-sm"><i class="fas fa-times"></i></button>
                                 </div>
                             @else
-                                <div class="p-3 bg-gray-900 border border-gray-700 rounded text-gray-500">
+                                <div class="p-3 bg-gray-900 border border-gray-700 rounded text-gray-300">
                                     No PO linked — use search above
                                 </div>
                             @endif
@@ -124,16 +124,16 @@
             <!-- Main Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">PAYEE (Vendor/Supplier): <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">PAYEE (Vendor/Supplier): <span class="text-red-700">*</span></label>
                     <input type="text" name="payee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee', $selectedPO ? (
     $selectedPO->items->map(fn($item) => $item->supplierModel->supplier_name ?? $item->supplier_name ?? null)->filter()->unique()->implode(' / ')
     ?: ($selectedPO->supplierModel->supplier_name ?? $selectedPO->supplier ?? '')
 ) : '') }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">AMOUNT: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">AMOUNT: <span class="text-red-700">*</span></label>
                     <div class="relative">
-                        <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
+                        <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
                         <input type="number" step="0.01" name="amount" class="w-full bg-gray-900 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount', $poAmount ? number_format($poAmount, 2, '.', '') : '') }}" required>
                     </div>
                 </div>
@@ -141,24 +141,24 @@
 
             <!-- Particulars -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">PARTICULARS:</label>
+                <label class="block font-semibold text-gray-300 mb-2">PARTICULARS:</label>
                 <textarea name="particulars" rows="5" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter payment particulars...">{{ old('particulars') }}</textarea>
             </div>
 
             <!-- Bank -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">BANK/S:</label>
+                <label class="block font-semibold text-gray-300 mb-2">BANK/S:</label>
                 <input type="text" name="bank" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('bank') }}" placeholder="Bank name and account details">
             </div>
 
             <!-- APV and CV Numbers -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">APV NO. (Account Payable Voucher):</label>
+                    <label class="block font-semibold text-gray-300 mb-2">APV NO. (Account Payable Voucher):</label>
                     <input type="text" name="apv_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('apv_no') }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">CV NO. (Check Voucher):</label>
+                    <label class="block font-semibold text-gray-300 mb-2">CV NO. (Check Voucher):</label>
                     <input type="text" name="cv_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('cv_no') }}">
                 </div>
             </div>
@@ -166,11 +166,11 @@
             <!-- Requestor and Checker -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">REQUESTED BY (Requestor):</label>
+                    <label class="block font-semibold text-gray-300 mb-2">REQUESTED BY (Requestor):</label>
                     <input type="text" name="requested_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('requested_by') }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">CHECKED BY (Department Head):</label>
+                    <label class="block font-semibold text-gray-300 mb-2">CHECKED BY (Department Head):</label>
                     <input type="text" name="checked_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('checked_by') }}">
                 </div>
             </div>
@@ -184,8 +184,8 @@
                     <table class="w-full">
                         <thead>
                             <tr class="bg-gray-700">
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Approved By:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Approved By (Php 50,000 above):</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Approved By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Approved By (Php 50,000 above):</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -193,7 +193,7 @@
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                             </tr>
-                            <tr class="bg-gray-700 text-gray-500 text-xs italic">
+                            <tr class="bg-gray-700 text-gray-300 text-xs italic">
                                 <td class="border border-gray-700 px-4 py-2 text-center">Finance Manager</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">CFO / President</td>
                             </tr>
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(response => response.json())
                     .then(pos => {
                         if (pos.length === 0) {
-                            poSearchResults.innerHTML = '<div class="p-4 text-gray-500">No approved POs found</div>';
+                            poSearchResults.innerHTML = '<div class="p-4 text-gray-300">No approved POs found</div>';
                             poSearchResults.classList.remove('hidden');
                             return;
                         }
@@ -256,11 +256,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <div class="flex justify-between items-center">
                                         <div>
                                             <div class="font-semibold text-purple-700">${po.po_no}</div>
-                                            <div class="text-sm text-gray-500">${po.supplier}</div>
-                                            <div class="text-xs text-gray-500">${po.company}</div>
+                                            <div class="text-sm text-gray-300">${po.supplier}</div>
+                                            <div class="text-xs text-gray-300">${po.company}</div>
                                         </div>
                                         <div class="text-right">
-                                            <div class="text-sm text-gray-500">${po.order_date || ''}</div>
+                                            <div class="text-sm text-gray-300">${po.order_date || ''}</div>
                                             <div class="text-sm text-green-700">${po.currency || 'PHP'} ${parseFloat(po.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
                                         </div>
                                     </div>
@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('purchase_order_id').value = '';
                 document.getElementById('maxRfpAmount').value = '';
                 document.getElementById('linkedPODisplay').innerHTML = `
-                    <div class="p-3 bg-gray-900 border border-gray-700 rounded text-gray-500">
+                    <div class="p-3 bg-gray-900 border border-gray-700 rounded text-gray-300">
                         No PO linked — use search above
                     </div>
                 `;

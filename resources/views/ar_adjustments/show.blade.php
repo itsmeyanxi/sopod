@@ -31,11 +31,11 @@
         <!-- Main Information -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Reference Number:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Reference Number:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white font-semibold">{{ $adjustment->reference_number }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Transaction Date:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Transaction Date:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->transaction_date->format('F d, Y') }}</p>
             </div>
         </div>
@@ -43,15 +43,15 @@
         <!-- Customer Information -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Customer Name:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Customer Name:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->customer_name }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Customer Code:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Customer Code:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->customer_code ?? 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Branch:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Branch:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->branch ?? 'N/A' }}</p>
             </div>
         </div>
@@ -59,7 +59,7 @@
         <!-- Document References -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">DR Number:</label>
+                <label class="block font-semibold text-gray-300 mb-1">DR Number:</label>
                 @if($adjustment->dr_no)
                     @if($adjustment->delivery)
                         <a href="{{ route('deliveries.show', $adjustment->delivery->id) }}" class="px-4 py-2 bg-blue-100 border border-blue-700 rounded text-blue-700 hover:bg-blue-100/50 transition inline-block">
@@ -69,11 +69,11 @@
                         <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->dr_no }}</p>
                     @endif
                 @else
-                    <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-500">N/A</p>
+                    <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-300">N/A</p>
                 @endif
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Invoice Number:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Invoice Number:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->invoice_number ?? 'N/A' }}</p>
             </div>
         </div>
@@ -84,15 +84,15 @@
             <h3 class="font-semibold text-blue-700 mb-3">📦 Linked Delivery Information</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                 <div>
-                    <p class="text-gray-500">Delivery Batch</p>
+                    <p class="text-gray-300">Delivery Batch</p>
                     <p class="text-blue-700 font-semibold">{{ $adjustment->delivery->delivery_batch ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">Delivery Status</p>
+                    <p class="text-gray-300">Delivery Status</p>
                     <p class="text-blue-700 font-semibold">{{ ucfirst($adjustment->delivery->status ?? 'pending') }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">Requested Date</p>
+                    <p class="text-gray-300">Requested Date</p>
                     <p class="text-blue-700 font-semibold">{{ $adjustment->delivery->request_delivery_date?->format('M d, Y') ?? 'N/A' }}</p>
                 </div>
             </div>
@@ -112,19 +112,19 @@
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
                 <div>
-                    <p class="text-gray-500">RR Number</p>
+                    <p class="text-gray-300">RR Number</p>
                     <p class="text-green-700 font-semibold">{{ $adjustment->receivingReport->rr_number ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">Received By</p>
+                    <p class="text-gray-300">Received By</p>
                     <p class="text-green-700 font-semibold">{{ $adjustment->receivingReport->received_by ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">Received Date</p>
+                    <p class="text-gray-300">Received Date</p>
                     <p class="text-green-700 font-semibold">{{ $adjustment->receivingReport->received_date?->format('M d, Y') ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">RR Total Amount</p>
+                    <p class="text-gray-300">RR Total Amount</p>
                     <p class="text-green-700 font-semibold">₱{{ number_format($rrTotal, 2) }}</p>
                 </div>
             </div>
@@ -140,13 +140,13 @@
         <!-- Amount & Account -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Amount:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Amount:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-2xl font-bold {{ $adjustment->is_decrease ? 'text-red-700' : 'text-green-700' }}">
                     {{ $adjustment->is_decrease ? '-' : '+' }}₱{{ number_format(abs($adjustment->amount), 2) }}
                 </p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">GL Account:</label>
+                <label class="block font-semibold text-gray-300 mb-1">GL Account:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white font-semibold">{{ $adjustment->gl_account ?? 'N/A' }}</p>
             </div>
         </div>
@@ -157,19 +157,19 @@
             <h3 class="font-semibold text-amber-700 mb-3">📊 GL Account Details</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div>
-                    <p class="text-gray-500">Account Code</p>
+                    <p class="text-gray-300">Account Code</p>
                     <p class="text-amber-700 font-semibold">{{ $adjustment->glAccount->account_code ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">Account Name</p>
+                    <p class="text-gray-300">Account Name</p>
                     <p class="text-amber-700 font-semibold">{{ $adjustment->glAccount->account_name ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">FS Line Item</p>
+                    <p class="text-gray-300">FS Line Item</p>
                     <p class="text-amber-700 font-semibold">{{ $adjustment->glAccount->fs_line_item ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">FS Notes</p>
+                    <p class="text-gray-300">FS Notes</p>
                     <p class="text-amber-700 font-semibold">{{ $adjustment->glAccount->fs_notes ?? 'N/A' }}</p>
                 </div>
             </div>
@@ -178,7 +178,7 @@
 
         <!-- Signature -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-1">Signed By:</label>
+            <label class="block font-semibold text-gray-300 mb-1">Signed By:</label>
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->signed_by }}</p>
         </div>
 
@@ -187,7 +187,7 @@
             <div class="grid grid-cols-1 {{ $adjustment->remarks && $adjustment->attachment_path ? 'md:grid-cols-2' : '' }} gap-6 mb-6">
                 @if($adjustment->remarks)
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">Remarks:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">Remarks:</label>
                     <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-white min-h-[80px]">
                         {{ $adjustment->remarks }}
                     </div>
@@ -195,7 +195,7 @@
                 @endif
                 @if($adjustment->attachment_path)
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">Supporting Document:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">Supporting Document:</label>
                     <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded">
                         <a href="{{ asset('storage/' . $adjustment->attachment_path) }}" target="_blank" class="flex items-center gap-3 text-purple-700 hover:text-purple-900 transition">
                             @if(str_ends_with(strtolower($adjustment->attachment_name), '.pdf'))
@@ -216,19 +216,19 @@
 
         <!-- Audit Information -->
         <div class="bg-gray-700 rounded-lg p-4 mb-6">
-            <h3 class="font-semibold text-gray-500 mb-3">Audit Information</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
+            <h3 class="font-semibold text-gray-300 mb-3">Audit Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">Created By:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">Created By:</label>
                     <p>{{ $adjustment->created_by }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">Created At:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">Created At:</label>
                     <p>{{ $adjustment->created_at->format('F d, Y h:i A') }}</p>
                 </div>
                 @if($adjustment->updated_at && $adjustment->updated_at != $adjustment->created_at)
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">Last Modified:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">Last Modified:</label>
                         <p>{{ $adjustment->updated_at->format('F d, Y h:i A') }}</p>
                     </div>
                 @endif

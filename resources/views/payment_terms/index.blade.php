@@ -19,7 +19,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full border-collapse text-sm">
-                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-4 py-3 text-left">Code</th>
                         <th class="border border-gray-700 px-4 py-3 text-left">Description</th>
@@ -58,7 +58,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="border border-gray-700 px-4 py-8 text-center text-gray-500">No payment terms found.</td>
+                        <td colspan="7" class="border border-gray-700 px-4 py-8 text-center text-gray-400">No payment terms found.</td>
                     </tr>
                     @endforelse
                 </tbody>

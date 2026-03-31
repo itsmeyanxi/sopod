@@ -26,7 +26,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full border-collapse border border-gray-700">
-                <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
+                <thead class="bg-gray-700 text-gray-300 uppercase text-sm">
                     <tr>
                         <th class="border border-gray-700 px-4 py-3">LIQ NO</th>
                         <th class="border border-gray-700 px-4 py-3">NAME</th>
@@ -39,7 +39,7 @@
                         <th class="border border-gray-700 px-4 py-3">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-500">
+                <tbody class="text-gray-200">
                     @forelse($liquidations as $liquidation)
                         <tr class="hover:bg-gray-700/40">
                             <td class="border border-gray-700 px-4 py-3">{{ $liquidation->liq_no }}</td>
@@ -87,7 +87,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="border border-gray-700 px-4 py-8 text-center text-gray-500">
+                            <td colspan="9" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No liquidation forms found. <a href="{{ route('liquidation_forms.create') }}" class="text-purple-700 hover:text-purple-700">Create one now</a>
                             </td>
                         </tr>

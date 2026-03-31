@@ -74,7 +74,7 @@
     <!-- 📋 Responsive Table -->
     <div class="overflow-x-auto bg-gray-800 rounded-lg shadow border border-gray-700">
         <table id="customersTable" class="min-w-full divide-y divide-gray-700 text-sm">
-            <thead class="bg-gray-700 text-gray-500 uppercase text-xs tracking-wider">
+            <thead class="bg-gray-700 text-gray-300 uppercase text-xs tracking-wider">
                 <tr>
                     <th class="px-4 py-3 text-left">ID</th>
                     <th class="px-4 py-3 text-left">Code</th>
@@ -89,7 +89,7 @@
                 </tr>
             </thead>
 
-            <tbody class="divide-y divide-gray-700 text-gray-500">
+            <tbody class="divide-y divide-gray-700 text-gray-200">
                 @forelse($customers as $customer)
                     <tr class="hover:bg-gray-700/40 transition">
                         <td class="px-4 py-3">{{ $customer->id }}</td>
@@ -179,7 +179,7 @@
                 @empty
                     <tr>
                         <td colspan="10" 
-                            class="px-6 py-4 text-center text-gray-500">
+                            class="px-6 py-4 text-center text-gray-400">
                             No customers found.
                         </td>
                     </tr>
@@ -189,7 +189,7 @@
     </div>
 
     <!-- 📊 Count -->
-    <div class="mt-4 text-gray-500 text-sm">
+    <div class="mt-4 text-gray-400 text-sm">
         Showing {{ $customers->count() }} customer{{ $customers->count() !== 1 ? 's' : '' }}
     </div>
 </div>

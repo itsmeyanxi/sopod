@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-white">Delivery Counter Dates</h1>
-                <p class="text-sm text-gray-500 mt-1">Set counter dates for deliveries to track aging</p>
+                <p class="text-sm text-gray-300 mt-1">Set counter dates for deliveries to track aging</p>
             </div>
             <button type="button" id="bulkSaveBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-md font-medium transition hidden">
                 <i class="fas fa-save mr-1"></i> Save All Changes (<span id="changeCount">0</span>)
@@ -26,15 +26,15 @@
         <!-- Stats -->
         <div class="grid grid-cols-3 gap-4 mb-4">
             <div class="bg-gray-800 rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
-                <p class="text-xs text-gray-500 font-semibold uppercase">Total Delivered</p>
+                <p class="text-xs text-gray-300 font-semibold uppercase">Total Delivered</p>
                 <p class="text-2xl font-bold text-white">{{ number_format($totalDelivered) }}</p>
             </div>
             <div class="bg-gray-800 rounded-lg shadow-sm p-4 border-l-4 border-green-500">
-                <p class="text-xs text-gray-500 font-semibold uppercase">With Counter Date</p>
+                <p class="text-xs text-gray-300 font-semibold uppercase">With Counter Date</p>
                 <p class="text-2xl font-bold text-green-700">{{ number_format($withCounter) }}</p>
             </div>
             <div class="bg-gray-800 rounded-lg shadow-sm p-4 border-l-4 border-orange-500">
-                <p class="text-xs text-gray-500 font-semibold uppercase">Without Counter Date</p>
+                <p class="text-xs text-gray-300 font-semibold uppercase">Without Counter Date</p>
                 <p class="text-2xl font-bold text-orange-700">{{ number_format($withoutCounter) }}</p>
             </div>
         </div>
@@ -43,12 +43,12 @@
         <div class="bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
             <form method="GET" action="{{ route('delivery_counter_dates.index') }}" class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[200px]">
-                    <label class="block text-xs text-gray-500 font-semibold mb-1">Search</label>
+                    <label class="block text-xs text-gray-300 font-semibold mb-1">Search</label>
                     <input type="text" name="search" value="{{ $search }}" placeholder="Customer, DR No., Invoice..."
                         class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 font-semibold mb-1">Filter</label>
+                    <label class="block text-xs text-gray-300 font-semibold mb-1">Filter</label>
                     <select name="filter" class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-gray-200">
                         <option value="all" {{ $filter === 'all' ? 'selected' : '' }}>All Deliveries</option>
                         <option value="without_counter" {{ $filter === 'without_counter' ? 'selected' : '' }}>Without Counter Date</option>
@@ -56,12 +56,12 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 font-semibold mb-1">Date From</label>
+                    <label class="block text-xs text-gray-300 font-semibold mb-1">Date From</label>
                     <input type="date" name="date_from" value="{{ $dateFrom }}"
                         class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-gray-200">
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 font-semibold mb-1">Date To</label>
+                    <label class="block text-xs text-gray-300 font-semibold mb-1">Date To</label>
                     <input type="date" name="date_to" value="{{ $dateTo }}"
                         class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-gray-200">
                 </div>

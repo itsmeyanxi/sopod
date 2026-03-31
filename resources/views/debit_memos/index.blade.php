@@ -19,7 +19,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full border-collapse text-sm">
-                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-4 py-3 text-left">DM No.</th>
                         <th class="border border-gray-700 px-4 py-3 text-left">Supplier</th>
@@ -38,7 +38,7 @@
                             <a href="{{ route('debit_memos.show', $memo) }}">{{ $memo->dm_no }}</a>
                         </td>
                         <td class="border border-gray-700 px-4 py-3 text-gray-200">{{ $memo->supplier_name }}</td>
-                        <td class="border border-gray-700 px-4 py-3 text-gray-500">{{ $memo->invoice_no ?? '-' }}</td>
+                        <td class="border border-gray-700 px-4 py-3 text-gray-300">{{ $memo->invoice_no ?? '-' }}</td>
                         <td class="border border-gray-700 px-4 py-3 text-center text-gray-200">{{ $memo->memo_date->format('M d, Y') }}</td>
                         <td class="border border-gray-700 px-4 py-3 text-right font-semibold text-white">{{ number_format($memo->amount, 2) }}</td>
                         <td class="border border-gray-700 px-4 py-3 text-gray-300">{{ Str::limit($memo->reason, 30) }}</td>
@@ -71,7 +71,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="border border-gray-700 px-4 py-8 text-center text-gray-500">No debit memos found.</td>
+                        <td colspan="8" class="border border-gray-700 px-4 py-8 text-center text-gray-400">No debit memos found.</td>
                     </tr>
                     @endforelse
                 </tbody>

@@ -26,7 +26,7 @@
         {{-- Account Code & Name --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-2">
+                <label class="block font-semibold text-gray-300 mb-2">
                     Account Code: <span class="text-red-700">*</span>
                 </label>
                 <input type="text" name="account_code"
@@ -34,7 +34,7 @@
                     placeholder="e.g., 1000" value="{{ $account->account_code }}" required>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-2">
+                <label class="block font-semibold text-gray-300 mb-2">
                     Account Name: <span class="text-red-700">*</span>
                 </label>
                 <input type="text" name="account_name"
@@ -46,13 +46,13 @@
         {{-- FS Line Item & Notes --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-2">FS Line Item:</label>
+                <label class="block font-semibold text-gray-300 mb-2">FS Line Item:</label>
                 <input type="text" name="fs_line_item"
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g., Current Assets" value="{{ $account->fs_line_item }}">
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-2">FS Notes:</label>
+                <label class="block font-semibold text-gray-300 mb-2">FS Notes:</label>
                 <textarea name="fs_notes" rows="3"
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Optional notes...">{{ $account->fs_notes }}</textarea>
@@ -61,18 +61,18 @@
 
         {{-- Audit Information --}}
         <div class="bg-gray-700 rounded-lg p-4 mb-6">
-            <h3 class="font-semibold text-gray-500 mb-3">Audit Information</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
+            <h3 class="font-semibold text-gray-300 mb-3">Audit Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">Created By:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">Created By:</label>
                     <p>{{ $account->created_by ?? '-' }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">Created At:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">Created At:</label>
                     <p>{{ $account->created_at->format('F d, Y h:i A') }}</p>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">Last Updated:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">Last Updated:</label>
                     <p>{{ $account->updated_at->format('F d, Y h:i A') }}</p>
                 </div>
             </div>

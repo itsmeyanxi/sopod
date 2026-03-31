@@ -15,7 +15,7 @@
                 </svg>
                 Record Lock Management
             </h2>
-            <p class="text-gray-500 mt-1">Lock Sales Orders, Deliveries, Customers, and Items by month to prevent modifications</p>
+            <p class="text-gray-300 mt-1">Lock Sales Orders, Deliveries, Customers, and Items by month to prevent modifications</p>
         </div>
         <div class="flex items-center gap-2 text-sm">
             <span class="px-3 py-1 bg-green-600/20 text-green-700 rounded-full border border-green-600">
@@ -90,7 +90,7 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <h3 class="text-lg font-bold text-white">{{ $monthData['month_name'] }}</h3>
-                        <p class="text-xs text-gray-500">{{ $monthData['year'] }}-{{ str_pad($monthData['month'], 2, '0', STR_PAD_LEFT) }}</p>
+                        <p class="text-xs text-gray-300">{{ $monthData['year'] }}-{{ str_pad($monthData['month'], 2, '0', STR_PAD_LEFT) }}</p>
                     </div>
                     @if($isFullyLocked)
                         <span class="px-3 py-1 bg-red-600/20 text-red-700 text-xs font-semibold rounded-full border border-red-600 flex items-center gap-1">
@@ -118,7 +118,7 @@
                     {{-- Sales Orders --}}
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm text-gray-500">Sales Orders</span>
+                            <span class="text-sm text-gray-300">Sales Orders</span>
                             <span class="text-sm font-semibold {{ $monthData['so_locked_count'] > 0 ? 'text-red-700' : 'text-green-700' }}">
                                 {{ $monthData['so_locked_count'] }} / {{ $monthData['so_count'] }} locked
                             </span>
@@ -132,7 +132,7 @@
                     {{-- Deliveries --}}
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm text-gray-500">Deliveries</span>
+                            <span class="text-sm text-gray-300">Deliveries</span>
                             <span class="text-sm font-semibold {{ $monthData['delivery_locked_count'] > 0 ? 'text-red-700' : 'text-green-700' }}">
                                 {{ $monthData['delivery_locked_count'] }} / {{ $monthData['delivery_count'] }} locked
                             </span>
@@ -152,7 +152,7 @@
                                     ];
                                 @endphp
                                 @foreach($monthData['delivery_status_counts'] as $status => $count)
-                                    <span class="px-2 py-0.5 text-xs font-medium rounded border {{ $statusColors[$status] ?? 'bg-gray-700 text-gray-500 border-gray-600' }}">
+                                    <span class="px-2 py-0.5 text-xs font-medium rounded border {{ $statusColors[$status] ?? 'bg-gray-700 text-gray-300 border-gray-600' }}">
                                         {{ $status }}: {{ $count }}
                                     </span>
                                 @endforeach
@@ -163,7 +163,7 @@
                     {{-- Customers --}}
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm text-gray-500">Customers</span>
+                            <span class="text-sm text-gray-300">Customers</span>
                             <span class="text-sm font-semibold {{ $monthData['customer_locked_count'] > 0 ? 'text-red-700' : 'text-green-700' }}">
                                 {{ $monthData['customer_locked_count'] }} / {{ $monthData['customer_count'] }} locked
                             </span>
@@ -177,7 +177,7 @@
                     {{-- Items --}}
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm text-gray-500">Items</span>
+                            <span class="text-sm text-gray-300">Items</span>
                             <span class="text-sm font-semibold {{ $monthData['item_locked_count'] > 0 ? 'text-red-700' : 'text-green-700' }}">
                                 {{ $monthData['item_locked_count'] }} / {{ $monthData['item_count'] }} locked
                             </span>
@@ -224,8 +224,8 @@
                 <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <p class="text-gray-500 text-lg">No records found</p>
-                <p class="text-gray-500 text-sm mt-1">Create Sales Orders, Deliveries, Customers, or Items to see them here</p>
+                <p class="text-gray-300 text-lg">No records found</p>
+                <p class="text-gray-300 text-sm mt-1">Create Sales Orders, Deliveries, Customers, or Items to see them here</p>
             </div>
         @endforelse
     </div>
@@ -237,7 +237,7 @@
         {{-- Modal Header --}}
         <div class="bg-gray-800 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
             <h3 id="modalTitle" class="text-xl font-bold text-white">Month Details</h3>
-            <button onclick="closeModal()" class="text-gray-500 hover:text-white transition-colors">
+            <button onclick="closeModal()" class="text-gray-300 hover:text-white transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -251,13 +251,13 @@
                 <button id="tabSO" onclick="switchTab('so')" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium transition-all">
                     Sales Orders
                 </button>
-                <button id="tabDelivery" onclick="switchTab('delivery')" class="px-4 py-2 bg-gray-700 text-gray-500 rounded-lg font-medium transition-all hover:bg-gray-700">
+                <button id="tabDelivery" onclick="switchTab('delivery')" class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg font-medium transition-all hover:bg-gray-700">
                     Deliveries
                 </button>
-                <button id="tabCustomer" onclick="switchTab('customer')" class="px-4 py-2 bg-gray-700 text-gray-500 rounded-lg font-medium transition-all hover:bg-gray-700">
+                <button id="tabCustomer" onclick="switchTab('customer')" class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg font-medium transition-all hover:bg-gray-700">
                     Customers
                 </button>
-                <button id="tabItem" onclick="switchTab('item')" class="px-4 py-2 bg-gray-700 text-gray-500 rounded-lg font-medium transition-all hover:bg-gray-700">
+                <button id="tabItem" onclick="switchTab('item')" class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg font-medium transition-all hover:bg-gray-700">
                     Items
                 </button>
             </div>
@@ -265,7 +265,7 @@
             {{-- Sales Orders Table --}}
             <div id="soTable" class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-800 text-gray-500 uppercase text-xs">
+                    <thead class="bg-gray-800 text-gray-300 uppercase text-xs">
                         <tr>
                             <th class="px-4 py-3 text-left">SO Number</th>
                             <th class="px-4 py-3 text-left">Customer</th>
@@ -276,7 +276,7 @@
                         </tr>
                     </thead>
                     <tbody id="soTableBody" class="divide-y divide-gray-700">
-                        <tr><td colspan="6" class="text-center py-8 text-gray-500">Loading...</td></tr>
+                        <tr><td colspan="6" class="text-center py-8 text-gray-300">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -284,7 +284,7 @@
             {{-- Deliveries Table --}}
             <div id="deliveryTable" class="overflow-x-auto hidden">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-800 text-gray-500 uppercase text-xs">
+                    <thead class="bg-gray-800 text-gray-300 uppercase text-xs">
                         <tr>
                             <th class="px-4 py-3 text-left">DR Number</th>
                             <th class="px-4 py-3 text-left">SO Number</th>
@@ -295,7 +295,7 @@
                         </tr>
                     </thead>
                     <tbody id="deliveryTableBody" class="divide-y divide-gray-700">
-                        <tr><td colspan="6" class="text-center py-8 text-gray-500">Loading...</td></tr>
+                        <tr><td colspan="6" class="text-center py-8 text-gray-300">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -303,7 +303,7 @@
             {{-- Customers Table --}}
             <div id="customerTable" class="overflow-x-auto hidden">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-800 text-gray-500 uppercase text-xs">
+                    <thead class="bg-gray-800 text-gray-300 uppercase text-xs">
                         <tr>
                             <th class="px-4 py-3 text-left">Customer Code</th>
                             <th class="px-4 py-3 text-left">Customer Name</th>
@@ -313,7 +313,7 @@
                         </tr>
                     </thead>
                     <tbody id="customerTableBody" class="divide-y divide-gray-700">
-                        <tr><td colspan="5" class="text-center py-8 text-gray-500">Loading...</td></tr>
+                        <tr><td colspan="5" class="text-center py-8 text-gray-300">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -321,7 +321,7 @@
             {{-- Items Table --}}
             <div id="itemTable" class="overflow-x-auto hidden">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-800 text-gray-500 uppercase text-xs">
+                    <thead class="bg-gray-800 text-gray-300 uppercase text-xs">
                         <tr>
                             <th class="px-4 py-3 text-left">Item Code</th>
                             <th class="px-4 py-3 text-left">Description</th>
@@ -331,7 +331,7 @@
                         </tr>
                     </thead>
                     <tbody id="itemTableBody" class="divide-y divide-gray-700">
-                        <tr><td colspan="5" class="text-center py-8 text-gray-500">Loading...</td></tr>
+                        <tr><td colspan="5" class="text-center py-8 text-gray-300">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -377,7 +377,7 @@ function populateSOTable(salesOrders) {
     const tbody = document.getElementById('soTableBody');
 
     if (salesOrders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500">No Sales Orders found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-300">No Sales Orders found</td></tr>';
         return;
     }
 
@@ -395,7 +395,7 @@ function populateSOTable(salesOrders) {
                     : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
                 }
             </td>
-            <td class="px-4 py-3 text-center text-gray-500">${formatDate(so.created_at)}</td>
+            <td class="px-4 py-3 text-center text-gray-400">${formatDate(so.created_at)}</td>
         </tr>
     `).join('');
 }
@@ -404,7 +404,7 @@ function populateDeliveryTable(deliveries) {
     const tbody = document.getElementById('deliveryTableBody');
 
     if (deliveries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500">No Deliveries found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-300">No Deliveries found</td></tr>';
         return;
     }
 
@@ -422,7 +422,7 @@ function populateDeliveryTable(deliveries) {
                     : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
                 }
             </td>
-            <td class="px-4 py-3 text-center text-gray-500">${formatDate(d.created_at)}</td>
+            <td class="px-4 py-3 text-center text-gray-400">${formatDate(d.created_at)}</td>
         </tr>
     `).join('');
 }
@@ -431,7 +431,7 @@ function populateCustomerTable(customers) {
     const tbody = document.getElementById('customerTableBody');
 
     if (customers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">No Customers found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-300">No Customers found</td></tr>';
         return;
     }
 
@@ -440,7 +440,7 @@ function populateCustomerTable(customers) {
             <td class="px-4 py-3 font-mono text-purple-700">${c.customer_code || '—'}</td>
             <td class="px-4 py-3">${c.customer_name || '—'}</td>
             <td class="px-4 py-3 text-center">
-                <span class="px-2 py-1 rounded text-xs font-medium ${c.status === 'enabled' ? 'bg-green-600/20 text-green-700 border border-green-600' : 'bg-gray-700 text-gray-500 border border-gray-600'}">${c.status || '—'}</span>
+                <span class="px-2 py-1 rounded text-xs font-medium ${c.status === 'enabled' ? 'bg-green-600/20 text-green-700 border border-green-600' : 'bg-gray-700 text-gray-300 border border-gray-600'}">${c.status || '—'}</span>
             </td>
             <td class="px-4 py-3 text-center">
                 ${c.is_locked
@@ -448,7 +448,7 @@ function populateCustomerTable(customers) {
                     : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
                 }
             </td>
-            <td class="px-4 py-3 text-center text-gray-500">${formatDate(c.created_at)}</td>
+            <td class="px-4 py-3 text-center text-gray-400">${formatDate(c.created_at)}</td>
         </tr>
     `).join('');
 }
@@ -457,7 +457,7 @@ function populateItemTable(items) {
     const tbody = document.getElementById('itemTableBody');
 
     if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">No Items found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-300">No Items found</td></tr>';
         return;
     }
 
@@ -474,7 +474,7 @@ function populateItemTable(items) {
                     : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
                 }
             </td>
-            <td class="px-4 py-3 text-center text-gray-500">${formatDate(i.created_at)}</td>
+            <td class="px-4 py-3 text-center text-gray-400">${formatDate(i.created_at)}</td>
         </tr>
     `).join('');
 }
@@ -487,7 +487,7 @@ function getStatusClass(status) {
         'Delivered': 'bg-green-600/20 text-green-700 border border-green-600',
         'Cancelled': 'bg-red-600/20 text-red-700 border border-red-600',
     };
-    return classes[status] || 'bg-gray-700 text-gray-500 border border-gray-600';
+    return classes[status] || 'bg-gray-700 text-gray-300 border border-gray-600';
 }
 
 function getApprovalClass(status) {
@@ -496,7 +496,7 @@ function getApprovalClass(status) {
         'pending': 'bg-yellow-600/20 text-yellow-700 border border-yellow-600',
         'rejected': 'bg-red-600/20 text-red-700 border border-red-600',
     };
-    return classes[status] || 'bg-gray-700 text-gray-500 border border-gray-600';
+    return classes[status] || 'bg-gray-700 text-gray-300 border border-gray-600';
 }
 
 function formatDate(dateString) {
@@ -510,12 +510,12 @@ function switchTab(tab) {
         const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
         const table = document.getElementById(t + 'Table');
         if (t === tab) {
-            btn.classList.remove('bg-gray-700', 'text-gray-500');
+            btn.classList.remove('bg-gray-700', 'text-gray-300');
             btn.classList.add('bg-blue-600', 'text-white');
             table.classList.remove('hidden');
         } else {
             btn.classList.remove('bg-blue-600', 'text-white');
-            btn.classList.add('bg-gray-700', 'text-gray-500');
+            btn.classList.add('bg-gray-700', 'text-gray-300');
             table.classList.add('hidden');
         }
     });
@@ -551,7 +551,7 @@ function lockMonth(year, month, monthName, soCount, deliveryCount, customerCount
                         <strong>${itemCount}</strong> Item(s)
                     </li>
                 </ul>
-                <p class="mt-4 text-sm text-gray-500">Locked records become view-only and cannot be modified.</p>
+                <p class="mt-4 text-sm text-gray-300">Locked records become view-only and cannot be modified.</p>
             </div>
         `,
         showCancelButton: true,

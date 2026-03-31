@@ -13,7 +13,7 @@
         <!-- Filters -->
         <form method="GET" action="{{ route('ap_ledger.index') }}" class="flex flex-wrap gap-3 mb-6">
             <div>
-                <label class="block text-gray-500 text-xs mb-1">Supplier</label>
+                <label class="block text-gray-300 text-xs mb-1">Supplier</label>
                 <select name="supplier" class="border border-gray-600 rounded px-3 py-2 text-white text-sm min-w-[200px]">
                     <option value="">All Suppliers</option>
                     @foreach($suppliers as $supplierName)
@@ -22,11 +22,11 @@
                 </select>
             </div>
             <div>
-                <label class="block text-gray-500 text-xs mb-1">From</label>
+                <label class="block text-gray-300 text-xs mb-1">From</label>
                 <input type="date" name="from" value="{{ request('from') }}" class="border border-gray-600 rounded px-3 py-2 text-white text-sm">
             </div>
             <div>
-                <label class="block text-gray-500 text-xs mb-1">To</label>
+                <label class="block text-gray-300 text-xs mb-1">To</label>
                 <input type="date" name="to" value="{{ request('to') }}" class="border border-gray-600 rounded px-3 py-2 text-white text-sm">
             </div>
             <div class="flex items-end gap-2">
@@ -39,7 +39,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full border-collapse text-sm">
-                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-4 py-3 text-center">Date</th>
                         <th class="border border-gray-700 px-4 py-3 text-center">Type</th>
@@ -71,10 +71,10 @@
                         <td class="border border-gray-700 px-4 py-3 font-semibold text-blue-600">{{ $entry->reference }}</td>
                         <td class="border border-gray-700 px-4 py-3 text-gray-200">{{ $entry->supplier_name }}</td>
                         <td class="border border-gray-700 px-4 py-3 text-gray-300">{{ $entry->description }}</td>
-                        <td class="border border-gray-700 px-4 py-3 text-right {{ $entry->debit > 0 ? 'text-red-600 font-semibold' : 'text-gray-500' }}">
+                        <td class="border border-gray-700 px-4 py-3 text-right {{ $entry->debit > 0 ? 'text-red-600 font-semibold' : 'text-gray-300' }}">
                             {{ $entry->debit > 0 ? number_format($entry->debit, 2) : '-' }}
                         </td>
-                        <td class="border border-gray-700 px-4 py-3 text-right {{ $entry->credit > 0 ? 'text-green-600 font-semibold' : 'text-gray-500' }}">
+                        <td class="border border-gray-700 px-4 py-3 text-right {{ $entry->credit > 0 ? 'text-green-600 font-semibold' : 'text-gray-300' }}">
                             {{ $entry->credit > 0 ? number_format($entry->credit, 2) : '-' }}
                         </td>
                         <td class="border border-gray-700 px-4 py-3 text-right font-bold text-white">
@@ -83,7 +83,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="border border-gray-700 px-4 py-8 text-center text-gray-500">No ledger entries found.</td>
+                        <td colspan="8" class="border border-gray-700 px-4 py-8 text-center text-gray-400">No ledger entries found.</td>
                     </tr>
                     @endforelse
                 </tbody>

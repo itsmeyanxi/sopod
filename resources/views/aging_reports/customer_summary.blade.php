@@ -9,8 +9,8 @@
         <div class="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-white mb-2">{{ $customerName }}</h1>
-                <p class="text-gray-500 text-sm">Customer Code: <span class="text-gray-500 font-mono">{{ $customerCode }}</span></p>
-                <p class="text-gray-500 text-sm">Complete AR Summary for All Aging Periods</p>
+                <p class="text-gray-300 text-sm">Customer Code: <span class="text-gray-300 font-mono">{{ $customerCode }}</span></p>
+                <p class="text-gray-300 text-sm">Complete AR Summary for All Aging Periods</p>
             </div>
             <a href="{{ route('aging_reports.summary', ['filter_date' => $filterDate, 'include' => $include]) }}"
                class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded font-medium transition flex items-center space-x-2">
@@ -129,8 +129,8 @@
 
         <!-- Legend -->
         <div class="mt-6 bg-gray-700 rounded-lg p-4">
-            <p class="text-gray-500 text-sm mb-3 font-semibold">📋 How to Use:</p>
-            <ul class="text-gray-500 text-sm space-y-1">
+            <p class="text-gray-300 text-sm mb-3 font-semibold">📋 How to Use:</p>
+            <ul class="text-gray-300 text-sm space-y-1">
                 <li>• <strong>Click any card</strong> to see all invoices in that aging bucket</li>
                 <li>• <strong>Invoice count</strong> shows how many invoices in that bucket</li>
                 <li>• <strong>Amount</strong> shows total outstanding AR for that bucket</li>

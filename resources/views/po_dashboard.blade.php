@@ -54,40 +54,40 @@
             <a href="{{ route('purchase_requests.index') }}" class="text-white text-xl font-semibold mb-2 block">
                 Purchase Requests
             </a>
-            <p class="text-gray-500 mb-4 text-sm">Create and manage PRs...</p>
-            <a href="{{ route('purchase_requests.index') }}" class="text-gray-500 text-sm hover:underline">View all</a>
+            <p class="text-gray-300 mb-4 text-sm">Create and manage PRs...</p>
+            <a href="{{ route('purchase_requests.index') }}" class="text-gray-300 text-sm hover:underline">View all</a>
         </div>
 
         <div class="bg-gray-700 p-6 shadow rounded">
             <a href="{{ route('purchase_orders.index') }}" class="text-white text-xl font-semibold mb-2 block">
                 Purchase Orders
             </a>
-            <p class="text-gray-500 mb-4 text-sm">Track purchase orders...</p>
-            <a href="{{ route('purchase_orders.index') }}" class="text-gray-500 text-sm hover:underline">View all</a>
+            <p class="text-gray-300 mb-4 text-sm">Track purchase orders...</p>
+            <a href="{{ route('purchase_orders.index') }}" class="text-gray-300 text-sm hover:underline">View all</a>
         </div>
 
         <div class="bg-gray-700 p-6 shadow rounded">
             <a href="{{ route('request_for_payments.index') }}" class="text-white text-xl font-semibold mb-2 block">
                 Request for Payments
             </a>
-            <p class="text-gray-500 mb-4 text-sm">Manage payment requests...</p>
-            <a href="{{ route('request_for_payments.index') }}" class="text-gray-500 text-sm hover:underline">View all</a>
+            <p class="text-gray-300 mb-4 text-sm">Manage payment requests...</p>
+            <a href="{{ route('request_for_payments.index') }}" class="text-gray-300 text-sm hover:underline">View all</a>
         </div>
 
         <div class="bg-gray-700 p-6 shadow rounded">
             <a href="{{ route('accounts_payable_invoices.index') }}" class="text-white text-xl font-semibold mb-2 block">
                 AP Invoices
             </a>
-            <p class="text-gray-500 mb-4 text-sm">Manage payable invoices...</p>
-            <a href="{{ route('accounts_payable_invoices.index') }}" class="text-gray-500 text-sm hover:underline">View all</a>
+            <p class="text-gray-300 mb-4 text-sm">Manage payable invoices...</p>
+            <a href="{{ route('accounts_payable_invoices.index') }}" class="text-gray-300 text-sm hover:underline">View all</a>
         </div>
 
         <div class="bg-gray-700 p-6 shadow rounded">
             <a href="{{ route('check_vouchers.index') }}" class="text-white text-xl font-semibold mb-2 block">
                 Check Vouchers
             </a>
-            <p class="text-gray-500 mb-4 text-sm">Manage check vouchers...</p>
-            <a href="{{ route('check_vouchers.index') }}" class="text-gray-500 text-sm hover:underline">View all</a>
+            <p class="text-gray-300 mb-4 text-sm">Manage check vouchers...</p>
+            <a href="{{ route('check_vouchers.index') }}" class="text-gray-300 text-sm hover:underline">View all</a>
         </div>
 
     </div>

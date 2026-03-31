@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">CREATE PURCHASE ORDER</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-500">PO NO:</label>
+                <label class="font-semibold text-gray-300">PO NO:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $poNo }}</span>
             </div>
         </div>
@@ -38,14 +38,14 @@
 
             <!-- Search PR Section -->
             <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-                <label class="block font-semibold text-gray-500 mb-2">SEARCH PURCHASE REQUEST (Optional):</label>
-                <p class="text-gray-500 text-sm mb-3">Search by PR Number, Requisitioner, or Company to auto-fill data</p>
+                <label class="block font-semibold text-gray-300 mb-2">SEARCH PURCHASE REQUEST (Optional):</label>
+                <p class="text-gray-300 text-sm mb-3">Search by PR Number, Requisitioner, or Company to auto-fill data</p>
 
                 <div class="relative">
                     <input type="text" id="prSearchInput"
                         class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
                         placeholder="Type to search approved PRs..." autocomplete="off">
-                    <span class="absolute right-3 top-2.5 text-gray-500"><i class="fas fa-search"></i></span>
+                    <span class="absolute right-3 top-2.5 text-gray-300"><i class="fas fa-search"></i></span>
                 </div>
 
                 <div id="prSearchResults" class="hidden mt-2 bg-gray-800 border border-gray-700 rounded max-h-64 overflow-y-auto"></div>
@@ -54,7 +54,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <span class="text-green-700 font-semibold">Selected PR: </span>
-                            <span id="selectedPRText" class="text-gray-500"></span>
+                            <span id="selectedPRText" class="text-gray-300"></span>
                         </div>
                         <button type="button" onclick="clearSelectedPR()" class="text-red-700 hover:text-red-700">
                             <i class="fas fa-times"></i> Clear
@@ -73,15 +73,15 @@
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">CONSIGNEE:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE:</label>
                         <input type="text" name="consignee" id="consignee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('consignee', $selectedPR->contact_person ?? '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">CONSIGNEE ADDRESS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE ADDRESS:</label>
                         <textarea name="consignee_address" id="consignee_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('consignee_address', $selectedPR->address ?? '') }}</textarea>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DELIVERY ADDRESS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">DELIVERY ADDRESS:</label>
                         <textarea name="delivery_address" id="delivery_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('delivery_address', $selectedPR->delivery_address ?? '') }}</textarea>
                     </div>
                 </div>
@@ -89,35 +89,35 @@
                 <!-- Right Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">ORDER DATE: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-1">ORDER DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="order_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('order_date', date('Y-m-d')) }}" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">EXPECTED DELIVERY DATE:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">EXPECTED DELIVERY DATE:</label>
                         <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('expected_delivery_date', isset($selectedPR) && $selectedPR && $selectedPR->date_needed ? $selectedPR->date_needed->format('Y-m-d') : '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">PAYMENT TERMS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">PAYMENT TERMS:</label>
                         <input type="text" name="payment_terms" id="payment_terms" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms', $selectedPR->terms ?? '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">LOCATION:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">LOCATION:</label>
                         <input type="text" name="location" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('location') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">HOUSE:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">HOUSE:</label>
                         <input type="text" name="house" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('house') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">PR#:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">PR#:</label>
                         <input type="text" name="pr_no" id="pr_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('pr_no', $selectedPR->pr_no ?? '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">LC PRICE:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">LC PRICE:</label>
                         <input type="number" step="0.01" name="lc_price" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('lc_price') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">CURRENCY:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">CURRENCY:</label>
                         <select name="currency" id="currency_select" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="onCurrencyChange()">
                             @foreach($currencies as $cur)
                                 <option value="{{ $cur->code }}"
@@ -130,12 +130,12 @@
                         </select>
                     </div>
                     <div id="exchange_rate_row" class="{{ old('currency', 'PHP') === 'PHP' ? 'hidden' : '' }}">
-                        <label class="block font-semibold text-gray-500 mb-1">EXCHANGE RATE <span class="text-gray-500 text-xs" id="rate_label">(1 USD = ? PHP)</span>:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">EXCHANGE RATE <span class="text-gray-300 text-xs" id="rate_label">(1 USD = ? PHP)</span>:</label>
                         <div class="flex items-center gap-2">
                             <span class="text-gray-300">₱</span>
                             <input type="number" step="0.0001" name="exchange_rate" id="exchange_rate" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('exchange_rate', 1) }}">
                         </div>
-                        <p class="text-gray-500 text-xs mt-1">Auto-filled from current rate. You may override.</p>
+                        <p class="text-gray-300 text-xs mt-1">Auto-filled from current rate. You may override.</p>
                     </div>
                 </div>
             </div>
@@ -186,7 +186,7 @@
                                             <i class="fas fa-trash mr-1"></i>Delete
                                         </button>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
+                                    <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">{{ $index + 1 }}</td>
                                     <td class="border border-gray-700 px-2 py-2">
                                         <input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off" value="{{ $item->item_code }}">
                                         <input type="hidden" name="items[{{ $index }}][purchase_request_item_id]" value="{{ $item->id }}">
@@ -239,7 +239,7 @@
                                             <i class="fas fa-trash mr-1"></i>Delete
                                         </button>
                                     </td>
-                                    <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">1</td>
+                                    <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">1</td>
                                     <td class="border border-gray-700 px-2 py-2">
                                         <input type="text" name="items[0][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off">
                                         <input type="hidden" name="items[0][purchase_request_item_id]" value="">
@@ -325,7 +325,7 @@
                     <input type="file" name="quotation" id="quotation"
                            class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
-                    <span class="text-gray-500 text-sm">(PDF, Word, Excel, Image)</span>
+                    <span class="text-gray-300 text-sm">(PDF, Word, Excel, Image)</span>
                 </div>
             </div>
 
@@ -335,9 +335,9 @@
                     <table class="w-full">
                         <thead>
                             <tr class="bg-gray-700">
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Prepared By:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Checked By:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Approved By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Prepared By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Checked By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Approved By:</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -346,7 +346,7 @@
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                             </tr>
-                            <tr class="bg-gray-700 text-gray-500 text-xs italic">
+                            <tr class="bg-gray-700 text-gray-300 text-xs italic">
                                 <td class="border border-gray-700 px-4 py-2 text-center">Purchasing Officer</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">Accounting Manager</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">Authorized Signatory</td>
@@ -397,7 +397,7 @@ prSearchInput.addEventListener('input', function () {
     );
 
     if (!filteredPRs.length) {
-        prSearchResults.innerHTML = '<div class="p-3 text-gray-500 text-center">No matching PRs found</div>';
+        prSearchResults.innerHTML = '<div class="p-3 text-gray-300 text-center">No matching PRs found</div>';
         prSearchResults.classList.remove('hidden');
         return;
     }
@@ -411,8 +411,8 @@ prSearchInput.addEventListener('input', function () {
             <div class="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700"
                  onclick="selectPR(${pr.id}, '${pr.pr_no}', '${pr.requisitioner}', '${dateFormatted}')">
                 <div class="font-semibold text-white">${pr.pr_no}${badge}</div>
-                <div class="text-sm text-gray-500">${pr.requisitioner} • ${pr.company}</div>
-                <div class="text-xs text-gray-500">${dateFormatted}</div>
+                <div class="text-sm text-gray-300">${pr.requisitioner} • ${pr.company}</div>
+                <div class="text-xs text-gray-300">${dateFormatted}</div>
             </div>`;
     }).join('');
     prSearchResults.classList.remove('hidden');
@@ -459,7 +459,7 @@ function addRow() {
                 <i class="fas fa-trash mr-1"></i>Delete
             </button>
         </td>
-        <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">${rowCount + 1}</td>
+        <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">${rowCount + 1}</td>
         <td class="border border-gray-700 px-2 py-2">
             <input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off">
             <input type="hidden" name="items[${rowCount}][purchase_request_item_id]" value="">
@@ -649,7 +649,7 @@ function attachSupplierSearch(input) {
                 const suppliers = await res.json();
 
                 if (!suppliers.length) {
-                    dropdown.innerHTML = '<div class="px-3 py-2 text-gray-500 text-sm">No suppliers found</div>';
+                    dropdown.innerHTML = '<div class="px-3 py-2 text-gray-300 text-sm">No suppliers found</div>';
                     positionFixedDropdown(input, dropdown);
                     dropdown.classList.remove('hidden');
                     return;
@@ -677,7 +677,7 @@ function attachSupplierSearch(input) {
                     } else if (s.carries_item === true) {
                         badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-green-700 text-green-100 rounded">✓ Carries item</span>`;
                     } else if (desc) {
-                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-700 text-gray-500 rounded">? Unconfirmed</span>`;
+                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-700 text-gray-300 rounded">? Unconfirmed</span>`;
                     }
                     return `
                     <div class="px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 supplier-option"
@@ -688,7 +688,7 @@ function attachSupplierSearch(input) {
                         <div class="flex items-center gap-1 text-sm font-semibold text-white flex-wrap">
                             ${s.supplier_name} ${badge}
                         </div>
-                        <div class="text-xs text-gray-500">${s.supplier_code || ''}</div>
+                        <div class="text-xs text-gray-300">${s.supplier_code || ''}</div>
                     </div>`;
                 }).join('');
 

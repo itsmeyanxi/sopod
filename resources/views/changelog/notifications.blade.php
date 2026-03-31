@@ -8,7 +8,7 @@
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-3xl font-bold">🔔 Notifications</h1>
-            <p class="text-gray-500 mt-2">{{ $unreadCount }} unread notification(s)</p>
+            <p class="text-gray-300 mt-2">{{ $unreadCount }} unread notification(s)</p>
         </div>
         
         @if($unreadCount > 0)
@@ -51,7 +51,7 @@
                                     <span class="ml-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">NEW</span>
                                 @endif
                             </h3>
-                            <p class="text-gray-500 text-sm">
+                            <p class="text-gray-300 text-sm">
                                 <a href="{{ route('sales_orders.show', $notification->change->sales_order_id) }}" 
                                    class="text-blue-700 hover:underline">
                                     {{ $notification->change->salesOrder->sales_order_number ?? 'N/A' }}
@@ -78,19 +78,19 @@
                             @else
                                 <div class="flex items-center gap-2 text-sm">
                                     <span class="text-red-700">{{ $notification->change->old_value }}</span>
-                                    <i class="fas fa-arrow-right text-gray-500"></i>
+                                    <i class="fas fa-arrow-right text-gray-300"></i>
                                     <span class="text-green-700">{{ $notification->change->new_value }}</span>
                                 </div>
                             @endif
                         </div>
 
-                        <p class="text-gray-500 text-xs mt-2">
+                        <p class="text-gray-300 text-xs mt-2">
                             Changed by: <span class="text-white">{{ $notification->change->user->name ?? 'System' }}</span>
                         </p>
                     </div>
 
                     <!-- Timestamp -->
-                    <p class="text-gray-500 text-xs mt-2 ml-13">
+                    <p class="text-gray-300 text-xs mt-2 ml-13">
                         {{ $notification->created_at->diffForHumans() }}
                     </p>
                 </div>
@@ -116,7 +116,7 @@
         @empty
         <div class="bg-gray-800 rounded-lg p-8 text-center">
             <i class="fas fa-bell-slash text-gray-300 text-6xl mb-4"></i>
-            <p class="text-gray-500">No notifications yet</p>
+            <p class="text-gray-300">No notifications yet</p>
         </div>
         @endforelse
     </div>

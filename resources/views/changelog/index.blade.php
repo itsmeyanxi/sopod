@@ -18,7 +18,7 @@
         <form method="GET" action="{{ route('changelog.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Field Filter -->
             <div>
-                <label class="text-gray-500 text-sm mb-2 block">Field Changed</label>
+                <label class="text-gray-300 text-sm mb-2 block">Field Changed</label>
                 <select name="field" class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
                     <option value="">All Fields</option>
                     @foreach($fields as $field)
@@ -31,14 +31,14 @@
 
             <!-- From Date -->
             <div>
-                <label class="text-gray-500 text-sm mb-2 block">From Date</label>
+                <label class="text-gray-300 text-sm mb-2 block">From Date</label>
                 <input type="date" name="from_date" value="{{ request('from_date') }}"
                        class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
             </div>
 
             <!-- To Date -->
             <div>
-                <label class="text-gray-500 text-sm mb-2 block">To Date</label>
+                <label class="text-gray-300 text-sm mb-2 block">To Date</label>
                 <input type="date" name="to_date" value="{{ request('to_date') }}"
                        class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
             </div>
@@ -89,7 +89,7 @@
                 <tr class="hover:bg-gray-700">
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <div>{{ $change->created_at->format('M d, Y') }}</div>
-                        <div class="text-gray-500 text-xs">{{ $change->created_at->format('h:i A') }}</div>
+                        <div class="text-gray-300 text-xs">{{ $change->created_at->format('h:i A') }}</div>
                     </td>
                     <td class="px-6 py-4 text-sm font-semibold text-blue-700">
                         <a href="{{ route('sales_orders.show', $change->sales_order_id) }}" class="hover:underline">
@@ -111,7 +111,7 @@
                     </td>
                     <td class="px-6 py-4 text-sm">
                         <div class="flex items-center gap-2">
-                            <i class="fas fa-user-circle text-gray-500"></i>
+                            <i class="fas fa-user-circle text-gray-300"></i>
                             {{ $change->user->name ?? 'System' }}
                         </div>
                     </td>
@@ -124,7 +124,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-400">
                         <i class="fas fa-inbox text-4xl mb-2 block"></i>
                         No changes found
                     </td>

@@ -8,7 +8,7 @@
 
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">Edit Debit Memo: {{ $debit_memo->dm_no }}</h1>
-            <a href="{{ route('debit_memos.index') }}" class="text-gray-500 hover:text-gray-200 text-sm">
+            <a href="{{ route('debit_memos.index') }}" class="text-gray-300 hover:text-gray-200 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
         </div>
@@ -28,7 +28,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label class="block text-gray-300 text-sm mb-1 font-medium">DM No.</label>
-                    <input type="text" value="{{ $debit_memo->dm_no }}" class="w-full border border-gray-700 rounded px-3 py-2 text-gray-500 bg-gray-900 text-sm" disabled>
+                    <input type="text" value="{{ $debit_memo->dm_no }}" class="w-full border border-gray-700 rounded px-3 py-2 text-gray-300 bg-gray-900 text-sm" disabled>
                 </div>
                 <div>
                     <label class="block text-gray-300 text-sm mb-1 font-medium">Memo Date <span class="text-red-500">*</span></label>

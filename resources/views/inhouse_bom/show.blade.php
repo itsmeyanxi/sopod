@@ -32,7 +32,7 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-4">
     <div>
-        <div class="text-sm text-gray-500 mb-1">
+        <div class="text-sm text-gray-300 mb-1">
             <a href="{{ route('inhouse_bom.index') }}" class="hover:text-gray-300"><i class="fas fa-arrow-left mr-1"></i>BOM List</a>
         </div>
         <h2 class="text-xl font-bold text-white">
@@ -41,7 +41,7 @@
                 <span class="badge" style="background:#fef3c7;color:#92400e;font-size:.65rem;vertical-align:middle;">EXT {{ $bom->extension_number }}</span>
             @endif
         </h2>
-        <p class="text-xs text-gray-500 mt-0.5">
+        <p class="text-xs text-gray-300 mt-0.5">
             {{ $bom->cycle_date->format('F d, Y') }}
             @if($bom->grower) · {{ $bom->grower }} @endif
             · <span class="badge badge-{{ $bom->status }}">{{ ucfirst($bom->status) }}</span>
@@ -114,13 +114,13 @@
 
 <!-- KPI STRIP -->
 <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-4">
-    <div class="kpi"><div class="kpi-lbl">Loading Qty</div><div class="kpi-val">{{ $totalLoading ? number_format($totalLoading) : '—' }}</div><div class="text-xs text-gray-500">heads</div></div>
+    <div class="kpi"><div class="kpi-lbl">Loading Qty</div><div class="kpi-val">{{ $totalLoading ? number_format($totalLoading) : '—' }}</div><div class="text-xs text-gray-300">heads</div></div>
     <div class="kpi"><div class="kpi-lbl">Livability</div><div class="kpi-val">{{ $avgLiv ? number_format($avgLiv,2).'%' : '—' }}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Harvest Qty</div><div class="kpi-val">{{ $totalHarvest ? number_format($totalHarvest) : '—' }}</div><div class="text-xs text-gray-500">heads</div></div>
-    <div class="kpi"><div class="kpi-lbl">ALW</div><div class="kpi-val">{{ $avgAlw ? number_format($avgAlw,2) : '—' }}</div><div class="text-xs text-gray-500">kg/head</div></div>
+    <div class="kpi"><div class="kpi-lbl">Harvest Qty</div><div class="kpi-val">{{ $totalHarvest ? number_format($totalHarvest) : '—' }}</div><div class="text-xs text-gray-300">heads</div></div>
+    <div class="kpi"><div class="kpi-lbl">ALW</div><div class="kpi-val">{{ $avgAlw ? number_format($avgAlw,2) : '—' }}</div><div class="text-xs text-gray-300">kg/head</div></div>
     <div class="kpi"><div class="kpi-lbl">Avg FCR</div><div class="kpi-val">{{ $avgFcr ? number_format($avgFcr,3) : '—' }}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Avg BPI</div><div class="kpi-val">{{ $avgBpi ? number_format($avgBpi,0) : '—' }}</div><div class="text-xs text-gray-500">index</div></div>
-    <div class="kpi"><div class="kpi-lbl">Cost / kg</div><div class="kpi-val">{{ $avgCpk ? number_format($avgCpk,2) : '—' }}</div><div class="text-xs text-gray-500">PHP / kg</div></div>
+    <div class="kpi"><div class="kpi-lbl">Avg BPI</div><div class="kpi-val">{{ $avgBpi ? number_format($avgBpi,0) : '—' }}</div><div class="text-xs text-gray-300">index</div></div>
+    <div class="kpi"><div class="kpi-lbl">Cost / kg</div><div class="kpi-val">{{ $avgCpk ? number_format($avgCpk,2) : '—' }}</div><div class="text-xs text-gray-300">PHP / kg</div></div>
     <div class="kpi accent"><div class="kpi-lbl">Total Cost</div><div class="kpi-val">{{ $totalCostAll ? 'PHP '.number_format(floor($totalCostAll*100)/100,2) : '—' }}</div></div>
 </div>
 
@@ -128,18 +128,18 @@
 <div class="b mb-4">
     <div class="b-hd">Cycle Information</div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 text-sm">
-        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Cycle Ref</div><div class="font-semibold text-white">{{ $bom->cycle_ref }}</div></div>
-        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Date</div><div>{{ $bom->cycle_date->format('M d, Y') }}</div></div>
-        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Grower</div><div>{{ $bom->grower ?: '—' }}</div></div>
-        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Houses</div><div>{{ $bom->num_houses }}</div></div>
+        <div><div class="text-xs text-gray-300 uppercase font-semibold mb-0.5">Cycle Ref</div><div class="font-semibold text-white">{{ $bom->cycle_ref }}</div></div>
+        <div><div class="text-xs text-gray-300 uppercase font-semibold mb-0.5">Date</div><div>{{ $bom->cycle_date->format('M d, Y') }}</div></div>
+        <div><div class="text-xs text-gray-300 uppercase font-semibold mb-0.5">Grower</div><div>{{ $bom->grower ?: '—' }}</div></div>
+        <div><div class="text-xs text-gray-300 uppercase font-semibold mb-0.5">Houses</div><div>{{ $bom->num_houses }}</div></div>
         @if($bom->notes)
-        <div class="col-span-2 md:col-span-4"><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Remarks</div><div>{{ $bom->notes }}</div></div>
+        <div class="col-span-2 md:col-span-4"><div class="text-xs text-gray-300 uppercase font-semibold mb-0.5">Remarks</div><div>{{ $bom->notes }}</div></div>
         @endif
-        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Status</div>
+        <div><div class="text-xs text-gray-300 uppercase font-semibold mb-0.5">Status</div>
             <span class="badge badge-{{ $bom->status }}">{{ ucfirst($bom->status) }}</span>
         </div>
-        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Created By</div><div>{{ $bom->creator->name ?? '—' }}</div></div>
-        <div><div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Created At</div><div>{{ $bom->created_at->format('M d, Y h:i A') }}</div></div>
+        <div><div class="text-xs text-gray-300 uppercase font-semibold mb-0.5">Created By</div><div>{{ $bom->creator->name ?? '—' }}</div></div>
+        <div><div class="text-xs text-gray-300 uppercase font-semibold mb-0.5">Created At</div><div>{{ $bom->created_at->format('M d, Y h:i A') }}</div></div>
     </div>
 </div>
 
@@ -173,7 +173,7 @@
                             {{ $ext->cycle_ref }}
                         </a>
                     </td>
-                    <td class="px-4 py-2 text-gray-500 text-xs">{{ $ext->cycle_date->format('M d, Y') }}</td>
+                    <td class="px-4 py-2 text-gray-300 text-xs">{{ $ext->cycle_date->format('M d, Y') }}</td>
                     <td class="px-4 py-2 text-right">{{ $ext->num_houses }}</td>
                     <td class="px-4 py-2 text-right font-semibold">PHP {{ number_format($ext->total_cost, 2) }}</td>
                     <td class="px-4 py-2 text-center"><span class="badge badge-{{ $ext->status }}">{{ ucfirst($ext->status) }}</span></td>
@@ -253,27 +253,27 @@
             <div style="width:255px;min-width:255px;border-right:1px solid #f0f4f8;padding:1rem;" class="flex flex-col gap-2 text-sm">
                 {{-- Input parameters --}}
                 <div>
-                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">House Name</div>
+                    <div class="text-xs font-semibold text-gray-300 uppercase tracking-wide">House Name</div>
                     <div class="font-semibold text-white">{{ $house->house_name ?: '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Loading Qty (heads)</div>
+                    <div class="text-xs font-semibold text-gray-300 uppercase tracking-wide">Loading Qty (heads)</div>
                     <div class="font-semibold text-white">{{ $house->loading_qty ? number_format($house->loading_qty) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Livability (%)</div>
+                    <div class="text-xs font-semibold text-gray-300 uppercase tracking-wide">Livability (%)</div>
                     <div class="font-semibold text-white">{{ $house->livability ? number_format($house->livability,2).'%' : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">ALW (kg/head)</div>
+                    <div class="text-xs font-semibold text-gray-300 uppercase tracking-wide">ALW (kg/head)</div>
                     <div class="font-semibold text-white">{{ $house->alw ? number_format($house->alw,2) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">FCR</div>
+                    <div class="text-xs font-semibold text-gray-300 uppercase tracking-wide">FCR</div>
                     <div class="font-semibold text-white">{{ $house->fcr ? number_format($house->fcr,3) : '—' }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Age (days)</div>
+                    <div class="text-xs font-semibold text-gray-300 uppercase tracking-wide">Age (days)</div>
                     <div class="font-semibold text-white">{{ $house->age_days ?? '—' }}</div>
                 </div>
                 <hr class="border-gray-100">
@@ -296,7 +296,7 @@
                 </div>
                 <hr class="border-gray-100">
                 <div>
-                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Cost</div>
+                    <div class="text-xs font-semibold text-gray-300 uppercase tracking-wide">Total Cost</div>
                     <div class="font-bold text-blue-800">PHP {{ number_format(floor((float)$grandTotal*100)/100,2) }}</div>
                 </div>
                 <hr class="border-gray-100">
@@ -448,7 +448,7 @@
         @if($bom->approved)
             <div class="flex items-center gap-3">
                 <span class="badge badge-approved px-3 py-1"><i class="fas fa-check-circle mr-1"></i>Approved</span>
-                <span class="text-xs text-gray-500">
+                <span class="text-xs text-gray-300">
                     by <strong>{{ $bom->approved_by }}</strong> on {{ $bom->approved_at->format('M d, Y h:i A') }}
                 </span>
                 <button type="button" id="unapproveBtn"

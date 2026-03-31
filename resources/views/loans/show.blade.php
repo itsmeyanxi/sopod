@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <div>
                 <h1 class="text-2xl font-bold text-white">LOAN DETAILS</h1>
-                <p class="text-sm text-gray-500 mt-1 font-mono font-bold">{{ $loan->loan_no }}</p>
+                <p class="text-sm text-gray-300 mt-1 font-mono font-bold">{{ $loan->loan_no }}</p>
             </div>
             <div class="flex items-center gap-3">
                 @if($loan->status === 'Active')
@@ -60,7 +60,7 @@
         <!-- Payoff Progress -->
         @if($loan->principal_amount > 0)
         <div class="mb-6">
-            <div class="flex justify-between text-xs text-gray-500 mb-1">
+            <div class="flex justify-between text-xs text-gray-300 mb-1">
                 <span>Payoff Progress</span>
                 <span>{{ $loan->payoff_percentage }}%</span>
             </div>
@@ -73,15 +73,15 @@
         <!-- Loan Details -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Loan Date</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Loan Date</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->loan_date->format('M d, Y') }}</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Disbursement Date</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Disbursement Date</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->disbursement_date ? $loan->disbursement_date->format('M d, Y') : '—' }}</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Maturity Date</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Maturity Date</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm {{ $loan->status === 'Active' && $loan->maturity_date < now() ? 'text-red-600 font-semibold' : '' }}">
                     {{ $loan->maturity_date->format('M d, Y') }}
                     @if($loan->status === 'Active' && $loan->maturity_date >= now())
@@ -92,34 +92,34 @@
                 </p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Lender</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Lender</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm font-semibold">{{ $loan->lender_name }}</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Loan Type</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Loan Type</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->loan_type }}</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Payment Frequency</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Payment Frequency</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->payment_frequency }}</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Interest Rate</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Interest Rate</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ number_format($loan->interest_rate, 4) }}% per annum</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Loan Term</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Loan Term</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->loan_term_months }} months</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Total Interest Paid</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Total Interest Paid</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ number_format($loan->total_interest_paid, 2) }}</p>
             </div>
         </div>
 
         @if($loan->purpose)
         <div class="mb-4">
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Purpose</label>
+            <label class="block text-xs font-semibold text-gray-300 mb-1">Purpose</label>
             <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->purpose }}</p>
         </div>
         @endif
@@ -128,15 +128,15 @@
         @if($loan->gl_loan_account || $loan->gl_cash_account || $loan->gl_interest_expense)
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Loans Payable GL</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Loans Payable GL</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm font-mono">{{ $loan->gl_loan_account ?? '—' }}</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Cash / Bank GL</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Cash / Bank GL</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm font-mono">{{ $loan->gl_cash_account ?? '—' }}</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Interest Expense GL</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Interest Expense GL</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm font-mono">{{ $loan->gl_interest_expense ?? '—' }}</p>
             </div>
         </div>
@@ -196,7 +196,7 @@
         <h2 class="text-lg font-semibold text-gray-200 mb-3 border-b pb-2">Payment History</h2>
         <div class="overflow-x-auto mb-6">
             <table class="w-full text-sm border-collapse">
-                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-3 py-2 text-center">#</th>
                         <th class="border border-gray-700 px-3 py-2 text-center">Date</th>
@@ -219,8 +219,8 @@
                         <td class="border border-gray-700 px-3 py-2 text-right font-semibold text-blue-700">{{ number_format($pmt->total_payment, 2) }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-xs font-mono">{{ $pmt->reference_no ?? '—' }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-xs">{{ $pmt->payment_method ?? '—' }}</td>
-                        <td class="border border-gray-700 px-3 py-2 text-xs text-gray-500">{{ $pmt->remarks ?? '—' }}</td>
-                        <td class="border border-gray-700 px-3 py-2 text-xs text-gray-500">{{ $pmt->created_by ?? '—' }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-xs text-gray-300">{{ $pmt->remarks ?? '—' }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-xs text-gray-300">{{ $pmt->created_by ?? '—' }}</td>
                     </tr>
                     @empty
                     <tr>

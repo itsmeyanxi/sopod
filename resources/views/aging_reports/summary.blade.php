@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h2 class="text-2xl font-bold text-white mb-2">AR Aging Summary Report</h2>
-                <p class="text-gray-500 text-sm">
+                <p class="text-gray-300 text-sm">
                     Record Date ≤ <strong class="text-white">{{ $filterDate }}</strong> 
                     | Include: <strong class="text-white">{{ ucfirst($include) }}</strong>
                 </p>
@@ -192,7 +192,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="9" class="px-4 py-8 text-center text-gray-400">
                                 <i class="fas fa-inbox text-4xl mb-2"></i>
                                 <p>No aging data found for the selected filters.</p>
                             </td>
@@ -221,24 +221,24 @@
         @if(count($agingSummary) > 0)
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
             <div class="bg-gray-700 rounded-lg p-4">
-                <p class="text-gray-500 text-sm mb-1">Current</p>
+                <p class="text-gray-300 text-sm mb-1">Current</p>
                 <p class="text-green-700 text-xl font-bold">₱{{ number_format($grandTotals['current'], 2) }}</p>
-                <p class="text-gray-500 text-xs mt-1">{{ number_format(($grandTotals['current'] / $grandTotals['total']) * 100, 1) }}% of total</p>
+                <p class="text-gray-300 text-xs mt-1">{{ number_format(($grandTotals['current'] / $grandTotals['total']) * 100, 1) }}% of total</p>
             </div>
             <div class="bg-gray-700 rounded-lg p-4">
-                <p class="text-gray-500 text-sm mb-1">1-30 Days</p>
+                <p class="text-gray-300 text-sm mb-1">1-30 Days</p>
                 <p class="text-yellow-700 text-xl font-bold">₱{{ number_format($grandTotals['1_30'], 2) }}</p>
-                <p class="text-gray-500 text-xs mt-1">{{ number_format(($grandTotals['1_30'] / $grandTotals['total']) * 100, 1) }}% of total</p>
+                <p class="text-gray-300 text-xs mt-1">{{ number_format(($grandTotals['1_30'] / $grandTotals['total']) * 100, 1) }}% of total</p>
             </div>
             <div class="bg-gray-700 rounded-lg p-4">
-                <p class="text-gray-500 text-sm mb-1">31-60 Days</p>
+                <p class="text-gray-300 text-sm mb-1">31-60 Days</p>
                 <p class="text-orange-700 text-xl font-bold">₱{{ number_format($grandTotals['31_60'], 2) }}</p>
-                <p class="text-gray-500 text-xs mt-1">{{ number_format(($grandTotals['31_60'] / $grandTotals['total']) * 100, 1) }}% of total</p>
+                <p class="text-gray-300 text-xs mt-1">{{ number_format(($grandTotals['31_60'] / $grandTotals['total']) * 100, 1) }}% of total</p>
             </div>
             <div class="bg-gray-700 rounded-lg p-4">
-                <p class="text-gray-500 text-sm mb-1">Over 120 Days</p>
+                <p class="text-gray-300 text-sm mb-1">Over 120 Days</p>
                 <p class="text-red-600 text-xl font-bold">₱{{ number_format($grandTotals['over_120'], 2) }}</p>
-                <p class="text-gray-500 text-xs mt-1">{{ number_format(($grandTotals['over_120'] / $grandTotals['total']) * 100, 1) }}% of total</p>
+                <p class="text-gray-300 text-xs mt-1">{{ number_format(($grandTotals['over_120'] / $grandTotals['total']) * 100, 1) }}% of total</p>
             </div>
         </div>
         @endif

@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">PURCHASE REQUISITION FORM</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-500">PR NO:</label>
+                <label class="font-semibold text-gray-300">PR NO:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $prNo }}</span>
             </div>
         </div>
@@ -70,11 +70,11 @@
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">REQUISITIONER: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-1">REQUISITIONER: <span class="text-red-700">*</span></label>
                         <input type="text" name="requisitioner" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('requisitioner') }}" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DEPARTMENT:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">DEPARTMENT:</label>
                         <select name="department" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                             <option value="">-- Select Department --</option>
                             @foreach(['Accounting', 'Admin', 'Commissary', 'Engineering', 'Finance', 'HR', 'IT', 'Logistics', 'Marketing', 'Operations', 'Procurement', 'Production', 'QA/QC', 'Sales', 'Warehouse'] as $dept)
@@ -83,19 +83,19 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">TERMS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">TERMS:</label>
                         <input type="text" name="terms" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('terms') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">ADDRESS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">ADDRESS:</label>
                         <textarea name="address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('address') }}</textarea>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DELIVERY ADDRESS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">DELIVERY ADDRESS:</label>
                         <textarea name="delivery_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('delivery_address') }}</textarea>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">CONTACT PERSON:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">CONTACT PERSON:</label>
                         <input type="text" name="contact_person" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('contact_person') }}">
                     </div>
                 </div>
@@ -103,45 +103,45 @@
                 <!-- Right Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DATE OF REQUEST: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-1">DATE OF REQUEST: <span class="text-red-700">*</span></label>
                         <input type="date" name="date_of_request" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_of_request', date('Y-m-d')) }}" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DATE NEEDED:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">DATE NEEDED:</label>
                         <input type="date" name="date_needed" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_needed') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">TYPE OF REQUEST:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">TYPE OF REQUEST:</label>
                         <div class="flex gap-4">
-                            <label class="inline-flex items-center text-gray-500">
+                            <label class="inline-flex items-center text-gray-300">
                                 <input type="radio" name="type_of_request" value="urgent" class="form-radio text-purple-500" {{ old('type_of_request') == 'urgent' ? 'checked' : '' }}>
                                 <span class="ml-2">Urgent</span>
                             </label>
-                            <label class="inline-flex items-center text-gray-500">
+                            <label class="inline-flex items-center text-gray-300">
                                 <input type="radio" name="type_of_request" value="regular" class="form-radio text-purple-500" {{ old('type_of_request') == 'regular' ? 'checked' : '' }}>
                                 <span class="ml-2">Regular</span>
                             </label>
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">WITH BUDGET:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">WITH BUDGET:</label>
                         <div class="flex gap-4">
-                            <label class="inline-flex items-center text-gray-500">
+                            <label class="inline-flex items-center text-gray-300">
                                 <input type="radio" name="with_budget" value="yes" class="form-radio text-purple-500" {{ old('with_budget') == 'yes' ? 'checked' : '' }}>
                                 <span class="ml-2">Yes</span>
                             </label>
-                            <label class="inline-flex items-center text-gray-500">
+                            <label class="inline-flex items-center text-gray-300">
                                 <input type="radio" name="with_budget" value="no" class="form-radio text-purple-500" {{ old('with_budget') == 'no' ? 'checked' : '' }}>
                                 <span class="ml-2">No</span>
                             </label>
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">CHARGE TO:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">CHARGE TO:</label>
                         <input type="text" name="charge_to" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('charge_to') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">CONTACT NUMBER:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">CONTACT NUMBER:</label>
                         <input type="text" name="contact_number" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('contact_number') }}">
                     </div>
                 </div>
@@ -172,7 +172,7 @@
                                 <th class="border px-2 py-2" style="width:140px">NOTE</th>
                             </tr>
                         </thead>
-                        <tbody id="itemsBody" class="bg-gray-800 text-gray-500 divide-y divide-gray-700">
+                        <tbody id="itemsBody" class="bg-gray-800 text-gray-300 divide-y divide-gray-700">
                             <tr class="hover:bg-gray-700/40">
                                 <td class="border border-gray-700 px-2 py-2 text-center">
                                     <button type="button" onclick="removeRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition">
@@ -214,21 +214,21 @@
                     <table class="w-full">
                         <thead>
                             <tr class="bg-gray-700">
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Prepared By:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm" colspan="2">Noted By:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm" colspan="3">Approved By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Prepared By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm" colspan="2">Noted By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm" colspan="3">Approved By:</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="border border-gray-700 px-4 py-4 text-center text-gray-500 text-sm">{{ auth()->user()->name }}</td>
+                                <td class="border border-gray-700 px-4 py-4 text-center text-gray-300 text-sm">{{ auth()->user()->name }}</td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                             </tr>
-                            <tr class="bg-gray-700 text-gray-500 text-xs italic">
+                            <tr class="bg-gray-700 text-gray-300 text-xs italic">
                                 <td class="border border-gray-700 px-4 py-2 text-center">Requisitioner</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">Department Head</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">General Manager</td>
@@ -428,7 +428,7 @@ function attachSupplierAutocomplete(input) {
                     } else if (s.carries_item === true) {
                         badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-green-700 text-green-100 rounded">✓ Carries item</span>`;
                     } else if (desc) {
-                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-700 text-gray-500 rounded">? Unconfirmed</span>`;
+                        badge = `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-700 text-gray-300 rounded">? Unconfirmed</span>`;
                     }
                     return `
                     <div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 supplier-option"
@@ -437,7 +437,7 @@ function attachSupplierAutocomplete(input) {
                         <div class="flex items-center gap-1 font-semibold text-white flex-wrap">
                             ${s.supplier_name} ${badge}
                         </div>
-                        <div class="text-xs text-gray-500">${s.supplier_code || ''}</div>
+                        <div class="text-xs text-gray-300">${s.supplier_code || ''}</div>
                     </div>`;
                 }).join('');
 

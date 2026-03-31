@@ -14,23 +14,23 @@
         {{-- Summary Cards --}}
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                <p class="text-xs text-gray-500">Total Assets</p>
+                <p class="text-xs text-gray-300">Total Assets</p>
                 <p class="text-lg font-bold text-blue-700">{{ number_format($summary['total_assets']) }}</p>
             </div>
             <div class="bg-green-50 rounded-lg p-3 border border-green-100">
-                <p class="text-xs text-gray-500">Total Cost</p>
+                <p class="text-xs text-gray-300">Total Cost</p>
                 <p class="text-lg font-bold text-green-700">{{ number_format($summary['total_cost'], 2) }}</p>
             </div>
             <div class="bg-yellow-50 rounded-lg p-3 border border-yellow-100">
-                <p class="text-xs text-gray-500">Accum. Depreciation</p>
+                <p class="text-xs text-gray-300">Accum. Depreciation</p>
                 <p class="text-lg font-bold text-yellow-700">{{ number_format($summary['total_accum_dep'], 2) }}</p>
             </div>
             <div class="bg-red-50 rounded-lg p-3 border border-red-100">
-                <p class="text-xs text-gray-500">Total Disposals</p>
+                <p class="text-xs text-gray-300">Total Disposals</p>
                 <p class="text-lg font-bold text-red-700">{{ number_format($summary['total_disposal'], 2) }}</p>
             </div>
             <div class="bg-purple-50 rounded-lg p-3 border border-purple-100">
-                <p class="text-xs text-gray-500">Net Book Value</p>
+                <p class="text-xs text-gray-300">Net Book Value</p>
                 <p class="text-lg font-bold text-purple-700">{{ number_format($summary['total_nbv'], 2) }}</p>
             </div>
         </div>

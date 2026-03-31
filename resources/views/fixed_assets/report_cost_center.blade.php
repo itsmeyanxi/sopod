@@ -74,7 +74,7 @@
             <div class="border-t-2 border-blue-200 pt-6">
                 <h2 class="text-lg font-semibold text-gray-200 mb-4">
                     Assets in: <span class="text-blue-700">{{ $selectedCenter ?: '(Unassigned)' }}</span>
-                    <span class="text-sm text-gray-500 font-normal ml-2">({{ $assets->count() }} assets)</span>
+                    <span class="text-sm text-gray-300 font-normal ml-2">({{ $assets->count() }} assets)</span>
                 </h2>
 
                 <div class="overflow-x-auto">

@@ -4,7 +4,7 @@
 <div class="max-w-6xl mx-auto px-6 py-10 bg-gray-900 min-h-screen text-gray-100">
     <!-- Header -->
     <div class="flex items-center space-x-4 mb-8">
-        <a href="{{ route('customers.index') }}" class="text-gray-500 hover:text-white transition">
+        <a href="{{ route('customers.index') }}" class="text-gray-300 hover:text-white transition">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
@@ -32,7 +32,7 @@
                     
                     <!-- Customer Code -->
                     <div>
-                        <label for="customer_code" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="customer_code" class="block text-sm font-semibold text-gray-300 mb-2">
                             Customer Code <span class="text-red-700">*</span>
                         </label>
                         <input type="text" 
@@ -48,7 +48,7 @@
 
                     <!-- Customer Name -->
                     <div>
-                        <label for="customer_name" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="customer_name" class="block text-sm font-semibold text-gray-300 mb-2">
                             Customer Name <span class="text-red-700">*</span>
                         </label>
                         <input type="text" 
@@ -64,7 +64,7 @@
 
                     <!-- Business Style -->
                     <div>
-                        <label for="business_style" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="business_style" class="block text-sm font-semibold text-gray-300 mb-2">
                             Business Style
                         </label>
                         <input type="text" 
@@ -76,7 +76,7 @@
 
                     <!-- Branch -->
                     <div>
-                        <label for="branch" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="branch" class="block text-sm font-semibold text-gray-300 mb-2">
                             Branch
                         </label>
                         <input type="text" 
@@ -88,7 +88,7 @@
 
                     <!-- Customer Group -->
                     <div>
-                        <label for="customer_group" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="customer_group" class="block text-sm font-semibold text-gray-300 mb-2">
                             Customer Group
                         </label>
                         <input type="text" 
@@ -100,7 +100,7 @@
 
                     <!-- Customer Type -->
                     <div>
-                        <label for="customer_type" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="customer_type" class="block text-sm font-semibold text-gray-300 mb-2">
                             Customer Type
                         </label>
                         <input type="text" 
@@ -112,7 +112,7 @@
 
                     <!-- Currency -->
                     <div>
-                        <label for="currency" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="currency" class="block text-sm font-semibold text-gray-300 mb-2">
                             Currency
                         </label>
                         <input type="text" 
@@ -132,7 +132,7 @@
                     
                     <!-- Telephone 1 -->
                     <div>
-                        <label for="telephone_1" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="telephone_1" class="block text-sm font-semibold text-gray-300 mb-2">
                             Telephone 1
                         </label>
                         <input type="text" 
@@ -144,7 +144,7 @@
 
                     <!-- Telephone 2 -->
                     <div>
-                        <label for="telephone_2" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="telephone_2" class="block text-sm font-semibold text-gray-300 mb-2">
                             Telephone 2
                         </label>
                         <input type="text" 
@@ -156,7 +156,7 @@
 
                     <!-- Mobile -->
                     <div>
-                        <label for="mobile" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="mobile" class="block text-sm font-semibold text-gray-300 mb-2">
                             Mobile
                         </label>
                         <input type="text" 
@@ -168,7 +168,7 @@
 
                     <!-- Email -->
                     <div>
-                        <label for="email" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="email" class="block text-sm font-semibold text-gray-300 mb-2">
                             Email
                         </label>
                         <input type="email" 
@@ -180,7 +180,7 @@
 
                     <!-- Website -->
                     <div>
-                        <label for="website" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="website" class="block text-sm font-semibold text-gray-300 mb-2">
                             Website
                         </label>
                         <input type="text" 
@@ -192,7 +192,7 @@
 
                     <!-- Name of Contact -->
                     <div>
-                        <label for="name_of_contact" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="name_of_contact" class="block text-sm font-semibold text-gray-300 mb-2">
                             Name of Contact
                         </label>
                         <input type="text" 
@@ -211,7 +211,7 @@
                     
                     <!-- Billing Address -->
                     <div>
-                        <label for="billing_address" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="billing_address" class="block text-sm font-semibold text-gray-300 mb-2">
                             Billing Address
                         </label>
                         <textarea name="billing_address" 
@@ -222,7 +222,7 @@
 
                     <!-- Shipping Address -->
                     <div>
-                        <label for="shipping_address" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="shipping_address" class="block text-sm font-semibold text-gray-300 mb-2">
                             Shipping Address
                         </label>
                         <textarea name="shipping_address" 
@@ -240,7 +240,7 @@
                     
                     <!-- WHT Rate -->
                     <div>
-                        <label for="whtrate" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="whtrate" class="block text-sm font-semibold text-gray-300 mb-2">
                             WHT Rate (%)
                         </label>
                         <input type="number" 
@@ -253,7 +253,7 @@
 
                     <!-- WHT Code -->
                     <div>
-                        <label for="whtcode" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="whtcode" class="block text-sm font-semibold text-gray-300 mb-2">
                             WHT Code
                         </label>
                         <input type="text" 
@@ -265,7 +265,7 @@
 
                     <!-- Require SI -->
                     <div>
-                        <label for="require_si" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="require_si" class="block text-sm font-semibold text-gray-300 mb-2">
                             Require SI
                         </label>
                         <select name="require_si" 
@@ -278,7 +278,7 @@
 
                     <!-- AR Type -->
                     <div>
-                        <label for="ar_type" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="ar_type" class="block text-sm font-semibold text-gray-300 mb-2">
                             AR Type
                         </label>
                         <input type="text" 
@@ -290,7 +290,7 @@
 
                     <!-- TIN No -->
                     <div>
-                        <label for="tin_no" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="tin_no" class="block text-sm font-semibold text-gray-300 mb-2">
                             TIN No
                         </label>
                         <input type="text" 
@@ -302,7 +302,7 @@
 
                     <!-- Collection Terms -->
                     <div>
-                        <label for="collection_terms" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="collection_terms" class="block text-sm font-semibold text-gray-300 mb-2">
                             Collection Terms
                         </label>
                         <input type="text" 
@@ -315,7 +315,7 @@
 
                     <!-- Sales Rep -->
                     <div>
-                        <label for="sales_rep" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="sales_rep" class="block text-sm font-semibold text-gray-300 mb-2">
                             Sales Rep
                         </label>
                         <input type="text" 
@@ -327,7 +327,7 @@
 
                     <!-- Credit Limit -->
                     <div>
-                        <label for="credit_limit" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="credit_limit" class="block text-sm font-semibold text-gray-300 mb-2">
                             Credit Limit
                         </label>
                         <input type="number" 
@@ -340,7 +340,7 @@
 
                     <!-- Assigned Bank -->
                     <div>
-                        <label for="assigned_bank" class="block text-sm font-semibold text-gray-500 mb-2">
+                        <label for="assigned_bank" class="block text-sm font-semibold text-gray-300 mb-2">
                             Assigned Bank
                         </label>
                         <input type="text" 

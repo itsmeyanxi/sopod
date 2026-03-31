@@ -10,7 +10,7 @@
             <h1 class="text-2xl font-bold text-white">CASH ADVANCE REQUEST</h1>
             <div class="flex items-center gap-4">
                 <div class="text-right">
-                    <label class="font-semibold text-gray-500">CAR NO:</label>
+                    <label class="font-semibold text-gray-300">CAR NO:</label>
                     <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $car->car_no }}</span>
                 </div>
                 <span class="px-3 py-1 rounded font-semibold
@@ -40,18 +40,18 @@
         <!-- Main Fields -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">PAYEE:</label>
+                <label class="block font-semibold text-gray-300 mb-1">PAYEE:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $car->payee }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">DEPARTMENT:</label>
+                <label class="block font-semibold text-gray-300 mb-1">DEPARTMENT:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $car->department }}</p>
             </div>
         </div>
 
         <!-- Purpose -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-2">PURPOSE:</label>
+            <label class="block font-semibold text-gray-300 mb-2">PURPOSE:</label>
             <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-gray-200 min-h-[100px]">
                 {{ $car->purpose ?? 'No purpose provided' }}
             </div>
@@ -60,35 +60,35 @@
         <!-- Dates and Amount -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">DATE REQUESTED:</label>
+                <label class="block font-semibold text-gray-300 mb-1">DATE REQUESTED:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $car->date_requested ? $car->date_requested->format('F d, Y') : 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">DATE NEEDED:</label>
+                <label class="block font-semibold text-gray-300 mb-1">DATE NEEDED:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $car->date_needed ? $car->date_needed->format('F d, Y') : 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">AMOUNT ADVANCED:</label>
+                <label class="block font-semibold text-gray-300 mb-1">AMOUNT ADVANCED:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200 font-semibold text-lg">&#8369;{{ number_format($car->amount, 2) }}</p>
             </div>
         </div>
 
         <!-- Remarks -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-1">REMARKS:</label>
+            <label class="block font-semibold text-gray-300 mb-1">REMARKS:</label>
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $car->remarks ?? 'N/A' }}</p>
         </div>
 
         <!-- Fine Print -->
         <div class="mb-6 p-4 bg-gray-900 border border-gray-700 rounded">
-            <p class="text-gray-500 text-sm italic">
+            <p class="text-gray-300 text-sm italic">
                 I hereby acknowledge receipt of the above sum of money and hereby agree to liquidate in 5 calendar days after the cash advance serve its purpose and provide receipts to document the expenditures.
             </p>
         </div>
 
         <!-- Created By -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-1">CREATED BY:</label>
+            <label class="block font-semibold text-gray-300 mb-1">CREATED BY:</label>
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $car->creator->name ?? 'N/A' }}</p>
         </div>
 
@@ -103,9 +103,9 @@
                     </colgroup>
                     <thead>
                         <tr class="bg-gray-700">
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Requested By:</th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Checked By:</th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Approved By:</th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Requested By:</th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Checked By:</th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Approved By:</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -116,7 +116,7 @@
                             <td class="border border-gray-700 px-4 py-8 text-center align-bottom">
                                 <span class="text-white font-semibold text-sm">{{ $car->departmentHeadApprover->name ?? '' }}</span>
                                 @if($car->departmentHeadApprover && $car->department_head_approved_at)
-                                    <div class="text-xs text-gray-500 italic mt-1">
+                                    <div class="text-xs text-gray-300 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $car->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($car->department_head_approved_latitude && $car->department_head_approved_longitude)
@@ -131,7 +131,7 @@
                             <td class="border border-gray-700 px-4 py-8 text-center align-bottom">
                                 <span class="text-white font-semibold text-sm">{{ $car->approver->name ?? '' }}</span>
                                 @if($car->approver && $car->approved_at)
-                                    <div class="text-xs text-gray-500 italic mt-1">
+                                    <div class="text-xs text-gray-300 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $car->approved_at->format('d M Y | H:i') }}
                                         @if($car->approved_latitude && $car->approved_longitude)
@@ -144,7 +144,7 @@
                                 @endif
                             </td>
                         </tr>
-                        <tr class="bg-gray-700 text-gray-500 text-xs italic">
+                        <tr class="bg-gray-700 text-gray-300 text-xs italic">
                             <td class="border border-gray-700 px-4 py-2 text-center">Requisitioner</td>
                             <td class="border border-gray-700 px-4 py-2 text-center">Department Head</td>
                             <td class="border border-gray-700 px-4 py-2 text-center">Executive (President / VP / CFO)</td>
@@ -167,17 +167,17 @@
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Department Head Check</span>
                             @if($car->department_head_approved_by && $car->departmentHeadApprover)
                                 <span class="text-green-700">&#10003; Checked</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $car->departmentHeadApprover->name }}
                                     on {{ $car->department_head_approved_at->format('M d, Y h:i A') }}
                                 </small>
@@ -197,21 +197,21 @@
                             </div>
                         @elseif($car->department_head_approved_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
-                                <i class="fas fa-lock text-gray-500"></i>
+                                <i class="fas fa-lock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Executive Approval (President / VP / CFO)</span>
                             @if($car->status === 'approved' && $car->approver)
                                 <span class="text-green-700">&#10003; Approved</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $car->approver->name }}
                                     on {{ $car->approved_at->format('M d, Y h:i A') }}
                                 </small>
@@ -237,7 +237,7 @@
                                 <span class="font-semibold">Rejected</span>
                             </p>
                             @if($car->rejection_reason)
-                                <p class="text-gray-500 mt-2">
+                                <p class="text-gray-300 mt-2">
                                     <strong>Reason:</strong> {{ $car->rejection_reason }}
                                 </p>
                             @endif
@@ -288,7 +288,7 @@
                         <div class="flex items-center justify-between p-3 bg-gray-800 rounded">
                             <div>
                                 <span class="text-white font-semibold">{{ $liquidation->liquidation_no ?? 'LF-' . $liquidation->id }}</span>
-                                <span class="text-gray-500 ml-3">&#8369;{{ number_format($liquidation->total_amount ?? 0, 2) }}</span>
+                                <span class="text-gray-300 ml-3">&#8369;{{ number_format($liquidation->total_amount ?? 0, 2) }}</span>
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="px-2 py-1 rounded text-xs font-semibold
@@ -336,8 +336,8 @@
             <input type="hidden" name="longitude" id="dh_longitude">
             <input type="hidden" name="location" id="dh_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="dh_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveDHModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
@@ -361,8 +361,8 @@
             <input type="hidden" name="longitude" id="exec_longitude">
             <input type="hidden" name="location" id="exec_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="exec_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="exec_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
@@ -383,7 +383,7 @@
         <form action="{{ route('cash_advance_requests.reject', $car->id) }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-500 mb-2">Rejection Reason (Optional):</label>
+                <label class="block text-gray-300 mb-2">Rejection Reason (Optional):</label>
                 <textarea name="rejection_reason" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">

@@ -17,7 +17,7 @@
     <!-- TABLE -->
     <div class="overflow-x-auto bg-gray-800 rounded-lg shadow">
         <table id="salesOrdersTable" class="w-full text-sm">
-            <thead class="bg-gray-700 text-gray-500 uppercase">
+            <thead class="bg-gray-700 text-gray-300 uppercase">
                 <tr>
                     <th class="px-4 py-3 text-left">SO Number</th>
                     <th class="px-4 py-3 text-left">Customer</th>
@@ -48,18 +48,18 @@
                                 <span class="bg-gray-600 text-white px-2 py-1 rounded text-xs font-semibold">Cancelled</span>
                             @endif
                         </td>
-                        <td class="px-4 py- text-gray-500">
+                        <td class="px-4 py- text-gray-300">
                             @if($order->approver)
                                 {{ $order->approver->name }}
                             @else
-                                <span class="text-gray-500 italic">—</span>
+                                <span class="text-gray-300 italic">—</span>
                             @endif
                         </td>
                     </tr>
                     @endif
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-gray-500">
+                        <td colspan="6" class="text-center py-4 text-gray-300">
                             No accepted sales orders found.
                         </td>
                     </tr>
@@ -67,7 +67,7 @@
             </tbody>
         </table>
 
-        <div id="soCount" class="text-sm text-gray-500 px-4 py-3">
+        <div id="soCount" class="text-sm text-gray-300 px-4 py-3">
             Showing {{ $salesOrders->count() }} accepted sales orders
         </div>
     </div>

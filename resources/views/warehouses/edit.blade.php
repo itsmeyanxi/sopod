@@ -24,39 +24,39 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">WAREHOUSE CODE: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">WAREHOUSE CODE: <span class="text-red-700">*</span></label>
                     <input type="text" name="warehouse_code" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('warehouse_code', $warehouse->warehouse_code) }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">WAREHOUSE NAME: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">WAREHOUSE NAME: <span class="text-red-700">*</span></label>
                     <input type="text" name="warehouse_name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('warehouse_name', $warehouse->warehouse_name) }}" required>
                 </div>
             </div>
 
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">ADDRESS:</label>
+                <label class="block font-semibold text-gray-300 mb-2">ADDRESS:</label>
                 <textarea name="address" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('address', $warehouse->address) }}</textarea>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">EMAIL ADDRESS:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">EMAIL ADDRESS:</label>
                     <input type="email" name="email" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('email', $warehouse->email) }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">CONTACT NUMBER:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">CONTACT NUMBER:</label>
                     <input type="text" name="contact_number" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('contact_number', $warehouse->contact_number) }}">
                 </div>
             </div>
 
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">TIN (Tax Identification Number):</label>
+                <label class="block font-semibold text-gray-300 mb-2">TIN (Tax Identification Number):</label>
                 <input type="text" name="tin" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('tin', $warehouse->tin) }}">
             </div>
 
             <!-- Status -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">STATUS:</label>
+                <label class="block font-semibold text-gray-300 mb-2">STATUS:</label>
                 <select name="status" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="active" {{ old('status', $warehouse->status) === 'active' ? 'selected' : '' }}>Active</option>
                     <option value="inactive" {{ old('status', $warehouse->status) === 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -68,15 +68,15 @@
                 <h3 class="font-semibold text-white mb-4">BANK INFORMATION</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">BANK:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">BANK:</label>
                         <input type="text" name="bank" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('bank', $warehouse->bank) }}" placeholder="e.g., BPI, BDO, Metrobank">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">ACCOUNT NAME:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">ACCOUNT NAME:</label>
                         <input type="text" name="account_name" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('account_name', $warehouse->account_name) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">ACCOUNT NUMBER:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">ACCOUNT NUMBER:</label>
                         <input type="text" name="account_number" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('account_number', $warehouse->account_number) }}">
                     </div>
                 </div>
@@ -104,15 +104,15 @@
                     <div class="file-row mb-3 bg-gray-800 border border-gray-700 rounded p-3">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-gray-500 text-sm mb-1">Document Label:</label>
+                                <label class="block text-gray-300 text-sm mb-1">Document Label:</label>
                                 <input type="text" name="document_names[]" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="e.g., Business Permit, Contract...">
                             </div>
                             <div>
-                                <label class="block text-gray-500 text-sm mb-1">File:</label>
+                                <label class="block text-gray-300 text-sm mb-1">File:</label>
                                 <input type="file" name="documents[]" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm" accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx">
                             </div>
                         </div>
-                        <p class="text-gray-500 text-xs mt-1">Accepted: PNG, JPG, PDF, DOC, DOCX, XLS, XLSX (max 10MB)</p>
+                        <p class="text-gray-300 text-xs mt-1">Accepted: PNG, JPG, PDF, DOC, DOCX, XLS, XLSX (max 10MB)</p>
                     </div>
                 </div>
                 <button type="button" onclick="addFileInput()" class="text-blue-700 hover:text-blue-700 text-sm">
@@ -138,15 +138,15 @@ function addFileInput() {
         <button type="button" onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-700 hover:text-red-700 text-sm"><i class="fas fa-times"></i></button>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-                <label class="block text-gray-500 text-sm mb-1">Document Label:</label>
+                <label class="block text-gray-300 text-sm mb-1">Document Label:</label>
                 <input type="text" name="document_names[]" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm" placeholder="e.g., Business Permit...">
             </div>
             <div>
-                <label class="block text-gray-500 text-sm mb-1">File:</label>
+                <label class="block text-gray-300 text-sm mb-1">File:</label>
                 <input type="file" name="documents[]" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm" accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx">
             </div>
         </div>
-        <p class="text-gray-500 text-xs mt-1">Accepted: PNG, JPG, PDF, DOC, DOCX, XLS, XLSX (max 10MB)</p>
+        <p class="text-gray-300 text-xs mt-1">Accepted: PNG, JPG, PDF, DOC, DOCX, XLS, XLSX (max 10MB)</p>
     `;
     container.appendChild(div);
 }

@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">EDIT CHECK VOUCHER</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-500">CV NO:</label>
+                <label class="font-semibold text-gray-300">CV NO:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $voucher->cv_no }}</span>
             </div>
         </div>
@@ -30,7 +30,7 @@
                 <i class="fas fa-link mr-2"></i>
                 <span class="font-semibold">Linked to APV: {{ $voucher->accountsPayableInvoice->apv_no }}</span>
             </div>
-            <div class="text-sm text-gray-500">
+            <div class="text-sm text-gray-300">
                 Vendor: {{ $voucher->accountsPayableInvoice->vendor_name }} | Grand Total: {{ $voucher->accountsPayableInvoice->currency }} {{ number_format($voucher->accountsPayableInvoice->grand_total, 2) }}
             </div>
         </div>
@@ -43,11 +43,11 @@
             <!-- CV Date and Check Date -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">CV DATE: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">CV DATE: <span class="text-red-700">*</span></label>
                     <input type="date" name="cv_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('cv_date', $voucher->cv_date->format('Y-m-d')) }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">CHECK DATE: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">CHECK DATE: <span class="text-red-700">*</span></label>
                     <input type="date" name="check_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('check_date', $voucher->check_date->format('Y-m-d')) }}" required>
                 </div>
             </div>
@@ -57,19 +57,19 @@
                 <h3 class="font-semibold text-white mb-4">SUPPLIER INFORMATION</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">SUPPLIER CODE:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">SUPPLIER CODE:</label>
                         <input type="text" name="supplier_code" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('supplier_code', $voucher->supplier_code) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">SUPPLIER NAME: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-2">SUPPLIER NAME: <span class="text-red-700">*</span></label>
                         <input type="text" name="supplier_name" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('supplier_name', $voucher->supplier_name) }}" required>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block font-semibold text-gray-500 mb-2">SUPPLIER ADDRESS:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">SUPPLIER ADDRESS:</label>
                         <textarea name="supplier_address" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('supplier_address', $voucher->supplier_address) }}</textarea>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">SUPPLIER TIN:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">SUPPLIER TIN:</label>
                         <input type="text" name="supplier_tin" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('supplier_tin', $voucher->supplier_tin) }}">
                     </div>
                 </div>
@@ -80,11 +80,11 @@
                 <h3 class="font-semibold text-white mb-4">CHECK DETAILS</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">CHECK NO:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">CHECK NO:</label>
                         <input type="text" name="check_no" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('check_no', $voucher->check_no) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">BANK (G/L Account): <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-2">BANK (G/L Account): <span class="text-red-700">*</span></label>
                         <input type="hidden" name="gl_account_id" id="cv_gl_account_id" value="{{ old('gl_account_id', $voucher->gl_account_id) }}">
                         <input type="hidden" name="bank" id="cv_bank_name" value="{{ old('bank', $voucher->bank) }}">
                         <div class="relative">
@@ -95,13 +95,13 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">BRANCH:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">BRANCH:</label>
                         <input type="text" name="branch" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('branch', $voucher->branch) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">CHECK AMOUNT: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-2">CHECK AMOUNT: <span class="text-red-700">*</span></label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
+                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
                             <input type="number" step="0.01" name="check_amount" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('check_amount', $voucher->check_amount) }}" required>
                         </div>
                     </div>
@@ -115,11 +115,11 @@
                     <table class="w-full border border-gray-700">
                         <thead class="bg-gray-700">
                             <tr>
-                                <th class="px-4 py-2 border border-gray-700 text-gray-500">Date</th>
-                                <th class="px-4 py-2 border border-gray-700 text-gray-500">Type</th>
-                                <th class="px-4 py-2 border border-gray-700 text-gray-500">Reference No.</th>
-                                <th class="px-4 py-2 border border-gray-700 text-gray-500">APV No.</th>
-                                <th class="px-4 py-2 border border-gray-700 text-gray-500">Paid Amount</th>
+                                <th class="px-4 py-2 border border-gray-700 text-gray-300">Date</th>
+                                <th class="px-4 py-2 border border-gray-700 text-gray-300">Type</th>
+                                <th class="px-4 py-2 border border-gray-700 text-gray-300">Reference No.</th>
+                                <th class="px-4 py-2 border border-gray-700 text-gray-300">APV No.</th>
+                                <th class="px-4 py-2 border border-gray-700 text-gray-300">Paid Amount</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -147,7 +147,7 @@
 
             <!-- Particulars -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">PARTICULARS: <span class="text-red-700">*</span></label>
+                <label class="block font-semibold text-gray-300 mb-2">PARTICULARS: <span class="text-red-700">*</span></label>
                 <textarea name="particulars" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>{{ old('particulars', $voucher->particulars) }}</textarea>
             </div>
 
@@ -159,11 +159,11 @@
                         <table class="w-full border border-gray-700 mb-4">
                             <thead class="bg-gray-700">
                                 <tr>
-                                    <th class="px-4 py-2 border border-gray-700 text-gray-500">Account Code</th>
-                                    <th class="px-4 py-2 border border-gray-700 text-gray-500">Account Name</th>
-                                    <th class="px-4 py-2 border border-gray-700 text-gray-500">Debit</th>
-                                    <th class="px-4 py-2 border border-gray-700 text-gray-500">Credit</th>
-                                    <th class="px-4 py-2 border border-gray-700 text-gray-500">
+                                    <th class="px-4 py-2 border border-gray-700 text-gray-300">Account Code</th>
+                                    <th class="px-4 py-2 border border-gray-700 text-gray-300">Account Name</th>
+                                    <th class="px-4 py-2 border border-gray-700 text-gray-300">Debit</th>
+                                    <th class="px-4 py-2 border border-gray-700 text-gray-300">Credit</th>
+                                    <th class="px-4 py-2 border border-gray-700 text-gray-300">
                                         <button type="button" id="addJournalEntry" class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700">
                                             <i class="fas fa-plus"></i> Add Row
                                         </button>
@@ -223,15 +223,15 @@
             <!-- Signatures -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">PREPARED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">PREPARED BY:</label>
                     <input type="text" name="prepared_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('prepared_by', $voucher->prepared_by) }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">REVIEWED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">REVIEWED BY:</label>
                     <input type="text" name="reviewed_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reviewed_by', $voucher->reviewed_by) }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">APPROVED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">APPROVED BY:</label>
                     <input type="text" name="approved_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('approved_by', $voucher->approved_by) }}">
                 </div>
             </div>
@@ -317,12 +317,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="px-3 py-2 hover:bg-purple-50 cursor-pointer text-white border-b border-gray-100"
                          onclick="selectCvGlAccount(${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')">
                         <div class="font-semibold text-sm">${account.display}</div>
-                        <div class="text-xs text-gray-500">${account.fs_line_item || ''}</div>
+                        <div class="text-xs text-gray-300">${account.fs_line_item || ''}</div>
                     </div>
                 `).join('');
                 dropdown.classList.remove('hidden');
             } else {
-                dropdown.innerHTML = '<div class="px-3 py-2 text-gray-500">No G/L accounts found</div>';
+                dropdown.innerHTML = '<div class="px-3 py-2 text-gray-300">No G/L accounts found</div>';
                 dropdown.classList.remove('hidden');
             }
         } catch (error) {

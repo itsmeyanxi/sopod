@@ -18,7 +18,7 @@
         <!-- Search Section -->
         <div class="bg-gray-700 rounded-lg p-6 mb-6">
             <h3 class="text-lg font-semibold text-white mb-4">Search Customer</h3>
-            <p class="text-gray-500 text-sm mb-3">Search by: Customer Name, Customer Code, or DR Number</p>
+            <p class="text-gray-300 text-sm mb-3">Search by: Customer Name, Customer Code, or DR Number</p>
             <div class="flex items-center space-x-4">
                 <div class="flex-1">
                     <input type="text" id="customer_search" placeholder="Enter Customer Name, Code, or DR Number"
@@ -45,15 +45,15 @@
             <div class="bg-gray-800 rounded-lg p-4 mb-4">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Date From</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date From</label>
                         <input type="date" id="report_date_from" class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Date To</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date To</label>
                         <input type="date" id="report_date_to" class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-2">Customer</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Customer</label>
                         <input type="text" id="report_customer_filter" placeholder="Filter by customer" class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div class="flex items-end gap-2">
@@ -65,14 +65,14 @@
                         </button>
                     </div>
                 </div>
-                <p class="text-gray-500 text-xs mt-2 px-2">💡 Leave dates empty to show all records, or set specific date range to filter.</p>
+                <p class="text-gray-300 text-xs mt-2 px-2">💡 Leave dates empty to show all records, or set specific date range to filter.</p>
             </div>
 
             <!-- Payment List Table -->
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-gray-800 rounded-lg text-sm">
                     <thead>
-                        <tr class="bg-gray-900 text-gray-500">
+                        <tr class="bg-gray-900 text-gray-300">
                             <th class="px-4 py-3 text-left">Customer Name</th>
                             <th class="px-4 py-3 text-left">CR Number</th>
                             <th class="px-4 py-3 text-left">DR No</th>
@@ -87,9 +87,9 @@
                             <th class="px-4 py-3 text-center">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="payment_list_tbody" class="text-gray-500">
+                    <tbody id="payment_list_tbody" class="text-gray-300">
                         <tr>
-                            <td colspan="12" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="12" class="px-4 py-8 text-center text-gray-400">
                                 <i class="fas fa-spinner fa-spin text-4xl mb-2"></i>
                                 <p>Loading collections...</p>
                             </td>
@@ -114,7 +114,7 @@
                 <i class="fas fa-plus"></i>
                 <span>Add Selected (<span id="selected_count">0</span>)</span>
             </button>
-            <button type="button" onclick="togglePaymentHistory()" class="text-gray-500 hover:text-white text-xs">
+            <button type="button" onclick="togglePaymentHistory()" class="text-gray-300 hover:text-white text-xs">
                 <i class="fas fa-chevron-down" id="history_toggle_icon"></i>
             </button>
         </div>
@@ -122,7 +122,7 @@
 
     <div id="payment_history_content" class="overflow-x-auto" style="max-height: 300px;">
         <table class="min-w-full bg-gray-800 rounded-lg text-xs">
-            <thead class="bg-gray-900 text-gray-500 sticky top-0">
+            <thead class="bg-gray-900 text-gray-300 sticky top-0">
                 <tr>
                     <!-- ✅ NEW: Select All Checkbox -->
                     <th class="px-2 py-2 text-left w-12">
@@ -152,9 +152,9 @@
                     <th class="px-2 py-2 text-left">Remarks</th>
                 </tr>
             </thead>
-            <tbody id="customer_payment_history_tbody" class="text-gray-500">
+            <tbody id="customer_payment_history_tbody" class="text-gray-300">
                 <tr>
-                    <td colspan="19" class="px-4 py-8 text-center text-gray-500">
+                    <td colspan="19" class="px-4 py-8 text-center text-gray-400">
                         <i class="fas fa-search text-3xl mb-2"></i>
                         <p>Search for a customer to view payment history</p>
                     </td>
@@ -177,15 +177,15 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                     <div>
-                        <label class="block text-gray-500 text-xs mb-1">Customer Name</label>
+                        <label class="block text-gray-300 text-xs mb-1">Customer Name</label>
                         <p class="text-white font-semibold" id="display_customer_name">—</p>
                     </div>
                     <div>
-                        <label class="block text-gray-500 text-xs mb-1">Outstanding Balance</label>
+                        <label class="block text-gray-300 text-xs mb-1">Outstanding Balance</label>
                         <p class="text-red-700 font-bold text-lg" id="display_outstanding_balance">₱0.00</p>
                     </div>
                     <div id="credit_balance_container" class="hidden">
-                        <label class="block text-gray-500 text-xs mb-1">Available Credit Balance</label>
+                        <label class="block text-gray-300 text-xs mb-1">Available Credit Balance</label>
                         <p class="text-purple-700 font-bold text-lg" id="display_credit_balance">₱0.00</p>
                         <button type="button" onclick="showCreditDetails()" class="text-purple-600 hover:text-purple-800 text-xs mt-1">
                             <i class="fas fa-info-circle mr-1"></i>View Credits
@@ -221,7 +221,7 @@
 
     <div class="overflow-x-auto" style="max-height: 400px;">
         <table class="min-w-full bg-gray-800 rounded-lg text-xs">
-            <thead class="bg-gray-900 text-gray-500 sticky top-0">
+            <thead class="bg-gray-900 text-gray-300 sticky top-0">
                 <tr>
                     <th class="px-2 py-2 text-left w-8">#</th>
                     <th class="px-2 py-2 text-left">DR Number *</th>
@@ -260,9 +260,9 @@
 
         <!-- No Results Message -->
         <div id="no_results_message" class="hidden bg-gray-700 rounded-lg p-8 text-center">
-            <i class="fas fa-user-slash text-5xl text-gray-500 mb-4"></i>
+            <i class="fas fa-user-slash text-5xl text-gray-300 mb-4"></i>
             <h3 class="text-xl font-semibold text-white mb-2">Customer Not Found</h3>
-            <p class="text-gray-500">The customer you searched for does not exist. Please check and try again.</p>
+            <p class="text-gray-300">The customer you searched for does not exist. Please check and try again.</p>
         </div>
     </div>
 </div>
@@ -276,20 +276,20 @@
                 <i class="fas fa-credit-card mr-2 text-blue-700"></i>
                 Payment Means Details
             </h3>
-            <button type="button" onclick="closePaymentMeansPanel()" class="text-gray-500 hover:text-white transition">
+            <button type="button" onclick="closePaymentMeansPanel()" class="text-gray-300 hover:text-white transition">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
 
         <!-- Row Info -->
         <div class="bg-gray-900 rounded-lg p-3 mb-4">
-            <p class="text-sm text-gray-500">Editing Row: <span id="panel_row_number" class="text-white font-semibold">#1</span></p>
-            <p class="text-xs text-gray-500 mt-1">DR: <span id="panel_dr_number" class="text-gray-500">—</span></p>
+            <p class="text-sm text-gray-300">Editing Row: <span id="panel_row_number" class="text-white font-semibold">#1</span></p>
+            <p class="text-xs text-gray-300 mt-1">DR: <span id="panel_dr_number" class="text-gray-300">—</span></p>
         </div>
 
         <!-- Payment Type Selection -->
         <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-500 mb-2">Payment Means Type *</label>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Payment Means Type *</label>
             <select id="panel_payment_type" onchange="updatePaymentMeansFields()" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 <option value="">Select Payment Type</option>
                 <option value="check">Check</option>
@@ -306,23 +306,23 @@
             </h4>
             
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">G/L Account *</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">G/L Account *</label>
                 <div class="relative">
                     <input type="hidden" id="check_gl_account_id">
                     <input type="text" id="check_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                     <div id="check_gl_account_dropdown" class="absolute top-full left-0 right-0 bg-gray-800 border border-gray-700 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
                 </div>
                 <input type="hidden" id="check_gl_account">
-                <p class="text-xs text-gray-500 mt-1">For PDC, use Clearing Account - PDC</p>
+                <p class="text-xs text-gray-300 mt-1">For PDC, use Clearing Account - PDC</p>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">Due Date *</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Due Date *</label>
                 <input type="date" id="check_due_date" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">Amount *</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Amount *</label>
                 <input type="number" step="0.01" id="check_amount" placeholder="0.00" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 <button type="button" onclick="copyBalanceDueToCheck()" class="text-xs text-blue-700 hover:text-blue-700 mt-1">
                     <i class="fas fa-copy mr-1"></i>Copy Balance Due
@@ -330,7 +330,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">Bank Name *</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Bank Name *</label>
                 <select id="check_bank_name" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                     <option value="">Select Bank</option>
                     <option value="BDO">BDO</option>
@@ -346,7 +346,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">Check Number *</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Check Number *</label>
                 <input type="text" id="check_number" placeholder="Check #" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
             </div>
         </div>
@@ -359,7 +359,7 @@
             </h4>
             
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">G/L Account *</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">G/L Account *</label>
                 <div class="relative">
                     <input type="hidden" id="transfer_gl_account_id">
                     <input type="text" id="transfer_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
@@ -369,17 +369,17 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">Transfer Date *</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Transfer Date *</label>
                 <input type="date" id="transfer_date" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">Reference Number</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Reference Number</label>
                 <input type="text" id="transfer_reference" placeholder="Reference #" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">Total Amount *</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Total Amount *</label>
                 <input type="number" step="0.01" id="transfer_amount" placeholder="0.00" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 <button type="button" onclick="copyBalanceDueToTransfer()" class="text-xs text-blue-700 hover:text-blue-700 mt-1">
                     <i class="fas fa-copy mr-1"></i>Copy Balance Due
@@ -395,7 +395,7 @@
             </h4>
             
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">G/L Account *</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">G/L Account *</label>
                 <div class="relative">
                     <input type="hidden" id="cash_gl_account_id">
                     <input type="text" id="cash_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
@@ -405,7 +405,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-500 mb-2">Total Amount *</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Total Amount *</label>
                 <input type="number" step="0.01" id="cash_amount" placeholder="0.00" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 <button type="button" onclick="copyBalanceDueToCash()" class="text-xs text-blue-700 hover:text-blue-700 mt-1">
                     <i class="fas fa-copy mr-1"></i>Copy Balance Due
@@ -570,7 +570,7 @@ function addSelectedToPaymentTable() {
         <td class="px-2 py-1.5">
             <input type="text" 
                    value="${paymentData.invoice_no || ''}"
-                   class="w-full bg-gray-700 text-gray-500 border border-gray-600 rounded px-2 py-1 text-xs" 
+                   class="w-full bg-gray-700 text-gray-300 border border-gray-600 rounded px-2 py-1 text-xs" 
                    data-field="invoice_no"
                    readonly>
         </td>
@@ -879,7 +879,7 @@ function addPaymentRow() {
     row.className = 'border-b border-gray-700 hover:bg-gray-900 transition';
     row.id = `payment_row_${paymentRowCounter}`;
     row.innerHTML = `
-        <td class="px-2 py-1.5 text-xs text-gray-500">${paymentRowCounter}</td>
+        <td class="px-2 py-1.5 text-xs text-gray-300">${paymentRowCounter}</td>
         <td class="px-2 py-1.5">
             <input type="text" 
                    class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500" 
@@ -890,7 +890,7 @@ function addPaymentRow() {
         </td>
         <td class="px-2 py-1.5">
             <input type="text" 
-                   class="w-full bg-gray-700 text-gray-500 border border-gray-600 rounded px-2 py-1 text-xs" 
+                   class="w-full bg-gray-700 text-gray-300 border border-gray-600 rounded px-2 py-1 text-xs" 
                    placeholder="Auto-filled" 
                    data-field="invoice_no"
                    readonly>
@@ -1075,15 +1075,15 @@ function showInvoicePicker(drNumber, invoiceList, row, rowId) {
             </td>
             <td class="p-2 text-sm font-semibold">${inv.invoice_no || '—'}</td>
             <td class="p-2 text-sm text-right text-orange-600 font-semibold">₱${inv.outstanding_balance.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
-            <td class="p-2 text-xs text-gray-500">${inv.invoice_date || '—'}</td>
-            <td class="p-2 text-xs text-gray-500">${inv.due_date || '—'}</td>
+            <td class="p-2 text-xs text-gray-300">${inv.invoice_date || '—'}</td>
+            <td class="p-2 text-xs text-gray-300">${inv.due_date || '—'}</td>
         </tr>
     `).join('');
 
     Swal.fire({
         title: `Multiple Invoices for DR #${drNumber}`,
         html: `
-            <p class="text-sm text-gray-500 mb-3">This DR number has ${invoiceList.length} invoices. Select which one to pay:</p>
+            <p class="text-sm text-gray-300 mb-3">This DR number has ${invoiceList.length} invoices. Select which one to pay:</p>
             <table class="w-full text-left border border-gray-700 rounded">
                 <thead class="bg-gray-700">
                     <tr>
@@ -1185,8 +1185,8 @@ function checkIfDRAlreadyPaid(drNumber, row, rowId) {
                 title: 'Fully Paid',
                 html: `<div class="text-left">
                     <p>DR Number <strong>"${drNumber}"</strong> is already <strong>fully paid</strong>.</p>
-                    <p class="mt-2 text-sm text-gray-500">Total Paid: ₱${parseFloat(data.total_paid || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
-                    <p class="text-sm text-gray-500">This DR cannot be entered for collection again.</p>
+                    <p class="mt-2 text-sm text-gray-300">Total Paid: ₱${parseFloat(data.total_paid || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                    <p class="text-sm text-gray-300">This DR cannot be entered for collection again.</p>
                 </div>`,
                 background: '#ffffff',
                 color: '#1f2937'
@@ -1220,7 +1220,7 @@ function checkIfDRAlreadyPaid(drNumber, row, rowId) {
                 html: `<div class="text-left">
                     <p>DR <strong>"${drNumber}"</strong> has a remaining balance of:</p>
                     <p class="text-lg font-bold text-blue-700 mt-1">₱${parseFloat(data.remaining).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
-                    <p class="text-sm text-gray-500 mt-1">Previously paid: ₱${parseFloat(data.total_paid || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                    <p class="text-sm text-gray-300 mt-1">Previously paid: ₱${parseFloat(data.total_paid || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                 </div>`,
                 background: '#ffffff',
                 color: '#1f2937',
@@ -1310,7 +1310,7 @@ function handlePaymentAmountChange(input) {
             html: `<div class="text-left">
                 <p>Payment: <strong>₱${amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</strong></p>
                 <p>Outstanding: <strong>₱${outstanding.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</strong></p>
-                <p class="mt-2 text-sm text-gray-500">The excess will be recorded as overpayment/credit.</p>
+                <p class="mt-2 text-sm text-gray-300">The excess will be recorded as overpayment/credit.</p>
             </div>`,
             background: '#ffffff',
             color: '#1f2937'
@@ -1687,7 +1687,7 @@ function loadPaymentList() {
             if (!data.payments || data.payments.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="12" class="px-4 py-8 text-center text-gray-500">
+                        <td colspan="12" class="px-4 py-8 text-center text-gray-400">
                             <i class="fas fa-file-invoice text-4xl mb-2"></i>
                             <p>No collections found</p>
                         </td>
@@ -1702,7 +1702,7 @@ function loadPaymentList() {
 
     // Handle BOTH old (payment_option) and new (payment_method) data
     let paymentMeansDisplay = '—';
-    let paymentMeansBadgeClass = 'bg-gray-700 text-gray-500';
+    let paymentMeansBadgeClass = 'bg-gray-700 text-gray-300';
 
     if (payment.payment_method) {
         const typeLabels = { 'check': 'Check', 'bank_transfer': 'Bank Transfer', 'cash': 'Cash' };
@@ -1818,7 +1818,7 @@ function loadCustomerPaymentHistory(customerCode, customerName) {
         if (!data.success || !data.payments || data.payments.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="19" class="px-4 py-6 text-center text-gray-500">
+                    <td colspan="19" class="px-4 py-6 text-center text-gray-400">
                         <i class="fas fa-check-circle text-3xl mb-2 text-green-500"></i>
                         <p>No outstanding payments found for this customer</p>
                         <p class="text-xs mt-1">All invoices have been paid!</p>
@@ -2220,12 +2220,12 @@ function setupGlAccountSearch(searchId, dropdownId, idInputId, codeInputId) {
                 dropdown.innerHTML = data.accounts.map(account => `
                     <div class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-white border-b border-gray-100" onclick="selectPaymentGlAccount('${searchId}', '${dropdownId}', '${idInputId}', '${codeInputId}', ${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')" >
                         <div class="font-semibold text-sm">${account.display}</div>
-                        <div class="text-xs text-gray-500">${account.fs_line_item || 'No FS Item'}</div>
+                        <div class="text-xs text-gray-300">${account.fs_line_item || 'No FS Item'}</div>
                     </div>
                 `).join('');
                 dropdown.classList.remove('hidden');
             } else {
-                dropdown.innerHTML = '<div class="px-3 py-2 text-gray-500">No GL accounts found</div>';
+                dropdown.innerHTML = '<div class="px-3 py-2 text-gray-300">No GL accounts found</div>';
                 dropdown.classList.remove('hidden');
             }
         } catch (error) {
@@ -2240,7 +2240,7 @@ function setupGlAccountSearch(searchId, dropdownId, idInputId, codeInputId) {
             dropdown.innerHTML = allAccountsCache.map(account => `
                 <div class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-white border-b border-gray-100" onclick="selectPaymentGlAccount('${searchId}', '${dropdownId}', '${idInputId}', '${codeInputId}', ${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')" >
                     <div class="font-semibold text-sm">${account.display}</div>
-                    <div class="text-xs text-gray-500">${account.fs_line_item || 'No FS Item'}</div>
+                    <div class="text-xs text-gray-300">${account.fs_line_item || 'No FS Item'}</div>
                 </div>
             `).join('');
             dropdown.classList.remove('hidden');
@@ -2310,7 +2310,7 @@ function showCreditDetails() {
     list.innerHTML = '';
 
     if (availableCredits.length === 0) {
-        list.innerHTML = '<p class="text-gray-500 text-xs">No available credits.</p>';
+        list.innerHTML = '<p class="text-gray-300 text-xs">No available credits.</p>';
         panel.classList.remove('hidden');
         return;
     }
@@ -2324,7 +2324,7 @@ function showCreditDetails() {
                 <a href="/payments/${c.payment_id}" target="_blank" class="text-blue-600 hover:underline text-xs font-semibold">
                     CR #${c.collection_receipt_number}
                 </a>
-                <span class="text-xs text-gray-500 ml-2">${c.invoice_no ? 'Inv #' + c.invoice_no : (c.dr_no ? 'DR #' + c.dr_no : '')}</span>
+                <span class="text-xs text-gray-300 ml-2">${c.invoice_no ? 'Inv #' + c.invoice_no : (c.dr_no ? 'DR #' + c.dr_no : '')}</span>
                 <span class="text-xs text-gray-400 ml-2">${c.date ? new Date(c.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
             </div>
             <div class="flex items-center gap-3">
@@ -2340,7 +2340,7 @@ function showCreditDetails() {
 
     // If all credits are used up
     if (!availableCredits.some(c => c.remaining_credit > 0)) {
-        list.innerHTML = '<p class="text-gray-500 text-xs">All credits have been applied.</p>';
+        list.innerHTML = '<p class="text-gray-300 text-xs">All credits have been applied.</p>';
     }
 
     panel.classList.remove('hidden');
@@ -2411,7 +2411,7 @@ function applyCreditToRow(creditPaymentId, creditAmount) {
     const creditLines = appliedCreditsMap[rowId].map(c =>
         `CR #${c.cr_number}: -₱${c.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`
     ).join('<br>');
-    badge.innerHTML = `Credit: -₱${totalCredit.toLocaleString('en-PH', { minimumFractionDigits: 2 })}<br><span class="text-xs text-gray-500">${creditLines}</span>`;
+    badge.innerHTML = `Credit: -₱${totalCredit.toLocaleString('en-PH', { minimumFractionDigits: 2 })}<br><span class="text-xs text-gray-300">${creditLines}</span>`;
 
     // Reduce this credit's remaining amount in the available credits panel
     if (creditInfo) {

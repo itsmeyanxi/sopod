@@ -8,7 +8,7 @@
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-white">TRADE ITEMS LIBRARY</h1>
-                <p class="text-gray-500 text-sm mt-1">Trade items linked to suppliers (Local or Import). Used for autocomplete in Purchase Orders — filtered by selected supplier.</p>
+                <p class="text-gray-300 text-sm mt-1">Trade items linked to suppliers (Local or Import). Used for autocomplete in Purchase Orders — filtered by selected supplier.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="document.getElementById('addItemModal').classList.remove('hidden')"
@@ -52,7 +52,7 @@
         <!-- Table -->
         <div class="overflow-x-auto">
             <table class="w-full border-collapse border border-gray-700">
-                <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-4 py-3 text-left">#</th>
                         <th class="border border-gray-700 px-4 py-3 text-left">ITEM CODE</th>
@@ -65,10 +65,10 @@
                         <th class="border border-gray-700 px-4 py-3 text-center">ACTION</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-500">
+                <tbody class="text-gray-200">
                     @forelse($items as $item)
                         <tr class="hover:bg-gray-700/40">
-                            <td class="border border-gray-700 px-4 py-3 text-gray-500">{{ $items->firstItem() + $loop->index }}</td>
+                            <td class="border border-gray-700 px-4 py-3 text-gray-300">{{ $items->firstItem() + $loop->index }}</td>
                             <td class="border border-gray-700 px-4 py-3">
                                 <form action="{{ route('trade_items.update', $item->id) }}" method="POST" class="flex items-center gap-1">
                                     @csrf
@@ -114,7 +114,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="border border-gray-700 px-4 py-8 text-center text-gray-500">
+                            <td colspan="9" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No trade items in the library yet. Import a CSV or Excel file to populate.
                             </td>
                         </tr>
@@ -124,7 +124,7 @@
         </div>
 
         <div class="mt-4 flex justify-between items-center">
-            <p class="text-gray-500 text-sm">{{ $items->total() }} item(s) total</p>
+            <p class="text-gray-300 text-sm">{{ $items->total() }} item(s) total</p>
             {{ $items->links() }}
         </div>
     </div>
@@ -134,7 +134,7 @@
 <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
     <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
         <h3 class="text-lg font-bold text-white mb-2">Import Trade Items from CSV</h3>
-        <p class="text-gray-500 text-sm mb-4">
+        <p class="text-gray-300 text-sm mb-4">
             <strong>Format:</strong><br>
             • Column A = Supplier Name<br>
             • Column B = Item Description<br>
@@ -148,7 +148,7 @@
         <form action="{{ route('trade_items.import') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-500 mb-2">Select CSV or Excel File:</label>
+                <label class="block text-gray-300 mb-2">Select CSV or Excel File:</label>
                 <input type="file" name="csv_file" accept=".csv,.txt,.xlsx,.xls" required
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm">
             </div>
@@ -172,19 +172,19 @@
         <form action="{{ route('trade_items.store') }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-500 text-sm mb-1">Item Description <span class="text-red-700">*</span></label>
+                <label class="block text-gray-300 text-sm mb-1">Item Description <span class="text-red-700">*</span></label>
                 <input type="text" name="name" required maxlength="500"
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g. Electrical Materials">
             </div>
             <div class="mb-4">
-                <label class="block text-gray-500 text-sm mb-1">Item Code <span class="text-gray-300">(auto-generated if blank)</span></label>
+                <label class="block text-gray-300 text-sm mb-1">Item Code <span class="text-gray-300">(auto-generated if blank)</span></label>
                 <input type="text" name="item_code" maxlength="100"
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Leave blank to auto-generate">
             </div>
             <div class="mb-4">
-                <label class="block text-gray-500 text-sm mb-1">Supplier</label>
+                <label class="block text-gray-300 text-sm mb-1">Supplier</label>
                 <select name="supplier_id"
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="">— No specific supplier —</option>
@@ -194,19 +194,19 @@
                 </select>
             </div>
             <div class="mb-4">
-                <label class="block text-gray-500 text-sm mb-1">Account</label>
+                <label class="block text-gray-300 text-sm mb-1">Account</label>
                 <input type="text" name="account" maxlength="100"
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g. Accounts Payable - Trade - Local">
             </div>
             <div class="mb-4">
-                <label class="block text-gray-500 text-sm mb-1">Vendor Code</label>
+                <label class="block text-gray-300 text-sm mb-1">Vendor Code</label>
                 <input type="text" name="vendor_code" maxlength="100"
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g. VND001">
             </div>
             <div class="mb-4">
-                <label class="block text-gray-500 text-sm mb-1">Type</label>
+                <label class="block text-gray-300 text-sm mb-1">Type</label>
                 <select name="local_or_import"
                     class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="">— Select Type —</option>

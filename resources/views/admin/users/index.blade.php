@@ -45,7 +45,7 @@
                         @forelse($user->userRoles as $ur)
                             <span class="bg-blue-600 text-white px-2 py-1 rounded text-xs mr-1">{{ $ur->subDepartment->name ?? '?' }}</span>
                         @empty
-                            <span class="bg-gray-700 text-gray-500 px-2 py-1 rounded text-xs">No dept</span>
+                            <span class="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">No dept</span>
                         @endforelse
                     </td>
                     
@@ -58,7 +58,7 @@
                                     🔒 LOCKED
                                 </span>
                                 @if($user->lockedBy)
-                                    <span class="text-gray-500 text-xs">
+                                    <span class="text-gray-300 text-xs">
                                         By: {{ $user->lockedBy->name }}<br>
                                         {{ $user->locked_at->diffForHumans() }}
                                     </span>
@@ -70,7 +70,7 @@
                                 <span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold w-fit">
                                     🔒 LOCKED (Max Attempts)
                                 </span>
-                                <span class="text-gray-500 text-xs">
+                                <span class="text-gray-300 text-xs">
                                     Too many failed login attempts
                                 </span>
                             </div>
@@ -113,7 +113,7 @@
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
-                        <small class="text-gray-500 text-xs">Hashed - cannot be decrypted</small>
+                        <small class="text-gray-300 text-xs">Hashed - cannot be decrypted</small>
                     </td>
 
                     <td class="px-4 py-3">

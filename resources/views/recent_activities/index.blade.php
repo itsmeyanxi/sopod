@@ -10,7 +10,7 @@
         </a>
     </div>
     @if($recentActivities->isEmpty())
-        <p class="text-gray-500">No recent activities found 💤</p>
+        <p class="text-gray-300">No recent activities found 💤</p>
     @else
         <div class="overflow-x-auto">
             <table class="min-w-full border border-gray-700 text-sm text-left text-white">

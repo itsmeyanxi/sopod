@@ -74,7 +74,7 @@
     <!-- Items Table -->
     <div class="bg-gray-800 rounded-xl shadow-md overflow-x-auto">
         <table id="itemsTable" class="w-full text-sm">
-            <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+            <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                 <tr>
                     @if(auth()->user()->canApproveItems())
                     <th class="px-4 py-3 text-center w-12">
@@ -170,7 +170,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-6 text-center text-gray-500">
+                    <td colspan="8" class="px-4 py-6 text-center text-gray-400">
                         No items found.
                     </td>
                 </tr>
@@ -180,7 +180,7 @@
     </div>
 
     <!-- Item Count at the Bottom -->
-    <div class="mt-4 text-sm text-gray-500 text-left" id="itemCount"></div>
+    <div class="mt-4 text-sm text-gray-300 text-left" id="itemCount"></div>
 </div>
 
 <!-- Individual Reject Modal -->
@@ -190,7 +190,7 @@
         <form id="rejectForm" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-500 mb-2">Reason for Rejection</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Reason for Rejection</label>
                 <textarea 
                     name="rejection_reason" 
                     rows="4" 
@@ -219,7 +219,7 @@
 <div id="bulkApprovalModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
         <h2 class="text-xl font-bold text-white mb-4">Confirm Bulk Approval</h2>
-        <p class="text-gray-500 mb-4">Are you sure you want to approve <span id="bulkApprovalCount" class="font-bold text-green-700"></span> item(s)?</p>
+        <p class="text-gray-300 mb-4">Are you sure you want to approve <span id="bulkApprovalCount" class="font-bold text-green-700"></span> item(s)?</p>
         <div id="bulkItemsList" class="bg-gray-900 rounded p-3 mb-4 max-h-48 overflow-y-auto">
             <!-- Item codes will be listed here -->
         </div>
@@ -337,7 +337,7 @@ function bulkApprove() {
     
     // Build list of items
     itemsList.innerHTML = selectedCheckboxes.map(cb => 
-        `<div class="text-sm text-gray-500 py-1">• ${cb.dataset.itemCode}</div>`
+        `<div class="text-sm text-gray-300 py-1">• ${cb.dataset.itemCode}</div>`
     ).join('');
     
     modal.classList.remove('hidden');

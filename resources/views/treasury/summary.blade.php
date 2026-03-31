@@ -47,7 +47,7 @@
 <div class="flex items-center justify-between mb-5">
     <div>
         <h2 class="text-xl font-bold text-white">Bank</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Bank — Overview of confirmed payments & credit balance</p>
+        <p class="text-xs text-gray-300 mt-0.5">Bank — Overview of confirmed payments & credit balance</p>
     </div>
     <a href="{{ route('treasury.confirmation') }}"
        class="flex items-center gap-1.5 px-4 py-2 text-sm bg-amber-500 text-white rounded-md hover:bg-amber-600 font-semibold shadow-sm">
@@ -126,10 +126,10 @@
                 <i class="fas fa-search"></i> Filter
             </button>
             @if(request()->hasAny(['search','date_from','date_to']))
-            <a href="{{ route('treasury.summary') }}" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-200">Clear</a>
+            <a href="{{ route('treasury.summary') }}" class="px-3 py-1.5 text-xs text-gray-300 hover:text-gray-200">Clear</a>
             @endif
         </form>
-        <span class="text-xs text-gray-500">{{ $payments->total() }} confirmed payment{{ $payments->total() != 1 ? 's' : '' }}</span>
+        <span class="text-xs text-gray-300">{{ $payments->total() }} confirmed payment{{ $payments->total() != 1 ? 's' : '' }}</span>
     </div>
 
     <div class="overflow-x-auto">
@@ -156,12 +156,12 @@
                 <tr @if($payment->overpayment > 0) class="credit-row" @endif>
                     <td class="font-semibold text-blue-700">{{ $payment->collection_receipt_number ?: '—' }}</td>
                     <td>{{ $payment->customer_name ?: '—' }}</td>
-                    <td class="text-gray-500 text-xs">{{ $payment->invoice_no ?: '—' }}</td>
-                    <td class="text-gray-500 text-xs">{{ $payment->dr_no ?: '—' }}</td>
-                    <td class="text-gray-500 text-xs">{{ $payment->payment_date ? $payment->payment_date->format('M d, Y') : '—' }}</td>
+                    <td class="text-gray-300 text-xs">{{ $payment->invoice_no ?: '—' }}</td>
+                    <td class="text-gray-300 text-xs">{{ $payment->dr_no ?: '—' }}</td>
+                    <td class="text-gray-300 text-xs">{{ $payment->payment_date ? $payment->payment_date->format('M d, Y') : '—' }}</td>
                     <td class="text-xs">{{ ucfirst($payment->payment_method ?? '—') }}</td>
                     <td class="r font-semibold">PHP {{ number_format($payment->amount, 2) }}</td>
-                    <td class="r text-gray-500">{{ number_format($payment->tax, 2) }}</td>
+                    <td class="r text-gray-300">{{ number_format($payment->tax, 2) }}</td>
                     <td class="r font-semibold text-white">PHP {{ number_format($payment->net ?? $payment->amount, 2) }}</td>
                     <td class="r">
                         @if($payment->overpayment > 0)
@@ -177,8 +177,8 @@
                             —
                         @endif
                     </td>
-                    <td class="text-xs text-gray-500">{{ $payment->confirmed_by ?: '—' }}</td>
-                    <td class="text-xs text-gray-500">{{ $payment->confirmed_at ? \Carbon\Carbon::parse($payment->confirmed_at)->format('M d, Y h:i A') : '—' }}</td>
+                    <td class="text-xs text-gray-300">{{ $payment->confirmed_by ?: '—' }}</td>
+                    <td class="text-xs text-gray-300">{{ $payment->confirmed_at ? \Carbon\Carbon::parse($payment->confirmed_at)->format('M d, Y h:i A') : '—' }}</td>
                 </tr>
             @empty
                 <tr><td colspan="13" class="text-center py-10 text-gray-400">No confirmed payments yet.</td></tr>
@@ -203,7 +203,7 @@
                     </td>
                     <td colspan="7" class="text-left" style="font-size:.9rem;">
                         <span class="text-amber-700 font-bold">PHP {{ number_format($stats['remaining_credit'], 2) }}</span>
-                        <span class="text-xs text-gray-500 ml-2">(Total Overpayments: PHP {{ number_format($stats['total_overpayment'], 2) }} — Credits Used: PHP {{ number_format($stats['total_overpayment'] - $stats['remaining_credit'], 2) }})</span>
+                        <span class="text-xs text-gray-300 ml-2">(Total Overpayments: PHP {{ number_format($stats['total_overpayment'], 2) }} — Credits Used: PHP {{ number_format($stats['total_overpayment'] - $stats['remaining_credit'], 2) }})</span>
                     </td>
                 </tr>
             </tfoot>

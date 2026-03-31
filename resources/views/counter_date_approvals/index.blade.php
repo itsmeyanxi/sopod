@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-white">Counter Date Approval</h1>
-                <p class="text-sm text-gray-500 mt-1">Review and approve delivery counter dates for aging reports</p>
+                <p class="text-sm text-gray-300 mt-1">Review and approve delivery counter dates for aging reports</p>
             </div>
             <button type="button" id="bulkApproveBtn" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-md font-medium transition hidden">
                 <i class="fas fa-check-double mr-1"></i> Approve Selected (<span id="selectedCount">0</span>)
@@ -23,15 +23,15 @@
         <!-- Stats -->
         <div class="grid grid-cols-3 gap-4 mb-4">
             <div class="bg-gray-800 rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
-                <p class="text-xs text-gray-500 font-semibold uppercase">Total with Counter Date</p>
+                <p class="text-xs text-gray-300 font-semibold uppercase">Total with Counter Date</p>
                 <p class="text-2xl font-bold text-white">{{ number_format($totalWithCounter) }}</p>
             </div>
             <div class="bg-gray-800 rounded-lg shadow-sm p-4 border-l-4 border-orange-500">
-                <p class="text-xs text-gray-500 font-semibold uppercase">Pending Approval</p>
+                <p class="text-xs text-gray-300 font-semibold uppercase">Pending Approval</p>
                 <p class="text-2xl font-bold text-orange-700">{{ number_format($pendingCount) }}</p>
             </div>
             <div class="bg-gray-800 rounded-lg shadow-sm p-4 border-l-4 border-green-500">
-                <p class="text-xs text-gray-500 font-semibold uppercase">Approved</p>
+                <p class="text-xs text-gray-300 font-semibold uppercase">Approved</p>
                 <p class="text-2xl font-bold text-green-700">{{ number_format($approvedCount) }}</p>
             </div>
         </div>
@@ -40,12 +40,12 @@
         <div class="bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
             <form method="GET" action="{{ route('counter_date_approvals.index') }}" class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[200px]">
-                    <label class="block text-xs text-gray-500 font-semibold mb-1">Search</label>
+                    <label class="block text-xs text-gray-300 font-semibold mb-1">Search</label>
                     <input type="text" name="search" value="{{ $search }}" placeholder="Customer, DR No., Invoice..."
                         class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 font-semibold mb-1">Status</label>
+                    <label class="block text-xs text-gray-300 font-semibold mb-1">Status</label>
                     <select name="filter" class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-gray-200">
                         <option value="pending" {{ $filter === 'pending' ? 'selected' : '' }}>Pending Approval</option>
                         <option value="approved" {{ $filter === 'approved' ? 'selected' : '' }}>Approved</option>

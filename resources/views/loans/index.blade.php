@@ -65,7 +65,7 @@
         <!-- Table -->
         <div class="overflow-x-auto">
             <table class="w-full text-sm border-collapse">
-                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-3 py-3 text-left">Loan No.</th>
                         <th class="border border-gray-700 px-3 py-3 text-center">Date</th>

@@ -57,31 +57,31 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Customer Code</p>
+                    <p class="text-xs text-gray-300 mb-1">Customer Code</p>
                     <p class="text-gray-100 font-semibold">{{ $customer->customer_code }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Customer Name</p>
+                    <p class="text-xs text-gray-300 mb-1">Customer Name</p>
                     <p class="text-gray-100 font-semibold">{{ $customer->customer_name }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Business Style</p>
+                    <p class="text-xs text-gray-300 mb-1">Business Style</p>
                     <p class="text-gray-100">{{ $customer->business_style ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Branch</p>
+                    <p class="text-xs text-gray-300 mb-1">Branch</p>
                     <p class="text-gray-100">{{ $customer->branch ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Customer Group</p>
+                    <p class="text-xs text-gray-300 mb-1">Customer Group</p>
                     <p class="text-gray-100">{{ $customer->customer_group ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Customer Type</p>
+                    <p class="text-xs text-gray-300 mb-1">Customer Type</p>
                     <p class="text-gray-100">{{ $customer->customer_type ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Currency</p>
+                    <p class="text-xs text-gray-300 mb-1">Currency</p>
                     <p class="text-gray-100">{{ $customer->currency ?? 'N/A' }}</p>
                 </div>
             </div>
@@ -97,19 +97,19 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Telephone 1</p>
+                    <p class="text-xs text-gray-300 mb-1">Telephone 1</p>
                     <p class="text-gray-100">{{ $customer->telephone_1 ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Telephone 2</p>
+                    <p class="text-xs text-gray-300 mb-1">Telephone 2</p>
                     <p class="text-gray-100">{{ $customer->telephone_2 ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Mobile</p>
+                    <p class="text-xs text-gray-300 mb-1">Mobile</p>
                     <p class="text-gray-100">{{ $customer->mobile ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Email</p>
+                    <p class="text-xs text-gray-300 mb-1">Email</p>
                     <p class="text-gray-100">
                         @if($customer->email)
                             <a href="mailto:{{ $customer->email }}" class="text-blue-700 hover:text-blue-700">{{ $customer->email }}</a>
@@ -119,7 +119,7 @@
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Website</p>
+                    <p class="text-xs text-gray-300 mb-1">Website</p>
                     <p class="text-gray-100">
                         @if($customer->website)
                             <a href="http://{{ $customer->website }}" target="_blank" class="text-blue-700 hover:text-blue-700">{{ $customer->website }}</a>
@@ -129,7 +129,7 @@
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Contact Person</p>
+                    <p class="text-xs text-gray-300 mb-1">Contact Person</p>
                     <p class="text-gray-100">{{ $customer->name_of_contact ?? 'N/A' }}</p>
                 </div>
             </div>
@@ -146,11 +146,11 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Billing Address</p>
+                    <p class="text-xs text-gray-300 mb-1">Billing Address</p>
                     <p class="text-gray-100 whitespace-pre-line">{{ $customer->billing_address ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Shipping Address</p>
+                    <p class="text-xs text-gray-300 mb-1">Shipping Address</p>
                     <p class="text-gray-100 whitespace-pre-line">{{ $customer->shipping_address ?? 'N/A' }}</p>
                 </div>
             </div>
@@ -166,39 +166,39 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">WHT Rate</p>
+                    <p class="text-xs text-gray-300 mb-1">WHT Rate</p>
                     <p class="text-gray-100">{{ $customer->whtrate ?? '0.00' }}%</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">WHT Code</p>
+                    <p class="text-xs text-gray-300 mb-1">WHT Code</p>
                     <p class="text-gray-100">{{ $customer->whtcode ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Require SI</p>
+                    <p class="text-xs text-gray-300 mb-1">Require SI</p>
                     <p class="text-gray-100">{{ ucfirst($customer->require_si ?? 'no') }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">AR Type</p>
+                    <p class="text-xs text-gray-300 mb-1">AR Type</p>
                     <p class="text-gray-100">{{ $customer->ar_type ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">TIN No</p>
+                    <p class="text-xs text-gray-300 mb-1">TIN No</p>
                     <p class="text-gray-100">{{ $customer->tin_no ?? '000-000-000-00000' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Collection Terms</p>
+                    <p class="text-xs text-gray-300 mb-1">Collection Terms</p>
                     <p class="text-gray-100">{{ $customer->collection_terms ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Sales Representative</p>
+                    <p class="text-xs text-gray-300 mb-1">Sales Representative</p>
                     <p class="text-gray-100">{{ $customer->sales_rep ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Credit Limit</p>
+                    <p class="text-xs text-gray-300 mb-1">Credit Limit</p>
                     <p class="text-gray-100">{{ $customer->credit_limit ? '₱ ' . number_format($customer->credit_limit, 2) : 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Assigned Bank</p>
+                    <p class="text-xs text-gray-300 mb-1">Assigned Bank</p>
                     <p class="text-gray-100">{{ $customer->assigned_bank ?? 'N/A' }}</p>
                 </div>
             </div>
@@ -208,11 +208,11 @@
         <div class="p-6 bg-gray-700/30">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Created At</p>
+                    <p class="text-xs text-gray-300 mb-1">Created At</p>
                     <p class="text-gray-100">{{ $customer->created_at->format('F d, Y h:i A') }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Last Updated</p>
+                    <p class="text-xs text-gray-300 mb-1">Last Updated</p>
                     <p class="text-gray-100">{{ $customer->updated_at->format('F d, Y h:i A') }}</p>
                 </div>
             </div>

@@ -633,7 +633,7 @@
             <!-- Create New Dropdown -->
             @if(auth()->user()->canCreateSalesOrders() || auth()->user()->canAddCustomers() || auth()->user()->canAddItems() || auth()->user()->canManageUsers())
                 <div class="relative hidden md:block">
-                    <button id="createNewButton" class="flex items-center space-x-1 hover:text-gray-500">
+                    <button id="createNewButton" class="flex items-center space-x-1 hover:text-gray-300">
                         <span class="text-sm md:text-base">Create New</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -658,7 +658,7 @@
 
         <!-- User Dropdown -->
             <div class="relative">
-                <button id="userDropdownButton" class="flex items-center space-x-1 md:space-x-2 focus:outline-none hover:text-gray-500">
+                <button id="userDropdownButton" class="flex items-center space-x-1 md:space-x-2 focus:outline-none hover:text-gray-300">
                     <span class="text-sm md:text-base truncate max-w-[100px] md:max-w-none">{{ Auth::user()->name }}</span>
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>

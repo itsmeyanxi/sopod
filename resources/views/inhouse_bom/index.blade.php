@@ -41,7 +41,7 @@
 <div class="flex items-center justify-between mb-5">
     <div>
         <h2 class="text-xl font-bold text-white">In-House BOM</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Bill of Materials — Broiler Production Cycles</p>
+        <p class="text-xs text-gray-300 mt-0.5">Bill of Materials — Broiler Production Cycles</p>
     </div>
     <a href="{{ route('inhouse_bom.create') }}"
        class="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold shadow-sm">
@@ -105,7 +105,7 @@
                 <option value="archived">Archived</option>
             </select>
         </div>
-        <span class="text-xs text-gray-500" id="row-count">{{ $totalBoms }} record{{ $totalBoms != 1 ? 's' : '' }}</span>
+        <span class="text-xs text-gray-300" id="row-count">{{ $totalBoms }} record{{ $totalBoms != 1 ? 's' : '' }}</span>
     </div>
 
     <div class="overflow-x-auto">
@@ -147,7 +147,7 @@
                             <span class="badge" style="background:#fef3c7;color:#92400e;font-size:.6rem;vertical-align:middle;">EXT</span>
                         @endif
                     </td>
-                    <td class="text-gray-500 text-xs">{{ $bom->cycle_date->format('M d, Y') }}</td>
+                    <td class="text-gray-300 text-xs">{{ $bom->cycle_date->format('M d, Y') }}</td>
                     <td>{{ $bom->grower ?: '—' }}</td>
                     <td class="r">{{ $bom->houses_count }}</td>
                     <td class="r">{{ $totalLoading ? number_format($totalLoading) : '—' }}</td>
@@ -171,7 +171,7 @@
                             <span class="badge badge-pending">Pending</span>
                         @endif
                     </td>
-                    <td class="text-gray-500 text-xs">{{ $bom->creator->name ?? '—' }}</td>
+                    <td class="text-gray-300 text-xs">{{ $bom->creator->name ?? '—' }}</td>
                     <td>
                         <div class="flex gap-1 flex-wrap">
                             <a href="{{ route('inhouse_bom.show', $bom) }}" class="action-btn view">
@@ -205,9 +205,9 @@
         </table>
 
         @if($boms->isEmpty())
-        <div class="flex flex-col items-center justify-center py-16 text-gray-500">
+        <div class="flex flex-col items-center justify-center py-16 text-gray-300">
             <i class="fas fa-clipboard-list text-4xl mb-3 text-gray-200"></i>
-            <p class="text-sm font-medium text-gray-500">No BOM records yet</p>
+            <p class="text-sm font-medium text-gray-300">No BOM records yet</p>
             <p class="text-xs mt-1">Create your first Bill of Materials to get started.</p>
             <a href="{{ route('inhouse_bom.create') }}"
                class="mt-4 flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold">

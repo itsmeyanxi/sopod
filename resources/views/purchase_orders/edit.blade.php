@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">{{ $notesOnly ? 'EDIT NOTES' : 'EDIT PURCHASE ORDER' }}</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-500">PO NO:</label>
+                <label class="font-semibold text-gray-300">PO NO:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $purchaseOrder->po_no }}</span>
             </div>
         </div>
@@ -40,13 +40,13 @@
             <!-- Read-only PO Info -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="space-y-2">
-                    <p class="text-gray-500"><span class="font-semibold text-gray-500">Company:</span> {{ $purchaseOrder->company }}</p>
-                    <p class="text-gray-500"><span class="font-semibold text-gray-500">Order Date:</span> {{ $purchaseOrder->order_date->format('M d, Y') }}</p>
-                    <p class="text-gray-500"><span class="font-semibold text-gray-500">PR#:</span> {{ $purchaseOrder->pr_no ?? 'N/A' }}</p>
+                    <p class="text-gray-300"><span class="font-semibold text-gray-300">Company:</span> {{ $purchaseOrder->company }}</p>
+                    <p class="text-gray-300"><span class="font-semibold text-gray-300">Order Date:</span> {{ $purchaseOrder->order_date->format('M d, Y') }}</p>
+                    <p class="text-gray-300"><span class="font-semibold text-gray-300">PR#:</span> {{ $purchaseOrder->pr_no ?? 'N/A' }}</p>
                 </div>
                 <div class="space-y-2">
-                    <p class="text-gray-500"><span class="font-semibold text-gray-500">Payment Terms:</span> {{ $purchaseOrder->payment_terms ?? 'N/A' }}</p>
-                    <p class="text-gray-500"><span class="font-semibold text-gray-500">Status:</span> <span class="text-green-700">Approved</span></p>
+                    <p class="text-gray-300"><span class="font-semibold text-gray-300">Payment Terms:</span> {{ $purchaseOrder->payment_terms ?? 'N/A' }}</p>
+                    <p class="text-gray-300"><span class="font-semibold text-gray-300">Status:</span> <span class="text-green-700">Approved</span></p>
                 </div>
             </div>
 
@@ -71,14 +71,14 @@
                         <tbody>
                             @foreach($purchaseOrder->items as $index => $item)
                             <tr>
-                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->item_code }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->qty }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->uom }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->description }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? 'N/A' }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ number_format($item->unit_price, 2) }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ number_format($item->total, 2) }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">{{ $index + 1 }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->item_code }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->qty }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->uom }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->description }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? 'N/A' }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ number_format($item->unit_price, 2) }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ number_format($item->total, 2) }}</td>
                                 <td class="border border-gray-700 px-2 py-2">
                                     <input type="text" name="notes[{{ $item->id }}]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->note }}" placeholder="Add note...">
                                 </td>
@@ -108,7 +108,7 @@
 
             <!-- Select PR Section -->
             <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-                <label class="block font-semibold text-gray-500 mb-2">LINKED PURCHASE REQUEST:</label>
+                <label class="block font-semibold text-gray-300 mb-2">LINKED PURCHASE REQUEST:</label>
                 <select name="purchase_request_id" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="">-- No PR Linked --</option>
                     @foreach($purchaseRequests as $pr)
@@ -121,7 +121,7 @@
 
             <!-- Company Selection -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">COMPANY: <span class="text-red-700">*</span></label>
+                <label class="block font-semibold text-gray-300 mb-2">COMPANY: <span class="text-red-700">*</span></label>
                 <select name="company" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                     <option value="">-- Select Company --</option>
                     @foreach($companies as $company)
@@ -137,15 +137,15 @@
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">CONSIGNEE:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE:</label>
                         <input type="text" name="consignee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('consignee', $purchaseOrder->consignee) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">CONSIGNEE ADDRESS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE ADDRESS:</label>
                         <textarea name="consignee_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('consignee_address', $purchaseOrder->consignee_address) }}</textarea>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DELIVERY ADDRESS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">DELIVERY ADDRESS:</label>
                         <textarea name="delivery_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('delivery_address', $purchaseOrder->delivery_address) }}</textarea>
                     </div>
                 </div>
@@ -153,35 +153,35 @@
                 <!-- Right Column -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">ORDER DATE: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-1">ORDER DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="order_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('order_date', $purchaseOrder->order_date->format('Y-m-d')) }}" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">EXPECTED DELIVERY DATE:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">EXPECTED DELIVERY DATE:</label>
                         <input type="date" name="expected_delivery_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('expected_delivery_date', $purchaseOrder->expected_delivery_date ? $purchaseOrder->expected_delivery_date->format('Y-m-d') : '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">PAYMENT TERMS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">PAYMENT TERMS:</label>
                         <input type="text" name="payment_terms" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms', $purchaseOrder->payment_terms) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">LOCATION:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">LOCATION:</label>
                         <input type="text" name="location" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('location', $purchaseOrder->location) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">HOUSE:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">HOUSE:</label>
                         <input type="text" name="house" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('house', $purchaseOrder->house) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">PR#:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">PR#:</label>
                         <input type="text" name="pr_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('pr_no', $purchaseOrder->pr_no) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">LC PRICE:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">LC PRICE:</label>
                         <input type="number" step="0.01" name="lc_price" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('lc_price', $purchaseOrder->lc_price) }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">CURRENCY:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">CURRENCY:</label>
                         <select name="currency" id="currency_select" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="onCurrencyChange()">
                             @foreach($currencies as $cur)
                                 <option value="{{ $cur->code }}"
@@ -195,12 +195,12 @@
                     </div>
                     @php $editCurrency = old('currency', $purchaseOrder->currency ?? 'PHP'); @endphp
                     <div id="exchange_rate_row" class="{{ $editCurrency === 'PHP' ? 'hidden' : '' }}">
-                        <label class="block font-semibold text-gray-500 mb-1">EXCHANGE RATE <span class="text-gray-500 text-xs" id="rate_label">(1 {{ $editCurrency }} = ? PHP)</span>:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">EXCHANGE RATE <span class="text-gray-300 text-xs" id="rate_label">(1 {{ $editCurrency }} = ? PHP)</span>:</label>
                         <div class="flex items-center gap-2">
                             <span class="text-gray-300">₱</span>
                             <input type="number" step="0.0001" name="exchange_rate" id="exchange_rate" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('exchange_rate', $purchaseOrder->exchange_rate ?? 1) }}">
                         </div>
-                        <p class="text-gray-500 text-xs mt-1">Rate used when PO was created. You may update.</p>
+                        <p class="text-gray-300 text-xs mt-1">Rate used when PO was created. You may update.</p>
                     </div>
                 </div>
             </div>
@@ -243,7 +243,7 @@
                                         <i class="fas fa-trash mr-1"></i>Delete
                                     </button>
                                 </td>
-                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">{{ $index + 1 }}</td>
                                 <td class="border border-gray-700 px-2 py-2">
                                     <input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" value="{{ $item->item_code }}" autocomplete="off">
                                     <input type="hidden" name="items[{{ $index }}][purchase_request_item_id]" value="{{ $item->purchase_request_item_id }}">
@@ -316,7 +316,7 @@
                 @endif
                 <div class="flex items-center gap-4">
                     <input type="file" name="quotation" id="quotation" class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
-                    <span class="text-gray-500 text-sm">(PDF, Word, Excel, Image)</span>
+                    <span class="text-gray-300 text-sm">(PDF, Word, Excel, Image)</span>
                 </div>
             </div>
 
@@ -326,9 +326,9 @@
                     <table class="w-full">
                         <thead>
                             <tr class="bg-gray-700">
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Prepared By:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Checked By:</th>
-                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Approved By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Prepared By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Checked By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Approved By:</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -337,7 +337,7 @@
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                                 <td class="border border-gray-700 px-4 py-16 text-center"></td>
                             </tr>
-                            <tr class="bg-gray-700 text-gray-500 text-xs italic">
+                            <tr class="bg-gray-700 text-gray-300 text-xs italic">
                                 <td class="border border-gray-700 px-4 py-2 text-center">Purchasing Officer</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">Accounting Manager</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">Authorized Signatory</td>
@@ -374,7 +374,7 @@ function addRow() {
                 <i class="fas fa-trash mr-1"></i>Delete
             </button>
         </td>
-        <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">${rowCount + 1}</td>
+        <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">${rowCount + 1}</td>
         <td class="border border-gray-700 px-2 py-2">
             <input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off">
             <input type="hidden" name="items[${rowCount}][purchase_request_item_id]" value="">
@@ -549,7 +549,7 @@ function attachSupplierAutocomplete(input) {
                     `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 supplier-option"
                           data-id="${s.id}" data-name="${s.supplier_name}">
                         <strong>${s.supplier_name}</strong>
-                        <span class="text-gray-500 text-xs ml-1">${s.supplier_code || ''}</span>
+                        <span class="text-gray-300 text-xs ml-1">${s.supplier_code || ''}</span>
                     </div>`
                 ).join('');
                 positionFixedDropdown(input, dropdown);

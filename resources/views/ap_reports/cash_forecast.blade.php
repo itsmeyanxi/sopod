@@ -8,7 +8,7 @@
 
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">Cash Forecast (Next 60 Days)</h1>
-            <a href="{{ route('ap_dashboard') }}" class="text-gray-500 hover:text-gray-200 text-sm">
+            <a href="{{ route('ap_dashboard') }}" class="text-gray-300 hover:text-gray-200 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
             </a>
         </div>
@@ -32,7 +32,7 @@
         <!-- Invoice List -->
         <div class="overflow-x-auto">
             <table class="w-full border-collapse text-sm">
-                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-4 py-3 text-left">APV No.</th>
                         <th class="border border-gray-700 px-4 py-3 text-left">Vendor</th>
@@ -56,7 +56,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="border border-gray-700 px-4 py-8 text-center text-gray-500">No invoices due in the next 60 days.</td>
+                        <td colspan="5" class="border border-gray-700 px-4 py-8 text-center text-gray-400">No invoices due in the next 60 days.</td>
                     </tr>
                     @endforelse
                 </tbody>

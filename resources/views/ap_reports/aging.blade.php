@@ -8,7 +8,7 @@
 
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">AP Aging Report</h1>
-            <a href="{{ route('ap_dashboard') }}" class="text-gray-500 hover:text-gray-200 text-sm">
+            <a href="{{ route('ap_dashboard') }}" class="text-gray-300 hover:text-gray-200 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
             </a>
         </div>
@@ -45,7 +45,7 @@
                 <h3 class="text-md font-semibold text-gray-200 mb-2">{{ $info['label'] }} ({{ number_format($buckets[$key]['total'], 2) }})</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full border-collapse text-sm">
-                        <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                        <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                             <tr>
                                 <th class="border border-gray-700 px-3 py-2 text-left">APV No.</th>
                                 <th class="border border-gray-700 px-3 py-2 text-left">Vendor</th>

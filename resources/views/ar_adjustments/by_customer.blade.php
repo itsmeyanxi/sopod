@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <div>
                 <h1 class="text-3xl font-bold">AR Adjustments</h1>
-                <p class="text-gray-500 mt-1">
+                <p class="text-gray-300 mt-1">
                     <strong>{{ $customer->customer_name }}</strong>
                     <span class="text-gray-300">({{ $customer->customer_code }})</span>
                 </p>
@@ -27,19 +27,19 @@
         {{-- Summary Cards --}}
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-blue-100 rounded-lg p-4 border-l-4 border-blue-500">
-                <p class="text-gray-500 text-sm">Total Adjustments</p>
+                <p class="text-gray-300 text-sm">Total Adjustments</p>
                 <p class="text-3xl font-bold text-blue-700">{{ $summary['total_count'] }}</p>
             </div>
             <div class="bg-green-100 rounded-lg p-4 border-l-4 border-green-500">
-                <p class="text-gray-500 text-sm">Total Credit (Decrease)</p>
+                <p class="text-gray-300 text-sm">Total Credit (Decrease)</p>
                 <p class="text-2xl font-bold text-green-700">₱{{ number_format($summary['credit_total'], 2) }}</p>
             </div>
             <div class="bg-red-100 rounded-lg p-4 border-l-4 border-red-500">
-                <p class="text-gray-500 text-sm">Total Debit (Increase)</p>
+                <p class="text-gray-300 text-sm">Total Debit (Increase)</p>
                 <p class="text-2xl font-bold text-red-700">₱{{ number_format($summary['debit_total'], 2) }}</p>
             </div>
             <div class="bg-purple-100 rounded-lg p-4 border-l-4 border-purple-500">
-                <p class="text-gray-500 text-sm">Net Impact</p>
+                <p class="text-gray-300 text-sm">Net Impact</p>
                 <p class="text-2xl font-bold {{ $summary['net_total'] < 0 ? 'text-red-700' : 'text-green-700' }}">
                     {{ $summary['net_total'] < 0 ? '-' : '+' }}₱{{ number_format(abs($summary['net_total']), 2) }}
                 </p>
@@ -59,7 +59,7 @@
                         <span class="font-semibold text-white">{{ $record->invoice_no ?? 'N/A' }}</span>
                         <span class="text-yellow-700 font-bold">₱{{ number_format($record->net_ar_balance ?? 0, 2) }}</span>
                     </div>
-                    <div class="text-gray-500 text-xs">
+                    <div class="text-gray-300 text-xs">
                         <div>Date: {{ $record->invoice_date?->format('M d, Y') ?? 'N/A' }}</div>
                         <div>Status: <span class="text-blue-700">{{ ucfirst($record->status ?? 'Outstanding') }}</span></div>
                     </div>
@@ -78,7 +78,7 @@
             @if($adjustments->count() > 0)
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse border border-gray-700 text-sm">
-                    <thead class="bg-gray-900 text-gray-500">
+                    <thead class="bg-gray-900 text-gray-300">
                         <tr>
                             <th class="border border-gray-700 px-4 py-3 text-left">Date</th>
                             <th class="border border-gray-700 px-4 py-3 text-left">Reference</th>
@@ -142,8 +142,8 @@
             </div>
             @else
             <div class="bg-gray-700 rounded-lg p-8 text-center">
-                <i class="fas fa-inbox text-4xl text-gray-500 mb-2"></i>
-                <p class="text-gray-500">No adjustments found for this customer.</p>
+                <i class="fas fa-inbox text-4xl text-gray-300 mb-2"></i>
+                <p class="text-gray-300">No adjustments found for this customer.</p>
             </div>
             @endif
         </div>

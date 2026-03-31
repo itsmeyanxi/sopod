@@ -62,7 +62,7 @@
     <div class="overflow-x-auto">
         <table class="min-w-full bg-gray-800 rounded-lg text-sm">
             <thead>
-                <tr class="bg-gray-900 text-gray-500 text-xs">
+                <tr class="bg-gray-900 text-gray-300 text-xs">
                     <th class="px-3 py-3 text-left">Account Code</th>
                     <th class="px-3 py-3 text-left">Account Name</th>
                     <th class="px-3 py-3 text-left">FS Line Item</th>
@@ -70,9 +70,9 @@
                     <th class="px-3 py-3 text-center">Actions</th>
                 </tr>
             </thead>
-            <tbody id="gl_accounts_tbody" class="text-gray-500">
+            <tbody id="gl_accounts_tbody" class="text-gray-300">
                 <tr>
-                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                    <td colspan="5" class="px-4 py-8 text-center text-gray-400">
                         <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
                         <p>Loading GL accounts...</p>
                     </td>
@@ -88,7 +88,7 @@
         {{-- Modal Header --}}
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-2xl font-bold text-white">Import GL Accounts</h3>
-            <button type="button" onclick="closeImportModal()" class="text-gray-500 hover:text-white text-2xl">×</button>
+            <button type="button" onclick="closeImportModal()" class="text-gray-300 hover:text-white text-2xl">×</button>
         </div>
 
         {{-- Info Callout --}}
@@ -105,9 +105,9 @@
             {{-- Drag-and-drop Zone --}}
             <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 bg-gray-700/50 hover:bg-gray-700/70 transition cursor-pointer" id="drop_zone">
                 <div class="text-center">
-                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-3"></i>
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-300 mb-3"></i>
                     <p class="text-white font-semibold mb-1">Drag and drop your file here</p>
-                    <p class="text-gray-500 text-sm">or click to select a CSV/Excel file (max 10MB)</p>
+                    <p class="text-gray-300 text-sm">or click to select a CSV/Excel file (max 10MB)</p>
                     <input type="file" id="import_file" name="file" accept=".csv,.xlsx,.xls" class="hidden" required>
                 </div>
             </div>
@@ -297,7 +297,7 @@ function loadGlAccounts(search = '') {
             if (!data.success || !data.accounts || data.accounts.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-400">
                             <i class="fas fa-inbox text-4xl mb-2"></i>
                             <p>No GL accounts found</p>
                         </td>

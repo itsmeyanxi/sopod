@@ -23,18 +23,18 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">STORAGE CODE:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">STORAGE CODE:</label>
                     <input type="text" value="{{ $storage->storage_code }}" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white cursor-not-allowed" readonly>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">STORAGE NAME: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">STORAGE NAME: <span class="text-red-700">*</span></label>
                     <input type="text" name="storage_name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('storage_name', $storage->storage_name) }}" required>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">WAREHOUSE:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">WAREHOUSE:</label>
                     <select name="warehouse_id" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                         <option value="">-- Select Warehouse --</option>
                         @foreach($warehouses as $warehouse)
@@ -45,25 +45,25 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">LOCATION:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">LOCATION:</label>
                     <input type="text" name="location" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('location', $storage->location) }}">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">TEMPERATURE CONTROLLED:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">TEMPERATURE CONTROLLED:</label>
                     <select name="temperature_controlled" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                         <option value="No" {{ old('temperature_controlled', $storage->temperature_controlled) == 'No' ? 'selected' : '' }}>No</option>
                         <option value="Yes" {{ old('temperature_controlled', $storage->temperature_controlled) == 'Yes' ? 'selected' : '' }}>Yes</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">CAPACITY (Liters):</label>
+                    <label class="block font-semibold text-gray-300 mb-2">CAPACITY (Liters):</label>
                     <input type="number" name="capacity" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('capacity', $storage->capacity) }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">STATUS:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">STATUS:</label>
                     <select name="status" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                         <option value="active" {{ old('status', $storage->status) == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ old('status', $storage->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -72,7 +72,7 @@
             </div>
 
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">DESCRIPTION:</label>
+                <label class="block font-semibold text-gray-300 mb-2">DESCRIPTION:</label>
                 <textarea name="description" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('description', $storage->description) }}</textarea>
             </div>
 

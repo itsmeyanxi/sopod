@@ -31,7 +31,7 @@
 
             <!-- Email Field -->
             <div class="mb-4">
-                <label class="block text-gray-500 mb-2">Email</label>
+                <label class="block text-gray-300 mb-2">Email</label>
                 <input 
                     type="email" 
                     name="email" 
@@ -42,7 +42,7 @@
 
             <!-- Password Field -->
             <div class="mb-4">
-                <label class="block text-gray-500 mb-2">Password</label>
+                <label class="block text-gray-300 mb-2">Password</label>
                 <input 
                     type="password" 
                     name="password" 
@@ -76,7 +76,7 @@
             </button>
 
             <!-- Registration Disabled -->
-            <p class="mt-4 text-center text-gray-500">
+            <p class="mt-4 text-center text-gray-400">
                 Need an account? Contact your administrator.
                 <a href="http://mtcresolveit.meatplus.ph/public/ticket/index.php?entity=1"
                     target="_blank"

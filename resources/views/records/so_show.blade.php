@@ -23,21 +23,21 @@
         <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">Sales Order Information</h2>
         <div class="grid grid-cols-2 gap-6">
             <div class="space-y-1">
-                <p><span class="font-semibold text-gray-500">Sales Order #:</span> {{ $salesOrder->sales_order_number }}</p>
-                <p><span class="font-semibold text-gray-500">Customer:</span> {{ $salesOrder->customer->customer_name ?? 'N/A' }}</p>
-                <p><span class="font-semibold text-gray-500">PO Number:</span> {{ $salesOrder->po_number ?? '—' }}</p>
-                <p><span class="font-semibold text-gray-500">Request Delivery Date:</span> {{ $salesOrder->request_delivery_date ?? '—' }}</p>
+                <p><span class="font-semibold text-gray-300">Sales Order #:</span> {{ $salesOrder->sales_order_number }}</p>
+                <p><span class="font-semibold text-gray-300">Customer:</span> {{ $salesOrder->customer->customer_name ?? 'N/A' }}</p>
+                <p><span class="font-semibold text-gray-300">PO Number:</span> {{ $salesOrder->po_number ?? '—' }}</p>
+                <p><span class="font-semibold text-gray-300">Request Delivery Date:</span> {{ $salesOrder->request_delivery_date ?? '—' }}</p>
             </div>
             <div class="space-y-1">
-                <p><span class="font-semibold text-gray-500">Sales Representative:</span> {{ $salesOrder->sales_representative ?? '—' }}</p>
+                <p><span class="font-semibold text-gray-300">Sales Representative:</span> {{ $salesOrder->sales_representative ?? '—' }}</p>
                 
                 {{-- ✅ Updated Sales Executive to always get latest from customer --}}
                 <p>
-                    <span class="font-semibold text-gray-500">Sales Executive:</span> 
+                    <span class="font-semibold text-gray-300">Sales Executive:</span> 
                     {{ $salesOrder->customer->sales_executive ?? $salesOrder->sales_executive ?? '—' }}
                 </p>
                 
-                <p><span class="font-semibold text-gray-500">Status:</span>
+                <p><span class="font-semibold text-gray-300">Status:</span>
                     @php
                         $statusColors = [
                             'Pending' => 'bg-yellow-500 text-black',
@@ -52,7 +52,7 @@
                         {{ ucfirst($salesOrder->status) }}
                     </span>
                 </p>
-                <p><span class="font-semibold text-gray-500">Created At:</span> {{ $salesOrder->created_at->format('Y-m-d H:i') }}</p>
+                <p><span class="font-semibold text-gray-300">Created At:</span> {{ $salesOrder->created_at->format('Y-m-d H:i') }}</p>
             </div>
         </div>
     </div>
@@ -61,7 +61,7 @@
     <div class="bg-gray-800/80 p-6 rounded-xl shadow-lg mb-6 border border-gray-700">
         <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">Order Items</h2>
         <table class="w-full border border-gray-700 rounded-lg overflow-hidden text-gray-200">
-            <thead class="bg-gray-700 text-gray-500">
+            <thead class="bg-gray-700 text-gray-300">
                 <tr>
                     <th class="px-3 py-2 text-left">Name</th>
                     <th class="px-3 py-2 text-left">Description</th>
@@ -82,7 +82,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center py-3 text-gray-500">No items found for this order.</td>
+                        <td colspan="5" class="text-center py-3 text-gray-300">No items found for this order.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -120,13 +120,13 @@
             @method('PATCH')
 
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-2">Select New Status</label>
+                <label class="block text-xs font-medium text-gray-300 mb-2">Select New Status</label>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     @php
                         $statuses = [
                             'Approved' => ['icon' => '✅', 'color' => 'bg-green-600/20 text-green-700 border-green-700/40 hover:bg-green-600/30'],
                             'Declined' => ['icon' => '❌', 'color' => 'bg-red-600/20 text-red-700 border-red-700/40 hover:bg-red-600/30'],
-                            'Cancelled' => ['icon' => '🚫', 'color' => 'bg-gray-700 text-gray-500 border-gray-700/40 hover:bg-gray-700/30'],
+                            'Cancelled' => ['icon' => '🚫', 'color' => 'bg-gray-700 text-gray-300 border-gray-700/40 hover:bg-gray-700/30'],
                         ];
                     @endphp
 

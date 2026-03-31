@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <div>
                 <h1 class="text-2xl font-bold text-white">DEPRECIATION RUN</h1>
-                <p class="text-sm text-gray-500 mt-1 font-mono font-bold">{{ $run->run_number }}</p>
+                <p class="text-sm text-gray-300 mt-1 font-mono font-bold">{{ $run->run_number }}</p>
             </div>
             <div class="flex items-center gap-3">
                 @if($run->status === 'Posted')
@@ -35,25 +35,25 @@
         <!-- Run Details -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Period</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Period</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm font-semibold">{{ $run->period_label }} ({{ $run->period }})</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Prepared By</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Prepared By</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $run->prepared_by ?? '—' }}</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Created At</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Created At</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $run->created_at->format('M d, Y h:i A') }}</p>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Posted At</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Posted At</label>
                 <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $run->posted_at ? $run->posted_at->format('M d, Y h:i A') : '—' }}</p>
             </div>
         </div>
 
         <div class="mb-6">
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Description</label>
+            <label class="block text-xs font-semibold text-gray-300 mb-1">Description</label>
             <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $run->description ?? '—' }}</p>
         </div>
 
@@ -68,7 +68,7 @@
         <!-- Asset Groups -->
         @if($run->asset_groups)
         <div class="mb-6">
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Asset Groups Included</label>
+            <label class="block text-xs font-semibold text-gray-300 mb-1">Asset Groups Included</label>
             <div class="flex flex-wrap gap-2">
                 @foreach($run->asset_groups as $group)
                     <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs font-semibold">{{ $group }}</span>
@@ -84,7 +84,7 @@
                 <p class="text-2xl font-bold text-blue-800">{{ number_format($run->total_debit, 2) }}</p>
             </div>
             <div class="bg-gray-900 border border-gray-700 rounded p-4 text-center">
-                <p class="text-xs text-gray-500 font-semibold mb-1">Number of Assets</p>
+                <p class="text-xs text-gray-300 font-semibold mb-1">Number of Assets</p>
                 <p class="text-2xl font-bold text-gray-200">{{ count($run->depreciation_entries ?? []) }}</p>
             </div>
         </div>
@@ -93,7 +93,7 @@
         <h2 class="text-lg font-semibold text-gray-200 mb-3 border-b pb-2">Depreciation Entries</h2>
         <div class="overflow-x-auto mb-6">
             <table class="w-full text-sm border-collapse">
-                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-3 py-2 text-left">#</th>
                         <th class="border border-gray-700 px-3 py-2 text-left">Asset Code</th>
@@ -115,7 +115,7 @@
                         <td class="border border-gray-700 px-3 py-2 text-xs">
                             <span class="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">{{ $entry['asset_group'] ?? '—' }}</span>
                         </td>
-                        <td class="border border-gray-700 px-3 py-2 font-mono text-xs text-gray-500">{{ $entry['depreciation_account'] ?? '—' }}</td>
+                        <td class="border border-gray-700 px-3 py-2 font-mono text-xs text-gray-300">{{ $entry['depreciation_account'] ?? '—' }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-right text-xs">{{ number_format($entry['accumulated_before'] ?? 0, 2) }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-center text-xs">{{ $entry['remaining_before'] ?? '—' }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-right font-semibold text-blue-700">{{ number_format($entry['monthly_depreciation'] ?? 0, 2) }}</td>

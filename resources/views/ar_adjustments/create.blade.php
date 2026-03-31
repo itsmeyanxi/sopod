@@ -26,12 +26,12 @@
             <!-- Transaction Date & Reference Number -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Transaction Date: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">Transaction Date: <span class="text-red-700">*</span></label>
                     <input type="date" name="transaction_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('transaction_date', date('Y-m-d')) }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Reference Number:</label>
-                    <input type="text" name="reference_number" class="w-full bg-gray-700 border border-gray-700 rounded px-3 py-2 text-gray-500 cursor-not-allowed" value="{{ $nextRefNumber }}" readonly>
+                    <label class="block font-semibold text-gray-300 mb-2">Reference Number:</label>
+                    <input type="text" name="reference_number" class="w-full bg-gray-700 border border-gray-700 rounded px-3 py-2 text-gray-300 cursor-not-allowed" value="{{ $nextRefNumber }}" readonly>
                     <p class="text-xs text-gray-400 mt-1">Auto-generated on save</p>
                 </div>
             </div>
@@ -39,7 +39,7 @@
             <!-- Transaction Type & Customer Info -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Transaction Type: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">Transaction Type: <span class="text-red-700">*</span></label>
                     <select name="transaction_type" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                         <option value="">-- Select Transaction Type --</option>
                         <option value="debit_memo" {{ old('transaction_type') == 'debit_memo' ? 'selected' : '' }}>Debit Memo</option>
@@ -56,7 +56,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Customer Name: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">Customer Name: <span class="text-red-700">*</span></label>
                     <input type="text" name="customer_name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter customer name" value="{{ old('customer_name') }}" required>
                 </div>
             </div>
@@ -75,19 +75,19 @@
                     <div class="flex justify-between items-start">
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm flex-1">
                             <div>
-                                <p class="text-xs text-gray-500">RR Number</p>
+                                <p class="text-xs text-gray-300">RR Number</p>
                                 <p class="font-semibold text-purple-700" id="rrPreviewRR"></p>
                             </div>
                             <div>
-                                <p class="text-xs text-gray-500">DR / Delivery Batch</p>
+                                <p class="text-xs text-gray-300">DR / Delivery Batch</p>
                                 <p class="font-semibold text-white" id="rrPreviewDR"></p>
                             </div>
                             <div>
-                                <p class="text-xs text-gray-500">Customer</p>
+                                <p class="text-xs text-gray-300">Customer</p>
                                 <p class="font-semibold text-white" id="rrPreviewCustomer"></p>
                             </div>
                             <div>
-                                <p class="text-xs text-gray-500">RR Total Amount</p>
+                                <p class="text-xs text-gray-300">RR Total Amount</p>
                                 <p class="font-semibold text-green-700" id="rrPreviewAmount"></p>
                             </div>
                         </div>
@@ -102,11 +102,11 @@
             <!-- Customer Code & Branch -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Customer Code:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">Customer Code:</label>
                     <input type="text" name="customer_code" id="customerCodeInput" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Customer code (optional)" value="{{ old('customer_code') }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Branch:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">Branch:</label>
                     <input type="text" name="branch" id="branchInput" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Branch (optional)" value="{{ old('branch') }}">
                 </div>
             </div>
@@ -114,11 +114,11 @@
             <!-- DR & Invoice Numbers -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">DR Number:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">DR Number:</label>
                     <input type="text" name="dr_no" id="drNoInput" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Delivery Report number (optional)" value="{{ old('dr_no') }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Invoice Number:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">Invoice Number:</label>
                     <input type="text" name="invoice_number" id="invoiceNumberInput" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Invoice number (optional)" value="{{ old('invoice_number') }}">
                 </div>
             </div>
@@ -126,19 +126,19 @@
             <!-- Amount & GL Account -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
     <div>
-        <label class="block font-semibold text-gray-500 mb-2">Amount: <span class="text-red-700">*</span></label>
+        <label class="block font-semibold text-gray-300 mb-2">Amount: <span class="text-red-700">*</span></label>
         <div class="relative">
-            <span class="absolute left-3 top-2 text-gray-500 text-lg">₱</span>
+            <span class="absolute left-3 top-2 text-gray-300 text-lg">₱</span>
             <input type="text" name="amount" id="amountInput"
                 class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 pl-8 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="0.00 (use - or () for decrease)"
                 value="{{ old('amount') }}" required>
         </div>
-        <p class="text-xs text-gray-500 mt-1">Enter negative/() to decrease AR, positive to increase AR</p>
+        <p class="text-xs text-gray-300 mt-1">Enter negative/() to decrease AR, positive to increase AR</p>
     </div>
 
     <div>
-    <label class="block font-semibold text-gray-500 mb-2">GL Account: <span class="text-red-700">*</span></label>
+    <label class="block font-semibold text-gray-300 mb-2">GL Account: <span class="text-red-700">*</span></label>
 
     <input type="hidden" name="gl_account_id" id="glAccountId" value="{{ old('gl_account_id') }}">
     <input type="hidden" name="gl_account"    id="glAccountCode" value="{{ old('gl_account') }}">
@@ -188,23 +188,23 @@
 
             <!-- Signed By -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">Signed By: <span class="text-red-700">*</span></label>
+                <label class="block font-semibold text-gray-300 mb-2">Signed By: <span class="text-red-700">*</span></label>
                 <input type="text" name="signed_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Name of person who signed" value="{{ old('signed_by') }}" required>
             </div>
 
             <!-- Remarks & Attachment -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Remarks:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">Remarks:</label>
                     <textarea name="remarks" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter any remarks...">{{ old('remarks') }}</textarea>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">Supporting Document:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">Supporting Document:</label>
                     <div class="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-purple-400 transition" id="dropZone">
                         <input type="file" name="attachment" id="attachmentInput" accept=".pdf,.png,.jpg,.jpeg" class="hidden">
                         <div id="uploadPlaceholder">
                             <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
-                            <p class="text-sm text-gray-500">Click or drag & drop to upload</p>
+                            <p class="text-sm text-gray-300">Click or drag & drop to upload</p>
                             <p class="text-xs text-gray-400 mt-1">PDF, PNG, JPG (max 5MB)</p>
                         </div>
                         <div id="filePreview" class="hidden">
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <span class="text-green-700 font-semibold text-sm">₱${Number(rr.total_amount).toLocaleString('en', {minimumFractionDigits: 2})}</span>
                 </div>
-                <div class="text-xs text-gray-500 mt-1">
+                <div class="text-xs text-gray-300 mt-1">
                     ${rr.customer_name || '—'} ${rr.customer_code ? '(' + rr.customer_code + ')' : ''}
                     <span class="text-gray-400 ml-1">${rr.received_date || ''}</span>
                     <span class="ml-1 px-1.5 py-0.5 rounded text-xs ${rr.status === 'Received' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${rr.status}</span>

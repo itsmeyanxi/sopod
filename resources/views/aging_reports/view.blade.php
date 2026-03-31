@@ -23,9 +23,9 @@
             <form id="filter-form" method="GET" action="{{ route('aging_reports.summary') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Record Date Filter (filters which records to show) -->
                 <div>
-                    <label for="filter_date" class="block text-sm font-medium text-gray-500 mb-2">
+                    <label for="filter_date" class="block text-sm font-medium text-gray-300 mb-2">
                         Record Date (On or Before)
-                        <span class="text-xs text-gray-500 ml-1">(leave empty to show ALL records)</span>
+                        <span class="text-xs text-gray-300 ml-1">(leave empty to show ALL records)</span>
                     </label>
                     <input type="date" id="filter_date" name="filter_date"
                            value="{{ request('filter_date') ?? now()->format('Y-m-d') }}"
@@ -37,7 +37,7 @@
             {{-- Active Filters Display --}}
             @if(request()->has('filter_date') || request()->has('aging_date'))
             <div class="mt-4 flex items-center gap-2 flex-wrap">
-                <span class="text-sm text-gray-500">Active filters:</span>
+                <span class="text-sm text-gray-300">Active filters:</span>
 
                 @if(request()->has('filter_date'))
                 <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs flex items-center gap-2">
@@ -63,7 +63,7 @@
         <div class="bg-gray-700 rounded-lg p-6">
             <!-- Aging Date Filter (calculates age dynamically) -->
             <div class="mb-4">
-                <label for="aging_date" class="block text-sm font-medium text-gray-500 mb-2">
+                <label for="aging_date" class="block text-sm font-medium text-gray-300 mb-2">
                     Aging Date (As of Date)
                     <span class="text-xs text-yellow-700 ml-1">⚡ (age = days since counter date; leave empty to use each record's own record date)</span>
                 </label>
@@ -97,7 +97,7 @@
             {{-- Record count --}}
             @if(isset($agingReports) && count($agingReports) > 0)
             <div class="mb-4">
-                <p class="text-gray-500 text-sm">
+                <p class="text-gray-300 text-sm">
                     <i class="fas fa-info-circle mr-1"></i>
                     Showing <strong>{{ count($agingReports) }}</strong> record(s)
                     @if(request('filter_date'))
@@ -111,7 +111,7 @@
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-gray-800 rounded-lg">
                     <thead>
-                        <tr class="bg-gray-900 text-gray-500 text-sm">
+                        <tr class="bg-gray-900 text-gray-300 text-sm">
                             <th class="px-4 py-3 text-left">Aging Date</th>
                             <th class="px-4 py-3 text-left">Counter Date</th>
                             <th class="px-4 py-3 text-left">Invoice Date</th>
@@ -125,7 +125,7 @@
                             <th class="px-4 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-500">
+                    <tbody class="text-gray-200">
                         @if(isset($agingReports) && count($agingReports) > 0)
                             @foreach($agingReports as $report)
                             <tr class="border-b border-gray-700 hover:bg-gray-900">
@@ -172,7 +172,7 @@
                             @endforeach
                         @else
                             <tr>
-                                <td colspan="11" class="px-4 py-8 text-center text-gray-500">
+                                <td colspan="11" class="px-4 py-8 text-center text-gray-400">
                                     <i class="fas fa-inbox text-4xl mb-2"></i>
                                     <p>No aging reports found.</p>
                                     <p class="text-sm mt-2">
@@ -342,7 +342,7 @@
         if (!data || data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="11" class="px-4 py-8 text-center text-gray-500">
+                    <td colspan="11" class="px-4 py-8 text-center text-gray-400">
                         <i class="fas fa-inbox text-4xl mb-2"></i>
                         <p>No aging reports found.</p>
                     </td>

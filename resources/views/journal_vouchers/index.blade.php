@@ -84,7 +84,7 @@
         <!-- Table -->
         <div class="overflow-x-auto">
             <table class="w-full text-sm border-collapse">
-                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-3 py-3 text-left">JV Number</th>
                         <th class="border border-gray-700 px-3 py-3 text-center">Date</th>
@@ -109,7 +109,7 @@
                             <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs font-semibold">{{ $jv->formatted_type }}</span>
                         </td>
                         <td class="border border-gray-700 px-3 py-2 text-gray-200 max-w-xs truncate" title="{{ $jv->description }}">{{ Str::limit($jv->description, 40) }}</td>
-                        <td class="border border-gray-700 px-3 py-2 text-gray-500 text-xs">{{ $jv->reference_no ?? '—' }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-gray-300 text-xs">{{ $jv->reference_no ?? '—' }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-right font-semibold">{{ number_format($jv->total_debit, 2) }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-right font-semibold">{{ number_format($jv->total_credit, 2) }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-center text-xs">{{ $jv->lines_count }}</td>

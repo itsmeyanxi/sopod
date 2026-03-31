@@ -9,7 +9,7 @@
                 <h2 class="text-2xl font-bold text-white flex items-center gap-2">
                     🔄 Receiving Report Details
                 </h2>
-                <p class="text-sm text-gray-500 mt-1">RR Number: <span class="text-blue-700 font-mono">{{ $receivingReport->rr_number }}</span></p>
+                <p class="text-sm text-gray-300 mt-1">RR Number: <span class="text-blue-700 font-mono">{{ $receivingReport->rr_number }}</span></p>
             </div>
             <div class="flex gap-2">
                 <a href="{{ route('receiving-reports.print', $receivingReport->id) }}" target="_blank"
@@ -60,39 +60,39 @@
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Sales Order Number</label>
+                        <label class="block text-xs text-gray-300 mb-1">Sales Order Number</label>
                         <p class="text-gray-200 font-mono">{{ $receivingReport->sales_order_number }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Customer Code</label>
+                        <label class="block text-xs text-gray-300 mb-1">Customer Code</label>
                         <p class="text-gray-200">{{ $receivingReport->customer_code ?? '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Customer Name</label>
+                        <label class="block text-xs text-gray-300 mb-1">Customer Name</label>
                         <p class="text-gray-200">{{ $receivingReport->customer_name ?? '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">TIN</label>
+                        <label class="block text-xs text-gray-300 mb-1">TIN</label>
                         <p class="text-gray-200">{{ $receivingReport->tin_no ?? '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Branch</label>
+                        <label class="block text-xs text-gray-300 mb-1">Branch</label>
                         <p class="text-gray-200">{{ $receivingReport->branch ?? '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">PO Number</label>
+                        <label class="block text-xs text-gray-300 mb-1">PO Number</label>
                         <p class="text-gray-200">{{ $receivingReport->po_number ?? '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Sales Representative</label>
+                        <label class="block text-xs text-gray-300 mb-1">Sales Representative</label>
                         <p class="text-gray-200">{{ $receivingReport->sales_representative ?? '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Sales Executive</label>
+                        <label class="block text-xs text-gray-300 mb-1">Sales Executive</label>
                         <p class="text-gray-200">{{ $receivingReport->sales_executive ?? '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Delivery Batch (DR No.)</label>
+                        <label class="block text-xs text-gray-300 mb-1">Delivery Batch (DR No.)</label>
                         <div class="flex items-center gap-2">
                             <p class="text-gray-200" id="drDisplay">{{ $receivingReport->delivery_batch ?? '—' }}</p>
                             <button type="button" onclick="document.getElementById('drEditForm').classList.toggle('hidden'); document.getElementById('drDisplay').classList.toggle('hidden'); this.classList.toggle('hidden');"
@@ -107,7 +107,7 @@
                                 class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:outline-none w-40">
                             <button type="submit" class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Save</button>
                             <button type="button" onclick="document.getElementById('drEditForm').classList.add('hidden'); document.getElementById('drDisplay').classList.remove('hidden'); document.getElementById('drEditBtn').classList.remove('hidden');"
-                                class="text-gray-500 hover:text-gray-200 text-xs">Cancel</button>
+                                class="text-gray-300 hover:text-gray-200 text-xs">Cancel</button>
                         </form>
                     </div>
                 </div>
@@ -123,41 +123,41 @@
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Received Date</label>
+                        <label class="block text-xs text-gray-300 mb-1">Received Date</label>
                         <p class="text-gray-200">{{ $receivingReport->received_date ? $receivingReport->received_date->format('M d, Y h:i A') : '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Request Delivery Date</label>
+                        <label class="block text-xs text-gray-300 mb-1">Request Delivery Date</label>
                         <p class="text-gray-200">{{ $receivingReport->request_delivery_date ? \Carbon\Carbon::parse($receivingReport->request_delivery_date)->format('M d, Y') : '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Received By</label>
+                        <label class="block text-xs text-gray-300 mb-1">Received By</label>
                         <p class="text-gray-200">{{ $receivingReport->received_by ?? '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Plate No</label>
+                        <label class="block text-xs text-gray-300 mb-1">Plate No</label>
                         <p class="text-gray-200">{{ $receivingReport->plate_no ?? '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Sales Invoice No</label>
+                        <label class="block text-xs text-gray-300 mb-1">Sales Invoice No</label>
                         <p class="text-gray-200">{{ $receivingReport->sales_invoice_no ?? '—' }}</p>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Created By</label>
+                        <label class="block text-xs text-gray-300 mb-1">Created By</label>
                         <p class="text-gray-200">{{ $receivingReport->created_by ?? '—' }}</p>
                     </div>
                 </div>
 
                 @if($receivingReport->additional_instructions)
                 <div class="mt-4 pt-4 border-t border-gray-700">
-                    <label class="block text-xs text-gray-500 mb-2">Additional Instructions</label>
+                    <label class="block text-xs text-gray-300 mb-2">Additional Instructions</label>
                     <p class="text-gray-200 bg-gray-900/50 p-3 rounded">{{ $receivingReport->additional_instructions }}</p>
                 </div>
                 @endif
 
                 @if($receivingReport->attachment)
                 <div class="mt-4 pt-4 border-t border-gray-700">
-                    <label class="block text-xs text-gray-500 mb-2">Attachment</label>
+                    <label class="block text-xs text-gray-300 mb-2">Attachment</label>
                     <a href="{{ asset('receiving_report_attachments/' . $receivingReport->attachment) }}" target="_blank" 
                        class="inline-flex items-center gap-2 text-blue-700 hover:text-blue-700">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,7 +182,7 @@
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                        <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                             <tr>
                                 <th class="px-4 py-3 text-left">#</th>
                                 <th class="px-4 py-3 text-left">Item Code</th>
@@ -199,7 +199,7 @@
                         <tbody class="divide-y divide-gray-700">
                             @php $totalAmount = 0; @endphp
                             @forelse($receivingReport->items as $index => $item)
-                            <tr class="text-gray-500 hover:bg-gray-800/50">
+                            <tr class="text-gray-300 hover:bg-gray-800/50">
                                 <td class="px-4 py-3">{{ $index + 1 }}</td>
                                 <td class="px-4 py-3 font-mono text-blue-700">{{ $item->item_code }}</td>
                                 <td class="px-4 py-3">{{ $item->item_description ?? '—' }}</td>
@@ -216,14 +216,14 @@
                             @if($item->notes)
                             <tr class="bg-gray-900/30">
                                 <td colspan="10" class="px-4 py-2">
-                                    <span class="text-xs text-gray-500">Note:</span>
-                                    <span class="text-xs text-gray-500">{{ $item->notes }}</span>
+                                    <span class="text-xs text-gray-300">Note:</span>
+                                    <span class="text-xs text-gray-300">{{ $item->notes }}</span>
                                 </td>
                             </tr>
                             @endif
                             @empty
                             <tr>
-                                <td colspan="10" class="px-4 py-8 text-center text-gray-500">
+                                <td colspan="10" class="px-4 py-8 text-center text-gray-400">
                                     No items found
                                 </td>
                             </tr>
@@ -231,7 +231,7 @@
                         </tbody>
                         <tfoot class="bg-gray-900 font-semibold">
                             <tr>
-                                <td colspan="9" class="px-4 py-3 text-right text-gray-500">Grand Total:</td>
+                                <td colspan="9" class="px-4 py-3 text-right text-gray-300">Grand Total:</td>
                                 <td class="px-4 py-3 text-right text-green-700 text-lg">₱{{ number_format($totalAmount, 2) }}</td>
                             </tr>
                         </tfoot>
@@ -251,7 +251,7 @@
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                        <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                             <tr>
                                 <th class="px-4 py-3 text-left">Reference #</th>
                                 <th class="px-4 py-3 text-left">Type</th>
@@ -285,7 +285,7 @@
                         </tbody>
                         <tfoot class="bg-gray-900 font-semibold">
                             <tr>
-                                <td colspan="4" class="px-4 py-3 text-right text-gray-500">Total Adjustments:</td>
+                                <td colspan="4" class="px-4 py-3 text-right text-gray-300">Total Adjustments:</td>
                                 <td class="px-4 py-3 text-right text-purple-700">
                                     ₱{{ number_format($receivingReport->arAdjustments->sum('amount'), 2) }}
                                 </td>
@@ -298,7 +298,7 @@
             @endif
 
             <!-- Timestamps -->
-            <div class="flex justify-between text-xs text-gray-500 pt-4 border-t border-gray-700">
+            <div class="flex justify-between text-xs text-gray-300 pt-4 border-t border-gray-700">
                 <div>
                     <span>Created:</span>
                     <span class="text-gray-300">{{ $receivingReport->created_at->format('M d, Y h:i A') }}</span>

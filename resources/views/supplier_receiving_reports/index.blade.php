@@ -33,12 +33,12 @@
         <form method="GET" action="{{ route('supplier_receiving_reports.index') }}" class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
-                    <label class="block text-gray-500 text-sm mb-1">Search</label>
+                    <label class="block text-gray-300 text-sm mb-1">Search</label>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="SRR code, supply, PO#, CV#..."
                         class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
-                    <label class="block text-gray-500 text-sm mb-1">Status</label>
+                    <label class="block text-gray-300 text-sm mb-1">Status</label>
                     <select name="status" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                         <option value="">All Status</option>
                         <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
@@ -48,12 +48,12 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-gray-500 text-sm mb-1">Date From</label>
+                    <label class="block text-gray-300 text-sm mb-1">Date From</label>
                     <input type="date" name="date_from" value="{{ request('date_from') }}"
                         class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
-                    <label class="block text-gray-500 text-sm mb-1">Date To</label>
+                    <label class="block text-gray-300 text-sm mb-1">Date To</label>
                     <input type="date" name="date_to" value="{{ request('date_to') }}"
                         class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
@@ -70,7 +70,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full border-collapse border border-gray-700">
-                <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
+                <thead class="bg-gray-700 text-gray-300 uppercase text-sm">
                     <tr>
                         <th class="border border-gray-700 px-4 py-3">SRR CODE</th>
                         <th class="border border-gray-700 px-4 py-3">DATE</th>
@@ -84,7 +84,7 @@
                         <th class="border border-gray-700 px-4 py-3">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-500">
+                <tbody class="text-gray-200">
                     @forelse($reports as $report)
                         <tr class="hover:bg-gray-700/40">
                             <td class="border border-gray-700 px-4 py-3 font-semibold">{{ $report->srr_code }}</td>
@@ -134,7 +134,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="border border-gray-700 px-4 py-8 text-center text-gray-500">
+                            <td colspan="10" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No supply receiving reports found. <a href="{{ route('supplier_receiving_reports.create') }}" class="text-purple-700 hover:text-purple-700">Create one now</a>
                             </td>
                         </tr>

@@ -13,7 +13,7 @@
                     <i class="fas fa-chart-line text-blue-700"></i>
                     AR Management System
                 </h2>
-                <p class="text-gray-500 text-sm mt-1">Unified view of Aging Reports, Collections, and Adjustments</p>
+                <p class="text-gray-300 text-sm mt-1">Unified view of Aging Reports, Collections, and Adjustments</p>
             </div>
         </div>
 
@@ -24,12 +24,12 @@
             </div>
             <form method="GET" action="{{ route('ar.unified') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Record Date</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Record Date</label>
                     <input type="date" name="filter_date" value="{{ $filterDate }}"
                            class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Include</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Include</label>
                     <select name="include" class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                         <option value="all" {{ $include === 'all' ? 'selected' : '' }}>All Records</option>
                         <option value="yes" {{ $include === 'yes' ? 'selected' : '' }}>Included Only</option>
@@ -37,7 +37,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">View</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">View</label>
                     <select name="view" id="view_selector" class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2">
                         <option value="list" {{ $view === 'list' ? 'selected' : '' }}>AR Aging List</option>
                         <option value="summary" {{ $view === 'summary' ? 'selected' : '' }}>Summary Report</option>
@@ -66,7 +66,7 @@
                     <i class="fas fa-dollar-sign text-blue-700 text-xl"></i>
                 </div>
                 <p class="text-white text-2xl font-bold">₱{{ number_format($metrics['total_ar'], 2) }}</p>
-                <p class="text-gray-500 text-xs mt-1">Outstanding balance</p>
+                <p class="text-gray-300 text-xs mt-1">Outstanding balance</p>
             </div>
 
             <div class="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -75,7 +75,7 @@
                     <i class="fas fa-check-circle text-green-700 text-xl"></i>
                 </div>
                 <p class="text-white text-2xl font-bold">₱{{ number_format($metrics['total_collected'], 2) }}</p>
-                <p class="text-gray-500 text-xs mt-1">Payments received</p>
+                <p class="text-gray-300 text-xs mt-1">Payments received</p>
             </div>
 
             <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
@@ -84,7 +84,7 @@
                     <i class="fas fa-file-invoice text-purple-700 text-xl"></i>
                 </div>
                 <p class="text-white text-2xl font-bold">₱{{ number_format($metrics['total_invoiced'], 2) }}</p>
-                <p class="text-gray-500 text-xs mt-1">All invoices</p>
+                <p class="text-gray-300 text-xs mt-1">All invoices</p>
             </div>
 
             <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -93,7 +93,7 @@
                     <i class="fas fa-hourglass-half text-orange-700 text-xl"></i>
                 </div>
                 <p class="text-white text-2xl font-bold">{{ $metrics['outstanding_count'] }}</p>
-                <p class="text-gray-500 text-xs mt-1">Unpaid invoices</p>
+                <p class="text-gray-300 text-xs mt-1">Unpaid invoices</p>
             </div>
         </div>
 
@@ -125,7 +125,7 @@
     <div class="bg-gray-800 rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-2xl font-bold text-white">Record Collection</h3>
-            <button onclick="closeCollectionModal()" class="text-gray-500 hover:text-white">
+            <button onclick="closeCollectionModal()" class="text-gray-300 hover:text-white">
                 <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
@@ -134,7 +134,7 @@
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Customer Code *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Customer Code *</label>
                     <input type="text" name="customer_code" id="customer_code_input" required
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     <button type="button" onclick="searchCustomer()" class="mt-2 text-blue-700 text-sm hover:underline">
@@ -143,25 +143,25 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Collection Receipt No. *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Collection Receipt No. *</label>
                     <input type="text" name="collection_receipt_number" required
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Receipt Date *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Receipt Date *</label>
                     <input type="date" name="collection_receipt_date" value="{{ now()->format('Y-m-d') }}" required
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Posting Date *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Posting Date *</label>
                     <input type="date" name="payment_posting_date" value="{{ now()->format('Y-m-d') }}" required
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Payment Option *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Payment Option *</label>
                     <select name="payment_option" required
                             class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                         <option value="Full Payment">Full Payment</option>
@@ -170,30 +170,30 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Check Amount (Gross) *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Check Amount (Gross) *</label>
                     <input type="number" name="check_amount" step="0.01" min="0" required
                            oninput="calculateNetAmount()"
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
-                    <p class="text-xs text-gray-500 mt-1">Invoice/Gross amount</p>
+                    <p class="text-xs text-gray-300 mt-1">Invoice/Gross amount</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">EWT (Withholding Tax)</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">EWT (Withholding Tax)</label>
                     <input type="number" name="ewt" step="0.01" min="0" value="0"
                            oninput="calculateNetAmount()"
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
-                    <p class="text-xs text-gray-500 mt-1">Tax withheld by customer</p>
+                    <p class="text-xs text-gray-300 mt-1">Tax withheld by customer</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Net Amount (After Tax)</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Net Amount (After Tax)</label>
                     <input type="text" id="net_amount_display" readonly
                            class="w-full bg-gray-600 text-white border border-gray-600 rounded px-3 py-2 font-bold text-green-700">
-                    <p class="text-xs text-gray-500 mt-1">Auto-calculated: Check Amount - EWT</p>
+                    <p class="text-xs text-gray-300 mt-1">Auto-calculated: Check Amount - EWT</p>
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Notes</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Notes</label>
                     <textarea name="payment_notes" rows="3"
                               class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2"></textarea>
                 </div>
@@ -218,7 +218,7 @@
     <div class="bg-gray-800 rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-2xl font-bold text-white">Record AR Adjustment</h3>
-            <button onclick="closeAdjustmentModal()" class="text-gray-500 hover:text-white">
+            <button onclick="closeAdjustmentModal()" class="text-gray-300 hover:text-white">
                 <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
@@ -235,19 +235,19 @@
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Customer Code *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Customer Code *</label>
                     <input type="text" name="customer_code" required
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Reference Number *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Reference Number *</label>
                     <input type="text" name="reference_number" required
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Type *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Type *</label>
                     <select name="transaction_type" required
                             class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                         <option value="">Select Type</option>
@@ -259,33 +259,33 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Date *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Date *</label>
                     <input type="date" name="transaction_date" value="{{ now()->format('Y-m-d') }}" required
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Amount *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Amount *</label>
                     <input type="text" name="amount" placeholder="1000 or (1000)" required
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
-                    <p class="text-xs text-gray-500 mt-1">Use () to decrease AR</p>
+                    <p class="text-xs text-gray-300 mt-1">Use () to decrease AR</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Invoice Number</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Invoice Number</label>
                     <input type="text" name="invoice_number"
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
-                    <p class="text-xs text-gray-500 mt-1">Optional - leave blank to apply to oldest</p>
+                    <p class="text-xs text-gray-300 mt-1">Optional - leave blank to apply to oldest</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">DR No.</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">DR No.</label>
                     <input type="text" name="dr_no"
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">GL Account *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">GL Account *</label>
                     <div class="relative">
                         <input type="hidden" name="gl_account_id" id="arMgmtGlAccountId">
                         <input type="hidden" name="gl_account" id="arMgmtGlAccountCode">
@@ -296,13 +296,13 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Signed By *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Signed By *</label>
                     <input type="text" name="signed_by" required
                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Remarks</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Remarks</label>
                     <textarea name="remarks" rows="3"
                               class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2"></textarea>
                 </div>
@@ -528,12 +528,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         dropdown.innerHTML = data.accounts.map(account => `
                             <div class="px-3 py-2 hover:bg-purple-700 cursor-pointer text-white" onclick="selectArMgmtGlAccount(${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')" >
                                 <div class="font-semibold">${account.display}</div>
-                                <div class="text-xs text-gray-500">${account.fs_line_item || 'No FS Item'}</div>
+                                <div class="text-xs text-gray-300">${account.fs_line_item || 'No FS Item'}</div>
                             </div>
                         `).join('');
                         dropdown.classList.remove('hidden');
                     } else {
-                        dropdown.innerHTML = '<div class="px-3 py-2 text-gray-500">No GL accounts found</div>';
+                        dropdown.innerHTML = '<div class="px-3 py-2 text-gray-300">No GL accounts found</div>';
                         dropdown.classList.remove('hidden');
                     }
                 } catch (error) {

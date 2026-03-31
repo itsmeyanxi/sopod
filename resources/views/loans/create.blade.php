@@ -28,7 +28,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-300 mb-1">Loan No.</label>
-                    <input type="text" value="{{ $nextLoanNo }}" readonly class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm font-mono text-gray-500">
+                    <input type="text" value="{{ $nextLoanNo }}" readonly class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm font-mono text-gray-300">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-300 mb-1">Loan Date <span class="text-red-500">*</span></label>
@@ -131,7 +131,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-300 mb-1">Prepared By</label>
-                    <input type="text" value="{{ auth()->user()->name }}" readonly class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-gray-500">
+                    <input type="text" value="{{ auth()->user()->name }}" readonly class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-gray-300">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-300 mb-1">Approved By</label>

@@ -26,37 +26,37 @@
         <!-- Asset Identification -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Asset Code:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Asset Code:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded font-mono font-bold text-blue-700">{{ $asset->asset_code ?: 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Serial / Engine No.:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Serial / Engine No.:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->serial_engine_no ?: 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Plate No.:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Plate No.:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->plate_no ?: 'N/A' }}</p>
             </div>
         </div>
 
         <!-- Description -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-1">Asset Description:</label>
+            <label class="block font-semibold text-gray-300 mb-1">Asset Description:</label>
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->asset_description }}</p>
         </div>
 
         <!-- Classification -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Asset Group:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Asset Group:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->asset_group }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Asset Class:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Asset Class:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->asset_class ?: 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Depreciation Type:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Depreciation Type:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->dep_type }}</p>
             </div>
         </div>
@@ -64,19 +64,19 @@
         <!-- Dates -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Date Posted:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Date Posted:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->date_posted?->format('M d, Y') ?? 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Acquisition Date:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Acquisition Date:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->acquisition_date?->format('M d, Y') ?? 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Dep. Start Date:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Dep. Start Date:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->dep_start_date?->format('M d, Y') ?? 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Dep. End Date:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Dep. End Date:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->dep_end_date?->format('M d, Y') ?? 'N/A' }}</p>
             </div>
         </div>
@@ -86,11 +86,11 @@
             <h3 class="font-semibold text-red-700 mb-2"><i class="fas fa-ban mr-1"></i> Disposal Information</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                    <p class="text-gray-500">Disposal Date</p>
+                    <p class="text-gray-300">Disposal Date</p>
                     <p class="font-semibold text-red-700">{{ $asset->disposal_date->format('M d, Y') }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">Disposal Amount</p>
+                    <p class="text-gray-300">Disposal Amount</p>
                     <p class="font-semibold text-red-700">{{ number_format($asset->disposal_amount, 2) }}</p>
                 </div>
             </div>
@@ -102,19 +102,19 @@
             <h3 class="font-semibold text-blue-800 mb-4"><i class="fas fa-calculator mr-1"></i> Financial Information</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="text-center">
-                    <p class="text-xs text-gray-500 mb-1">Cost</p>
+                    <p class="text-xs text-gray-300 mb-1">Cost</p>
                     <p class="text-lg font-bold text-white">{{ number_format($asset->cost, 2) }}</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-xs text-gray-500 mb-1">Accum. Depreciation</p>
+                    <p class="text-xs text-gray-300 mb-1">Accum. Depreciation</p>
                     <p class="text-lg font-bold text-orange-700">{{ number_format($asset->accumulated_depreciation, 2) }}</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-xs text-gray-500 mb-1">Net Book Value</p>
+                    <p class="text-xs text-gray-300 mb-1">Net Book Value</p>
                     <p class="text-lg font-bold text-green-700">{{ number_format($asset->net_book_value, 2) }}</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-xs text-gray-500 mb-1">Salvage Value</p>
+                    <p class="text-xs text-gray-300 mb-1">Salvage Value</p>
                     <p class="text-lg font-bold text-gray-300">{{ number_format($asset->salvage_value, 2) }}</p>
                 </div>
             </div>
@@ -123,19 +123,19 @@
         <!-- Depreciation Schedule -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Useful Life (Years):</label>
+                <label class="block font-semibold text-gray-300 mb-1">Useful Life (Years):</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->useful_life_years }} yrs ({{ $asset->useful_life_months }} months)</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Remaining Life:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Remaining Life:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded font-semibold {{ $asset->remaining_life_months > 0 ? 'text-blue-700' : 'text-red-700' }}">{{ $asset->remaining_life_months }} months</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Monthly Depreciation:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Monthly Depreciation:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ number_format($asset->monthly_depreciation, 2) }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Yearly Depreciation:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Yearly Depreciation:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ number_format($asset->yearly_depreciation, 2) }}</p>
             </div>
         </div>
@@ -143,15 +143,15 @@
         <!-- Accounting Information -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">GL Account:</label>
+                <label class="block font-semibold text-gray-300 mb-1">GL Account:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->gl_account ?: 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Depreciation Account:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Depreciation Account:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->depreciation_account ?: 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Cost Center:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Cost Center:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->cost_center_name ?: 'N/A' }} {{ $asset->cost_center_code ? '(' . $asset->cost_center_code . ')' : '' }}</p>
             </div>
         </div>
@@ -159,15 +159,15 @@
         <!-- Assignment -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Assigned Person:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Assigned Person:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->assigned_person ?: 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Employee (Accountability):</label>
+                <label class="block font-semibold text-gray-300 mb-1">Employee (Accountability):</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->employee_name ?: 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Vendor:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Vendor:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->vendor_name ?: 'N/A' }}</p>
             </div>
         </div>
@@ -175,19 +175,19 @@
         <!-- References -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Reference APV/JV:</label>
+                <label class="block font-semibold text-gray-300 mb-1">Reference APV/JV:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->reference_apv_jv ?: 'N/A' }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">Reference (Reversal):</label>
+                <label class="block font-semibold text-gray-300 mb-1">Reference (Reversal):</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $asset->reference_reversal ?: 'N/A' }}</p>
             </div>
         </div>
 
         <!-- Audit -->
         <div class="bg-gray-700 rounded-lg p-4 mb-6">
-            <h3 class="font-semibold text-gray-500 mb-3">Audit Information</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500">
+            <h3 class="font-semibold text-gray-300 mb-3">Audit Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-300">
                 <div>
                     <label class="font-semibold">Created By:</label>
                     <p>{{ $asset->created_by ?? 'N/A' }}</p>
@@ -250,7 +250,7 @@
                         <input type="number" name="disposal_amount" id="disposal-amount" step="0.01" min="0" value="{{ $asset->net_book_value }}" required
                                class="w-full px-3 py-2 border border-gray-600 rounded focus:outline-none focus:border-blue-500"
                                placeholder="Enter proceeds or salvage value">
-                        <p class="text-xs text-gray-500 mt-1">You can edit this amount if different from net book value</p>
+                        <p class="text-xs text-gray-300 mt-1">You can edit this amount if different from net book value</p>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-200 mb-2">Gain/Loss GL Account</label>
@@ -261,7 +261,7 @@
                             'value'      => '703000002',
                             'glAccounts' => $glAccounts,
                         ])
-                        <p class="text-xs text-gray-500 mt-1">Default: 703000002 — Gain/Loss on Retirement of Fixed Assets</p>
+                        <p class="text-xs text-gray-300 mt-1">Default: 703000002 — Gain/Loss on Retirement of Fixed Assets</p>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-200 mb-2">Reason for Disposal *</label>

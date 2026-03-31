@@ -15,15 +15,15 @@
         <!-- Filters -->
         <form method="GET" class="mb-4 flex flex-wrap gap-3 items-end">
             <div>
-                <label class="block text-gray-500 text-xs mb-1">Search</label>
+                <label class="block text-gray-300 text-xs mb-1">Search</label>
                 <input type="text" name="search" value="{{ request('search') }}" class="bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm" placeholder="IS#, SO#, Customer...">
             </div>
             <div>
-                <label class="block text-gray-500 text-xs mb-1">From</label>
+                <label class="block text-gray-300 text-xs mb-1">From</label>
                 <input type="date" name="date_from" value="{{ request('date_from') }}" class="bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm">
             </div>
             <div>
-                <label class="block text-gray-500 text-xs mb-1">To</label>
+                <label class="block text-gray-300 text-xs mb-1">To</label>
                 <input type="date" name="date_to" value="{{ request('date_to') }}" class="bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm">
             </div>
             <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
@@ -72,7 +72,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="border border-gray-700 px-3 py-6 text-center text-gray-500">No issue slips found.</td>
+                        <td colspan="8" class="border border-gray-700 px-3 py-6 text-center text-gray-400">No issue slips found.</td>
                     </tr>
                     @endforelse
                 </tbody>

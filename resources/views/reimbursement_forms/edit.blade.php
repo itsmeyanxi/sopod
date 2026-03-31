@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">EDIT REIMBURSEMENT FORM</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-500">RI NO:</label>
+                <label class="font-semibold text-gray-300">RI NO:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $reimbursement->ri_no }}</span>
             </div>
         </div>
@@ -31,21 +31,21 @@
             <!-- Department and Date Applied -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">DEPARTMENT: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">DEPARTMENT: <span class="text-red-700">*</span></label>
                     <input type="text" name="department" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('department', $reimbursement->department) }}" required placeholder="Enter department name">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">DATE APPLIED: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">DATE APPLIED: <span class="text-red-700">*</span></label>
                     <input type="date" name="date_applied" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_applied', $reimbursement->date_applied->format('Y-m-d')) }}" required>
                 </div>
             </div>
 
             <!-- Line Items Table -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-3">EXPENSE ITEMS:</label>
+                <label class="block font-semibold text-gray-300 mb-3">EXPENSE ITEMS:</label>
                 <div class="overflow-x-auto">
                     <table class="w-full border-collapse border border-gray-700" id="itemsTable">
-                        <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
+                        <thead class="bg-gray-700 text-gray-300 uppercase text-sm">
                             <tr>
                                 <th class="border border-gray-700 px-4 py-3" style="width: 20%;">DATE</th>
                                 <th class="border border-gray-700 px-4 py-3" style="width: 50%;">PARTICULARS</th>
@@ -95,27 +95,27 @@
 
             <!-- Amount to be Reimbursed -->
             <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-                <label class="block font-semibold text-gray-500 mb-2">AMOUNT TO BE REIMBURSED: <span class="text-red-700">*</span></label>
+                <label class="block font-semibold text-gray-300 mb-2">AMOUNT TO BE REIMBURSED: <span class="text-red-700">*</span></label>
                 <div class="relative">
-                    <span class="absolute left-3 top-2.5 text-gray-500">&#8369;</span>
+                    <span class="absolute left-3 top-2.5 text-gray-300">&#8369;</span>
                     <input type="number" step="0.01" name="amount_to_be_reimbursed" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount_to_be_reimbursed', $reimbursement->amount_to_be_reimbursed) }}" required placeholder="0.00">
                 </div>
             </div>
 
             <!-- Submitted By -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">SUBMITTED BY:</label>
+                <label class="block font-semibold text-gray-300 mb-2">SUBMITTED BY:</label>
                 <input type="text" name="submitted_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('submitted_by', $reimbursement->submitted_by) }}" placeholder="Name of person submitting">
             </div>
 
             <!-- Proof Documents -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">PROOF DOCUMENTS:</label>
+                <label class="block font-semibold text-gray-300 mb-2">PROOF DOCUMENTS:</label>
 
                 @if($reimbursement->proof_documents && count($reimbursement->proof_documents) > 0)
                     <div class="mb-4 p-4 bg-gray-900 border border-gray-700 rounded">
-                        <p class="text-gray-500 font-semibold mb-3">Currently uploaded documents:</p>
-                        <ul class="list-disc list-inside text-gray-500 text-sm space-y-2">
+                        <p class="text-gray-300 font-semibold mb-3">Currently uploaded documents:</p>
+                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-2">
                             @foreach($reimbursement->proof_documents as $index => $doc)
                                 <li>
                                     <a href="{{ asset('storage/' . $doc['path']) }}" target="_blank" class="text-purple-700 hover:text-purple-700">{{ $doc['name'] }}</a>
@@ -129,11 +129,11 @@
                 <div class="bg-gray-900 border-2 border-dashed border-gray-700 rounded px-4 py-6 text-center">
                     <input type="file" name="proof_documents[]" id="proofDocuments" class="hidden" multiple accept=".doc,.docx,.odf,.jpg,.jpeg,.png,.gif,.bmp,.webp">
                     <label for="proofDocuments" class="cursor-pointer">
-                        <div class="text-gray-500 mb-2">
+                        <div class="text-gray-300 mb-2">
                             <i class="fas fa-cloud-upload-alt text-2xl"></i>
                         </div>
                         <p class="text-white font-semibold mb-1">Click to upload or drag and drop</p>
-                        <p class="text-gray-500 text-sm">Accepted formats: .doc, .docx, .odf, .jpg, .jpeg, .png, .gif, .bmp, .webp</p>
+                        <p class="text-gray-300 text-sm">Accepted formats: .doc, .docx, .odf, .jpg, .jpeg, .png, .gif, .bmp, .webp</p>
                     </label>
                 </div>
                 <div id="fileList" class="mt-3"></div>
@@ -141,13 +141,13 @@
 
             <!-- Remarks -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">REMARKS:</label>
+                <label class="block font-semibold text-gray-300 mb-2">REMARKS:</label>
                 <textarea name="remarks" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Optional remarks...">{{ old('remarks', $reimbursement->remarks) }}</textarea>
             </div>
 
             <!-- Footer Note -->
             <div class="mb-6 p-3 bg-gray-900 border border-gray-700 rounded">
-                <p class="text-gray-500 text-sm italic">
+                <p class="text-gray-300 text-sm italic">
                     <i class="fas fa-info-circle mr-1 text-yellow-700"></i>
                     Please attach invoices, Official receipts (OR), and other supporting documents.
                 </p>
@@ -250,7 +250,7 @@ function updateFileList() {
 
     if (files.length > 0) {
         const ul = document.createElement('ul');
-        ul.className = 'list-disc list-inside text-gray-500 text-sm space-y-1';
+        ul.className = 'list-disc list-inside text-gray-300 text-sm space-y-1';
 
         for (let i = 0; i < files.length; i++) {
             const li = document.createElement('li');

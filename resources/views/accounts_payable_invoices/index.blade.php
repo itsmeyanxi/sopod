@@ -32,12 +32,12 @@
                        class="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                        style="width:220px;" placeholder="Search APV No, Vendor...">
                 <div class="flex items-center gap-1">
-                    <label class="text-xs text-gray-500 font-semibold">From:</label>
+                    <label class="text-xs text-gray-300 font-semibold">From:</label>
                     <input type="date" name="date_from" value="{{ request('date_from') }}"
                            class="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div class="flex items-center gap-1">
-                    <label class="text-xs text-gray-500 font-semibold">To:</label>
+                    <label class="text-xs text-gray-300 font-semibold">To:</label>
                     <input type="date" name="date_to" value="{{ request('date_to') }}"
                            class="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
@@ -52,7 +52,7 @@
                     <i class="fas fa-search mr-1"></i> Filter
                 </button>
                 @if(request()->hasAny(['search','date_from','date_to','status']))
-                    <a href="{{ route('accounts_payable_invoices.index') }}" class="text-xs text-gray-500 hover:text-gray-200 px-2">Clear</a>
+                    <a href="{{ route('accounts_payable_invoices.index') }}" class="text-xs text-gray-300 hover:text-gray-200 px-2">Clear</a>
                 @endif
                 <a href="{{ route('accounts_payable_invoices.export', request()->query()) }}"
                    class="ml-auto bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm font-semibold">
@@ -80,38 +80,38 @@
             <table class="min-w-full bg-gray-900 border border-gray-700">
                 <thead>
                     <tr class="bg-gray-700">
-                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">APV No</th>
-                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">APV Date</th>
-                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">RFP No</th>
-                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Vendor Name</th>
-                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Payment Type</th>
-                        <th class="px-4 py-2 border-b border-gray-700 text-right text-gray-500">Grand Total</th>
-                        <th class="px-4 py-2 border-b border-gray-700 text-center text-gray-500">Status</th>
-                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Created By</th>
-                        <th class="px-4 py-2 border-b border-gray-700 text-center text-gray-500">Actions</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-300">APV No</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-300">APV Date</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-300">RFP No</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-300">Vendor Name</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-300">Payment Type</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-right text-gray-300">Grand Total</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-center text-gray-400">Status</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-300">Created By</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-center text-gray-400">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($invoices as $invoice)
                         <tr class="hover:bg-gray-700 transition">
-                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $invoice->apv_no }}</td>
-                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $invoice->apv_date->format('Y-m-d') }}</td>
-                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-300">{{ $invoice->apv_no }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-300">{{ $invoice->apv_date->format('Y-m-d') }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-300">
                                 @if($invoice->requestForPayment)
                                     <span class="text-purple-700">{{ $invoice->requestForPayment->rfp_no }}</span>
                                 @else
                                     <span class="text-gray-300">N/A</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $invoice->vendor_name }}</td>
-                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-300">{{ $invoice->vendor_name }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-300">
                                 @if($invoice->payment_type === 'downpayment')
                                     <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Downpayment</span>
                                 @else
                                     <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Full Payment</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-700 text-right text-gray-500">
+                            <td class="px-4 py-2 border-b border-gray-700 text-right text-gray-300">
                                 {{ $invoice->currency }} {{ number_format($invoice->grand_total, 2) }}
                             </td>
                             <td class="px-4 py-2 border-b border-gray-700 text-center">
@@ -125,7 +125,7 @@
                                     <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Paid</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-300">
                                 {{ $invoice->creator->name ?? 'N/A' }}
                             </td>
                             <td class="px-4 py-2 border-b border-gray-700 text-center">
@@ -143,7 +143,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="9" class="px-4 py-8 text-center text-gray-400">
                                 No invoices found. Create your first invoice using the button above or search for an approved RFP.
                             </td>
                         </tr>
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(rfps => {
                     if (rfps.length === 0) {
-                        searchResults.innerHTML = '<div class="p-4 text-gray-500">No approved RFPs found</div>';
+                        searchResults.innerHTML = '<div class="p-4 text-gray-300">No approved RFPs found</div>';
                         searchResults.classList.remove('hidden');
                         return;
                     }
@@ -192,11 +192,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="flex justify-between items-center">
                                     <div>
                                         <div class="font-semibold text-purple-700">${rfp.rfp_no}</div>
-                                        <div class="text-sm text-gray-500">${rfp.payee}</div>
-                                        <div class="text-xs text-gray-500">${rfp.company}</div>
+                                        <div class="text-sm text-gray-300">${rfp.payee}</div>
+                                        <div class="text-xs text-gray-300">${rfp.company}</div>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-sm text-gray-500">${rfp.date}</div>
+                                        <div class="text-sm text-gray-300">${rfp.date}</div>
                                         <div class="text-sm text-green-700">₱${parseFloat(rfp.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
                                     </div>
                                 </div>

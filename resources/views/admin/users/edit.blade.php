@@ -35,7 +35,7 @@
         <div class="mb-4">
             <label class="block text-sm mb-1">
                 New Password
-                <span class="text-gray-500 text-xs">(Leave blank to keep current password)</span>
+                <span class="text-gray-300 text-xs">(Leave blank to keep current password)</span>
             </label>
             <div class="relative">
                 <input type="password"
@@ -49,7 +49,7 @@
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
-            <small class="text-gray-500 text-xs">Minimum 6 characters</small>
+            <small class="text-gray-300 text-xs">Minimum 6 characters</small>
         </div>
 
         <div class="bg-yellow-100 border border-yellow-600/30 rounded-lg p-3 mb-4">
@@ -186,7 +186,7 @@ $navStructure = [
                 onclick="toggleOverrideSection(this)"
                 class="flex items-center justify-between px-3 py-2 bg-gray-700 hover:bg-gray-700 text-left w-full">
                 <span class="text-xs font-semibold text-gray-200 uppercase tracking-wide">{{ $sectionName }}</span>
-                <span class="toggle-chevron text-gray-500 text-xs">▼</span>
+                <span class="toggle-chevron text-gray-300 text-xs">▼</span>
             </button>
             {{-- Items --}}
             <div class="section-content hidden flex-col divide-y divide-gray-700/50 bg-gray-750">
@@ -197,7 +197,7 @@ $navStructure = [
                     $isSection = str_starts_with($label, '📂');
                 @endphp
                 <div class="flex items-center justify-between px-3 py-1.5 {{ $isSection ? 'bg-gray-700/40' : 'bg-gray-800' }} gap-2">
-                    <span class="text-xs truncate {{ $isSection ? 'text-gray-500 italic' : 'text-gray-500' }}" title="{{ $isSection ? ltrim(str_replace('📂', '', $label)) : $label }}">
+                    <span class="text-xs truncate {{ $isSection ? 'text-gray-300 italic' : 'text-gray-300' }}" title="{{ $isSection ? ltrim(str_replace('📂', '', $label)) : $label }}">
                         {{ $isSection ? str_replace('📂 ', '', $label) : $label }}
                     </span>
                     <select
@@ -216,7 +216,7 @@ $navStructure = [
         @endforeach
     </div>
 
-    <p class="text-gray-500 text-xs mt-3">Changes are saved instantly. Click a section header to expand/collapse.</p>
+    <p class="text-gray-300 text-xs mt-3">Changes are saved instantly. Click a section header to expand/collapse.</p>
 </div>
 
 <script>

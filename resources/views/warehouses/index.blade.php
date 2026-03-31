@@ -17,7 +17,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="bg-gray-700 text-gray-500">
+                    <tr class="bg-gray-700 text-gray-300">
                         <th class="px-4 py-2 text-left">Code</th>
                         <th class="px-4 py-2 text-left">Name</th>
                         <th class="px-4 py-2 text-left">Address</th>
@@ -31,8 +31,8 @@
                     <tr class="border-b border-gray-700 hover:bg-gray-700">
                         <td class="px-4 py-2 font-mono text-purple-700">{{ $warehouse->warehouse_code }}</td>
                         <td class="px-4 py-2 font-semibold">{{ $warehouse->warehouse_name }}</td>
-                        <td class="px-4 py-2 text-gray-500">{{ Str::limit($warehouse->address, 40) }}</td>
-                        <td class="px-4 py-2 text-gray-500">{{ $warehouse->contact_number }}</td>
+                        <td class="px-4 py-2 text-gray-300">{{ Str::limit($warehouse->address, 40) }}</td>
+                        <td class="px-4 py-2 text-gray-300">{{ $warehouse->contact_number }}</td>
                         <td class="px-4 py-2">
                             <span class="px-2 py-1 rounded text-xs font-semibold {{ $warehouse->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                                 {{ strtoupper($warehouse->status) }}
@@ -48,7 +48,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No warehouses found.</td></tr>
+                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">No warehouses found.</td></tr>
                     @endforelse
                 </tbody>
             </table>

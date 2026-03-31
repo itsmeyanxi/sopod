@@ -51,7 +51,7 @@
         </div>
         <div>
             <h2 class="text-xl font-bold text-white">{{ $account->short_name ?: $account->bank_name }}</h2>
-            <p class="text-xs text-gray-500 mt-0.5 font-mono">{{ $account->account_number }} · {{ $account->bank_name }} · {{ $account->account_type ?: 'N/A' }}</p>
+            <p class="text-xs text-gray-300 mt-0.5 font-mono">{{ $account->account_number }} · {{ $account->bank_name }} · {{ $account->account_type ?: 'N/A' }}</p>
         </div>
     </div>
     <div class="flex gap-2">
@@ -101,7 +101,7 @@
     <div class="flex items-center gap-3">
         <i class="fas fa-link text-blue-500"></i>
         <div>
-            <span class="text-xs font-bold text-gray-500 uppercase">Linked G/L Account</span>
+            <span class="text-xs font-bold text-gray-300 uppercase">Linked G/L Account</span>
             <div class="text-sm font-semibold text-white">{{ $account->glAccount->account_code }} — {{ $account->glAccount->account_name }}</div>
         </div>
         <a href="{{ route('gl_accounts.show', $account->glAccount->id) }}" target="_blank" class="ml-auto text-xs text-blue-600 hover:underline font-semibold">
@@ -127,10 +127,10 @@
                 <i class="fas fa-search"></i> Filter
             </button>
             @if(request()->hasAny(['date_from','date_to','type']))
-            <a href="{{ route('treasury.bank.show', $account->id) }}" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-200">Clear</a>
+            <a href="{{ route('treasury.bank.show', $account->id) }}" class="px-3 py-1.5 text-xs text-gray-300 hover:text-gray-200">Clear</a>
             @endif
         </form>
-        <span class="text-xs text-gray-500">{{ $transactions->total() }} transaction{{ $transactions->total() != 1 ? 's' : '' }}</span>
+        <span class="text-xs text-gray-300">{{ $transactions->total() }} transaction{{ $transactions->total() != 1 ? 's' : '' }}</span>
     </div>
 
     <div class="overflow-x-auto">
@@ -160,11 +160,11 @@
                     <td><span class="badge-type {{ $badgeClass }}">{{ $txn->type }}</span></td>
                     <td class="font-mono text-xs">{{ $txn->reference ?: '—' }}</td>
                     <td>{{ $txn->description ?: '—' }}</td>
-                    <td class="text-xs text-gray-500">{{ $txn->payee_or_source ?: '—' }}</td>
+                    <td class="text-xs text-gray-300">{{ $txn->payee_or_source ?: '—' }}</td>
                     <td class="r font-semibold text-green-700">{{ $txn->debit > 0 ? $sym.' '.number_format($txn->debit, 2) : '' }}</td>
                     <td class="r font-semibold text-red-600">{{ $txn->credit > 0 ? $sym.' '.number_format($txn->credit, 2) : '' }}</td>
                     <td class="r font-bold">{{ $sym }} {{ number_format($txn->running_balance, 2) }}</td>
-                    <td class="text-xs text-gray-500">{{ $txn->logged_by ?: '—' }}</td>
+                    <td class="text-xs text-gray-300">{{ $txn->logged_by ?: '—' }}</td>
                 </tr>
             @empty
                 <tr><td colspan="10" class="text-center py-10 text-gray-400">

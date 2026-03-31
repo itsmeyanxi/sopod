@@ -8,7 +8,7 @@
 
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">Spend Analysis</h1>
-            <a href="{{ route('ap_dashboard') }}" class="text-gray-500 hover:text-gray-200 text-sm">
+            <a href="{{ route('ap_dashboard') }}" class="text-gray-300 hover:text-gray-200 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
             </a>
         </div>
@@ -32,7 +32,7 @@
             <h3 class="text-lg font-semibold text-white mb-3">Spend by Supplier</h3>
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse text-sm">
-                    <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                    <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                         <tr>
                             <th class="border border-gray-700 px-4 py-3 text-left">#</th>
                             <th class="border border-gray-700 px-4 py-3 text-left">Supplier</th>
@@ -47,7 +47,7 @@
                             $pct = $totalSpend > 0 ? ($item->amount / $totalSpend) * 100 : 0;
                         @endphp
                         <tr class="hover:bg-gray-900">
-                            <td class="border border-gray-700 px-4 py-3 text-gray-500">{{ $index + 1 }}</td>
+                            <td class="border border-gray-700 px-4 py-3 text-gray-300">{{ $index + 1 }}</td>
                             <td class="border border-gray-700 px-4 py-3 text-white font-semibold">{{ $item->vendor_name }}</td>
                             <td class="border border-gray-700 px-4 py-3 text-right font-semibold text-white">{{ number_format($item->amount, 2) }}</td>
                             <td class="border border-gray-700 px-4 py-3 text-right text-gray-300">{{ number_format($pct, 1) }}%</td>
@@ -59,7 +59,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="border border-gray-700 px-4 py-8 text-center text-gray-500">No spend data yet.</td>
+                            <td colspan="5" class="border border-gray-700 px-4 py-8 text-center text-gray-400">No spend data yet.</td>
                         </tr>
                         @endforelse
                     </tbody>

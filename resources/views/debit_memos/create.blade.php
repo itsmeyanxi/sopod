@@ -8,7 +8,7 @@
 
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">Create Debit Memo</h1>
-            <a href="{{ route('debit_memos.index') }}" class="text-gray-500 hover:text-gray-200 text-sm">
+            <a href="{{ route('debit_memos.index') }}" class="text-gray-300 hover:text-gray-200 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
         </div>

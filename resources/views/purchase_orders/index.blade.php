@@ -42,7 +42,7 @@
                 <i class="fas fa-search text-purple-700 text-lg"></i>
                 <h3 class="font-semibold text-white">Create PO from Approved Purchase Request</h3>
             </div>
-            <p class="text-gray-500 text-sm mb-3">Search by PR Number, Requisitioner, or Company to create a new Purchase Order</p>
+            <p class="text-gray-300 text-sm mb-3">Search by PR Number, Requisitioner, or Company to create a new Purchase Order</p>
 
             <div class="relative">
                 <input
@@ -51,7 +51,7 @@
                     class="w-full bg-gray-800 border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
                     placeholder="Type to search approved PRs..."
                     autocomplete="off">
-                <span class="absolute right-4 top-3.5 text-gray-500">
+                <span class="absolute right-4 top-3.5 text-gray-300">
                     <i class="fas fa-search"></i>
                 </span>
             </div>
@@ -64,7 +64,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full border-collapse border border-gray-700">
-                <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
+                <thead class="bg-gray-700 text-gray-300 uppercase text-sm">
                     <tr>
                         @if(auth()->user()->canApprovePurchaseOrders())
                         <th class="border border-gray-700 px-3 py-3 w-10">
@@ -81,7 +81,7 @@
                         <th class="border border-gray-700 px-4 py-3">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-500">
+                <tbody class="text-gray-200">
                     @forelse($purchaseOrders as $po)
                         <tr class="hover:bg-gray-700/40">
                             @if(auth()->user()->canApprovePurchaseOrders())
@@ -128,7 +128,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->canApprovePurchaseOrders() ? 9 : 8 }}" class="border border-gray-700 px-4 py-8 text-center text-gray-500">
+                            <td colspan="{{ auth()->user()->canApprovePurchaseOrders() ? 9 : 8 }}" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No purchase orders found. <a href="{{ route('purchase_orders.create') }}" class="text-purple-700 hover:text-purple-700">Create one now</a>
                             </td>
                         </tr>
@@ -160,7 +160,7 @@ prSearchInput.addEventListener('input', function() {
     }
 
     // Show loading state
-    prSearchResults.innerHTML = '<div class="p-3 text-gray-500 text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Searching...</div>';
+    prSearchResults.innerHTML = '<div class="p-3 text-gray-300 text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Searching...</div>';
     prSearchResults.classList.remove('hidden');
 
     // Debounce search
@@ -172,7 +172,7 @@ prSearchInput.addEventListener('input', function() {
             if (prs.length === 0) {
                 prSearchResults.innerHTML = `
                     <div class="p-4 text-center">
-                        <div class="text-gray-500 mb-2">
+                        <div class="text-gray-300 mb-2">
                             <i class="fas fa-inbox text-2xl mb-2"></i>
                             <p>No approved PRs found matching "${searchTerm}"</p>
                         </div>
@@ -197,8 +197,8 @@ prSearchInput.addEventListener('input', function() {
                                 <div class="font-semibold text-white mb-1">
                                     <i class="fas fa-file-alt mr-2 text-purple-700"></i>${pr.pr_no}
                                 </div>
-                                <div class="text-sm text-gray-500">${pr.requisitioner} • ${pr.company}</div>
-                                <div class="text-xs text-gray-500 mt-1">
+                                <div class="text-sm text-gray-300">${pr.requisitioner} • ${pr.company}</div>
+                                <div class="text-xs text-gray-300 mt-1">
                                     <i class="far fa-calendar mr-1"></i>${dateFormatted}
                                 </div>
                             </div>

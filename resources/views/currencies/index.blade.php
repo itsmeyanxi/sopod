@@ -8,7 +8,7 @@
 
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">Currency Exchange Rates</h1>
-            <p class="text-gray-500 text-sm">Rates are used to convert foreign currencies to Philippine Peso (PHP) in Purchase Orders.</p>
+            <p class="text-gray-300 text-sm">Rates are used to convert foreign currencies to Philippine Peso (PHP) in Purchase Orders.</p>
         </div>
 
         @if(session('success'))
@@ -26,7 +26,7 @@
                         <span class="text-2xl font-bold text-purple-700">{{ $currency->symbol }}</span>
                         <div>
                             <div class="font-bold text-white text-lg">{{ $currency->code }}</div>
-                            <div class="text-gray-500 text-sm">{{ $currency->name }}</div>
+                            <div class="text-gray-300 text-sm">{{ $currency->name }}</div>
                         </div>
                     </div>
                     @if($currency->code === 'PHP')
@@ -35,16 +35,16 @@
                 </div>
 
                 <div class="mb-3">
-                    <div class="text-gray-500 text-xs mb-1">Current Rate (1 {{ $currency->code }} = ? PHP)</div>
+                    <div class="text-gray-300 text-xs mb-1">Current Rate (1 {{ $currency->code }} = ? PHP)</div>
                     <div class="text-white text-xl font-bold">
                         ₱{{ number_format($currency->rate_to_php, 4) }}
                     </div>
                     @if($currency->updater)
-                        <div class="text-gray-500 text-xs mt-1">
+                        <div class="text-gray-300 text-xs mt-1">
                             Updated by {{ $currency->updater->name }} on {{ $currency->updated_at->format('M d, Y h:i A') }}
                         </div>
                     @else
-                        <div class="text-gray-500 text-xs mt-1">
+                        <div class="text-gray-300 text-xs mt-1">
                             Last updated: {{ $currency->updated_at->format('M d, Y') }}
                         </div>
                     @endif
@@ -55,7 +55,7 @@
                     @csrf
                     @method('PUT')
                     <div class="flex-1">
-                        <label class="block text-gray-500 text-xs mb-1">New Rate (₱ per 1 {{ $currency->code }})</label>
+                        <label class="block text-gray-300 text-xs mb-1">New Rate (₱ per 1 {{ $currency->code }})</label>
                         <input type="number"
                                name="rate_to_php"
                                step="0.0001"
@@ -79,7 +79,7 @@
             <h2 class="text-lg font-semibold text-white mb-3">Quick Reference</h2>
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse text-sm">
-                    <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
+                    <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
                         <tr>
                             <th class="border border-gray-600 px-4 py-2 text-left">Currency</th>
                             <th class="border border-gray-600 px-4 py-2 text-right">1 Unit = PHP</th>
@@ -88,17 +88,17 @@
                             <th class="border border-gray-600 px-4 py-2 text-left">Last Updated</th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-500">
+                    <tbody class="text-gray-200">
                         @foreach($currencies as $currency)
                         <tr class="hover:bg-gray-700/30">
                             <td class="border border-gray-700 px-4 py-2">
                                 <span class="font-bold text-purple-700">{{ $currency->code }}</span>
-                                <span class="text-gray-500 ml-2">{{ $currency->name }}</span>
+                                <span class="text-gray-300 ml-2">{{ $currency->name }}</span>
                             </td>
                             <td class="border border-gray-700 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php, 4) }}</td>
                             <td class="border border-gray-700 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php * 100, 2) }}</td>
                             <td class="border border-gray-700 px-4 py-2 text-right">₱{{ number_format($currency->rate_to_php * 1000, 2) }}</td>
-                            <td class="border border-gray-700 px-4 py-2 text-gray-500 text-xs">{{ $currency->updated_at->format('M d, Y h:i A') }}</td>
+                            <td class="border border-gray-700 px-4 py-2 text-gray-300 text-xs">{{ $currency->updated_at->format('M d, Y h:i A') }}</td>
                         </tr>
                         @endforeach
                     </tbody>

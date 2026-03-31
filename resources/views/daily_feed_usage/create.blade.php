@@ -23,11 +23,11 @@
     <!-- HEADER -->
     <div class="flex items-center justify-between mb-4">
         <div>
-            <div class="text-sm text-gray-500 mb-1">
+            <div class="text-sm text-gray-300 mb-1">
                 <a href="{{ route('daily_feed_usage.index') }}" class="hover:text-gray-300"><i class="fas fa-arrow-left mr-1"></i>Usage List</a>
             </div>
             <h2 class="text-xl font-bold text-white">Log Daily Feed Usage</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Record how much material was used today from an approved BOM</p>
+            <p class="text-xs text-gray-300 mt-0.5">Record how much material was used today from an approved BOM</p>
         </div>
     </div>
 
@@ -40,7 +40,7 @@
             <div class="b-hd">Select BOM & House</div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
                 <div>
-                    <label class="block text-xs text-gray-500 font-semibold mb-1">BOM Cycle <span class="text-red-500">*</span></label>
+                    <label class="block text-xs text-gray-300 font-semibold mb-1">BOM Cycle <span class="text-red-500">*</span></label>
                     <select name="bom_id" id="bomSelect" required
                         class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200">
                         <option value="">— Select Approved BOM —</option>
@@ -52,7 +52,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 font-semibold mb-1">House <span class="text-red-500">*</span></label>
+                    <label class="block text-xs text-gray-300 font-semibold mb-1">House <span class="text-red-500">*</span></label>
                     <select name="house_number" id="houseSelect" required
                         class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200">
                         <option value="">— Select House —</option>
@@ -66,7 +66,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 font-semibold mb-1">Usage Date <span class="text-red-500">*</span></label>
+                    <label class="block text-xs text-gray-300 font-semibold mb-1">Usage Date <span class="text-red-500">*</span></label>
                     <input type="date" name="usage_date" id="usageDate" value="{{ date('Y-m-d') }}" required
                         class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200">
                 </div>

@@ -60,7 +60,7 @@
         <!-- Table -->
         <div class="overflow-x-auto">
             <table class="w-full text-sm border-collapse">
-                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-3 py-3 text-left">Run Number</th>
                         <th class="border border-gray-700 px-3 py-3 text-center">Period</th>
@@ -82,7 +82,7 @@
                         <td class="border border-gray-700 px-3 py-2 text-gray-200 max-w-xs truncate" title="{{ $run->description }}">{{ Str::limit($run->description, 45) }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-center text-xs">{{ count($run->depreciation_entries ?? []) }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-right font-semibold">{{ number_format($run->total_debit, 2) }}</td>
-                        <td class="border border-gray-700 px-3 py-2 text-xs font-mono text-gray-500">{{ $run->jv_number ?? '—' }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-xs font-mono text-gray-300">{{ $run->jv_number ?? '—' }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-center">
                             @if($run->status === 'Posted')
                                 <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Posted</span>

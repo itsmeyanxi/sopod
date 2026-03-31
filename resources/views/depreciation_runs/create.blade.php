@@ -32,7 +32,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-300 mb-1">Run Number</label>
-                    <input type="text" value="{{ $nextRunNumber }}" readonly class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm font-mono text-gray-500">
+                    <input type="text" value="{{ $nextRunNumber }}" readonly class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm font-mono text-gray-300">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-300 mb-1">Period <span class="text-red-500">*</span></label>
@@ -42,7 +42,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-300 mb-1">Prepared By</label>
-                    <input type="text" value="{{ auth()->user()->name }}" readonly class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-gray-500">
+                    <input type="text" value="{{ auth()->user()->name }}" readonly class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-gray-300">
                 </div>
             </div>
 
@@ -78,7 +78,7 @@
                                 class="text-xs text-blue-600 hover:underline">Select All</button>
                         <span class="text-gray-300">|</span>
                         <button type="button" onclick="document.querySelectorAll('[name=\'asset_groups[]\']').forEach(c=>c.checked=false)"
-                                class="text-xs text-gray-500 hover:underline">Clear All</button>
+                                class="text-xs text-gray-300 hover:underline">Clear All</button>
                     </div>
                 @endif
             </div>

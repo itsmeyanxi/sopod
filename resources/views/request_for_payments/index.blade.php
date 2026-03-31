@@ -30,7 +30,7 @@
                 <i class="fas fa-search text-purple-700 text-lg"></i>
                 <h3 class="font-semibold text-white">Create RFP from Approved Purchase Order</h3>
             </div>
-            <p class="text-gray-500 text-sm mb-3">Search by PO Number, Supplier, or Company to create a new Request for Payment</p>
+            <p class="text-gray-300 text-sm mb-3">Search by PO Number, Supplier, or Company to create a new Request for Payment</p>
 
             <div class="relative">
                 <input
@@ -39,7 +39,7 @@
                     class="w-full bg-gray-800 border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
                     placeholder="Type to search approved POs..."
                     autocomplete="off">
-                <span class="absolute right-4 top-3.5 text-gray-500">
+                <span class="absolute right-4 top-3.5 text-gray-300">
                     <i class="fas fa-search"></i>
                 </span>
             </div>
@@ -52,7 +52,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full border-collapse border border-gray-700">
-                <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
+                <thead class="bg-gray-700 text-gray-300 uppercase text-sm">
                     <tr>
                         <th class="border border-gray-700 px-4 py-3">RFP NO</th>
                         <th class="border border-gray-700 px-4 py-3">PO NO</th>
@@ -65,7 +65,7 @@
                         <th class="border border-gray-700 px-4 py-3">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-500">
+                <tbody class="text-gray-200">
                     @forelse($rfps as $rfp)
                         <tr class="hover:bg-gray-700/40">
                             <td class="border border-gray-700 px-4 py-3">{{ $rfp->rfp_no }}</td>
@@ -105,7 +105,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="border border-gray-700 px-4 py-8 text-center text-gray-500">
+                            <td colspan="9" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No request for payments found. <a href="{{ route('request_for_payments.create') }}" class="text-purple-700 hover:text-purple-700">Create one now</a>
                             </td>
                         </tr>
@@ -135,7 +135,7 @@ poSearchInput.addEventListener('input', function() {
         return;
     }
 
-    poSearchResults.innerHTML = '<div class="p-3 text-gray-500 text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Searching...</div>';
+    poSearchResults.innerHTML = '<div class="p-3 text-gray-300 text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Searching...</div>';
     poSearchResults.classList.remove('hidden');
 
     searchTimeout = setTimeout(async () => {
@@ -146,7 +146,7 @@ poSearchInput.addEventListener('input', function() {
             if (pos.length === 0) {
                 poSearchResults.innerHTML = `
                     <div class="p-4 text-center">
-                        <div class="text-gray-500 mb-2">
+                        <div class="text-gray-300 mb-2">
                             <i class="fas fa-inbox text-2xl mb-2"></i>
                             <p>No approved POs found matching "${searchTerm}"</p>
                         </div>
@@ -171,8 +171,8 @@ poSearchInput.addEventListener('input', function() {
                                 <div class="font-semibold text-white mb-1">
                                     <i class="fas fa-file-invoice mr-2 text-purple-700"></i>${po.po_no}
                                 </div>
-                                <div class="text-sm text-gray-500">${po.supplier || 'N/A'} • ${po.company}</div>
-                                <div class="text-xs text-gray-500 mt-1">
+                                <div class="text-sm text-gray-300">${po.supplier || 'N/A'} • ${po.company}</div>
+                                <div class="text-xs text-gray-300 mt-1">
                                     <i class="far fa-calendar mr-1"></i>${dateFormatted}
                                 </div>
                             </div>

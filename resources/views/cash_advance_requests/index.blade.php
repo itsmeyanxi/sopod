@@ -26,7 +26,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full border-collapse border border-gray-700">
-                <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
+                <thead class="bg-gray-700 text-gray-300 uppercase text-sm">
                     <tr>
                         <th class="border border-gray-700 px-4 py-3">CAR NO</th>
                         <th class="border border-gray-700 px-4 py-3">PAYEE</th>
@@ -38,7 +38,7 @@
                         <th class="border border-gray-700 px-4 py-3">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-500">
+                <tbody class="text-gray-200">
                     @forelse($cars as $car)
                         <tr class="hover:bg-gray-700/40">
                             <td class="border border-gray-700 px-4 py-3">{{ $car->car_no }}</td>
@@ -78,7 +78,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="border border-gray-700 px-4 py-8 text-center text-gray-500">
+                            <td colspan="8" class="border border-gray-700 px-4 py-8 text-center text-gray-400">
                                 No cash advance requests found. <a href="{{ route('cash_advance_requests.create') }}" class="text-purple-700 hover:text-purple-700">Create one now</a>
                             </td>
                         </tr>

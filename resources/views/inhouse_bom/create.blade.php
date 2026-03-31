@@ -69,11 +69,11 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-4">
     <div>
-        <div class="text-sm text-gray-500 mb-1">
+        <div class="text-sm text-gray-300 mb-1">
             <a href="{{ route('inhouse_bom.index') }}" class="hover:text-gray-300"><i class="fas fa-arrow-left mr-1"></i>BOM List</a>
         </div>
         <h2 class="text-xl font-bold text-white">Create In-House BOM</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Bill of Materials — Broiler Production Cycle</p>
+        <p class="text-xs text-gray-300 mt-0.5">Bill of Materials — Broiler Production Cycle</p>
     </div>
     <div class="flex gap-2">
         <a href="{{ route('inhouse_bom.index') }}" class="px-3 py-2 text-sm border border-gray-600 rounded-md hover:bg-gray-900 text-gray-300">Cancel</a>
@@ -196,7 +196,7 @@
             <div class="fi"><label>Age (days)</label>
                 <input type="number" id="p-age" placeholder="29" oninput="calc()">
             </div>
-            <div class="fi"><label>BPI <span class="text-gray-500 font-normal normal-case" style="font-size:.62rem;">(auto-calculated, editable)</span></label>
+            <div class="fi"><label>BPI <span class="text-gray-300 font-normal normal-case" style="font-size:.62rem;">(auto-calculated, editable)</span></label>
                 <input type="number" id="p-bpi" placeholder="412" step="1" oninput="onBpiManual()">
             </div>
             <hr class="border-gray-100">
@@ -253,7 +253,7 @@
 </div>
 
 <div class="flex justify-between items-center mb-6">
-    <p class="text-xs text-gray-500"><i class="fas fa-info-circle mr-1"></i>All house data is saved together in one BOM cycle.</p>
+    <p class="text-xs text-gray-300"><i class="fas fa-info-circle mr-1"></i>All house data is saved together in one BOM cycle.</p>
     <div class="flex gap-2">
         <a href="{{ route('inhouse_bom.index') }}" class="px-4 py-2 text-sm border border-gray-600 rounded-md hover:bg-gray-900 text-gray-300">Cancel</a>
         <button onclick="submitBOM()" class="flex items-center gap-1.5 px-5 py-2 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold shadow-sm">

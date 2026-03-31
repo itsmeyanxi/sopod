@@ -48,7 +48,7 @@ class Handler extends ExceptionHandler
 
             // IT/Admin users see detailed debug page
             if ($user && $user->isAdminUser()) {
-                return response()->view('errors.it-debug', [
+                return response()->view('errors.500-it', [
                     'exception' => $e,
                 ], 500);
             }

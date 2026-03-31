@@ -8,7 +8,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">CREATE ISSUE SLIP</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-500">IS NO:</label>
+                <label class="font-semibold text-gray-300">IS NO:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded italic text-sm">Auto-generated</span>
             </div>
         </div>
@@ -34,29 +34,29 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DATE: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-1">DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('date', date('Y-m-d')) }}" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">ORIGIN:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">ORIGIN:</label>
                         <input type="text" name="origin" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('origin') }}" placeholder="Warehouse / Source location">
                     </div>
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">SALES ORDER: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-1">SALES ORDER: <span class="text-red-700">*</span></label>
                         <div class="relative">
                             <input type="text" id="so_search" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Search SO number or customer..." autocomplete="off">
                             <input type="hidden" name="sales_order_id" id="sales_order_id" value="{{ old('sales_order_id') }}">
                             <div id="so_dropdown" class="hidden absolute z-50 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto" style="top:100%"></div>
                         </div>
-                        <div id="so_info" class="mt-2 text-sm text-gray-500 hidden">
+                        <div id="so_info" class="mt-2 text-sm text-gray-300 hidden">
                             <span class="text-green-700 font-semibold" id="so_display"></span>
                             <span class="ml-2" id="so_customer"></span>
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">DESTINATION (Customer):</label>
+                        <label class="block font-semibold text-gray-300 mb-1">DESTINATION (Customer):</label>
                         <div class="relative">
                             <input type="text" id="dest_search" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Search customer name..." autocomplete="off" value="{{ old('destination') }}">
                             <input type="hidden" name="customer_id" id="customer_id" value="{{ old('customer_id') }}">
@@ -65,7 +65,7 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">REMARKS:</label>
+                        <label class="block font-semibold text-gray-300 mb-1">REMARKS:</label>
                         <textarea name="remarks" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Optional remarks...">{{ old('remarks') }}</textarea>
                     </div>
                 </div>
@@ -74,7 +74,7 @@
             <!-- Items Table -->
             <div class="mb-6">
                 <h3 class="text-lg font-semibold text-white mb-2">Items</h3>
-                <div id="no_so_msg" class="text-gray-500 text-center py-8 border border-gray-700 rounded">
+                <div id="no_so_msg" class="text-gray-300 text-center py-8 border border-gray-700 rounded">
                     <i class="fas fa-search mr-2"></i> Search and select a Sales Order above to load items.
                 </div>
                 <div id="items_section" class="hidden overflow-x-auto">
@@ -102,19 +102,19 @@
             <!-- Signature Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">ISSUED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">ISSUED BY:</label>
                     <input type="text" name="issued_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('issued_by') }}" placeholder="Name / Signature">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">TRANSPORT:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">TRANSPORT:</label>
                     <input type="text" name="transport" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('transport') }}" placeholder="Name / Signature">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">SERVICE PROVIDERS CHECKER:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">SERVICE PROVIDERS CHECKER:</label>
                     <input type="text" name="service_providers_checker" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('service_providers_checker') }}" placeholder="Name / Signature">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-1">RECEIVED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-1">RECEIVED BY:</label>
                     <input type="text" name="received_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" value="{{ old('received_by') }}" placeholder="Name / Signature">
                 </div>
             </div>
@@ -154,16 +154,16 @@ soSearch.addEventListener('input', function() {
         try {
             const res = await fetch(`${SO_SEARCH_URL}?q=${encodeURIComponent(q)}`);
             const orders = await res.json();
-            if (!orders.length) { soDropdown.innerHTML = '<div class="px-3 py-2 text-gray-500 text-sm">No sales orders found.</div>'; soDropdown.classList.remove('hidden'); return; }
+            if (!orders.length) { soDropdown.innerHTML = '<div class="px-3 py-2 text-gray-300 text-sm">No sales orders found.</div>'; soDropdown.classList.remove('hidden'); return; }
             soDropdown.innerHTML = orders.map(so => {
                 const isUsed = so.has_issue_slip;
-                const className = isUsed ? 'text-gray-500 bg-gray-700' : 'text-white hover:bg-gray-700 cursor-pointer';
+                const className = isUsed ? 'text-gray-300 bg-gray-700' : 'text-white hover:bg-gray-700 cursor-pointer';
                 const disabledAttr = isUsed ? 'disabled' : '';
                 return `<div class="px-3 py-2 text-sm so-option ${className}" ${disabledAttr}
                       data-id="${so.id}" data-number="${so.sales_order_number}" data-customer="${so.customer_name || ''}" data-used="${isUsed}">
                     <strong>${so.sales_order_number}</strong>
                     <span class="ml-2">${so.customer_name || ''}</span>
-                    ${isUsed ? '<span class="text-xs ml-2 text-red-700 font-semibold">[ALREADY USED]</span>' : '<span class="text-xs text-gray-500 ml-2">' + so.status + '</span>'}
+                    ${isUsed ? '<span class="text-xs ml-2 text-red-700 font-semibold">[ALREADY USED]</span>' : '<span class="text-xs text-gray-300 ml-2">' + so.status + '</span>'}
                 </div>`;
             }).join('');
             soDropdown.classList.remove('hidden');
@@ -214,7 +214,7 @@ function loadSOItems(items) {
     const noMsg = document.getElementById('no_so_msg');
 
     if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-500 py-4">No items in this Sales Order.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-300 py-4">No items in this Sales Order.</td></tr>';
         section.classList.remove('hidden');
         noMsg.classList.add('hidden');
         return;
@@ -224,8 +224,8 @@ function loadSOItems(items) {
     items.forEach((item, i) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">${i + 1}</td>
-            <td class="border border-gray-700 px-2 py-2 text-gray-500">
+            <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">${i + 1}</td>
+            <td class="border border-gray-700 px-2 py-2 text-gray-300">
                 ${item.item_code || ''}
                 <input type="hidden" name="items[${i}][sales_order_item_id]" value="${item.id}">
                 <input type="hidden" name="items[${i}][item_code]" value="${item.item_code || ''}">
@@ -234,10 +234,10 @@ function loadSOItems(items) {
                 <input type="hidden" name="items[${i}][item_category]" value="${item.item_category || ''}">
                 <input type="hidden" name="items[${i}][so_quantity]" value="${item.quantity || 0}">
             </td>
-            <td class="border border-gray-700 px-2 py-2 text-gray-500">${item.item_description || ''}</td>
-            <td class="border border-gray-700 px-2 py-2 text-gray-500">${item.brand || ''}</td>
-            <td class="border border-gray-700 px-2 py-2 text-gray-500">${item.item_category || ''}</td>
-            <td class="border border-gray-700 px-2 py-2 text-gray-500 text-center">${item.quantity || 0}</td>
+            <td class="border border-gray-700 px-2 py-2 text-gray-300">${item.item_description || ''}</td>
+            <td class="border border-gray-700 px-2 py-2 text-gray-300">${item.brand || ''}</td>
+            <td class="border border-gray-700 px-2 py-2 text-gray-300">${item.item_category || ''}</td>
+            <td class="border border-gray-700 px-2 py-2 text-gray-300 text-center">${item.quantity || 0}</td>
             <td class="border border-gray-700 px-2 py-2">
                 <input type="number" step="0.01" name="items[${i}][number_of_boxes]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-center" value="0">
             </td>
@@ -247,7 +247,7 @@ function loadSOItems(items) {
             <td class="border border-gray-700 px-2 py-2">
                 <input type="number" step="0.0001" name="items[${i}][actual_weight]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-center" value="0">
             </td>
-            <td class="border border-gray-700 px-2 py-2 text-gray-500 text-center">
+            <td class="border border-gray-700 px-2 py-2 text-gray-300 text-center">
                 <input type="hidden" name="items[${i}][origin]" value="${item.note || ''}">
                 ${item.note || '-'}
             </td>
@@ -280,7 +280,7 @@ destSearch.addEventListener('input', function() {
                 `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 dest-option"
                       data-id="${c.id}" data-name="${c.customer_name}" data-address="${c.shipping_address || ''}">
                     <strong>${c.customer_name}</strong>
-                    <span class="text-gray-500 text-xs ml-1">${c.customer_code || ''}</span>
+                    <span class="text-gray-300 text-xs ml-1">${c.customer_code || ''}</span>
                 </div>`
             ).join('');
             destDropdown.classList.remove('hidden');

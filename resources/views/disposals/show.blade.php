@@ -200,7 +200,7 @@
                         <span>{{ $gain_loss < 0 ? '(' : '' }}₱{{ number_format(abs($gain_loss), 2) }}{{ $gain_loss < 0 ? ')' : '' }}</span>
                     </div>
                     @if($asset->gain_loss_gl_account)
-                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                    <div class="flex justify-between text-xs text-gray-300 mt-1">
                         <span>GL Account</span>
                         <span class="font-mono">{{ $asset->gain_loss_gl_account }}</span>
                     </div>
@@ -210,7 +210,7 @@
             </div>
 
             <div class="mt-6 pt-6 border-t">
-                <p class="text-xs text-gray-500 text-center">
+                <p class="text-xs text-gray-300 text-center">
                     Record Date: {{ $asset->created_at->format('M d, Y H:i') }}
                 </p>
             </div>

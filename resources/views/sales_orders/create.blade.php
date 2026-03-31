@@ -51,7 +51,7 @@
                         class="w-full bg-gray-900 border-2 border-gray-700 rounded-lg px-3 py-2 pr-10 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
                         placeholder="Search by code or name..."
                         autocomplete="off">
-                    <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                 </div>
@@ -140,7 +140,7 @@
                     <label class="block text-sm">PO Reference No</label>
                     <input type="text" id="po_reference_no" name="po_reference_no"
                         class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-1">
-                    <p class="text-xs text-gray-500 mt-1">Required: Provide either PO Number OR upload proof below</p>
+                    <p class="text-xs text-gray-300 mt-1">Required: Provide either PO Number OR upload proof below</p>
                 </div>
 
                 <div>
@@ -165,7 +165,7 @@
                             class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2
                                 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0
                                 file:bg-yellow-600 file:text-white hover:file:bg-yellow-500">
-                        <p class="text-xs text-gray-500 mt-2">
+                        <p class="text-xs text-gray-300 mt-2">
                             Required: Upload proof of customer order (JPG, PNG, or PDF, max 4MB)
                         </p>
                         <p class="text-xs text-orange-700 mt-1">
@@ -186,7 +186,7 @@
 
             <div style="overflow: visible; position: relative;">
                 <table class="min-w-full border border-gray-700 rounded-lg text-left" id="itemsTable" style="position: relative;">
-                    <thead class="bg-gray-800 text-gray-500">
+                    <thead class="bg-gray-800 text-gray-300">
                         <tr>
                             <th class="px-3 py-2 border border-gray-700" style="position: relative;">Item Description</th>
                             <th class="px-3 py-2 border border-gray-700">Item Code</th>
@@ -209,7 +209,7 @@
                                             class="item-search w-full bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 pr-10 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
                                             placeholder="Type to search items..."
                                             autocomplete="off">
-                                        <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                         </svg>
                                     </div>
@@ -582,7 +582,7 @@ window.validateForm = function() {
             // Show "no results" message if nothing matches
             if (visibleCount === 0) {
                 customerDropdown.innerHTML = `
-                    <div class="px-4 py-8 text-center text-gray-500">
+                    <div class="px-4 py-8 text-center text-gray-400">
                         <svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
@@ -694,7 +694,7 @@ window.validateForm = function() {
                 if (visibleCount === 0) {
                     // Append the no-results message instead of replacing everything
                     const noResultsDiv = document.createElement('div');
-                    noResultsDiv.className = 'no-results-message px-4 py-8 text-center text-gray-500';
+                    noResultsDiv.className = 'no-results-message px-4 py-8 text-center text-gray-300';
                     noResultsDiv.innerHTML = '<svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><div class="font-medium">No items found</div><div class="text-sm mt-1">Try a different search term</div>';
                     dropdown.appendChild(noResultsDiv);
                 }
@@ -850,7 +850,7 @@ window.validateForm = function() {
                                 class="item-search w-full bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 pr-10 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
                                 placeholder="Type to search items..."
                                 autocomplete="off">
-                            <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>

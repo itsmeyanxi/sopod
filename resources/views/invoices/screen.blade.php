@@ -12,23 +12,23 @@
                 <i class="fas fa-chart-line text-blue-700"></i>
                 AR Aging Dashboard
             </h2>
-            <p class="text-gray-500 text-sm mt-1">Comprehensive overview of accounts receivable aging</p>
+            <p class="text-gray-300 text-sm mt-1">Comprehensive overview of accounts receivable aging</p>
         </div>
 
         {{-- Week Selection & Date Display --}}
         <div class="bg-gray-700 rounded-lg p-6 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Select Week End Date</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Select Week End Date</label>
                     <input type="date" id="week_end_date" value="{{ now()->format('Y-m-d') }}"
                            class="w-full bg-gray-600 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="bg-gray-800 rounded-lg p-4 flex flex-col justify-center">
-                    <p class="text-gray-500 text-xs mb-1">Week Number</p>
+                    <p class="text-gray-300 text-xs mb-1">Week Number</p>
                     <p class="text-white text-xl font-bold" id="week_number">{{ now()->format('Y') }} - {{ now()->weekOfYear }}</p>
                 </div>
                 <div class="bg-gray-800 rounded-lg p-4 flex flex-col justify-center">
-                    <p class="text-gray-500 text-xs mb-1">Week Beginning Date</p>
+                    <p class="text-gray-300 text-xs mb-1">Week Beginning Date</p>
                     <p class="text-white text-xl font-bold" id="week_beg_date">{{ now()->startOfWeek()->format('F j, Y') }}</p>
                 </div>
             </div>
@@ -46,7 +46,7 @@
             {{-- Loading State --}}
             <div id="loading_state" class="text-center py-12 hidden">
                 <i class="fas fa-spinner fa-spin text-blue-700 text-4xl mb-4"></i>
-                <p class="text-gray-500">Loading dashboard data...</p>
+                <p class="text-gray-300">Loading dashboard data...</p>
             </div>
 
             {{-- AR Balance Summary Cards --}}
@@ -57,7 +57,7 @@
                         <i class="fas fa-users text-blue-700 text-xl"></i>
                     </div>
                     <p class="text-white text-3xl font-bold" id="trader_balance">-</p>
-                    <p class="text-gray-500 text-xs mt-1">Active AR records</p>
+                    <p class="text-gray-300 text-xs mt-1">Active AR records</p>
                 </div>
 
                 <div class="bg-green-50 border border-green-200 rounded-lg p-6">
@@ -66,7 +66,7 @@
                         <i class="fas fa-dollar-sign text-green-700 text-xl"></i>
                     </div>
                     <p class="text-white text-3xl font-bold" id="credit_balance">-</p>
-                    <p class="text-gray-500 text-xs mt-1">Total outstanding receivables</p>
+                    <p class="text-gray-300 text-xs mt-1">Total outstanding receivables</p>
                 </div>
 
                 <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
@@ -75,7 +75,7 @@
                         <i class="fas fa-chart-bar text-purple-700 text-xl"></i>
                     </div>
                     <p class="text-white text-3xl font-bold" id="total_ar">-</p>
-                    <p class="text-gray-500 text-xs mt-1">As of <span id="ar_date">{{ now()->format('F j, Y') }}</span></p>
+                    <p class="text-gray-300 text-xs mt-1">As of <span id="ar_date">{{ now()->format('F j, Y') }}</span></p>
                 </div>
             </div>
 
@@ -89,7 +89,7 @@
                         AR Aging Breakdown
                     </h3>
                     <div class="space-y-3" id="aging_breakdown">
-                        <div class="text-center text-gray-500 py-8">
+                        <div class="text-center text-gray-300 py-8">
                             <i class="fas fa-info-circle text-3xl mb-2"></i>
                             <p>Click "Load Dashboard" to view data</p>
                         </div>
@@ -105,7 +105,7 @@
                             Aging Distribution
                         </h3>
                         <div class="space-y-2" id="aging_distribution">
-                            <div class="text-center text-gray-500 py-8">
+                            <div class="text-center text-gray-300 py-8">
                                 <i class="fas fa-chart-bar text-3xl mb-2"></i>
                                 <p>Load data to view distribution</p>
                             </div>
@@ -120,7 +120,7 @@
                                 <span class="text-xs text-indigo-700 font-semibold">VIEW</span>
                             </div>
                             <p class="text-white text-sm font-bold">Summary Report</p>
-                            <p class="text-gray-500 text-xs mt-1">Pivot table view</p>
+                            <p class="text-gray-300 text-xs mt-1">Pivot table view</p>
                         </button>
                     </div>
                 </div>
@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const breakdownHTML = `
             <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
-                    <p class="text-gray-500 text-sm">Current</p>
+                    <p class="text-gray-300 text-sm">Current</p>
                     <p class="text-white text-2xl font-bold">${formatCurrency(totals.current)}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-green-600/20 flex items-center justify-center">
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
-                    <p class="text-gray-500 text-sm">1-30 days</p>
+                    <p class="text-gray-300 text-sm">1-30 days</p>
                     <p class="text-white text-2xl font-bold">${formatCurrency(totals['1_30'])}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-yellow-600/20 flex items-center justify-center">
@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
-                    <p class="text-gray-500 text-sm">31-60 days</p>
+                    <p class="text-gray-300 text-sm">31-60 days</p>
                     <p class="text-white text-2xl font-bold">${formatCurrency(totals['31_60'])}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-orange-600/20 flex items-center justify-center">
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
-                    <p class="text-gray-500 text-sm">61-90 days</p>
+                    <p class="text-gray-300 text-sm">61-90 days</p>
                     <p class="text-white text-2xl font-bold">${formatCurrency(totals['61_90'])}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-red-600/20 flex items-center justify-center">
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
-                    <p class="text-gray-500 text-sm">91-120 days</p>
+                    <p class="text-gray-300 text-sm">91-120 days</p>
                     <p class="text-white text-2xl font-bold">${formatCurrency(totals['91_120'])}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-red-700/20 flex items-center justify-center">
@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
-                    <p class="text-gray-500 text-sm">More than 120 Days</p>
+                    <p class="text-gray-300 text-sm">More than 120 Days</p>
                     <p class="text-white text-2xl font-bold">${formatCurrency(totals.over_120)}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">

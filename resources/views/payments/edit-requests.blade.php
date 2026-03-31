@@ -5,7 +5,7 @@
 @section('content')
 <div class="container mx-auto">
     <div class="mb-4">
-        <a href="{{ route('payments.entry') }}" class="text-sm text-gray-500 hover:text-gray-200">
+        <a href="{{ route('payments.entry') }}" class="text-sm text-gray-300 hover:text-gray-200">
             <i class="fas fa-arrow-left mr-1"></i> Back to Payments
         </a>
     </div>
@@ -48,13 +48,13 @@
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="font-semibold text-white">{{ $req->customer_name }}</span>
-                                    <span class="text-xs text-gray-500">CR #{{ $req->cr_number }}</span>
+                                    <span class="text-xs text-gray-300">CR #{{ $req->cr_number }}</span>
                                     <span class="px-2 py-0.5 rounded text-xs font-bold
                                         {{ $isPending ? 'bg-orange-100 text-orange-700' : ($req->status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700') }}">
                                         {{ $req->status }}
                                     </span>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1">
+                                <p class="text-xs text-gray-300 mt-1">
                                     Requested by <strong>{{ $req->requested_by_name }}</strong>
                                     on {{ \Carbon\Carbon::parse($req->created_at)->format('M d, Y h:i A') }}
                                 </p>
@@ -80,9 +80,9 @@
                             <table class="w-full text-xs border-collapse">
                                 <thead>
                                     <tr class="border-b border-gray-700">
-                                        <th class="text-left py-1 text-gray-500 w-1/4">Field</th>
-                                        <th class="text-left py-1 text-gray-500 w-3/8">Original</th>
-                                        <th class="text-left py-1 text-gray-500 w-3/8">Proposed</th>
+                                        <th class="text-left py-1 text-gray-300 w-1/4">Field</th>
+                                        <th class="text-left py-1 text-gray-300 w-3/8">Original</th>
+                                        <th class="text-left py-1 text-gray-300 w-3/8">Proposed</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -124,7 +124,7 @@
                             </div>
                             @endif
                         @else
-                        <div class="px-4 py-2 border-t border-gray-700 text-xs text-gray-500">
+                        <div class="px-4 py-2 border-t border-gray-700 text-xs text-gray-300">
                             {{ $req->status }} by {{ $req->reviewed_by_name ?? 'System' }}
                             on {{ $req->reviewed_at ? \Carbon\Carbon::parse($req->reviewed_at)->format('M d, Y h:i A') : '—' }}
                             @if($req->review_notes)

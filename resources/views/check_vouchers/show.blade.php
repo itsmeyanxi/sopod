@@ -193,7 +193,7 @@
                     <p class="mb-8">Prepared by:</p>
                     <p class="font-bold border-t border-black pt-1">{{ $voucher->creator->name ?? ($voucher->prepared_by ?? '___________________') }}</p>
                     @if($voucher->creator && $voucher->created_at)
-                        <p class="text-xs text-gray-500 italic mt-1">
+                        <p class="text-xs text-gray-300 italic mt-1">
                             Digitally Signed<br>
                             {{ $voucher->created_at->format('d M Y | H:i') }}
                         </p>
@@ -203,7 +203,7 @@
                     <p class="mb-8">Reviewed by:</p>
                     <p class="font-bold border-t border-black pt-1">{{ $voucher->accountingReviewer->name ?? ($voucher->reviewed_by ?? '___________________') }}</p>
                     @if($voucher->accountingReviewer && $voucher->accounting_reviewed_at)
-                        <p class="text-xs text-gray-500 italic mt-1">
+                        <p class="text-xs text-gray-300 italic mt-1">
                             Digitally Signed<br>
                             {{ $voucher->accounting_reviewed_at->format('d M Y | H:i') }}
                             @if($voucher->accounting_reviewed_latitude && $voucher->accounting_reviewed_longitude)
@@ -217,7 +217,7 @@
                     <p class="mb-8">Approved by:</p>
                     <p class="font-bold border-t border-black pt-1">{{ $voucher->approvalUser->name ?? ($voucher->approved_by ?? 'ODM / FDM') }}</p>
                     @if($voucher->approvalUser && $voucher->approval_date)
-                        <p class="text-xs text-gray-500 italic mt-1">
+                        <p class="text-xs text-gray-300 italic mt-1">
                             Digitally Signed<br>
                             {{ $voucher->approval_date->format('d M Y | H:i') }}
                             @if($voucher->approved_latitude && $voucher->approved_longitude)
@@ -267,17 +267,17 @@
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Accounting Manager Review</span>
                             @if($voucher->accounting_reviewed_by && $voucher->accountingReviewer)
                                 <span class="text-green-700">✓ Reviewed</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $voucher->accountingReviewer->name }}
                                     on {{ $voucher->accounting_reviewed_at->format('M d, Y h:i A') }}
                                 </small>
@@ -297,21 +297,21 @@
                             </div>
                         @elseif($voucher->accounting_reviewed_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
-                                <i class="fas fa-lock text-gray-500"></i>
+                                <i class="fas fa-lock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">ODM/FDM Approval</span>
                             @if($voucher->status === 'approved' && $voucher->approvalUser)
                                 <span class="text-green-700">✓ Approved</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $voucher->approvalUser->name }}
                                     on {{ $voucher->approval_date->format('M d, Y h:i A') }}
                                 </small>
@@ -337,7 +337,7 @@
                                 <span class="font-semibold">Rejected</span>
                             </p>
                             @if($voucher->rejection_reason)
-                                <p class="text-gray-500 mt-2">
+                                <p class="text-gray-300 mt-2">
                                     <strong>Reason:</strong> {{ $voucher->rejection_reason }}
                                 </p>
                             @endif
@@ -382,8 +382,8 @@
             <input type="hidden" name="longitude" id="acct_longitude">
             <input type="hidden" name="location" id="acct_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="acct_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="acct_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveAccountingModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
@@ -407,8 +407,8 @@
             <input type="hidden" name="longitude" id="odm_longitude">
             <input type="hidden" name="location" id="odm_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="odm_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="odm_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveODMModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
@@ -429,7 +429,7 @@
         <form action="{{ route('check_vouchers.reject', $voucher->id) }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-500 mb-2">Rejection Reason (Optional):</label>
+                <label class="block text-gray-300 mb-2">Rejection Reason (Optional):</label>
                 <textarea name="rejection_reason" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">
@@ -581,7 +581,7 @@ function getLocationName(lat, lng, prefix) {
 <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-gray-800 rounded-lg p-6 w-96">
         <h3 class="text-xl font-bold text-white mb-4">Delete Check Voucher</h3>
-        <p class="text-gray-500 mb-4">Are you sure you want to delete check voucher <strong>{{ $voucher->cv_no }}</strong>? This action cannot be undone.</p>
+        <p class="text-gray-300 mb-4">Are you sure you want to delete check voucher <strong>{{ $voucher->cv_no }}</strong>? This action cannot be undone.</p>
         <form action="{{ route('check_vouchers.destroy', $voucher->id) }}" method="POST">
             @csrf
             @method('DELETE')

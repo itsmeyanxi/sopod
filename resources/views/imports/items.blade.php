@@ -40,7 +40,7 @@
                     name="file" 
                     accept=".xlsx,.xls,.csv"
                     required
-                    class="block w-full text-sm text-gray-500
+                    class="block w-full text-sm text-gray-300
                         file:mr-4 file:py-2 file:px-4
                         file:rounded file:border-0
                         file:text-sm file:font-semibold
@@ -48,7 +48,7 @@
                         hover:file:bg-blue-700
                         cursor-pointer"
                 >
-                <p class="text-sm text-gray-500 mt-2">Accepted formats: .xlsx, .xls, .csv</p>
+                <p class="text-sm text-gray-300 mt-2">Accepted formats: .xlsx, .xls, .csv</p>
             </div>
 
             <div class="flex items-center justify-between">
@@ -61,7 +61,7 @@
                 
                 <a 
                     href="{{ route('items.index') }}" 
-                    class="text-gray-500 hover:text-white transition"
+                    class="text-gray-300 hover:text-white transition"
                 >
                     Cancel
                 </a>
@@ -71,8 +71,8 @@
         <!-- Instructions -->
         <div class="mt-8 bg-gray-700 p-4 rounded">
             <h3 class="font-semibold mb-3">📋 Excel File Format Guidelines</h3>
-            <p class="text-sm text-gray-500 mb-2">Your Excel file can have the following columns (all optional):</p>
-            <ul class="text-sm text-gray-500 space-y-1 list-disc list-inside">
+            <p class="text-sm text-gray-300 mb-2">Your Excel file can have the following columns (all optional):</p>
+            <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
                 <li><strong>item_code</strong> - Item code/SKU</li>
                 <li><strong>item_description</strong> - Item description</li>
                 <li><strong>item_group</strong> - Item category/group</li>

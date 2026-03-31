@@ -9,8 +9,8 @@
         <div class="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-white mb-2">{{ $customerName }}</h1>
-                <p class="text-gray-500 text-sm">Aging Bucket: <span class="text-blue-700 font-semibold">{{ $bucketLabel }}</span></p>
-                <p class="text-gray-500 text-sm">Customer Code: <span class="text-gray-500 font-mono">{{ $customerCode }}</span></p>
+                <p class="text-gray-300 text-sm">Aging Bucket: <span class="text-blue-700 font-semibold">{{ $bucketLabel }}</span></p>
+                <p class="text-gray-300 text-sm">Customer Code: <span class="text-gray-300 font-mono">{{ $customerCode }}</span></p>
             </div>
             <div class="flex gap-3 flex-wrap justify-end">
                 <a href="{{ route('aging_reports.customer_summary', ['customer_code' => $customerCode, 'filter_date' => $filterDate, 'include' => $include]) }}"
@@ -121,8 +121,8 @@
                     </table>
                 @else
                     <div class="px-6 py-12 text-center">
-                        <i class="fas fa-inbox text-4xl text-gray-500 mb-3"></i>
-                        <p class="text-gray-500 text-lg">No invoices found in this aging bucket.</p>
+                        <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-300 text-lg">No invoices found in this aging bucket.</p>
                     </div>
                 @endif
             </div>

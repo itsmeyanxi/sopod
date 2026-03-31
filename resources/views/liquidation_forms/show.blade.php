@@ -10,7 +10,7 @@
             <h1 class="text-2xl font-bold text-white">LIQUIDATION FORM</h1>
             <div class="flex items-center gap-4">
                 <div class="text-right">
-                    <label class="font-semibold text-gray-500">LIQ NO:</label>
+                    <label class="font-semibold text-gray-300">LIQ NO:</label>
                     <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $liquidation->liq_no }}</span>
                 </div>
                 <span class="px-3 py-1 rounded font-semibold
@@ -38,13 +38,13 @@
 
         <!-- Linked CAR Info -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-1">LINKED CASH ADVANCE REQUEST:</label>
+            <label class="block font-semibold text-gray-300 mb-1">LINKED CASH ADVANCE REQUEST:</label>
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">
                 @if($liquidation->cashAdvanceRequest)
                     <a href="{{ route('cash_advance_requests.show', $liquidation->cashAdvanceRequest->id) }}" class="text-purple-700 hover:text-purple-700">
                         <i class="fas fa-link mr-1"></i>{{ $liquidation->cashAdvanceRequest->car_no }}
                     </a>
-                    <span class="text-gray-500 ml-2">(CAR Amount: &#8369;{{ number_format($liquidation->cashAdvanceRequest->amount, 2) }})</span>
+                    <span class="text-gray-300 ml-2">(CAR Amount: &#8369;{{ number_format($liquidation->cashAdvanceRequest->amount, 2) }})</span>
                 @else
                     N/A
                 @endif
@@ -54,35 +54,35 @@
         <!-- Main Fields -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">NAME:</label>
+                <label class="block font-semibold text-gray-300 mb-1">NAME:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $liquidation->name }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">DEPARTMENT:</label>
+                <label class="block font-semibold text-gray-300 mb-1">DEPARTMENT:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $liquidation->department }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">DATE APPLIED:</label>
+                <label class="block font-semibold text-gray-300 mb-1">DATE APPLIED:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $liquidation->date_applied->format('F d, Y') }}</p>
             </div>
         </div>
 
         <!-- Line Items Table -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-3">PARTICULARS / LINE ITEMS:</label>
+            <label class="block font-semibold text-gray-300 mb-3">PARTICULARS / LINE ITEMS:</label>
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse border border-gray-700">
-                    <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
+                    <thead class="bg-gray-700 text-gray-300 uppercase text-sm">
                         <tr>
                             <th class="border border-gray-700 px-4 py-3" style="width: 5%;">#</th>
                             <th class="border border-gray-700 px-4 py-3" style="width: 70%;">Particulars</th>
                             <th class="border border-gray-700 px-4 py-3 text-right" style="width: 25%;">Amount</th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-500">
+                    <tbody class="text-gray-200">
                         @foreach($liquidation->items as $index => $item)
                             <tr class="hover:bg-gray-700/40">
-                                <td class="border border-gray-700 px-4 py-3 text-center text-gray-500">{{ $index + 1 }}</td>
+                                <td class="border border-gray-700 px-4 py-3 text-center text-gray-400">{{ $index + 1 }}</td>
                                 <td class="border border-gray-700 px-4 py-3">{{ $item->particulars }}</td>
                                 <td class="border border-gray-700 px-4 py-3 text-right">&#8369;{{ number_format($item->amount, 2) }}</td>
                             </tr>
@@ -101,7 +101,7 @@
         <!-- Remarks -->
         @if($liquidation->remarks)
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">REMARKS:</label>
+                <label class="block font-semibold text-gray-300 mb-2">REMARKS:</label>
                 <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-gray-200 min-h-[60px]">
                     {{ $liquidation->remarks }}
                 </div>
@@ -111,7 +111,7 @@
         <!-- Proof Documents -->
         @if($liquidation->proof_documents && count($liquidation->proof_documents) > 0)
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-3">PROOF DOCUMENTS:</label>
+                <label class="block font-semibold text-gray-300 mb-3">PROOF DOCUMENTS:</label>
                 <div class="bg-gray-900 border border-gray-700 rounded p-4">
                     <ul class="space-y-2">
                         @foreach($liquidation->proof_documents as $doc)
@@ -120,7 +120,7 @@
                                     <i class="fas fa-file text-purple-700"></i>
                                     <div>
                                         <p class="text-white font-semibold">{{ $doc['name'] }}</p>
-                                        <p class="text-gray-500 text-sm">{{ number_format($doc['size'] / 1024, 2) }} KB</p>
+                                        <p class="text-gray-300 text-sm">{{ number_format($doc['size'] / 1024, 2) }} KB</p>
                                     </div>
                                 </div>
                                 <a href="{{ asset('storage/' . $doc['path']) }}" download class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition">
@@ -135,7 +135,7 @@
 
         <!-- Created By -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-1">CREATED BY:</label>
+            <label class="block font-semibold text-gray-300 mb-1">CREATED BY:</label>
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $liquidation->creator->name ?? 'N/A' }}</p>
         </div>
 
@@ -150,9 +150,9 @@
                     </colgroup>
                     <thead>
                         <tr class="bg-gray-700">
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Submitted By:</th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Checked By:<br><span class="text-xs italic">(Immediate Superior)</span></th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Approved By:<br><span class="text-xs italic">(Executive)</span></th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Submitted By:</th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Checked By:<br><span class="text-xs italic">(Immediate Superior)</span></th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Approved By:<br><span class="text-xs italic">(Executive)</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -163,7 +163,7 @@
                             <td class="border border-gray-700 px-4 py-8 text-center align-bottom">
                                 <span class="text-white font-semibold text-sm">{{ $liquidation->departmentHeadApprover->name ?? '' }}</span>
                                 @if($liquidation->departmentHeadApprover && $liquidation->department_head_approved_at)
-                                    <div class="text-xs text-gray-500 italic mt-1">
+                                    <div class="text-xs text-gray-300 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $liquidation->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($liquidation->department_head_approved_latitude && $liquidation->department_head_approved_longitude)
@@ -178,7 +178,7 @@
                             <td class="border border-gray-700 px-4 py-8 text-center align-bottom">
                                 <span class="text-white font-semibold text-sm">{{ $liquidation->executiveApprover->name ?? '' }}</span>
                                 @if($liquidation->executiveApprover && $liquidation->executive_approved_at)
-                                    <div class="text-xs text-gray-500 italic mt-1">
+                                    <div class="text-xs text-gray-300 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $liquidation->executive_approved_at->format('d M Y | H:i') }}
                                         @if($liquidation->executive_approved_latitude && $liquidation->executive_approved_longitude)
@@ -191,7 +191,7 @@
                                 @endif
                             </td>
                         </tr>
-                        <tr class="bg-gray-700 text-gray-500 text-xs italic">
+                        <tr class="bg-gray-700 text-gray-300 text-xs italic">
                             <td class="border border-gray-700 px-4 py-2 text-center">Requestor</td>
                             <td class="border border-gray-700 px-4 py-2 text-center">Immediate Superior</td>
                             <td class="border border-gray-700 px-4 py-2 text-center">Executive</td>
@@ -214,17 +214,17 @@
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Immediate Superior Check</span>
                             @if($liquidation->department_head_approved_by && $liquidation->departmentHeadApprover)
                                 <span class="text-green-700">&#10003; Checked</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $liquidation->departmentHeadApprover->name }}
                                     on {{ $liquidation->department_head_approved_at->format('M d, Y h:i A') }}
                                 </small>
@@ -244,21 +244,21 @@
                             </div>
                         @elseif($liquidation->department_head_approved_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
-                                <i class="fas fa-lock text-gray-500"></i>
+                                <i class="fas fa-lock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Executive Approval</span>
                             @if($liquidation->status === 'approved' && $liquidation->executiveApprover)
                                 <span class="text-green-700">&#10003; Approved</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $liquidation->executiveApprover->name }}
                                     on {{ $liquidation->executive_approved_at->format('M d, Y h:i A') }}
                                 </small>
@@ -284,7 +284,7 @@
                                 <span class="font-semibold">Rejected</span>
                             </p>
                             @if($liquidation->rejection_reason)
-                                <p class="text-gray-500 mt-2">
+                                <p class="text-gray-300 mt-2">
                                     <strong>Reason:</strong> {{ $liquidation->rejection_reason }}
                                 </p>
                             @endif
@@ -344,8 +344,8 @@
             <input type="hidden" name="longitude" id="dh_longitude">
             <input type="hidden" name="location" id="dh_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="dh_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveDHModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
@@ -369,8 +369,8 @@
             <input type="hidden" name="longitude" id="exec_longitude">
             <input type="hidden" name="location" id="exec_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="exec_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="exec_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
@@ -391,7 +391,7 @@
         <form action="{{ route('liquidation_forms.reject', $liquidation->id) }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-500 mb-2">Rejection Reason (Optional):</label>
+                <label class="block text-gray-300 mb-2">Rejection Reason (Optional):</label>
                 <textarea name="rejection_reason" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">

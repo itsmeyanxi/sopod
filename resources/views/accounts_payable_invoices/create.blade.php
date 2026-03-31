@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">ACCOUNTS PAYABLE VOUCHER</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-500">APV NO:</label>
+                <label class="font-semibold text-gray-300">APV NO:</label>
                 <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $apvNo }}</span>
             </div>
         </div>
@@ -36,7 +36,7 @@
 
             <!-- RFP Search (default) -->
             <div id="rfpSearchSection">
-                <label class="block text-gray-500 text-sm mb-1">Search Approved Request for Payment</label>
+                <label class="block text-gray-300 text-sm mb-1">Search Approved Request for Payment</label>
                 <div class="relative">
                     <input type="text" id="rfpSearchInput"
                         class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -47,7 +47,7 @@
 
             <!-- CAR Search -->
             <div id="carSearchSection" class="hidden">
-                <label class="block text-gray-500 text-sm mb-1">Search Approved Cash Advance Request</label>
+                <label class="block text-gray-300 text-sm mb-1">Search Approved Cash Advance Request</label>
                 <div class="relative">
                     <input type="text" id="carSearchInput"
                         class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -58,7 +58,7 @@
 
             <!-- Reimbursement Search -->
             <div id="reimbursementSearchSection" class="hidden">
-                <label class="block text-gray-500 text-sm mb-1">Search Approved Reimbursement Form</label>
+                <label class="block text-gray-300 text-sm mb-1">Search Approved Reimbursement Form</label>
                 <div class="relative">
                     <input type="text" id="reimbursementSearchInput"
                         class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -83,11 +83,11 @@
             <!-- APV Date and Payment Type -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">APV DATE: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">APV DATE: <span class="text-red-700">*</span></label>
                     <input type="date" name="apv_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('apv_date', date('Y-m-d')) }}" required>
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">PAYMENT TYPE: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">PAYMENT TYPE: <span class="text-red-700">*</span></label>
                     <div class="flex gap-4">
                         <label class="flex items-center p-3 bg-gray-900 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer transition flex-1">
                             <input type="radio" name="payment_type" value="full_payment" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500" {{ old('payment_type', 'full_payment') == 'full_payment' ? 'checked' : '' }} required>
@@ -107,7 +107,7 @@
                     <i class="fas fa-link mr-2"></i>
                     <span class="font-semibold">Linked to RFP: {{ $selectedRFP->rfp_no }}</span>
                 </div>
-                <div class="text-sm text-gray-500">
+                <div class="text-sm text-gray-300">
                     Payee: {{ $selectedRFP->payee }} | Company: {{ $selectedRFP->company }}
                 </div>
             </div>
@@ -118,19 +118,19 @@
                 <h3 class="font-semibold text-white mb-4">VENDOR INFORMATION</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">VENDOR CODE:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">VENDOR CODE:</label>
                         <input type="text" name="vendor_code" id="vendor_code" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_code', $supplierInfo['code'] ?? '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">VENDOR NAME: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-2">VENDOR NAME: <span class="text-red-700">*</span></label>
                         <input type="text" name="vendor_name" id="vendor_name" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_name', $selectedRFP->payee ?? '') }}" required>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block font-semibold text-gray-500 mb-2">VENDOR ADDRESS:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">VENDOR ADDRESS:</label>
                         <textarea name="vendor_address" id="vendor_address" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('vendor_address', $supplierInfo['address'] ?? '') }}</textarea>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">VENDOR TIN:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">VENDOR TIN:</label>
                         <input type="text" name="vendor_tin" id="vendor_tin" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_tin', $supplierInfo['tin'] ?? '') }}">
                     </div>
                 </div>
@@ -141,27 +141,27 @@
                 <h3 class="font-semibold text-white mb-4">DOCUMENT DETAILS</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">DOCUMENT DATE: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-2">DOCUMENT DATE: <span class="text-red-700">*</span></label>
                         <input type="date" name="document_date" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('document_date', date('Y-m-d')) }}" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">PAYMENT TERMS:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">PAYMENT TERMS:</label>
                         <input type="text" name="payment_terms" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms') }}" placeholder="e.g., Net 30">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">DUE DATE:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">DUE DATE:</label>
                         <input type="date" name="due_date" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('due_date') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">REFERENCE NO:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">REFERENCE NO:</label>
                         <input type="text" name="reference_no" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reference_no') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">PURCHASE ORDER NO:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">PURCHASE ORDER NO:</label>
                         <input type="text" name="purchase_order_no" id="purchase_order_no" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('purchase_order_no', $selectedRFP->purchaseOrder->po_no ?? '') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">CURRENCY: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-2">CURRENCY: <span class="text-red-700">*</span></label>
                         <select name="currency" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                             <option value="PHP" {{ old('currency', 'PHP') == 'PHP' ? 'selected' : '' }}>PHP</option>
                             <option value="USD" {{ old('currency') == 'USD' ? 'selected' : '' }}>USD</option>
@@ -170,7 +170,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">FOREX RATE:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">FOREX RATE:</label>
                         <input type="number" step="0.0001" name="forex_rate" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('forex_rate') }}" placeholder="1.0000">
                     </div>
                 </div>
@@ -180,20 +180,20 @@
             <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
                 <h3 class="font-semibold text-white mb-4">PARTICULARS & ACCOUNTING</h3>
                 <div class="mb-4">
-                    <label class="block font-semibold text-gray-500 mb-2">PARTICULARS: <span class="text-red-700">*</span></label>
+                    <label class="block font-semibold text-gray-300 mb-2">PARTICULARS: <span class="text-red-700">*</span></label>
                     <textarea name="particulars" rows="4" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>{{ old('particulars', $selectedRFP->particulars ?? '') }}</textarea>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">ITEM CODE:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">ITEM CODE:</label>
                         <input type="text" name="item_code" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('item_code') }}">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">COST CENTER:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">COST CENTER:</label>
                         <input type="text" name="cost_center" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('cost_center') }}">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block font-semibold text-gray-500 mb-2">ACCOUNT CODE / NAME:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">ACCOUNT CODE / NAME:</label>
                         @include('partials.gl_account_selector', ['field' => 'account_code', 'label' => '', 'uid' => 'apv_account', 'value' => old('account_code'), 'glAccounts' => $glAccounts])
                         <input type="hidden" name="account_name" id="apv_account_name_hidden" value="{{ old('account_name') }}">
                         @include('partials.gl_account_selector_js')
@@ -217,30 +217,30 @@
                 <h3 class="font-semibold text-white mb-4">AMOUNT DETAILS</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">TOTAL AMOUNT: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-2">TOTAL AMOUNT: <span class="text-red-700">*</span></label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
+                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
                             <input type="number" step="0.01" name="total" id="totalAmount" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('total', $selectedRFP->amount ?? '') }}" required>
                         </div>
                     </div>
                     <div id="downpaymentField" style="display: none;">
-                        <label class="block font-semibold text-gray-500 mb-2">DOWNPAYMENT AMOUNT: <span class="text-red-700">*</span></label>
+                        <label class="block font-semibold text-gray-300 mb-2">DOWNPAYMENT AMOUNT: <span class="text-red-700">*</span></label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
+                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
                             <input type="number" step="0.01" name="downpayment_amount" id="downpaymentAmount" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('downpayment_amount') }}">
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">VAT AMOUNT:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">VAT AMOUNT:</label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
+                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
                             <input type="number" step="0.01" name="vat_amount" id="vatAmount" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vat_amount', '0.00') }}">
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-2">W-TAX AMOUNT:</label>
+                        <label class="block font-semibold text-gray-300 mb-2">W-TAX AMOUNT:</label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
+                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
                             <input type="number" step="0.01" name="w_tax_amount" id="wTaxAmount" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('w_tax_amount', '0.00') }}">
                         </div>
                     </div>
@@ -249,7 +249,7 @@
                 <!-- Grand Total Display -->
                 <div class="mt-4 p-4 bg-gray-800 border-2 border-purple-600 rounded">
                     <div class="flex justify-between items-center">
-                        <span class="text-lg font-semibold text-gray-500">GRAND TOTAL:</span>
+                        <span class="text-lg font-semibold text-gray-300">GRAND TOTAL:</span>
                         <span id="grandTotalDisplay" class="text-2xl font-bold text-purple-700">₱ 0.00</span>
                     </div>
                 </div>
@@ -258,18 +258,18 @@
             <!-- Prepared and Reviewed By -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">PREPARED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">PREPARED BY:</label>
                     <input type="text" name="prepared_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('prepared_by') }}">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-500 mb-2">REVIEWED BY:</label>
+                    <label class="block font-semibold text-gray-300 mb-2">REVIEWED BY:</label>
                     <input type="text" name="reviewed_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reviewed_by') }}">
                 </div>
             </div>
 
             <!-- Remarks -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">REMARKS:</label>
+                <label class="block font-semibold text-gray-300 mb-2">REMARKS:</label>
                 <textarea name="remarks" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('remarks') }}</textarea>
             </div>
 
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(response => response.json())
                     .then(rfps => {
                         if (rfps.length === 0) {
-                            rfpSearchResults.innerHTML = '<div class="p-4 text-gray-500">No approved RFPs found</div>';
+                            rfpSearchResults.innerHTML = '<div class="p-4 text-gray-300">No approved RFPs found</div>';
                             rfpSearchResults.classList.remove('hidden');
                             return;
                         }
@@ -331,11 +331,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <div class="flex justify-between items-center">
                                         <div>
                                             <div class="font-semibold text-purple-700">${rfp.rfp_no}</div>
-                                            <div class="text-sm text-gray-500">${rfp.payee}</div>
-                                            <div class="text-xs text-gray-500">${rfp.company}</div>
+                                            <div class="text-sm text-gray-300">${rfp.payee}</div>
+                                            <div class="text-xs text-gray-300">${rfp.company}</div>
                                         </div>
                                         <div class="text-right">
-                                            <div class="text-sm text-gray-500">${rfp.date}</div>
+                                            <div class="text-sm text-gray-300">${rfp.date}</div>
                                             <div class="text-sm text-green-700">₱${parseFloat(rfp.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
                                         </div>
                                     </div>
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     badge.innerHTML = `
                                         <div class="flex items-center justify-between text-green-700">
                                             <span><i class="fas fa-link mr-2"></i>Linked to RFP: ${this.dataset.rfpNo}</span>
-                                            <span class="text-sm text-gray-500">${this.dataset.payee} | ₱${parseFloat(this.dataset.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                                            <span class="text-sm text-gray-300">${this.dataset.payee} | ₱${parseFloat(this.dataset.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
                                         </div>
                                     `;
                                     const existingBadge = searchSection.querySelector('.bg-green-100\\/20');
@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(r => r.json())
                     .then(cars => {
                         if (cars.length === 0) {
-                            carSearchResults.innerHTML = '<div class="p-4 text-gray-500">No approved Cash Advance Requests found</div>';
+                            carSearchResults.innerHTML = '<div class="p-4 text-gray-300">No approved Cash Advance Requests found</div>';
                             carSearchResults.classList.remove('hidden');
                             return;
                         }
@@ -593,8 +593,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="flex justify-between items-center">
                                     <div>
                                         <div class="font-semibold text-purple-700">${car.car_no}</div>
-                                        <div class="text-sm text-gray-500">${car.payee}</div>
-                                        <div class="text-xs text-gray-500">${car.department}</div>
+                                        <div class="text-sm text-gray-300">${car.payee}</div>
+                                        <div class="text-xs text-gray-300">${car.department}</div>
                                     </div>
                                     <div class="text-right">
                                         <div class="text-sm text-green-700">&#8369;${parseFloat(car.amount).toLocaleString('en-US',{minimumFractionDigits:2})}</div>
@@ -622,7 +622,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     linkedRefBadge.innerHTML = `<div class="mt-2 p-3 bg-green-50 border border-green-200 rounded">
                                         <div class="flex items-center justify-between text-green-700">
                                             <span><i class="fas fa-link mr-2"></i>Linked to CAR: ${this.dataset.carNo}</span>
-                                            <span class="text-sm text-gray-500">${this.dataset.payee} | &#8369;${parseFloat(this.dataset.amount).toLocaleString('en-US',{minimumFractionDigits:2})}</span>
+                                            <span class="text-sm text-gray-300">${this.dataset.payee} | &#8369;${parseFloat(this.dataset.amount).toLocaleString('en-US',{minimumFractionDigits:2})}</span>
                                         </div>
                                     </div>`;
                                 }
@@ -661,7 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(r => r.json())
                     .then(ris => {
                         if (ris.length === 0) {
-                            reimbursementSearchResults.innerHTML = '<div class="p-4 text-gray-500">No approved Reimbursement Forms found</div>';
+                            reimbursementSearchResults.innerHTML = '<div class="p-4 text-gray-300">No approved Reimbursement Forms found</div>';
                             reimbursementSearchResults.classList.remove('hidden');
                             return;
                         }
@@ -674,12 +674,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="flex justify-between items-center">
                                     <div>
                                         <div class="font-semibold text-purple-700">${ri.ri_no}</div>
-                                        <div class="text-sm text-gray-500">${ri.submitted_by || ri.department}</div>
-                                        <div class="text-xs text-gray-500">${ri.department}</div>
+                                        <div class="text-sm text-gray-300">${ri.submitted_by || ri.department}</div>
+                                        <div class="text-xs text-gray-300">${ri.department}</div>
                                     </div>
                                     <div class="text-right">
                                         <div class="text-sm text-green-700">&#8369;${parseFloat(ri.amount).toLocaleString('en-US',{minimumFractionDigits:2})}</div>
-                                        <div class="text-xs text-gray-500">Total: &#8369;${parseFloat(ri.total_spent).toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+                                        <div class="text-xs text-gray-300">Total: &#8369;${parseFloat(ri.total_spent).toLocaleString('en-US',{minimumFractionDigits:2})}</div>
                                     </div>
                                 </div>
                             </div>`;
@@ -702,7 +702,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     linkedRefBadge.innerHTML = `<div class="mt-2 p-3 bg-green-50 border border-green-200 rounded">
                                         <div class="flex items-center justify-between text-green-700">
                                             <span><i class="fas fa-link mr-2"></i>Linked to RI: ${this.dataset.riNo}</span>
-                                            <span class="text-sm text-gray-500">${this.dataset.submittedBy || this.dataset.department} | &#8369;${parseFloat(this.dataset.amount).toLocaleString('en-US',{minimumFractionDigits:2})}</span>
+                                            <span class="text-sm text-gray-300">${this.dataset.submittedBy || this.dataset.department} | &#8369;${parseFloat(this.dataset.amount).toLocaleString('en-US',{minimumFractionDigits:2})}</span>
                                         </div>
                                     </div>`;
                                 }

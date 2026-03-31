@@ -62,7 +62,7 @@
             {{-- Dropdown Menu --}}
             <div id="printDropdown" class="hidden absolute left-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50">
                 <div class="p-3">
-                    <p class="text-sm font-semibold text-gray-500 mb-3 border-b border-gray-700 pb-2">Print Options</p>
+                    <p class="text-sm font-semibold text-gray-300 mb-3 border-b border-gray-700 pb-2">Print Options</p>
                     
                     <a href="{{ route('sales_orders.print', ['id' => $salesOrder->id, 'hide_prices' => 0]) }}" 
                        target="_blank"
@@ -139,20 +139,20 @@
         <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">Sales Order Information</h2>
         <div class="grid grid-cols-2 gap-6">
             <div class="space-y-3">
-                <p><span class="font-semibold text-gray-500">Sales Order #:</span> {{ $salesOrder->sales_order_number }}</p>
-                <p><span class="font-semibold text-gray-500">Customer:</span> {{ $salesOrder->customer->customer_name ?? 'N/A' }}</p>
+                <p><span class="font-semibold text-gray-300">Sales Order #:</span> {{ $salesOrder->sales_order_number }}</p>
+                <p><span class="font-semibold text-gray-300">Customer:</span> {{ $salesOrder->customer->customer_name ?? 'N/A' }}</p>
                 
                 {{-- PO Number --}}
                 <div>
-                    <label class="block text-sm mb-1 text-gray-500">PO Number</label>
+                    <label class="block text-sm mb-1 text-gray-300">PO Number</label>
                     <input type="text" value="{{ $salesOrder->po_number ?? 'N/A' }}" 
-                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-500" readonly>
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300" readonly>
                 </div>
 
                 {{-- ✅ UPDATED: Show PO Image if available --}}
                 @if($salesOrder->po_image)
                     <div>
-                        <label class="block text-sm mb-2 text-gray-500 font-semibold">📸 PO Proof / Order Evidence</label>
+                        <label class="block text-sm mb-2 text-gray-300 font-semibold">📸 PO Proof / Order Evidence</label>
                         <div class="bg-gray-800 border border-gray-700 rounded-lg p-3">
                             @if(Str::endsWith($salesOrder->po_image, '.pdf'))
                                 {{-- PDF File --}}
@@ -173,7 +173,7 @@
                                         alt="PO Proof" 
                                         class="max-w-md w-full rounded border border-gray-600 hover:border-blue-500 transition-all hover:shadow-lg cursor-pointer">
                                 </a>
-                                <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                                <p class="text-xs text-gray-300 mt-2 flex items-center gap-1">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -185,11 +185,11 @@
                     </div>
                 @endif
 
-                <p><span class="font-semibold text-gray-500">TIN:</span> {{ $salesOrder->customer->tin_no ?? 'N/A' }}</p>
-                <p><span class="font-semibold text-gray-500">Request Delivery Date:</span> {{ $salesOrder->request_delivery_date ?? '—' }}</p>
+                <p><span class="font-semibold text-gray-300">TIN:</span> {{ $salesOrder->customer->tin_no ?? 'N/A' }}</p>
+                <p><span class="font-semibold text-gray-300">Request Delivery Date:</span> {{ $salesOrder->request_delivery_date ?? '—' }}</p>
                 
                 {{-- ✅ Delivery Type Display --}}
-                <p><span class="font-semibold text-gray-500">Delivery Type:</span> 
+                <p><span class="font-semibold text-gray-300">Delivery Type:</span> 
                     @php
                         $deliveryType = trim($salesOrder->delivery_type ?? '');
                         $typeColors = [
@@ -205,13 +205,13 @@
                 </p>
             </div>
             <div class="space-y-3">
-                <p><span class="font-semibold text-gray-500">Sales Representative:</span> {{ $salesOrder->sales_rep ?? '—' }}</p>
+                <p><span class="font-semibold text-gray-300">Sales Representative:</span> {{ $salesOrder->sales_rep ?? '—' }}</p>
                 <p>
-                    <span class="font-semibold text-gray-500">Sales Executive:</span> 
+                    <span class="font-semibold text-gray-300">Sales Executive:</span> 
                     {{ $salesOrder->customer->sales_executive ?? $salesOrder->sales_executive ?? '—' }}
                 </p>
-                <p><span class="font-semibold text-gray-500">Branch:</span> {{ $salesOrder->branch ?? $salesOrder->customer->branch ?? 'N/A' }}</p>
-                <p><span class="font-semibold text-gray-500">Status:</span>
+                <p><span class="font-semibold text-gray-300">Branch:</span> {{ $salesOrder->branch ?? $salesOrder->customer->branch ?? 'N/A' }}</p>
+                <p><span class="font-semibold text-gray-300">Status:</span>
                     @php
                         $statusColors = [
                             'Pending' => 'bg-yellow-500 text-black',
@@ -226,7 +226,7 @@
                         {{ ucfirst($salesOrder->status) }}
                     </span>
                 </p>
-                <p><span class="font-semibold text-gray-500">Created At:</span> {{ $salesOrder->created_at->format('Y-m-d H:i') }}</p>
+                <p><span class="font-semibold text-gray-300">Created At:</span> {{ $salesOrder->created_at->format('Y-m-d H:i') }}</p>
             </div>
         </div>
     </div>
@@ -287,41 +287,41 @@
                         <table class="w-full">
                             <thead class="bg-gray-700/50 border-b border-gray-600">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Code</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Brand</th>
-                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Quantity</th>
-                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit Price</th>
-                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Note</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Description</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Code</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Category</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Brand</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Quantity</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Unit Price</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Amount</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Note</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-700/50">
                                 @foreach($batchItems as $item)
-                                    <tr class="hover:bg-gray-700/30 transition-colors {{ $isActive ? '' : 'text-gray-500' }}">
+                                    <tr class="hover:bg-gray-700/30 transition-colors {{ $isActive ? '' : 'text-gray-300' }}">
                                         <td class="px-4 py-3 {{ $isActive ? 'text-gray-200' : 'line-through' }}">
                                             {{ $item->item_description ?: ($item->item->item_description ?? '—') }}
                                         </td>
-                                        <td class="px-4 py-3 text-sm {{ $isActive ? 'text-gray-500' : 'line-through' }}">
+                                        <td class="px-4 py-3 text-sm {{ $isActive ? 'text-gray-300' : 'line-through' }}">
                                             {{ $item->item_code ?? '—' }}
                                         </td>
-                                        <td class="px-4 py-3 text-sm {{ $isActive ? 'text-gray-500' : 'line-through' }}">
+                                        <td class="px-4 py-3 text-sm {{ $isActive ? 'text-gray-300' : 'line-through' }}">
                                             {{ $item->item_category ?: ($item->item->item_category ?? '—') }}
                                         </td>
-                                        <td class="px-4 py-3 text-sm {{ $isActive ? 'text-gray-500' : 'line-through' }}">
+                                        <td class="px-4 py-3 text-sm {{ $isActive ? 'text-gray-300' : 'line-through' }}">
                                             {{ $item->brand ?? '—' }}
                                         </td>
                                         <td class="px-4 py-3 text-right font-medium {{ $isActive ? 'text-gray-200' : 'line-through' }}">
                                             {{ number_format($item->quantity, 2) }} {{ $item->unit ?? 'Kgs' }}
                                         </td>
-                                        <td class="px-4 py-3 text-right {{ $isActive ? 'text-gray-500' : 'line-through' }}">
+                                        <td class="px-4 py-3 text-right {{ $isActive ? 'text-gray-300' : 'line-through' }}">
                                             ₱{{ number_format($item->unit_price, 2) }}
                                         </td>
-                                        <td class="px-4 py-3 text-right font-semibold {{ $isActive ? 'text-blue-700' : 'line-through text-gray-500' }}">
+                                        <td class="px-4 py-3 text-right font-semibold {{ $isActive ? 'text-blue-700' : 'line-through text-gray-300' }}">
                                             ₱{{ number_format($item->quantity * $item->unit_price, 2) }}
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-500 italic">
+                                        <td class="px-4 py-3 text-sm text-gray-300 italic">
                                             {{ $item->note ?? '—' }}
                                         </td>
                                     </tr>
@@ -338,7 +338,7 @@
             <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">Order Items</h2>
             
             <table class="w-full border border-gray-700 rounded-lg overflow-hidden text-gray-200">
-                <thead class="bg-gray-700 text-gray-500">
+                <thead class="bg-gray-700 text-gray-300">
                     <tr>
                         <th class="px-3 py-2 text-left">Description</th>
                         <th class="px-3 py-2 text-left">Code</th>
@@ -366,14 +366,14 @@
                             <td class="px-3 py-2 text-right">
                                 ₱{{ number_format($item->quantity * $item->unit_price, 2) }}
                             </td>
-                            <td class="px-3 py-2 text-sm text-gray-500">{{ $item->note ?? '—' }}</td>
+                            <td class="px-3 py-2 text-sm text-gray-300">{{ $item->note ?? '—' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
 
             @if($salesOrder->items->isEmpty())
-                <div class="text-center py-8 text-gray-500">
+                <div class="text-center py-8 text-gray-300">
                     No items found for this order.
                 </div>
             @endif
@@ -390,7 +390,7 @@
             @endphp
             
             @if($cancelledTotal > 0)
-                <p class="text-sm text-gray-500 mb-2">
+                <p class="text-sm text-gray-300 mb-2">
                     <span class="line-through">Cancelled Items: ₱{{ number_format($cancelledTotal, 2) }}</span>
                 </p>
             @endif
@@ -423,13 +423,13 @@
             @method('PATCH')
 
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-2">Select New Status</label>
+                <label class="block text-xs font-medium text-gray-300 mb-2">Select New Status</label>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     @php
                         $statuses = [
                             'Approved' => ['icon' => '✅', 'color' => 'bg-green-600/20 text-green-700 border-green-700/40 hover:bg-green-600/30'],
                             'Declined' => ['icon' => '❌', 'color' => 'bg-red-600/20 text-red-700 border-red-700/40 hover:bg-red-600/30'],
-                            'Cancelled' => ['icon' => '🚫', 'color' => 'bg-gray-700 text-gray-500 border-gray-700/40 hover:bg-gray-700/30'],
+                            'Cancelled' => ['icon' => '🚫', 'color' => 'bg-gray-700 text-gray-300 border-gray-700/40 hover:bg-gray-700/30'],
                         ];
                     @endphp
 
@@ -472,7 +472,7 @@
                 </svg>
                 Add Notes
             </h3>
-            <button type="button" id="closeModalBtn" class="text-gray-500 hover:text-gray-200 transition-colors">
+            <button type="button" id="closeModalBtn" class="text-gray-300 hover:text-gray-200 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -480,7 +480,7 @@
         </div>
         
         <div class="p-6">
-            <label class="block text-sm font-medium text-gray-500 mb-2">
+            <label class="block text-sm font-medium text-gray-300 mb-2">
                 Please provide a reason for <span id="modalStatusText" class="font-bold text-red-700"></span>:
             </label>
             <textarea id="modalNotesTextarea" 
@@ -489,12 +489,12 @@
                        focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none
                        placeholder-gray-500"
                 placeholder="Enter reason or notes here..."></textarea>
-            <p class="text-xs text-gray-500 mt-2">This field is required for Declined and Cancelled statuses.</p>
+            <p class="text-xs text-gray-300 mt-2">This field is required for Declined and Cancelled statuses.</p>
         </div>
 
         <div class="px-6 py-4 bg-gray-900/50 rounded-b-xl flex justify-end gap-3">
             <button type="button" id="cancelModalBtn"
-                class="px-4 py-2 text-sm font-medium text-gray-500 bg-gray-700 hover:bg-gray-700 rounded-lg transition-colors">
+                class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-700 rounded-lg transition-colors">
                 Cancel
             </button>
             <button type="button" id="confirmModalBtn"

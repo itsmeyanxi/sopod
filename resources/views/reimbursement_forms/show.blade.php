@@ -10,7 +10,7 @@
             <h1 class="text-2xl font-bold text-white">REIMBURSEMENT FORM</h1>
             <div class="flex items-center gap-4">
                 <div class="text-right">
-                    <label class="font-semibold text-gray-500">RI NO:</label>
+                    <label class="font-semibold text-gray-300">RI NO:</label>
                     <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $reimbursement->ri_no }}</span>
                 </div>
                 <span class="px-3 py-1 rounded font-semibold
@@ -39,28 +39,28 @@
         <!-- Department and Date Applied -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">DEPARTMENT:</label>
+                <label class="block font-semibold text-gray-300 mb-1">DEPARTMENT:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $reimbursement->department }}</p>
             </div>
             <div>
-                <label class="block font-semibold text-gray-500 mb-1">DATE APPLIED:</label>
+                <label class="block font-semibold text-gray-300 mb-1">DATE APPLIED:</label>
                 <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $reimbursement->date_applied->format('F d, Y') }}</p>
             </div>
         </div>
 
         <!-- Items Table -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-3">EXPENSE ITEMS:</label>
+            <label class="block font-semibold text-gray-300 mb-3">EXPENSE ITEMS:</label>
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse border border-gray-700">
-                    <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
+                    <thead class="bg-gray-700 text-gray-300 uppercase text-sm">
                         <tr>
                             <th class="border border-gray-700 px-4 py-3" style="width: 20%;">DATE</th>
                             <th class="border border-gray-700 px-4 py-3" style="width: 55%;">PARTICULARS</th>
                             <th class="border border-gray-700 px-4 py-3" style="width: 25%;">COST</th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-500">
+                    <tbody class="text-gray-200">
                         @foreach($reimbursement->items as $item)
                             <tr class="hover:bg-gray-700/40">
                                 <td class="border border-gray-700 px-4 py-3">{{ $item->date ? \Carbon\Carbon::parse($item->date)->format('M d, Y') : '' }}</td>
@@ -81,20 +81,20 @@
 
         <!-- Amount to be Reimbursed -->
         <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-            <label class="block font-semibold text-gray-500 mb-1">AMOUNT TO BE REIMBURSED:</label>
+            <label class="block font-semibold text-gray-300 mb-1">AMOUNT TO BE REIMBURSED:</label>
             <p class="text-2xl font-bold text-green-700">&#8369;{{ number_format($reimbursement->amount_to_reimburse, 2) }}</p>
         </div>
 
         <!-- Submitted By -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-1">SUBMITTED BY:</label>
+            <label class="block font-semibold text-gray-300 mb-1">SUBMITTED BY:</label>
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $reimbursement->submitted_by ?? 'N/A' }}</p>
         </div>
 
         <!-- Remarks -->
         @if($reimbursement->remarks)
             <div class="mb-6">
-                <label class="block font-semibold text-gray-500 mb-2">REMARKS:</label>
+                <label class="block font-semibold text-gray-300 mb-2">REMARKS:</label>
                 <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-gray-200 min-h-[60px]">
                     {{ $reimbursement->remarks }}
                 </div>
@@ -103,7 +103,7 @@
 
         <!-- Created By -->
         <div class="mb-6">
-            <label class="block font-semibold text-gray-500 mb-1">CREATED BY:</label>
+            <label class="block font-semibold text-gray-300 mb-1">CREATED BY:</label>
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $reimbursement->creator->name ?? 'N/A' }}</p>
         </div>
 
@@ -118,9 +118,9 @@
                     </colgroup>
                     <thead>
                         <tr class="bg-gray-700">
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Submitted By:</th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Checked By:</th>
-                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Approved By:</th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Submitted By:</th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Checked By:</th>
+                            <th class="border border-gray-700 px-4 py-2 text-center text-gray-300 text-sm">Approved By:</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,7 +131,7 @@
                             <td class="border border-gray-700 px-4 py-8 text-center align-bottom">
                                 <span class="text-white font-semibold text-sm">{{ $reimbursement->departmentHeadApprover->name ?? '' }}</span>
                                 @if($reimbursement->departmentHeadApprover && $reimbursement->department_head_approved_at)
-                                    <div class="text-xs text-gray-500 italic mt-1">
+                                    <div class="text-xs text-gray-300 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $reimbursement->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($reimbursement->department_head_approved_latitude && $reimbursement->department_head_approved_longitude)
@@ -146,7 +146,7 @@
                             <td class="border border-gray-700 px-4 py-8 text-center align-bottom">
                                 <span class="text-white font-semibold text-sm">{{ $reimbursement->executiveApprover->name ?? '' }}</span>
                                 @if($reimbursement->executiveApprover && $reimbursement->executive_approved_at)
-                                    <div class="text-xs text-gray-500 italic mt-1">
+                                    <div class="text-xs text-gray-300 italic mt-1">
                                         Digitally Signed<br>
                                         {{ $reimbursement->executive_approved_at->format('d M Y | H:i') }}
                                         @if($reimbursement->executive_approved_latitude && $reimbursement->executive_approved_longitude)
@@ -159,7 +159,7 @@
                                 @endif
                             </td>
                         </tr>
-                        <tr class="bg-gray-700 text-gray-500 text-xs italic">
+                        <tr class="bg-gray-700 text-gray-300 text-xs italic">
                             <td class="border border-gray-700 px-4 py-2 text-center">Requisitioner</td>
                             <td class="border border-gray-700 px-4 py-2 text-center">Department Head</td>
                             <td class="border border-gray-700 px-4 py-2 text-center">President / Vice President</td>
@@ -182,17 +182,17 @@
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Department Head Check</span>
                             @if($reimbursement->department_head_approved_by && $reimbursement->departmentHeadApprover)
                                 <span class="text-green-700">&#10003; Checked</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $reimbursement->departmentHeadApprover->name }}
                                     on {{ $reimbursement->department_head_approved_at->format('M d, Y h:i A') }}
                                 </small>
@@ -212,21 +212,21 @@
                             </div>
                         @elseif($reimbursement->department_head_approved_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-500"></i>
+                                <i class="fas fa-clock text-gray-300"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
-                                <i class="fas fa-lock text-gray-500"></i>
+                                <i class="fas fa-lock text-gray-300"></i>
                             </div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-500">
+                        <p class="text-gray-300">
                             <span class="font-semibold">Executive Approval (President/Vice President)</span>
                             @if($reimbursement->status === 'approved' && $reimbursement->executiveApprover)
                                 <span class="text-green-700">&#10003; Approved</span>
                                 <br>
-                                <small class="text-gray-500">
+                                <small class="text-gray-300">
                                     {{ $reimbursement->executiveApprover->name }}
                                     on {{ $reimbursement->executive_approved_at->format('M d, Y h:i A') }}
                                 </small>
@@ -252,7 +252,7 @@
                                 <span class="font-semibold">Rejected</span>
                             </p>
                             @if($reimbursement->rejection_reason)
-                                <p class="text-gray-500 mt-2">
+                                <p class="text-gray-300 mt-2">
                                     <strong>Reason:</strong> {{ $reimbursement->rejection_reason }}
                                 </p>
                             @endif
@@ -264,7 +264,7 @@
 
         <!-- Footer Note -->
         <div class="mb-6 p-3 bg-gray-900 border border-gray-700 rounded">
-            <p class="text-gray-500 text-sm italic">
+            <p class="text-gray-300 text-sm italic">
                 <i class="fas fa-info-circle mr-1 text-yellow-700"></i>
                 Please attach invoices, Official receipts (OR), and other supporting documents.
             </p>
@@ -320,8 +320,8 @@
             <input type="hidden" name="longitude" id="dh_longitude">
             <input type="hidden" name="location" id="dh_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="dh_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveDHModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
@@ -345,8 +345,8 @@
             <input type="hidden" name="longitude" id="exec_longitude">
             <input type="hidden" name="location" id="exec_location">
             <div class="mb-4">
-                <p class="text-gray-500 mb-2">Geolocation will be captured automatically.</p>
-                <div id="exec_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
+                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
+                <div id="exec_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeApproveExecutiveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
@@ -367,7 +367,7 @@
         <form action="{{ route('reimbursement_forms.reject', $reimbursement->id) }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-500 mb-2">Rejection Reason (Optional):</label>
+                <label class="block text-gray-300 mb-2">Rejection Reason (Optional):</label>
                 <textarea name="rejection_reason" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">

@@ -55,7 +55,7 @@
                                 @if($class->is_active)
                                     <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">Active</span>
                                 @else
-                                    <span class="bg-gray-700 text-gray-500 px-2 py-0.5 rounded text-xs">Inactive</span>
+                                    <span class="bg-gray-700 text-gray-300 px-2 py-0.5 rounded text-xs">Inactive</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center">

@@ -8,7 +8,7 @@
             <h1 class="text-3xl font-bold text-white mb-2">
                 📦 Delivery Batches
             </h1>
-            <p class="text-gray-500">Sales Order: <span class="text-blue-700 font-semibold">{{ $salesOrder->sales_order_number }}</span></p>
+            <p class="text-gray-300">Sales Order: <span class="text-blue-700 font-semibold">{{ $salesOrder->sales_order_number }}</span></p>
         </div>
         <a href="{{ route('sales_orders.show', $salesOrder->id) }}" 
            class="bg-gray-700 hover:bg-gray-700 px-5 py-2.5 rounded-lg text-sm transition-all duration-150 flex items-center gap-2">
@@ -29,19 +29,19 @@
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                <p class="text-xs text-gray-500 mb-1">Customer</p>
+                <p class="text-xs text-gray-300 mb-1">Customer</p>
                 <p class="text-white font-semibold">{{ $salesOrder->customer->customer_name ?? 'N/A' }}</p>
             </div>
             <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                <p class="text-xs text-gray-500 mb-1">Total Deliveries</p>
+                <p class="text-xs text-gray-300 mb-1">Total Deliveries</p>
                 <p class="text-white font-semibold text-2xl">{{ count($deliveries) }}</p>
             </div>
             <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                <p class="text-xs text-gray-500 mb-1">SO Total Amount</p>
+                <p class="text-xs text-gray-300 mb-1">SO Total Amount</p>
                 <p class="text-green-700 font-semibold text-xl">₱{{ number_format($salesOrder->items->where('batch_status', 'Active')->sum(fn($i) => $i->quantity * $i->unit_price), 2) }}</p>
             </div>
             <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                <p class="text-xs text-gray-500 mb-1">Status</p>
+                <p class="text-xs text-gray-300 mb-1">Status</p>
                 @if($salesOrder->is_closed)
                     <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-600 text-white">
                         ✅ Closed - Fully Delivered
@@ -135,37 +135,37 @@
                     <table class="w-full">
                         <thead class="bg-gray-700/50 border-b-2 border-gray-600">
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Item Code</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Brand</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Quantity</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit Price</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Item Code</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Description</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Category</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Brand</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Quantity</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Unit Price</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Amount</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-700/50">
                             @foreach($delivery->items as $item)
-                                <tr class="hover:bg-gray-700/30 transition-colors {{ $isCancelled ? 'text-gray-500' : '' }}">
-                                    <td class="px-4 py-3 text-sm font-medium {{ $isCancelled ? 'line-through text-gray-500' : 'text-blue-700' }}">
+                                <tr class="hover:bg-gray-700/30 transition-colors {{ $isCancelled ? 'text-gray-300' : '' }}">
+                                    <td class="px-4 py-3 text-sm font-medium {{ $isCancelled ? 'line-through text-gray-300' : 'text-blue-700' }}">
                                         {{ $item->item_code ?? '—' }}
                                     </td>
-                                    <td class="px-4 py-3 {{ $isCancelled ? 'line-through text-gray-500' : 'text-gray-200' }}">
+                                    <td class="px-4 py-3 {{ $isCancelled ? 'line-through text-gray-300' : 'text-gray-200' }}">
                                         {{ $item->item_description ?? '—' }}
                                     </td>
-                                    <td class="px-4 py-3 text-sm {{ $isCancelled ? 'line-through text-gray-500' : 'text-gray-500' }}">
+                                    <td class="px-4 py-3 text-sm {{ $isCancelled ? 'line-through text-gray-300' : 'text-gray-300' }}">
                                         {{ $item->item_category ?? '—' }}
                                     </td>
-                                    <td class="px-4 py-3 text-sm {{ $isCancelled ? 'line-through text-gray-500' : 'text-gray-500' }}">
+                                    <td class="px-4 py-3 text-sm {{ $isCancelled ? 'line-through text-gray-300' : 'text-gray-300' }}">
                                         {{ $item->brand ?? '—' }}
                                     </td>
-                                    <td class="px-4 py-3 text-right font-medium {{ $isCancelled ? 'line-through text-gray-500' : 'text-gray-200' }}">
+                                    <td class="px-4 py-3 text-right font-medium {{ $isCancelled ? 'line-through text-gray-300' : 'text-gray-200' }}">
                                         {{ number_format($item->quantity, 2) }} {{ $item->uom ?? 'Kgs' }}
                                     </td>
-                                    <td class="px-4 py-3 text-right {{ $isCancelled ? 'line-through text-gray-500' : 'text-gray-500' }}">
+                                    <td class="px-4 py-3 text-right {{ $isCancelled ? 'line-through text-gray-300' : 'text-gray-300' }}">
                                         ₱{{ number_format($item->unit_price, 2) }}
                                     </td>
-                                    <td class="px-4 py-3 text-right font-semibold {{ $isCancelled ? 'line-through text-gray-500' : 'text-green-700' }}">
+                                    <td class="px-4 py-3 text-right font-semibold {{ $isCancelled ? 'line-through text-gray-300' : 'text-green-700' }}">
                                         ₱{{ number_format($item->total_amount, 2) }}
                                     </td>
                                 </tr>
@@ -178,24 +178,24 @@
                 <div class="bg-gray-800/50 border-t border-gray-700 px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                     @if($delivery->sales_invoice_no)
                         <div>
-                            <p class="text-xs text-gray-500">Sales Invoice No</p>
+                            <p class="text-xs text-gray-300">Sales Invoice No</p>
                             <p class="text-sm text-white font-semibold">{{ $delivery->sales_invoice_no }}</p>
                         </div>
                     @endif
                     @if($delivery->approved_by)
                         <div>
-                            <p class="text-xs text-gray-500">Approved By</p>
+                            <p class="text-xs text-gray-300">Approved By</p>
                             <p class="text-sm text-white font-semibold">{{ $delivery->approved_by }}</p>
                         </div>
                     @endif
                     <div>
-                        <p class="text-xs text-gray-500">Created At</p>
+                        <p class="text-xs text-gray-300">Created At</p>
                         <p class="text-sm text-white font-semibold">{{ $delivery->created_at->format('M d, Y h:i A') }}</p>
                     </div>
                     @if($delivery->additional_instructions)
                         <div class="col-span-2 md:col-span-1">
-                            <p class="text-xs text-gray-500">Instructions</p>
-                            <p class="text-sm text-gray-500">{{ $delivery->additional_instructions }}</p>
+                            <p class="text-xs text-gray-300">Instructions</p>
+                            <p class="text-sm text-gray-300">{{ $delivery->additional_instructions }}</p>
                         </div>
                     @endif
                 </div>
@@ -205,7 +205,7 @@
                 <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
-                <p class="text-gray-500 text-lg">No deliveries found for this sales order.</p>
+                <p class="text-gray-300 text-lg">No deliveries found for this sales order.</p>
             </div>
         @endforelse
     </div>
@@ -214,21 +214,21 @@
     <div class="mt-6 bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl shadow-xl border border-gray-700">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="bg-gray-800/50 rounded-lg p-4 border border-blue-500/30">
-                <p class="text-xs text-gray-500 mb-1">Total Deliveries</p>
+                <p class="text-xs text-gray-300 mb-1">Total Deliveries</p>
                 <p class="text-white font-bold text-2xl">{{ $deliveries->count() }}</p>
             </div>
             <div class="bg-gray-800/50 rounded-lg p-4 border border-green-500/30">
-                <p class="text-xs text-gray-500 mb-1">Delivered</p>
+                <p class="text-xs text-gray-300 mb-1">Delivered</p>
                 <p class="text-green-700 font-bold text-2xl">{{ $deliveries->where('status', 'Delivered')->count() }}</p>
             </div>
             @if($deliveries->where('status', 'Cancelled')->count() > 0)
                 <div class="bg-gray-800/50 rounded-lg p-4 border border-red-500/30">
-                    <p class="text-xs text-gray-500 mb-1">Cancelled</p>
+                    <p class="text-xs text-gray-300 mb-1">Cancelled</p>
                     <p class="text-red-700 font-bold text-2xl">{{ $deliveries->where('status', 'Cancelled')->count() }}</p>
                 </div>
             @endif
             <div class="bg-gray-800/50 rounded-lg p-4 border border-green-500/30">
-                <p class="text-xs text-gray-500 mb-1">Total Delivered Amount</p>
+                <p class="text-xs text-gray-300 mb-1">Total Delivered Amount</p>
                 <p class="text-green-700 font-bold text-2xl">₱{{ number_format($deliveries->where('status', 'Delivered')->sum(fn($d) => $d->items->sum('total_amount')), 2) }}</p>
             </div>
         </div>

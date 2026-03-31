@@ -47,27 +47,27 @@
                     <h3 class="text-xl font-semibold text-purple-700 mb-4">Basic Information</h3>
 
                     <div>
-                        <label class="text-gray-500 text-sm">Supplier Code</label>
+                        <label class="text-gray-300 text-sm">Supplier Code</label>
                         <p class="text-white text-lg font-semibold">{{ $supplier->supplier_code }}</p>
                     </div>
 
                     <div>
-                        <label class="text-gray-500 text-sm">Supplier Name</label>
+                        <label class="text-gray-300 text-sm">Supplier Name</label>
                         <p class="text-white text-lg">{{ $supplier->supplier_name }}</p>
                     </div>
 
                     <div>
-                        <label class="text-gray-500 text-sm">Address</label>
+                        <label class="text-gray-300 text-sm">Address</label>
                         <p class="text-white">{{ $supplier->address ?? 'N/A' }}</p>
                     </div>
 
                     <div>
-                        <label class="text-gray-500 text-sm">TIN</label>
+                        <label class="text-gray-300 text-sm">TIN</label>
                         <p class="text-white">{{ $supplier->tin ?? 'N/A' }}</p>
                     </div>
 
                     <div>
-                        <label class="text-gray-500 text-sm">Storage / Warehouse</label>
+                        <label class="text-gray-300 text-sm">Storage / Warehouse</label>
                         <p class="text-white">{{ $supplier->storage ?? 'N/A' }}</p>
                     </div>
                 </div>
@@ -77,22 +77,22 @@
                     <h3 class="text-xl font-semibold text-purple-700 mb-4">Contact Information</h3>
 
                     <div>
-                        <label class="text-gray-500 text-sm">Payment Terms</label>
+                        <label class="text-gray-300 text-sm">Payment Terms</label>
                         <p class="text-white">{{ $supplier->terms ?? 'N/A' }}</p>
                     </div>
 
                     <div>
-                        <label class="text-gray-500 text-sm">Contact Person</label>
+                        <label class="text-gray-300 text-sm">Contact Person</label>
                         <p class="text-white">{{ $supplier->contact_person ?? 'N/A' }}</p>
                     </div>
 
                     <div>
-                        <label class="text-gray-500 text-sm">Email Addresses</label>
+                        <label class="text-gray-300 text-sm">Email Addresses</label>
                         <p class="text-white">{{ $supplier->email ?? 'N/A' }}</p>
                     </div>
 
                     <div>
-                        <label class="text-gray-500 text-sm">Contact Number</label>
+                        <label class="text-gray-300 text-sm">Contact Number</label>
                         <p class="text-white">{{ $supplier->contact_number ?? 'N/A' }}</p>
                     </div>
 
@@ -100,17 +100,17 @@
                         <h3 class="text-xl font-semibold text-purple-700 mb-4">Bank Information (Primary)</h3>
 
                         <div class="mb-3">
-                            <label class="text-gray-500 text-sm">Bank</label>
+                            <label class="text-gray-300 text-sm">Bank</label>
                             <p class="text-white">{{ $supplier->bank ?? 'N/A' }}</p>
                         </div>
 
                         <div class="mb-3">
-                            <label class="text-gray-500 text-sm">Account Name</label>
+                            <label class="text-gray-300 text-sm">Account Name</label>
                             <p class="text-white">{{ $supplier->account_name ?? 'N/A' }}</p>
                         </div>
 
                         <div>
-                            <label class="text-gray-500 text-sm">Account Number</label>
+                            <label class="text-gray-300 text-sm">Account Number</label>
                             <p class="text-white">{{ $supplier->account_number ?? 'N/A' }}</p>
                         </div>
                     </div>
@@ -120,17 +120,17 @@
                         <h3 class="text-xl font-semibold text-purple-700 mb-4">Bank Information (Secondary)</h3>
 
                         <div class="mb-3">
-                            <label class="text-gray-500 text-sm">Bank</label>
+                            <label class="text-gray-300 text-sm">Bank</label>
                             <p class="text-white">{{ $supplier->bank2 ?? 'N/A' }}</p>
                         </div>
 
                         <div class="mb-3">
-                            <label class="text-gray-500 text-sm">Account Name</label>
+                            <label class="text-gray-300 text-sm">Account Name</label>
                             <p class="text-white">{{ $supplier->account_name2 ?? 'N/A' }}</p>
                         </div>
 
                         <div>
-                            <label class="text-gray-500 text-sm">Account Number</label>
+                            <label class="text-gray-300 text-sm">Account Number</label>
                             <p class="text-white">{{ $supplier->account_number2 ?? 'N/A' }}</p>
                         </div>
                     </div>
@@ -142,17 +142,17 @@
             <div class="mt-6 pt-6 border-t border-gray-700">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                        <label class="text-gray-500">Created By</label>
-                        <p class="text-gray-500">{{ $supplier->creator->name ?? 'N/A' }}</p>
+                        <label class="text-gray-300">Created By</label>
+                        <p class="text-gray-300">{{ $supplier->creator->name ?? 'N/A' }}</p>
                     </div>
                     <div>
-                        <label class="text-gray-500">Created At</label>
-                        <p class="text-gray-500">{{ $supplier->created_at->format('F d, Y h:i A') }}</p>
+                        <label class="text-gray-300">Created At</label>
+                        <p class="text-gray-300">{{ $supplier->created_at->format('F d, Y h:i A') }}</p>
                     </div>
                     @if($supplier->updated_at && $supplier->updated_at != $supplier->created_at)
                     <div>
-                        <label class="text-gray-500">Last Updated</label>
-                        <p class="text-gray-500">{{ $supplier->updated_at->format('F d, Y h:i A') }}</p>
+                        <label class="text-gray-300">Last Updated</label>
+                        <p class="text-gray-300">{{ $supplier->updated_at->format('F d, Y h:i A') }}</p>
                     </div>
                     @endif
                 </div>
@@ -183,12 +183,12 @@
                                 @elseif($document->isPdf())
                                     <div class="w-full h-40 bg-gray-700 rounded flex flex-col items-center justify-center">
                                         <i class="fas fa-file-pdf text-red-700 text-5xl mb-2"></i>
-                                        <span class="text-gray-500 text-sm">PDF Document</span>
+                                        <span class="text-gray-300 text-sm">PDF Document</span>
                                     </div>
                                 @else
                                     <div class="w-full h-40 bg-gray-700 rounded flex flex-col items-center justify-center">
                                         <i class="fas fa-file-alt text-blue-700 text-5xl mb-2"></i>
-                                        <span class="text-gray-500 text-sm">{{ strtoupper(pathinfo($document->original_filename, PATHINFO_EXTENSION)) }} File</span>
+                                        <span class="text-gray-300 text-sm">{{ strtoupper(pathinfo($document->original_filename, PATHINFO_EXTENSION)) }} File</span>
                                     </div>
                                 @endif
                             </div>
@@ -196,10 +196,10 @@
                             <!-- Document Info -->
                             <div class="mb-2">
                                 <p class="text-white font-semibold text-sm truncate" title="{{ $document->document_name }}">{{ $document->document_name }}</p>
-                                <p class="text-gray-500 text-xs truncate" title="{{ $document->original_filename }}">{{ $document->original_filename }}</p>
-                                <p class="text-gray-500 text-xs mt-1">{{ $document->getFileSizeFormatted() }} &bull; {{ $document->created_at->format('M d, Y') }}</p>
+                                <p class="text-gray-300 text-xs truncate" title="{{ $document->original_filename }}">{{ $document->original_filename }}</p>
+                                <p class="text-gray-300 text-xs mt-1">{{ $document->getFileSizeFormatted() }} &bull; {{ $document->created_at->format('M d, Y') }}</p>
                                 @if($document->uploader)
-                                    <p class="text-gray-500 text-xs">Uploaded by: {{ $document->uploader->name }}</p>
+                                    <p class="text-gray-300 text-xs">Uploaded by: {{ $document->uploader->name }}</p>
                                 @endif
                             </div>
 
@@ -227,8 +227,8 @@
             @else
                 <div class="text-center py-8">
                     <i class="fas fa-folder-open text-gray-300 text-5xl mb-3"></i>
-                    <p class="text-gray-500">No business documents uploaded yet.</p>
-                    <p class="text-gray-500 text-sm mt-1">Click "Upload Documents" to add business permits, BIR certificates, etc.</p>
+                    <p class="text-gray-300">No business documents uploaded yet.</p>
+                    <p class="text-gray-300 text-sm mt-1">Click "Upload Documents" to add business permits, BIR certificates, etc.</p>
                 </div>
             @endif
         </div>
@@ -240,7 +240,7 @@
     <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-lg mx-4">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-bold text-white"><i class="fas fa-upload mr-2"></i>Upload Business Documents</h3>
-            <button type="button" onclick="document.getElementById('uploadModal').classList.add('hidden')" class="text-gray-500 hover:text-white text-xl">&times;</button>
+            <button type="button" onclick="document.getElementById('uploadModal').classList.add('hidden')" class="text-gray-300 hover:text-white text-xl">&times;</button>
         </div>
 
         <form action="{{ route('suppliers.uploadDocuments', $supplier->id) }}" method="POST" enctype="multipart/form-data">
@@ -249,14 +249,14 @@
             <div id="fileInputs">
                 <div class="file-row mb-4 bg-gray-900 border border-gray-700 rounded p-3">
                     <div class="mb-2">
-                        <label class="block text-gray-500 text-sm mb-1">Document Label:</label>
+                        <label class="block text-gray-300 text-sm mb-1">Document Label:</label>
                         <input type="text" name="document_names[]" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="e.g., Business Permit, BIR Certificate, DTI...">
                     </div>
                     <div>
-                        <label class="block text-gray-500 text-sm mb-1">File:</label>
+                        <label class="block text-gray-300 text-sm mb-1">File:</label>
                         <input type="file" name="documents[]" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm" accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx" required>
                     </div>
-                    <p class="text-gray-500 text-xs mt-1">Accepted: PNG, JPG, PDF, DOC, DOCX, XLS, XLSX (max 10MB)</p>
+                    <p class="text-gray-300 text-xs mt-1">Accepted: PNG, JPG, PDF, DOC, DOCX, XLS, XLSX (max 10MB)</p>
                 </div>
             </div>
 
@@ -286,14 +286,14 @@ function addFileInput() {
             <i class="fas fa-times"></i>
         </button>
         <div class="mb-2">
-            <label class="block text-gray-500 text-sm mb-1">Document Label:</label>
+            <label class="block text-gray-300 text-sm mb-1">Document Label:</label>
             <input type="text" name="document_names[]" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="e.g., Business Permit, BIR Certificate, DTI...">
         </div>
         <div>
-            <label class="block text-gray-500 text-sm mb-1">File:</label>
+            <label class="block text-gray-300 text-sm mb-1">File:</label>
             <input type="file" name="documents[]" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm" accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx" required>
         </div>
-        <p class="text-gray-500 text-xs mt-1">Accepted: PNG, JPG, PDF, DOC, DOCX, XLS, XLSX (max 10MB)</p>
+        <p class="text-gray-300 text-xs mt-1">Accepted: PNG, JPG, PDF, DOC, DOCX, XLS, XLSX (max 10MB)</p>
     `;
     container.appendChild(div);
 }

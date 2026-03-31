@@ -80,7 +80,7 @@
                     <span class="text-white font-semibold text-sm whitespace-nowrap">{{ number_format($sup->total, 2) }}</span>
                 </div>
                 @empty
-                <p class="text-gray-500 text-sm">No data yet.</p>
+                <p class="text-gray-300 text-sm">No data yet.</p>
                 @endforelse
             </div>
         </div>
@@ -113,7 +113,7 @@
         <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-2">Recent Invoices</h3>
         <div class="overflow-x-auto">
             <table class="w-full border-collapse text-sm">
-                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-300 uppercase text-xs">
                     <tr>
                         <th class="border border-gray-700 px-4 py-2 text-left">APV No.</th>
                         <th class="border border-gray-700 px-4 py-2 text-left">Vendor</th>
@@ -141,7 +141,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="border border-gray-700 px-4 py-6 text-center text-gray-500">No invoices yet.</td>
+                        <td colspan="5" class="border border-gray-700 px-4 py-6 text-center text-gray-400">No invoices yet.</td>
                     </tr>
                     @endforelse
                 </tbody>

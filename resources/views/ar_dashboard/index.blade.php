@@ -8,7 +8,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-white">Accounts Receivable Dashboard</h1>
-                <p class="text-gray-500 text-sm mt-1">Last updated: {{ now()->format('M d, Y • h:i A') }}</p>
+                <p class="text-gray-300 text-sm mt-1">Last updated: {{ now()->format('M d, Y • h:i A') }}</p>
             </div>
             <div class="flex gap-3">
                 <button onclick="downloadExport('{{ route('ar_dashboard.export_summary') }}')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2" title="Download CSV summary report">
@@ -23,19 +23,19 @@
         <!-- Summary Statistics -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-red-100 rounded-lg p-4 border-l-4 border-red-500">
-                <p class="text-gray-500 text-sm font-semibold">Overdue Count</p>
+                <p class="text-gray-300 text-sm font-semibold">Overdue Count</p>
                 <p class="text-3xl font-bold text-red-700">{{ $overdueCount }}</p>
             </div>
             <div class="bg-red-100 rounded-lg p-4 border-l-4 border-red-500">
-                <p class="text-gray-500 text-sm font-semibold">Total Overdue Amount</p>
+                <p class="text-gray-300 text-sm font-semibold">Total Overdue Amount</p>
                 <p class="text-2xl font-bold text-red-700">₱{{ number_format($totalOverdue, 2) }}</p>
             </div>
             <div class="bg-yellow-100 rounded-lg p-4 border-l-4 border-yellow-500">
-                <p class="text-gray-500 text-sm font-semibold">Upcoming Due Count</p>
+                <p class="text-gray-300 text-sm font-semibold">Upcoming Due Count</p>
                 <p class="text-3xl font-bold text-yellow-700">{{ $upcomingCount }}</p>
             </div>
             <div class="bg-yellow-100 rounded-lg p-4 border-l-4 border-yellow-500">
-                <p class="text-gray-500 text-sm font-semibold">Total Upcoming Amount</p>
+                <p class="text-gray-300 text-sm font-semibold">Total Upcoming Amount</p>
                 <p class="text-2xl font-bold text-yellow-700">₱{{ number_format($totalUpcoming, 2) }}</p>
             </div>
         </div>
@@ -85,7 +85,7 @@
             @else
                 <div class="bg-gray-700 rounded-lg p-6 text-center">
                     <i class="fas fa-check-circle text-green-700 text-3xl mb-2"></i>
-                    <p class="text-gray-500">No overdue invoices. Great job!</p>
+                    <p class="text-gray-300">No overdue invoices. Great job!</p>
                 </div>
             @endif
         </div>
@@ -139,7 +139,7 @@
             @else
                 <div class="bg-gray-700 rounded-lg p-6 text-center">
                     <i class="fas fa-thumbs-up text-blue-700 text-3xl mb-2"></i>
-                    <p class="text-gray-500">No invoices due in the next 7 days.</p>
+                    <p class="text-gray-300">No invoices due in the next 7 days.</p>
                 </div>
             @endif
         </div>
