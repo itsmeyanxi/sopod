@@ -9,7 +9,7 @@
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen flex items-center justify-center p-4">
     <div class="max-w-2xl w-full">
         <!-- Main Error Card -->
-        <div class="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
             <!-- Decorative Header -->
             <div class="h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
             
@@ -23,11 +23,11 @@
                 </div>
 
                 <!-- Error Message -->
-                <h1 class="text-4xl font-bold text-white mb-4">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">
                     We'll Be Right Back!
                 </h1>
                 
-                <p class="text-gray-300 text-lg mb-8 leading-relaxed">
+                <p class="text-gray-600 text-lg mb-8 leading-relaxed">
                     We're experiencing a temporary technical issue. Our team has been automatically notified and is working to resolve this as quickly as possible.
                 </p>
 
@@ -53,17 +53,17 @@
                         <span>🔄</span> Refresh Page
                     </button>
                     <a href="{{ route('dashboard') }}" 
-                       class="flex items-center justify-center gap-2 px-8 py-4 bg-gray-800 border-2 border-gray-600 text-gray-200 rounded-xl hover:bg-gray-900 hover:border-gray-400 transition shadow-md font-semibold text-lg">
+                       class="flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition shadow-md font-semibold text-lg">
                         <span>🏠</span> Go to Dashboard
                     </a>
                 </div>
 
                 <!-- Support Section -->
-                <div class="mt-10 pt-8 border-t border-gray-700">
+                <div class="mt-10 pt-8 border-t border-gray-200">
                     <p class="text-sm text-gray-500 mb-2">Still having trouble?</p>
                     <a href="http://mtcresolveit.meatplus.ph/public/ticket/index.php?entity=1" 
                        target="_blank" 
-                       class="inline-block px-6 py-3 bg-gray-700 hover:bg-gray-200 rounded-lg transition text-gray-200 font-medium">
+                       class="inline-block px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-gray-700 font-medium">
                         📧 Contact IT Support
                     </a>
                     <p class="text-sm text-gray-500 mt-4">
@@ -74,13 +74,13 @@
         </div>
 
         <!-- Additional Help Card -->
-        <div class="mt-6 bg-gray-800/80 backdrop-blur rounded-xl p-6 text-center shadow-md">
-            <p class="text-sm text-gray-300">
+        <div class="mt-6 bg-white/80 backdrop-blur rounded-xl p-6 text-center shadow-md">
+            <p class="text-sm text-gray-600">
                 This is a temporary issue. Most problems resolve within a few minutes.
             </p>
         </div>
         <div class="mt-6 bg-yellow-100 border border-yellow-400 rounded-lg p-4 text-center">
-            <p class="text-xs text-gray-200">
+            <p class="text-xs text-gray-700">
                 <strong>DEBUG:</strong> You're seeing this friendly page because your role is: 
                 <span class="font-bold text-red-600">{{ $userRole ?? 'Unknown' }}</span>
             </p>

@@ -12,18 +12,18 @@
     }
 @endphp
 
-<div class="flex justify-center items-center h-screen bg-gray-900">
-    <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-96">
+<div class="flex justify-center items-center h-screen bg-gray-50">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-96">
         <!-- Logo -->
         <div class="flex justify-center mb-6">
             @if($logoBase64)
                 <img src="{{ $logoBase64 }}" alt="Company Logo" class="logo-image">
             @else
-                <div class="text-white text-sm">Logo not found</div>
+                <div class="text-gray-800 text-sm">Logo not found</div>
             @endif
         </div>
 
-        <h2 class="text-white text-2xl font-bold mb-6 text-center">Login</h2>
+        <h2 class="text-gray-800 text-2xl font-bold mb-6 text-center">Login</h2>
 
         <!-- Login Form -->
         <form method="POST" action="{{ route('login.submit') }}">
@@ -35,7 +35,7 @@
                 <input 
                     type="email" 
                     name="email" 
-                    class="w-full p-2 rounded bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 outline-none" 
+                    class="w-full p-2 rounded bg-gray-100 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none" 
                     placeholder="Enter your email" 
                     required>
             </div>
@@ -46,7 +46,7 @@
                 <input 
                     type="password" 
                     name="password" 
-                    class="w-full p-2 rounded bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 outline-none" 
+                    class="w-full p-2 rounded bg-gray-100 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none" 
                     placeholder="Enter your password" 
                     required>
             </div>

@@ -4,11 +4,11 @@
 
 @section('content')
 <div class="container mx-auto max-w-2xl">
-    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-white rounded-lg shadow-lg p-6">
 
-        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold text-white">Edit Payment Term: {{ $payment_term->code }}</h1>
-            <a href="{{ route('payment_terms.index') }}" class="text-gray-500 hover:text-gray-200 text-sm">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+            <h1 class="text-2xl font-bold text-gray-800">Edit Payment Term: {{ $payment_term->code }}</h1>
+            <a href="{{ route('payment_terms.index') }}" class="text-gray-500 hover:text-gray-700 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
         </div>
@@ -27,27 +27,27 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label class="block text-gray-300 text-sm mb-1 font-medium">Code <span class="text-red-500">*</span></label>
-                    <input type="text" name="code" value="{{ old('code', $payment_term->code) }}" class="w-full border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
+                    <label class="block text-gray-600 text-sm mb-1 font-medium">Code <span class="text-red-500">*</span></label>
+                    <input type="text" name="code" value="{{ old('code', $payment_term->code) }}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
                 </div>
                 <div>
-                    <label class="block text-gray-300 text-sm mb-1 font-medium">Description <span class="text-red-500">*</span></label>
-                    <input type="text" name="description" value="{{ old('description', $payment_term->description) }}" class="w-full border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
+                    <label class="block text-gray-600 text-sm mb-1 font-medium">Description <span class="text-red-500">*</span></label>
+                    <input type="text" name="description" value="{{ old('description', $payment_term->description) }}" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
-                    <label class="block text-gray-300 text-sm mb-1 font-medium">Net Days <span class="text-red-500">*</span></label>
-                    <input type="number" name="net_days" value="{{ old('net_days', $payment_term->net_days) }}" min="1" class="w-full border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
+                    <label class="block text-gray-600 text-sm mb-1 font-medium">Net Days <span class="text-red-500">*</span></label>
+                    <input type="number" name="net_days" value="{{ old('net_days', $payment_term->net_days) }}" min="1" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
                 </div>
                 <div>
-                    <label class="block text-gray-300 text-sm mb-1 font-medium">Discount %</label>
-                    <input type="number" name="discount_pct" value="{{ old('discount_pct', $payment_term->discount_pct) }}" step="0.01" min="0" max="100" class="w-full border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <label class="block text-gray-600 text-sm mb-1 font-medium">Discount %</label>
+                    <input type="number" name="discount_pct" value="{{ old('discount_pct', $payment_term->discount_pct) }}" step="0.01" min="0" max="100" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 </div>
                 <div>
-                    <label class="block text-gray-300 text-sm mb-1 font-medium">Discount Days</label>
-                    <input type="number" name="discount_days" value="{{ old('discount_days', $payment_term->discount_days) }}" min="0" class="w-full border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <label class="block text-gray-600 text-sm mb-1 font-medium">Discount Days</label>
+                    <input type="number" name="discount_days" value="{{ old('discount_days', $payment_term->discount_days) }}" min="0" class="w-full border border-gray-300 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 </div>
             </div>
 
