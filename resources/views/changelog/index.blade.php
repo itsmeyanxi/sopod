@@ -3,7 +3,7 @@
 @section('title', 'Change Log')
 
 @section('content')
-<div class="bg-gray-50 text-gray-100 min-h-screen p-8">
+<div class="bg-gray-900 text-gray-100 min-h-screen p-8">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold">📜 Sales Order Change Log</h1>
@@ -14,12 +14,12 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white p-6 rounded-lg mb-6">
+    <div class="bg-gray-800 p-6 rounded-lg mb-6">
         <form method="GET" action="{{ route('changelog.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Field Filter -->
             <div>
                 <label class="text-gray-500 text-sm mb-2 block">Field Changed</label>
-                <select name="field" class="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded border border-gray-300">
+                <select name="field" class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
                     <option value="">All Fields</option>
                     @foreach($fields as $field)
                         <option value="{{ $field }}" {{ request('field') == $field ? 'selected' : '' }}>
@@ -33,14 +33,14 @@
             <div>
                 <label class="text-gray-500 text-sm mb-2 block">From Date</label>
                 <input type="date" name="from_date" value="{{ request('from_date') }}"
-                       class="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded border border-gray-300">
+                       class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
             </div>
 
             <!-- To Date -->
             <div>
                 <label class="text-gray-500 text-sm mb-2 block">To Date</label>
                 <input type="date" name="to_date" value="{{ request('to_date') }}"
-                       class="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded border border-gray-300">
+                       class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
             </div>
 
             <!-- Submit -->
@@ -53,9 +53,9 @@
     </div>
 
     <!-- Changes Table -->
-    <div class="bg-white rounded-lg overflow-hidden">
+    <div class="bg-gray-800 rounded-lg overflow-hidden">
         <table class="min-w-full">
-            <thead class="bg-gray-100">
+            <thead class="bg-gray-700">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase">Date/Time</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase">SO Number</th>
@@ -86,7 +86,7 @@
                     $config = $actionConfig[$actionType] ?? $actionConfig['updated'];
                 @endphp
                 
-                <tr class="hover:bg-gray-100">
+                <tr class="hover:bg-gray-700">
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <div>{{ $change->created_at->format('M d, Y') }}</div>
                         <div class="text-gray-500 text-xs">{{ $change->created_at->format('h:i A') }}</div>

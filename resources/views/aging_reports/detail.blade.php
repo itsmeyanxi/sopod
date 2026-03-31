@@ -4,11 +4,11 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-start mb-6 border-b border-gray-200 pb-4">
+        <div class="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">
             <div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ $customerName }}</h1>
+                <h1 class="text-3xl font-bold text-white mb-2">{{ $customerName }}</h1>
                 <p class="text-gray-500 text-sm">Aging Bucket: <span class="text-blue-700 font-semibold">{{ $bucketLabel }}</span></p>
                 <p class="text-gray-500 text-sm">Customer Code: <span class="text-gray-500 font-mono">{{ $customerCode }}</span></p>
             </div>
@@ -19,7 +19,7 @@
                     <span>View All Buckets</span>
                 </a>
                 <a href="{{ route('aging_reports.summary', ['filter_date' => $filterDate, 'include' => $include]) }}"
-                   class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded font-medium transition flex items-center space-x-2">
+                   class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-arrow-left"></i>
                     <span>Back to Summary</span>
                 </a>
@@ -60,7 +60,7 @@
         </div>
 
         <!-- Invoices Table -->
-        <div class="bg-gray-100 rounded-lg overflow-hidden">
+        <div class="bg-gray-700 rounded-lg overflow-hidden">
             <div class="overflow-x-auto">
                 @if(count($invoices) > 0)
                     <table class="min-w-full">
@@ -77,9 +77,9 @@
                                 <th class="px-4 py-3 text-left font-semibold">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-700">
+                        <tbody class="text-gray-200">
                             @foreach($invoices as $invoice)
-                            <tr class="border-b border-gray-300 hover:bg-gray-100 transition">
+                            <tr class="border-b border-gray-600 hover:bg-gray-700 transition">
                                 <td class="px-4 py-3 font-mono font-medium">{{ $invoice['invoice_no'] }}</td>
                                 <td class="px-4 py-3 font-mono text-sm">{{ $invoice['dr_no'] ?? '-' }}</td>
                                 <td class="px-4 py-3 text-sm">{{ Carbon\Carbon::parse($invoice['invoice_date'])->format('M d, Y') ?? '-' }}</td>
@@ -104,7 +104,7 @@
                                     @elseif($invoice['status'] === 'Closed' || $invoice['status'] === 'closed')
                                         <span class="bg-green-600 text-white px-2 py-1 rounded text-xs">{{ ucfirst($invoice['status']) }}</span>
                                     @else
-                                        <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs">{{ ucfirst($invoice['status']) }}</span>
+                                        <span class="bg-gray-200 text-white px-2 py-1 rounded text-xs">{{ ucfirst($invoice['status']) }}</span>
                                     @endif
                                 </td>
                             </tr>

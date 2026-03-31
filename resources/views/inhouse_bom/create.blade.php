@@ -70,13 +70,13 @@
 <div class="flex items-center justify-between mb-4">
     <div>
         <div class="text-sm text-gray-500 mb-1">
-            <a href="{{ route('inhouse_bom.index') }}" class="hover:text-gray-600"><i class="fas fa-arrow-left mr-1"></i>BOM List</a>
+            <a href="{{ route('inhouse_bom.index') }}" class="hover:text-gray-300"><i class="fas fa-arrow-left mr-1"></i>BOM List</a>
         </div>
-        <h2 class="text-xl font-bold text-gray-800">Create In-House BOM</h2>
+        <h2 class="text-xl font-bold text-white">Create In-House BOM</h2>
         <p class="text-xs text-gray-500 mt-0.5">Bill of Materials — Broiler Production Cycle</p>
     </div>
     <div class="flex gap-2">
-        <a href="{{ route('inhouse_bom.index') }}" class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600">Cancel</a>
+        <a href="{{ route('inhouse_bom.index') }}" class="px-3 py-2 text-sm border border-gray-600 rounded-md hover:bg-gray-900 text-gray-300">Cancel</a>
         <button onclick="submitBOM()" class="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold shadow-sm">
             <i class="fas fa-save"></i> Save BOM
         </button>
@@ -255,7 +255,7 @@
 <div class="flex justify-between items-center mb-6">
     <p class="text-xs text-gray-500"><i class="fas fa-info-circle mr-1"></i>All house data is saved together in one BOM cycle.</p>
     <div class="flex gap-2">
-        <a href="{{ route('inhouse_bom.index') }}" class="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600">Cancel</a>
+        <a href="{{ route('inhouse_bom.index') }}" class="px-4 py-2 text-sm border border-gray-600 rounded-md hover:bg-gray-900 text-gray-300">Cancel</a>
         <button onclick="submitBOM()" class="flex items-center gap-1.5 px-5 py-2 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold shadow-sm">
             <i class="fas fa-save"></i> Save BOM
         </button>

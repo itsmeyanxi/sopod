@@ -3,7 +3,7 @@
 @section('title', 'Notifications')
 
 @section('content')
-<div class="bg-gray-50 text-gray-100 min-h-screen p-8">
+<div class="bg-gray-900 text-gray-100 min-h-screen p-8">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
         <div>
@@ -24,7 +24,7 @@
     <!-- Notifications List -->
     <div class="space-y-4">
         @forelse($notifications as $notification)
-        <div class="bg-white rounded-lg p-4 {{ $notification->is_read ? 'opacity-60' : 'border-l-4 border-blue-500' }}">
+        <div class="bg-gray-800 rounded-lg p-4 {{ $notification->is_read ? 'opacity-60' : 'border-l-4 border-blue-500' }}">
             <div class="flex justify-between items-start">
                 <!-- Notification Content -->
                 <div class="flex-1">
@@ -35,17 +35,17 @@
                             @elseif($notification->change->change_type === 'delete') bg-red-600
                             @else bg-blue-600 @endif">
                             @if($notification->change->change_type === 'create')
-                                <i class="fas fa-plus text-gray-800"></i>
+                                <i class="fas fa-plus text-white"></i>
                             @elseif($notification->change->change_type === 'delete')
-                                <i class="fas fa-trash text-gray-800"></i>
+                                <i class="fas fa-trash text-white"></i>
                             @else
-                                <i class="fas fa-edit text-gray-800"></i>
+                                <i class="fas fa-edit text-white"></i>
                             @endif
                         </div>
 
                         <!-- Title -->
                         <div>
-                            <h3 class="text-gray-800 font-semibold">
+                            <h3 class="text-white font-semibold">
                                 Sales Order Updated
                                 @if(!$notification->is_read)
                                     <span class="ml-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">NEW</span>
@@ -61,7 +61,7 @@
                     </div>
 
                     <!-- Change Details -->
-                    <div class="ml-13 bg-gray-100 p-3 rounded mt-2">
+                    <div class="ml-13 bg-gray-700 p-3 rounded mt-2">
                         <span class="px-2 py-1 bg-purple-100 rounded-full text-xs">
                             {{ ucwords(str_replace('_', ' ', $notification->change->field_changed)) }}
                         </span>
@@ -85,7 +85,7 @@
                         </div>
 
                         <p class="text-gray-500 text-xs mt-2">
-                            Changed by: <span class="text-gray-800">{{ $notification->change->user->name ?? 'System' }}</span>
+                            Changed by: <span class="text-white">{{ $notification->change->user->name ?? 'System' }}</span>
                         </p>
                     </div>
 
@@ -98,7 +98,7 @@
                 <!-- Action Buttons -->
                 <div class="flex gap-2 ml-4">
                     <a href="{{ route('changelog.sales_order', $notification->change->sales_order_id) }}"
-                       class="bg-gray-100 hover:bg-gray-100 text-gray-800 px-3 py-2 rounded text-sm">
+                       class="bg-gray-700 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm">
                         <i class="fas fa-history"></i>
                     </a>
                     
@@ -114,8 +114,8 @@
             </div>
         </div>
         @empty
-        <div class="bg-white rounded-lg p-8 text-center">
-            <i class="fas fa-bell-slash text-gray-600 text-6xl mb-4"></i>
+        <div class="bg-gray-800 rounded-lg p-8 text-center">
+            <i class="fas fa-bell-slash text-gray-300 text-6xl mb-4"></i>
             <p class="text-gray-500">No notifications yet</p>
         </div>
         @endforelse

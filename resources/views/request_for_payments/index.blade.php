@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">REQUEST FOR PAYMENTS</h1>
+            <h1 class="text-2xl font-bold text-white">REQUEST FOR PAYMENTS</h1>
             <a href="{{ route('request_for_payments.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
                 <i class="fas fa-plus mr-1"></i> Create New RFP
             </a>
@@ -25,10 +25,10 @@
         @endif
 
         <!-- Search PO Section -->
-        <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
+        <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
             <div class="flex items-center gap-3 mb-2">
                 <i class="fas fa-search text-purple-700 text-lg"></i>
-                <h3 class="font-semibold text-gray-800">Create RFP from Approved Purchase Order</h3>
+                <h3 class="font-semibold text-white">Create RFP from Approved Purchase Order</h3>
             </div>
             <p class="text-gray-500 text-sm mb-3">Search by PO Number, Supplier, or Company to create a new Request for Payment</p>
 
@@ -36,7 +36,7 @@
                 <input
                     type="text"
                     id="poSearchInput"
-                    class="w-full bg-white border border-gray-200 rounded px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                    class="w-full bg-gray-800 border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
                     placeholder="Type to search approved POs..."
                     autocomplete="off">
                 <span class="absolute right-4 top-3.5 text-gray-500">
@@ -45,36 +45,36 @@
             </div>
 
             <!-- Search Results Dropdown -->
-            <div id="poSearchResults" class="hidden mt-2 bg-white border border-gray-200 rounded max-h-80 overflow-y-auto shadow-lg">
+            <div id="poSearchResults" class="hidden mt-2 bg-gray-800 border border-gray-700 rounded max-h-80 overflow-y-auto shadow-lg">
                 <!-- Results will be populated here by JavaScript -->
             </div>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full border-collapse border border-gray-200">
-                <thead class="bg-gray-100 text-gray-500 uppercase text-sm">
+            <table class="w-full border-collapse border border-gray-700">
+                <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
                     <tr>
-                        <th class="border border-gray-200 px-4 py-3">RFP NO</th>
-                        <th class="border border-gray-200 px-4 py-3">PO NO</th>
-                        <th class="border border-gray-200 px-4 py-3">COMPANY</th>
-                        <th class="border border-gray-200 px-4 py-3">PAYEE</th>
-                        <th class="border border-gray-200 px-4 py-3">AMOUNT</th>
-                        <th class="border border-gray-200 px-4 py-3">DATE</th>
-                        <th class="border border-gray-200 px-4 py-3">STATUS</th>
-                        <th class="border border-gray-200 px-4 py-3">CREATED BY</th>
-                        <th class="border border-gray-200 px-4 py-3">ACTIONS</th>
+                        <th class="border border-gray-700 px-4 py-3">RFP NO</th>
+                        <th class="border border-gray-700 px-4 py-3">PO NO</th>
+                        <th class="border border-gray-700 px-4 py-3">COMPANY</th>
+                        <th class="border border-gray-700 px-4 py-3">PAYEE</th>
+                        <th class="border border-gray-700 px-4 py-3">AMOUNT</th>
+                        <th class="border border-gray-700 px-4 py-3">DATE</th>
+                        <th class="border border-gray-700 px-4 py-3">STATUS</th>
+                        <th class="border border-gray-700 px-4 py-3">CREATED BY</th>
+                        <th class="border border-gray-700 px-4 py-3">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-500">
                     @forelse($rfps as $rfp)
-                        <tr class="hover:bg-gray-100/40">
-                            <td class="border border-gray-200 px-4 py-3">{{ $rfp->rfp_no }}</td>
-                            <td class="border border-gray-200 px-4 py-3">{{ $rfp->purchaseOrder->po_no ?? 'N/A' }}</td>
-                            <td class="border border-gray-200 px-4 py-3">{{ $rfp->company }}</td>
-                            <td class="border border-gray-200 px-4 py-3">{{ $rfp->payee }}</td>
-                            <td class="border border-gray-200 px-4 py-3 text-right">₱{{ number_format($rfp->amount, 2) }}</td>
-                            <td class="border border-gray-200 px-4 py-3">{{ $rfp->date->format('M d, Y') }}</td>
-                            <td class="border border-gray-200 px-4 py-3">
+                        <tr class="hover:bg-gray-700/40">
+                            <td class="border border-gray-700 px-4 py-3">{{ $rfp->rfp_no }}</td>
+                            <td class="border border-gray-700 px-4 py-3">{{ $rfp->purchaseOrder->po_no ?? 'N/A' }}</td>
+                            <td class="border border-gray-700 px-4 py-3">{{ $rfp->company }}</td>
+                            <td class="border border-gray-700 px-4 py-3">{{ $rfp->payee }}</td>
+                            <td class="border border-gray-700 px-4 py-3 text-right">₱{{ number_format($rfp->amount, 2) }}</td>
+                            <td class="border border-gray-700 px-4 py-3">{{ $rfp->date->format('M d, Y') }}</td>
+                            <td class="border border-gray-700 px-4 py-3">
                                 <span class="px-3 py-1 rounded text-xs font-semibold
                                     @if($rfp->status === 'pending') bg-yellow-600 text-white
                                     @elseif($rfp->status === 'approved') bg-green-600 text-white
@@ -84,8 +84,8 @@
                                     {{ ucfirst($rfp->status) }}
                                 </span>
                             </td>
-                            <td class="border border-gray-200 px-4 py-3">{{ $rfp->creator->name ?? 'N/A' }}</td>
-                            <td class="border border-gray-200 px-4 py-3">
+                            <td class="border border-gray-700 px-4 py-3">{{ $rfp->creator->name ?? 'N/A' }}</td>
+                            <td class="border border-gray-700 px-4 py-3">
                                 <div class="flex gap-2 justify-center">
                                     <a href="{{ route('request_for_payments.show', $rfp->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">
                                         View
@@ -105,7 +105,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="border border-gray-200 px-4 py-8 text-center text-gray-500">
+                            <td colspan="9" class="border border-gray-700 px-4 py-8 text-center text-gray-500">
                                 No request for payments found. <a href="{{ route('request_for_payments.create') }}" class="text-purple-700 hover:text-purple-700">Create one now</a>
                             </td>
                         </tr>
@@ -165,10 +165,10 @@ poSearchInput.addEventListener('input', function() {
 
                 resultsHTML += `
                     <a href="{{ route('request_for_payments.create') }}?po_id=${po.id}"
-                       class="block p-4 hover:bg-gray-100 transition">
+                       class="block p-4 hover:bg-gray-700 transition">
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
-                                <div class="font-semibold text-gray-800 mb-1">
+                                <div class="font-semibold text-white mb-1">
                                     <i class="fas fa-file-invoice mr-2 text-purple-700"></i>${po.po_no}
                                 </div>
                                 <div class="text-sm text-gray-500">${po.supplier || 'N/A'} • ${po.company}</div>

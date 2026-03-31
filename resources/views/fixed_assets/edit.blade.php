@@ -3,10 +3,10 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">EDIT FIXED ASSET</h1>
-            <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded text-sm font-mono">{{ $asset->asset_code }}</span>
+            <span class="bg-gray-700 text-gray-500 px-3 py-1 rounded text-sm font-mono">{{ $asset->asset_code }}</span>
         </div>
 
         @if($errors->any())
@@ -24,11 +24,11 @@
             @method('PUT')
 
             <!-- Asset Identification -->
-            <h3 class="text-lg font-semibold text-gray-700 mb-3">Asset Identification</h3>
+            <h3 class="text-lg font-semibold text-gray-200 mb-3">Asset Identification</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Asset Group <span class="text-red-700">*</span></label>
-                    <select name="asset_group" id="asset_group" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <select name="asset_group" id="asset_group" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                         @foreach($assetGroups as $group)
                             <option value="{{ $group }}" {{ old('asset_group', $asset->asset_group) == $group ? 'selected' : '' }}>{{ $group }}</option>
                         @endforeach
@@ -36,7 +36,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Asset Class</label>
-                    <select name="asset_class" id="asset_class_select" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <select name="asset_class" id="asset_class_select" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                         <option value="">-- Select --</option>
                         @foreach($assetClasses as $ac)
                             <option value="{{ $ac->asset_class }}"
@@ -56,91 +56,91 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Asset Code</label>
-                    <input type="text" name="asset_code" value="{{ old('asset_code', $asset->asset_code) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="text" name="asset_code" value="{{ old('asset_code', $asset->asset_code) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-500 mb-1">Asset Description <span class="text-red-700">*</span></label>
-                <textarea name="asset_description" required rows="2" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">{{ old('asset_description', $asset->asset_description) }}</textarea>
+                <textarea name="asset_description" required rows="2" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">{{ old('asset_description', $asset->asset_description) }}</textarea>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Serial / Engine No.</label>
-                    <input type="text" name="serial_engine_no" value="{{ old('serial_engine_no', $asset->serial_engine_no) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="text" name="serial_engine_no" value="{{ old('serial_engine_no', $asset->serial_engine_no) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Plate No.</label>
-                    <input type="text" name="plate_no" value="{{ old('plate_no', $asset->plate_no) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="text" name="plate_no" value="{{ old('plate_no', $asset->plate_no) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Quantity</label>
-                    <input type="number" name="quantity" value="{{ old('quantity', $asset->quantity) }}" min="1" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="number" name="quantity" value="{{ old('quantity', $asset->quantity) }}" min="1" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
             <!-- Dates -->
-            <h3 class="text-lg font-semibold text-gray-700 mb-3">Dates</h3>
+            <h3 class="text-lg font-semibold text-gray-200 mb-3">Dates</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Acquisition Date</label>
-                    <input type="date" name="acquisition_date" value="{{ old('acquisition_date', $asset->acquisition_date?->format('Y-m-d')) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="date" name="acquisition_date" value="{{ old('acquisition_date', $asset->acquisition_date?->format('Y-m-d')) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Date Posted</label>
-                    <input type="date" name="date_posted" value="{{ old('date_posted', $asset->date_posted?->format('Y-m-d')) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="date" name="date_posted" value="{{ old('date_posted', $asset->date_posted?->format('Y-m-d')) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Dep. Start Date</label>
-                    <input type="date" name="dep_start_date" id="dep_start_date" value="{{ old('dep_start_date', $asset->dep_start_date?->format('Y-m-d')) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="date" name="dep_start_date" id="dep_start_date" value="{{ old('dep_start_date', $asset->dep_start_date?->format('Y-m-d')) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Dep. End Date <span class="text-xs text-blue-500">(auto)</span></label>
-                    <input type="date" name="dep_end_date" id="dep_end_date" value="{{ old('dep_end_date', $asset->dep_end_date?->format('Y-m-d')) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="date" name="dep_end_date" id="dep_end_date" value="{{ old('dep_end_date', $asset->dep_end_date?->format('Y-m-d')) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Disposal Date</label>
-                    <input type="date" name="disposal_date" value="{{ old('disposal_date', $asset->disposal_date?->format('Y-m-d')) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="date" name="disposal_date" value="{{ old('disposal_date', $asset->disposal_date?->format('Y-m-d')) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Disposal Amount</label>
-                    <input type="number" name="disposal_amount" value="{{ old('disposal_amount', $asset->disposal_amount) }}" step="0.01" min="0" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="number" name="disposal_amount" value="{{ old('disposal_amount', $asset->disposal_amount) }}" step="0.01" min="0" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
             <!-- Financial -->
-            <h3 class="text-lg font-semibold text-gray-700 mb-3">Financial Information</h3>
+            <h3 class="text-lg font-semibold text-gray-200 mb-3">Financial Information</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Cost <span class="text-red-700">*</span></label>
-                    <input type="number" name="cost" value="{{ old('cost', $asset->cost) }}" step="0.01" min="0" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="number" name="cost" value="{{ old('cost', $asset->cost) }}" step="0.01" min="0" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Salvage Value</label>
-                    <input type="number" name="salvage_value" value="{{ old('salvage_value', $asset->salvage_value) }}" step="0.01" min="0" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="number" name="salvage_value" value="{{ old('salvage_value', $asset->salvage_value) }}" step="0.01" min="0" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Useful Life (Months) <span class="text-red-700">*</span></label>
-                    <input type="number" name="useful_life_months" id="useful_life_months" value="{{ old('useful_life_months', $asset->useful_life_months) }}" min="0" required class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="number" name="useful_life_months" id="useful_life_months" value="{{ old('useful_life_months', $asset->useful_life_months) }}" min="0" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Remaining Life (Months)</label>
-                    <input type="number" name="remaining_life_months" value="{{ old('remaining_life_months', $asset->remaining_life_months) }}" min="0" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="number" name="remaining_life_months" value="{{ old('remaining_life_months', $asset->remaining_life_months) }}" min="0" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Accumulated Depreciation</label>
-                    <input type="number" name="accumulated_depreciation" value="{{ old('accumulated_depreciation', $asset->accumulated_depreciation) }}" step="0.01" min="0" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="number" name="accumulated_depreciation" value="{{ old('accumulated_depreciation', $asset->accumulated_depreciation) }}" step="0.01" min="0" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Status</label>
-                    <select name="status" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <select name="status" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                         <option value="Active" {{ old('status', $asset->status) == 'Active' ? 'selected' : '' }}>Active</option>
                         <option value="Disposed" {{ old('status', $asset->status) == 'Disposed' ? 'selected' : '' }}>Disposed</option>
                         <option value="Fully Depreciated" {{ old('status', $asset->status) == 'Fully Depreciated' ? 'selected' : '' }}>Fully Depreciated</option>
@@ -149,41 +149,41 @@
             </div>
 
             <!-- Accounting -->
-            <h3 class="text-lg font-semibold text-gray-700 mb-3">Accounting</h3>
+            <h3 class="text-lg font-semibold text-gray-200 mb-3">Accounting</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 @include('partials.gl_account_selector', ['field' => 'gl_account',           'label' => 'GL Account',           'uid' => 'fa_gl_account',  'value' => old('gl_account',           $asset->gl_account),           'glAccounts' => $glAccounts])
                 @include('partials.gl_account_selector', ['field' => 'depreciation_account', 'label' => 'Depreciation Account', 'uid' => 'fa_dep_account', 'value' => old('depreciation_account', $asset->depreciation_account), 'glAccounts' => $glAccounts])
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Cost Center</label>
-                    <input type="text" name="cost_center_name" value="{{ old('cost_center_name', $asset->cost_center_name) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="text" name="cost_center_name" value="{{ old('cost_center_name', $asset->cost_center_name) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
             <!-- Assignment -->
-            <h3 class="text-lg font-semibold text-gray-700 mb-3">Assignment</h3>
+            <h3 class="text-lg font-semibold text-gray-200 mb-3">Assignment</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Assigned Person</label>
-                    <input type="text" name="assigned_person" value="{{ old('assigned_person', $asset->assigned_person) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="text" name="assigned_person" value="{{ old('assigned_person', $asset->assigned_person) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Employee Name</label>
-                    <input type="text" name="employee_name" value="{{ old('employee_name', $asset->employee_name) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="text" name="employee_name" value="{{ old('employee_name', $asset->employee_name) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Vendor</label>
-                    <input type="text" name="vendor_name" value="{{ old('vendor_name', $asset->vendor_name) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="text" name="vendor_name" value="{{ old('vendor_name', $asset->vendor_name) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Reference APV/JV</label>
-                    <input type="text" name="reference_apv_jv" value="{{ old('reference_apv_jv', $asset->reference_apv_jv) }}" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <input type="text" name="reference_apv_jv" value="{{ old('reference_apv_jv', $asset->reference_apv_jv) }}" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Dep. Type</label>
-                    <select name="dep_type" id="dep_type" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-sm">
+                    <select name="dep_type" id="dep_type" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
                         <option value="Straight Line" {{ old('dep_type', $asset->dep_type) == 'Straight Line' ? 'selected' : '' }}>Straight Line</option>
                         <option value="Declining Balance" {{ old('dep_type', $asset->dep_type) == 'Declining Balance' ? 'selected' : '' }}>Declining Balance</option>
                     </select>
@@ -191,7 +191,7 @@
             </div>
 
             <div class="flex justify-end gap-4">
-                <a href="{{ route('fixed_assets.show', $asset->id) }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-200 transition">Cancel</a>
+                <a href="{{ route('fixed_assets.show', $asset->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">Cancel</a>
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     <i class="fas fa-save mr-1"></i> Update Asset
                 </button>

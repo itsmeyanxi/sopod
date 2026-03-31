@@ -3,8 +3,8 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">JOURNAL VOUCHER</h1>
             <div class="flex items-center gap-3">
                 @if($voucher->status === 'Posted')
@@ -29,57 +29,57 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">JV Number:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded font-mono font-bold text-blue-700">{{ $voucher->jv_number }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded font-mono font-bold text-blue-700">{{ $voucher->jv_number }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">JV Date:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded">{{ $voucher->jv_date->format('F d, Y') }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $voucher->jv_date->format('F d, Y') }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Reference No.:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded">{{ $voucher->reference_no ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $voucher->reference_no ?? 'N/A' }}</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Description:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded min-h-[60px]">{{ $voucher->description }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded min-h-[60px]">{{ $voucher->description }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Remarks:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded min-h-[60px]">{{ $voucher->remarks ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded min-h-[60px]">{{ $voucher->remarks ?? 'N/A' }}</p>
             </div>
         </div>
 
         <!-- Journal Lines -->
         <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-700 mb-3">Journal Entry Lines</h3>
+            <h3 class="text-lg font-semibold text-gray-200 mb-3">Journal Entry Lines</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm border-collapse">
-                    <thead class="bg-gray-100">
+                    <thead class="bg-gray-700">
                         <tr>
-                            <th class="border border-gray-200 px-3 py-2 text-center w-10">#</th>
-                            <th class="border border-gray-200 px-3 py-2 text-left">Account Code</th>
-                            <th class="border border-gray-200 px-3 py-2 text-left">Account Name</th>
-                            <th class="border border-gray-200 px-3 py-2 text-left">Description</th>
-                            <th class="border border-gray-200 px-3 py-2 text-left">Cost Center</th>
-                            <th class="border border-gray-200 px-3 py-2 text-right">Debit</th>
-                            <th class="border border-gray-200 px-3 py-2 text-right">Credit</th>
+                            <th class="border border-gray-700 px-3 py-2 text-center w-10">#</th>
+                            <th class="border border-gray-700 px-3 py-2 text-left">Account Code</th>
+                            <th class="border border-gray-700 px-3 py-2 text-left">Account Name</th>
+                            <th class="border border-gray-700 px-3 py-2 text-left">Description</th>
+                            <th class="border border-gray-700 px-3 py-2 text-left">Cost Center</th>
+                            <th class="border border-gray-700 px-3 py-2 text-right">Debit</th>
+                            <th class="border border-gray-700 px-3 py-2 text-right">Credit</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($voucher->lines as $i => $line)
-                        <tr class="hover:bg-gray-50">
-                            <td class="border border-gray-200 px-3 py-2 text-center text-gray-400">{{ $i + 1 }}</td>
-                            <td class="border border-gray-200 px-3 py-2 font-mono text-blue-700 font-semibold">{{ $line->account_code }}</td>
-                            <td class="border border-gray-200 px-3 py-2">{{ $line->account_name ?? '—' }}</td>
-                            <td class="border border-gray-200 px-3 py-2 text-gray-600">{{ $line->line_description ?? '—' }}</td>
-                            <td class="border border-gray-200 px-3 py-2 text-gray-500 text-xs">{{ $line->cost_center ?? '—' }}</td>
-                            <td class="border border-gray-200 px-3 py-2 text-right font-semibold {{ $line->debit > 0 ? 'text-gray-800' : 'text-gray-300' }}">
+                        <tr class="hover:bg-gray-900">
+                            <td class="border border-gray-700 px-3 py-2 text-center text-gray-400">{{ $i + 1 }}</td>
+                            <td class="border border-gray-700 px-3 py-2 font-mono text-blue-700 font-semibold">{{ $line->account_code }}</td>
+                            <td class="border border-gray-700 px-3 py-2">{{ $line->account_name ?? '—' }}</td>
+                            <td class="border border-gray-700 px-3 py-2 text-gray-300">{{ $line->line_description ?? '—' }}</td>
+                            <td class="border border-gray-700 px-3 py-2 text-gray-500 text-xs">{{ $line->cost_center ?? '—' }}</td>
+                            <td class="border border-gray-700 px-3 py-2 text-right font-semibold {{ $line->debit > 0 ? 'text-white' : 'text-gray-300' }}">
                                 {{ $line->debit > 0 ? number_format($line->debit, 2) : '' }}
                             </td>
-                            <td class="border border-gray-200 px-3 py-2 text-right font-semibold {{ $line->credit > 0 ? 'text-gray-800' : 'text-gray-300' }}">
+                            <td class="border border-gray-700 px-3 py-2 text-right font-semibold {{ $line->credit > 0 ? 'text-white' : 'text-gray-300' }}">
                                 {{ $line->credit > 0 ? number_format($line->credit, 2) : '' }}
                             </td>
                         </tr>
@@ -106,15 +106,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Prepared By:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded">{{ $voucher->prepared_by ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $voucher->prepared_by ?? 'N/A' }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Checked By:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded">{{ $voucher->checked_by ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $voucher->checked_by ?? 'N/A' }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Approved By:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded">{{ $voucher->approved_by ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded">{{ $voucher->approved_by ?? 'N/A' }}</p>
             </div>
         </div>
 
@@ -122,14 +122,14 @@
         @if($voucher->attachment_path)
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-1">Attachment:</label>
-            <a href="{{ asset('storage/' . $voucher->attachment_path) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded text-purple-700 hover:bg-purple-50 transition">
+            <a href="{{ asset('storage/' . $voucher->attachment_path) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 border border-gray-700 rounded text-purple-700 hover:bg-purple-50 transition">
                 <i class="fas fa-paperclip"></i> {{ $voucher->attachment_name }}
             </a>
         </div>
         @endif
 
         <!-- Audit -->
-        <div class="bg-gray-100 rounded-lg p-4 mb-6">
+        <div class="bg-gray-700 rounded-lg p-4 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500">
                 <div>
                     <label class="font-semibold">Created By:</label>
@@ -150,7 +150,7 @@
 
         <!-- Actions -->
         <div class="flex justify-end gap-3 flex-wrap">
-            <a href="{{ route('journal_vouchers.index') }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-200 transition">
+            <a href="{{ route('journal_vouchers.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
             <a href="{{ route('journal_vouchers.print', $voucher->id) }}" target="_blank" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 transition">

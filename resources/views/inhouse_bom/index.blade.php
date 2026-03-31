@@ -40,7 +40,7 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-5">
     <div>
-        <h2 class="text-xl font-bold text-gray-800">In-House BOM</h2>
+        <h2 class="text-xl font-bold text-white">In-House BOM</h2>
         <p class="text-xs text-gray-500 mt-0.5">Bill of Materials — Broiler Production Cycles</p>
     </div>
     <a href="{{ route('inhouse_bom.create') }}"
@@ -153,7 +153,7 @@
                     <td class="r">{{ $totalLoading ? number_format($totalLoading) : '—' }}</td>
                     <td class="r">{{ $totalHarvest ? number_format($totalHarvest) : '—' }}</td>
                     <td class="r">{{ $avgFcr ? number_format($avgFcr,3) : '—' }}</td>
-                    <td class="r font-semibold text-gray-800">
+                    <td class="r font-semibold text-white">
                         {{ $totalCost ? 'PHP '.number_format($totalCost,2) : '—' }}
                     </td>
                     <td class="r">{{ $costPerKg ? number_format($costPerKg,2) : '—' }}</td>
@@ -206,7 +206,7 @@
 
         @if($boms->isEmpty())
         <div class="flex flex-col items-center justify-center py-16 text-gray-500">
-            <i class="fas fa-clipboard-list text-4xl mb-3 text-gray-700"></i>
+            <i class="fas fa-clipboard-list text-4xl mb-3 text-gray-200"></i>
             <p class="text-sm font-medium text-gray-500">No BOM records yet</p>
             <p class="text-xs mt-1">Create your first Bill of Materials to get started.</p>
             <a href="{{ route('inhouse_bom.create') }}"

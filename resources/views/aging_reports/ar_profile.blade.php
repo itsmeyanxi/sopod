@@ -4,18 +4,18 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
         {{-- Header Section --}}
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <div>
-                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
                     <i class="fas fa-user-circle text-blue-700"></i>
                      Customer AR Profile
                 </h2>
                 <p class="text-gray-500 text-sm mt-1">Complete AR History: Invoices + Collections + Adjustments</p>
             </div>
             <a href="{{ route('aging_reports.view') }}" 
-               class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded transition flex items-center gap-2">
+               class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded transition flex items-center gap-2">
                 <i class="fas fa-arrow-left"></i>
                 Back to Reports
             </a>
@@ -27,24 +27,24 @@
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-blue-700 mb-3">Customer Details</h3>
                 <div class="space-y-2 text-sm">
-                    <div><span class="text-gray-500">Name:</span> <span class="text-gray-800 font-medium">{{ $customerInfo['customer_name'] }}</span></div>
-                    <div><span class="text-gray-500">Code:</span> <span class="text-gray-700">{{ $customerInfo['customer_code'] }}</span></div>
-                    <div><span class="text-gray-500">Branch:</span> <span class="text-gray-700">{{ $customerInfo['branch'] }}</span></div>
+                    <div><span class="text-gray-500">Name:</span> <span class="text-white font-medium">{{ $customerInfo['customer_name'] }}</span></div>
+                    <div><span class="text-gray-500">Code:</span> <span class="text-gray-200">{{ $customerInfo['customer_code'] }}</span></div>
+                    <div><span class="text-gray-500">Branch:</span> <span class="text-gray-200">{{ $customerInfo['branch'] }}</span></div>
                 </div>
             </div>
 
             <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-purple-700 mb-3">Sales Information</h3>
                 <div class="space-y-2 text-sm">
-                    <div><span class="text-gray-500">SE:</span> <span class="text-gray-800 font-medium">{{ $customerInfo['sales_executive'] }}</span></div>
-                    <div><span class="text-gray-500">SE2:</span> <span class="text-gray-700">{{ $customerInfo['se2'] }}</span></div>
-                    <div><span class="text-gray-500">Terms:</span> <span class="text-gray-700">{{ $customerInfo['terms'] }}</span></div>
+                    <div><span class="text-gray-500">SE:</span> <span class="text-white font-medium">{{ $customerInfo['sales_executive'] }}</span></div>
+                    <div><span class="text-gray-500">SE2:</span> <span class="text-gray-200">{{ $customerInfo['se2'] }}</span></div>
+                    <div><span class="text-gray-500">Terms:</span> <span class="text-gray-200">{{ $customerInfo['terms'] }}</span></div>
                 </div>
             </div>
 
             <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-green-700 mb-3">Current AR Balance</h3>
-                <p class="text-gray-800 font-bold text-3xl">₱{{ number_format($totalAR ?? 0, 2) }}</p>
+                <p class="text-white font-bold text-3xl">₱{{ number_format($totalAR ?? 0, 2) }}</p>
                 <p class="text-gray-500 text-xs mt-1">{{ $recordCount ?? 0 }} record(s)</p>
             </div>
         </div>
@@ -53,14 +53,14 @@
         {{-- AR Calculation Summary (How we got to current balance) --}}
         @if(isset($financialSummary))
         <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <i class="fas fa-calculator text-indigo-700"></i>
                 How We Got to Current AR Balance
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
                 <div class="text-center">
                     <p class="text-gray-500 text-xs mb-2">Starting: Invoices</p>
-                    <p class="text-gray-800 text-2xl font-bold">₱{{ number_format($financialSummary['original_invoice_amount'], 2) }}</p>
+                    <p class="text-white text-2xl font-bold">₱{{ number_format($financialSummary['original_invoice_amount'], 2) }}</p>
                     <p class="text-gray-500 text-sm mt-1">What they owe</p>
                 </div>
 
@@ -103,7 +103,7 @@
 
             <div class="mt-6 pt-6 border-t border-indigo-200 text-center">
                 <p class="text-gray-500 text-sm mb-2">= Current AR Balance</p>
-                <p class="text-gray-800 text-4xl font-bold">₱{{ number_format($financialSummary['net_ar_balance'], 2) }}</p>
+                <p class="text-white text-4xl font-bold">₱{{ number_format($financialSummary['net_ar_balance'], 2) }}</p>
                 <p class="text-gray-500 text-xs mt-2">
                     (Invoices - Collections {{ $financialSummary['net_adjustments'] >= 0 ? '+' : '-' }} Adjustments)
                 </p>
@@ -112,18 +112,18 @@
         @endif
 
         {{-- Tabbed Interface --}}
-        <div class="bg-gray-100 rounded-lg p-6 mb-6">
-            <div class="flex border-b border-gray-300 mb-4 overflow-x-auto">
-                <button onclick="showTab('transaction_history')" id="tab_transaction_history" class="tab-button px-6 py-3 text-gray-800 font-semibold border-b-2 border-blue-500 whitespace-nowrap">
+        <div class="bg-gray-700 rounded-lg p-6 mb-6">
+            <div class="flex border-b border-gray-600 mb-4 overflow-x-auto">
+                <button onclick="showTab('transaction_history')" id="tab_transaction_history" class="tab-button px-6 py-3 text-white font-semibold border-b-2 border-blue-500 whitespace-nowrap">
                     <i class="fas fa-history mr-2"></i>Complete History ({{ isset($transactionHistory) ? count($transactionHistory) : 0 }})
                 </button>
-                <button onclick="showTab('ar_records')" id="tab_ar_records" class="tab-button px-6 py-3 text-gray-500 hover:text-gray-800 whitespace-nowrap">
+                <button onclick="showTab('ar_records')" id="tab_ar_records" class="tab-button px-6 py-3 text-gray-500 hover:text-white whitespace-nowrap">
                     <i class="fas fa-file-invoice mr-2"></i>Invoices ({{ $recordCount ?? 0 }})
                 </button>
-                <button onclick="showTab('collections')" id="tab_collections" class="tab-button px-6 py-3 text-gray-500 hover:text-gray-800 whitespace-nowrap">
+                <button onclick="showTab('collections')" id="tab_collections" class="tab-button px-6 py-3 text-gray-500 hover:text-white whitespace-nowrap">
                     <i class="fas fa-money-bill-wave mr-2"></i>Collections ({{ isset($collections) ? count($collections) : 0 }})
                 </button>
-                <button onclick="showTab('adjustments')" id="tab_adjustments" class="tab-button px-6 py-3 text-gray-500 hover:text-gray-800 whitespace-nowrap">
+                <button onclick="showTab('adjustments')" id="tab_adjustments" class="tab-button px-6 py-3 text-gray-500 hover:text-white whitespace-nowrap">
                     <i class="fas fa-edit mr-2"></i>Adjustments ({{ isset($adjustments) ? count($adjustments) : 0 }})
                 </button>
             </div>
@@ -138,9 +138,9 @@
                 </div> -->
                 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-lg text-xs">
+                    <table class="min-w-full bg-gray-800 rounded-lg text-xs">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-700">
+                            <tr class="bg-gray-900 text-gray-200">
                                 <th class="px-3 py-2 text-left">Date</th>
                                 <th class="px-3 py-2 text-left">Type</th>
                                 <th class="px-3 py-2 text-left">Reference</th>
@@ -151,9 +151,9 @@
                                 <th class="px-3 py-2 text-left">By</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-700">
+                        <tbody class="text-gray-200">
                             @forelse($transactionHistory as $trans)
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <tr class="border-b border-gray-700 hover:bg-gray-900">
                                 <td class="px-3 py-3">{{ \Carbon\Carbon::parse($trans['date'])->format('Y-m-d') }}</td>
                                 <td class="px-3 py-3">
                                     @if($trans['type'] === 'Invoice')
@@ -165,7 +165,7 @@
                                     @endif
                                 </td>
                                 <td class="px-3 py-3">
-                                    <span class="bg-gray-100 px-2 py-1 rounded font-mono">{{ $trans['reference'] }}</span>
+                                    <span class="bg-gray-700 px-2 py-1 rounded font-mono">{{ $trans['reference'] }}</span>
                                 </td>
                                 <td class="px-3 py-3 text-xs">{{ $trans['description'] }}</td>
                                 <td class="px-3 py-3 text-right font-semibold {{ $trans['debit'] > 0 ? 'text-red-700' : 'text-gray-500' }}">
@@ -174,7 +174,7 @@
                                 <td class="px-3 py-3 text-right font-semibold {{ $trans['credit'] > 0 ? 'text-green-700' : 'text-gray-500' }}">
                                     {{ $trans['credit'] > 0 ? '-₱' . number_format($trans['credit'], 2) : '-' }}
                                 </td>
-                                <td class="px-3 py-3 text-right font-bold text-gray-800">
+                                <td class="px-3 py-3 text-right font-bold text-white">
                                     ₱{{ number_format($trans['balance'], 2) }}
                                 </td>
                                 <td class="px-3 py-3 text-xs">{{ $trans['created_by'] }}</td>
@@ -197,9 +197,9 @@
                 </div> -->
                 
                 <div class="overflow-x-auto">
-                    <table class="bg-white rounded-lg text-xs" style="min-width:max-content;width:100%;">
+                    <table class="bg-gray-800 rounded-lg text-xs" style="min-width:max-content;width:100%;">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider sticky top-0">
+                            <tr class="bg-gray-900 text-gray-500 text-xs uppercase tracking-wider sticky top-0">
                                 <th class="px-3 py-2 text-left whitespace-nowrap">Invoice No</th>
                                 <th class="px-3 py-2 text-left whitespace-nowrap">DR No</th>
                                 <th class="px-3 py-2 text-left whitespace-nowrap">PO No</th>
@@ -220,9 +220,9 @@
                                 <th class="px-3 py-2 text-center whitespace-nowrap">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-700">
+                        <tbody class="text-gray-200">
                             @forelse($arRecords as $record)
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <tr class="border-b border-gray-700 hover:bg-gray-900">
                                 <td class="px-3 py-2">
                                     <span class="bg-indigo-100 border border-indigo-200 px-2 py-1 rounded font-mono text-indigo-700">
                                         {{ $record->invoice_no ?? 'N/A' }}
@@ -231,7 +231,7 @@
                                 <td class="px-3 py-2 font-mono text-gray-500">{{ $record->dr_no ?? 'N/A' }}</td>
                                 <td class="px-3 py-2 text-gray-500">{{ $record->po_no ?? 'N/A' }}</td>
                                 <td class="px-3 py-2 whitespace-nowrap text-gray-500">{{ $record->invoice_date ?? 'N/A' }}</td>
-                                <td class="px-3 py-2 text-right font-semibold text-gray-800 whitespace-nowrap">₱{{ number_format($record->invoice_amount ?? 0, 2) }}</td>
+                                <td class="px-3 py-2 text-right font-semibold text-white whitespace-nowrap">₱{{ number_format($record->invoice_amount ?? 0, 2) }}</td>
                                 <td class="px-3 py-2 text-right text-green-700 whitespace-nowrap">₱{{ number_format($record->settled_invoice_amount ?? 0, 2) }}</td>
                                 <td class="px-3 py-2 text-right text-gray-500 whitespace-nowrap">₱{{ number_format($record->cwt ?? 0, 2) }}</td>
                                 <td class="px-3 py-2 text-right text-gray-500 whitespace-nowrap">₱{{ number_format($record->ewt ?? 0, 2) }}</td>
@@ -285,9 +285,9 @@
                 </div> -->
                 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-lg text-xs">
+                    <table class="min-w-full bg-gray-800 rounded-lg text-xs">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-500">
+                            <tr class="bg-gray-900 text-gray-500">
                                 <th class="px-2 py-2 text-left">Deposit Date</th>
                                 <th class="px-2 py-2 text-left">CR Number</th>
                                 <th class="px-2 py-2 text-left">DR No</th>
@@ -309,9 +309,9 @@
                                 <th class="px-2 py-2 text-left">Signed By</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-700">
+                        <tbody class="text-gray-200">
                             @forelse($collections as $coll)
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <tr class="border-b border-gray-700 hover:bg-gray-900">
                                 <td class="px-2 py-3">{{ \Carbon\Carbon::parse($coll['deposit_date'])->format('Y-m-d') }}</td>
                                 <td class="px-2 py-3">
                                     <span class="bg-green-100 border border-green-200 px-2 py-1 rounded font-mono text-xs">
@@ -322,7 +322,7 @@
                                 <td class="px-2 py-3">{{ $coll['invoice_no'] ?? '-' }}</td>
                                 <td class="px-2 py-3">{{ $coll['client_name'] }}</td>
                                 <td class="px-2 py-3">{{ $coll['branch'] }}</td>
-                                <td class="px-2 py-3 text-right font-semibold text-gray-800">₱{{ number_format($coll['gross_amount'], 2) }}</td>
+                                <td class="px-2 py-3 text-right font-semibold text-white">₱{{ number_format($coll['gross_amount'], 2) }}</td>
                                 <td class="px-2 py-3 text-right text-orange-700">₱{{ number_format($coll['ewt'], 2) }}</td>
                                 <td class="px-2 py-3 text-right text-yellow-700">
                                     @if($coll['other_adjustment'] != 0)
@@ -362,8 +362,8 @@
                             <tr><td colspan="19" class="px-4 py-8 text-center text-gray-500">No collections found</td></tr>
                             @endforelse
                         </tbody>
-                        <tfoot class="bg-gray-50">
-                            <tr class="font-bold text-gray-800">
+                        <tfoot class="bg-gray-900">
+                            <tr class="font-bold text-white">
                                 <td colspan="6" class="px-2 py-3 text-right">TOTALS:</td>
                                 <td class="px-2 py-3 text-right">₱{{ number_format($collections->sum('gross_amount'), 2) }}</td>
                                 <td class="px-2 py-3 text-right text-orange-700">₱{{ number_format($collections->sum('ewt'), 2) }}</td>
@@ -388,9 +388,9 @@
                 </div> -->
                 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-lg text-xs">
+                    <table class="min-w-full bg-gray-800 rounded-lg text-xs">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-700">
+                            <tr class="bg-gray-900 text-gray-200">
                                 <th class="px-3 py-2 text-left">Reference No</th>
                                 <th class="px-3 py-2 text-left">Date</th>
                                 <th class="px-3 py-2 text-left">Type</th>
@@ -402,9 +402,9 @@
                                 <th class="px-3 py-2 text-left">Remarks</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-700">
+                        <tbody class="text-gray-200">
                             @forelse($adjustments as $adj)
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <tr class="border-b border-gray-700 hover:bg-gray-900">
                                 <td class="px-3 py-3">
                                     <span class="bg-purple-100 border border-purple-200 px-2 py-1 rounded font-mono">
                                         {{ $adj['reference_number'] }}
@@ -451,13 +451,13 @@
 function showTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
     document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('border-blue-500', 'text-gray-800');
+        btn.classList.remove('border-blue-500', 'text-white');
         btn.classList.add('text-gray-500');
     });
     
     document.getElementById('content_' + tabName).classList.remove('hidden');
     const activeBtn = document.getElementById('tab_' + tabName);
-    activeBtn.classList.add('border-blue-500', 'text-gray-800');
+    activeBtn.classList.add('border-blue-500', 'text-white');
     activeBtn.classList.remove('text-gray-500');
 }
 

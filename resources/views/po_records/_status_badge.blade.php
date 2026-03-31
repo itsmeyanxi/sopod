@@ -7,7 +7,7 @@
 @elseif($status === 'paid')
     <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Paid</span>
 @elseif($status === 'cancelled')
-    <span class="px-2 py-1 bg-gray-100 text-gray-500 rounded text-xs">Cancelled</span>
+    <span class="px-2 py-1 bg-gray-700 text-gray-500 rounded text-xs">Cancelled</span>
 @else
-    <span class="px-2 py-1 bg-gray-100 text-gray-500 rounded text-xs">{{ ucfirst($status) }}</span>
+    <span class="px-2 py-1 bg-gray-700 text-gray-500 rounded text-xs">{{ ucfirst($status) }}</span>
 @endif

@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">AR ADJUSTMENT DETAILS</h1>
             <div class="flex items-center gap-3">
                 <span class="px-3 py-1 rounded text-sm bg-purple-100 text-purple-700">{{ $adjustment->formatted_type }}</span>
@@ -32,11 +32,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Reference Number:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-800 font-semibold">{{ $adjustment->reference_number }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white font-semibold">{{ $adjustment->reference_number }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Transaction Date:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-800">{{ $adjustment->transaction_date->format('F d, Y') }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->transaction_date->format('F d, Y') }}</p>
             </div>
         </div>
 
@@ -44,15 +44,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Customer Name:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-800">{{ $adjustment->customer_name }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->customer_name }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Customer Code:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-800">{{ $adjustment->customer_code ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->customer_code ?? 'N/A' }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Branch:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-800">{{ $adjustment->branch ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->branch ?? 'N/A' }}</p>
             </div>
         </div>
 
@@ -66,15 +66,15 @@
                             <i class="fas fa-link mr-1"></i> {{ $adjustment->dr_no }}
                         </a>
                     @else
-                        <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-800">{{ $adjustment->dr_no }}</p>
+                        <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->dr_no }}</p>
                     @endif
                 @else
-                    <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-500">N/A</p>
+                    <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-500">N/A</p>
                 @endif
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Invoice Number:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-800">{{ $adjustment->invoice_number ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->invoice_number ?? 'N/A' }}</p>
             </div>
         </div>
 
@@ -141,13 +141,13 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">Amount:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-2xl font-bold {{ $adjustment->is_decrease ? 'text-red-700' : 'text-green-700' }}">
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-2xl font-bold {{ $adjustment->is_decrease ? 'text-red-700' : 'text-green-700' }}">
                     {{ $adjustment->is_decrease ? '-' : '+' }}₱{{ number_format(abs($adjustment->amount), 2) }}
                 </p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-1">GL Account:</label>
-                <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-800 font-semibold">{{ $adjustment->gl_account ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white font-semibold">{{ $adjustment->gl_account ?? 'N/A' }}</p>
             </div>
         </div>
 
@@ -179,7 +179,7 @@
         <!-- Signature -->
         <div class="mb-6">
             <label class="block font-semibold text-gray-500 mb-1">Signed By:</label>
-            <p class="px-4 py-2 bg-gray-50 border border-gray-200 rounded text-gray-800">{{ $adjustment->signed_by }}</p>
+            <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white">{{ $adjustment->signed_by }}</p>
         </div>
 
         <!-- Remarks & Attachment -->
@@ -188,7 +188,7 @@
                 @if($adjustment->remarks)
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">Remarks:</label>
-                    <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded text-gray-800 min-h-[80px]">
+                    <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-white min-h-[80px]">
                         {{ $adjustment->remarks }}
                     </div>
                 </div>
@@ -196,7 +196,7 @@
                 @if($adjustment->attachment_path)
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">Supporting Document:</label>
-                    <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded">
+                    <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded">
                         <a href="{{ asset('storage/' . $adjustment->attachment_path) }}" target="_blank" class="flex items-center gap-3 text-purple-700 hover:text-purple-900 transition">
                             @if(str_ends_with(strtolower($adjustment->attachment_name), '.pdf'))
                                 <i class="fas fa-file-pdf text-2xl text-red-500"></i>
@@ -215,7 +215,7 @@
         @endif
 
         <!-- Audit Information -->
-        <div class="bg-gray-100 rounded-lg p-4 mb-6">
+        <div class="bg-gray-700 rounded-lg p-4 mb-6">
             <h3 class="font-semibold text-gray-500 mb-3">Audit Information</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
                 <div>
@@ -237,7 +237,7 @@
 
         <!-- Action Buttons -->
         <div class="flex justify-end gap-4 flex-wrap">
-            <a href="{{ route('ar_adjustments.index') }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-200 transition">
+            <a href="{{ route('ar_adjustments.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">
                 <i class="fas fa-arrow-left mr-1"></i> Back to List
             </a>
             @if($adjustment->transaction_type === 'credit_memo')

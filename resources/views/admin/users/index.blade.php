@@ -3,7 +3,7 @@
 @section('title', 'User List')
 
 @section('content')
-<div class="max-w-7xl mx-auto bg-white text-gray-800 p-8 rounded-lg mt-8 shadow-md">
+<div class="max-w-7xl mx-auto bg-gray-800 text-white p-8 rounded-lg mt-8 shadow-md">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">User Management</h2>
         <a href="{{ route('admin.users.create') }}" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition w-full sm:w-auto text-center">
@@ -17,13 +17,13 @@
             id="searchInput" 
             type="text" 
             placeholder="Search name / email / role" 
-            class="border border-gray-200 bg-white text-gray-700 rounded px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            class="border border-gray-700 bg-gray-800 text-gray-200 rounded px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
     </div>
 
     <div class="overflow-x-auto">
         <table class="w-full text-left" id="usersTable">
-            <thead class="bg-gray-100">
+            <thead class="bg-gray-700">
                 <tr>
                     <th class="px-4 py-3">ID</th>
                     <th class="px-4 py-3">Name</th>
@@ -37,7 +37,7 @@
             </thead>
             <tbody id="userTableBody">
                 @foreach($users as $user)
-                <tr class="border-b border-gray-200 hover:bg-gray-100 user-row">
+                <tr class="border-b border-gray-700 hover:bg-gray-700 user-row">
                     <td class="px-4 py-3">{{ $user->id }}</td>
                     <td class="px-4 py-3">{{ $user->name }}</td>
                     <td class="px-4 py-3">{{ $user->email }}</td>
@@ -45,7 +45,7 @@
                         @forelse($user->userRoles as $ur)
                             <span class="bg-blue-600 text-white px-2 py-1 rounded text-xs mr-1">{{ $ur->subDepartment->name ?? '?' }}</span>
                         @empty
-                            <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs">No dept</span>
+                            <span class="bg-gray-700 text-gray-500 px-2 py-1 rounded text-xs">No dept</span>
                         @endforelse
                     </td>
                     
@@ -103,10 +103,10 @@
                         <div class="flex items-center gap-2">
                             <input type="password" 
                                    value="{{ $user->password }}" 
-                                   class="bg-gray-100 border border-gray-300 rounded px-3 py-1 text-gray-800 font-mono text-sm w-48" 
+                                   class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-white font-mono text-sm w-48" 
                                    id="password-{{ $user->id }}"
                                    readonly>
-                            <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded toggle-password" 
+                            <button class="bg-gray-200 hover:bg-gray-300 text-white px-3 py-1 rounded toggle-password" 
                                     data-target="password-{{ $user->id }}"
                                     type="button"
                                     title="Show/Hide Hash">

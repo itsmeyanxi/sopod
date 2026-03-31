@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 text-gray-800 p-8">
+<div class="min-h-screen bg-gray-900 text-white p-8">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-2">
-        <h1 class="text-2xl text-gray-800 font-bold">Items List</h1>
+    <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-2">
+        <h1 class="text-2xl text-white font-bold">Items List</h1>
         
         @if(auth()->user()->canApproveItems())
             <a href="{{ route('items.pending') }}" 
@@ -32,7 +32,7 @@
     <input id="itemSearchInput" 
         type="text" 
         placeholder="Search item code / description / brand / category"
-        class="w-80 bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:ring focus:ring-purple-500">
+        class="w-80 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring focus:ring-purple-500">
 
     <div class="flex gap-3">
         {{-- ✅ Export Button --}}
@@ -56,14 +56,14 @@
     @if(auth()->user()->canApproveItems())
     <div id="bulkActionsBar" class="hidden bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-4 mb-4 shadow-lg">
         <div class="flex items-center justify-between">
-            <span id="selectedCount" class="text-gray-800 font-semibold">0 items selected</span>
+            <span id="selectedCount" class="text-white font-semibold">0 items selected</span>
             <div class="flex gap-3">
                 <button onclick="bulkApprove()" 
                     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition font-medium">
                     Approve Selected
                 </button>
                 <button onclick="clearSelection()" 
-                    class="bg-gray-100 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded transition">
+                    class="bg-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition">
                     Clear Selection
                 </button>
             </div>
@@ -72,14 +72,14 @@
     @endif
 
     <!-- Items Table -->
-    <div class="bg-white rounded-xl shadow-md overflow-x-auto">
+    <div class="bg-gray-800 rounded-xl shadow-md overflow-x-auto">
         <table id="itemsTable" class="w-full text-sm">
-            <thead class="bg-gray-100 text-gray-500 uppercase text-xs">
+            <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
                 <tr>
                     @if(auth()->user()->canApproveItems())
                     <th class="px-4 py-3 text-center w-12">
                         <input type="checkbox" id="selectAll" 
-                            class="w-4 h-4 rounded border-gray-300 bg-gray-100 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer"
+                            class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer"
                             title="Select All">
                     </th>
                     @endif
@@ -94,12 +94,12 @@
             </thead>
             <tbody>
                 @forelse($items as $item)
-                <tr class="border-b border-gray-200 hover:bg-gray-100 transition item-row" data-status="{{ $item->approval_status }}">
+                <tr class="border-b border-gray-700 hover:bg-gray-700 transition item-row" data-status="{{ $item->approval_status }}">
                     @if(auth()->user()->canApproveItems())
                     <td class="px-4 py-3 text-center">
                         @if($item->approval_status === 'pending')
                         <input type="checkbox" 
-                            class="item-checkbox w-4 h-4 rounded border-gray-300 bg-gray-100 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer" 
+                            class="item-checkbox w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer" 
                             value="{{ $item->id }}"
                             data-item-code="{{ $item->item_code }}">
                         @endif
@@ -144,7 +144,7 @@
                                 <form action="{{ route('items.toggle', $item->id) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit"
-                                        class="text-gray-800 text-xs font-medium px-3 py-1 rounded transition
+                                        class="text-white text-xs font-medium px-3 py-1 rounded transition
                                                {{ $item->is_enabled 
                                                   ? 'bg-gray-200 hover:bg-gray-300' 
                                                   : 'bg-green-600 hover:bg-green-700' }}">
@@ -185,8 +185,8 @@
 
 <!-- Individual Reject Modal -->
 <div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Reject Item</h2>
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 class="text-xl font-bold text-white mb-4">Reject Item</h2>
         <form id="rejectForm" method="POST">
             @csrf
             <div class="mb-4">
@@ -194,7 +194,7 @@
                 <textarea 
                     name="rejection_reason" 
                     rows="4" 
-                    class="w-full bg-gray-50 border border-gray-200 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
                     placeholder="Enter reason for rejection..."
                     required></textarea>
             </div>
@@ -202,7 +202,7 @@
                 <button 
                     type="button" 
                     onclick="closeRejectModal()"
-                    class="bg-gray-100 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md transition">
+                    class="bg-gray-700 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-md transition">
                     Cancel
                 </button>
                 <button 
@@ -217,17 +217,17 @@
 
 <!-- Bulk Approval Confirmation Modal -->
 <div id="bulkApprovalModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Confirm Bulk Approval</h2>
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 class="text-xl font-bold text-white mb-4">Confirm Bulk Approval</h2>
         <p class="text-gray-500 mb-4">Are you sure you want to approve <span id="bulkApprovalCount" class="font-bold text-green-700"></span> item(s)?</p>
-        <div id="bulkItemsList" class="bg-gray-50 rounded p-3 mb-4 max-h-48 overflow-y-auto">
+        <div id="bulkItemsList" class="bg-gray-900 rounded p-3 mb-4 max-h-48 overflow-y-auto">
             <!-- Item codes will be listed here -->
         </div>
         <div class="flex justify-end gap-3">
             <button 
                 type="button" 
                 onclick="closeBulkApprovalModal()"
-                class="bg-gray-100 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md transition">
+                class="bg-gray-700 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-md transition">
                 Cancel
             </button>
             <button 

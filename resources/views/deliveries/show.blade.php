@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-6xl mx-auto px-6 py-10 bg-gray-50 min-h-screen text-gray-100">
+<div class="max-w-6xl mx-auto px-6 py-10 bg-gray-900 min-h-screen text-gray-100">
 
     <!-- Header -->
-    <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-2">
+    <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-2">
         <h1 class="text-2xl font-bold">Delivery Details</h1>
         <div class="flex gap-3">
             <a href="{{ route('deliveries.print', $delivery->id) }}"
@@ -25,7 +25,7 @@
                 </button>
             @endif
             <a href="{{ route('deliveries.index') }}"
-               class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded transition">
+               class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded transition">
                ← Back
             </a>
         </div>
@@ -61,7 +61,7 @@
             'Partial' => 'bg-orange-600/20 text-orange-700 border-orange-600',
             'Cancelled' => 'bg-red-600/20 text-red-700 border-red-600',
         ];
-        $statusColor = $statusColors[$delivery->status] ?? 'bg-gray-100 text-gray-500 border-gray-300';
+        $statusColor = $statusColors[$delivery->status] ?? 'bg-gray-700 text-gray-500 border-gray-600';
     @endphp
 
     <!-- Approval Actions (Show only if Pending and user can approve) -->
@@ -222,21 +222,21 @@
     @endif
 
     <!-- Delivery Info -->
-    <div class="bg-white rounded-xl shadow-lg p-8">
+    <div class="bg-gray-800 rounded-xl shadow-lg p-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             <!-- DR No -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">DR No</label>
                 <input type="text" value="{{ $delivery->dr_no }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Sales Order -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Sales Order No</label>
                 <input type="text" value="{{ $delivery->sales_order_number }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Delivery Batch -->
@@ -258,7 +258,7 @@
                     </div>
                 @else
                     <input type="text" value="Single Delivery" 
-                           class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-500" readonly>
+                           class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-500" readonly>
                 @endif
             </div>
 
@@ -286,7 +286,7 @@
                         'Approved' => 'bg-green-100 border-green-700 text-green-700',
                         'Rejected' => 'bg-red-100 border-red-700 text-red-700',
                     ];
-                    $approvalColor = $approvalColors[$delivery->approval_status] ?? 'bg-gray-100 text-gray-500 border-gray-300';
+                    $approvalColor = $approvalColors[$delivery->approval_status] ?? 'bg-gray-700 text-gray-500 border-gray-600';
                 @endphp
                 <div class="w-full px-4 py-2 rounded-lg border {{ $approvalColor }} flex items-center gap-2">
                     @if($delivery->approval_status === 'Approved')
@@ -304,77 +304,77 @@
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Customer Code</label>
                 <input type="text" value="{{ $customerCode }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Customer Name -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Customer Name</label>
                 <input type="text" value="{{ $customerName }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- TIN  -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">TIN</label>
                 <input type="text" value="{{ $tinNo }}"  readonly
-                    class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" />
+                    class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" />
             </div>
 
             <!-- Branch -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Branch</label>
                 <input type="text" value="{{ $branch }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Sales Representative -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Sales Representative</label>
                 <input type="text" value="{{ $salesRep }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Sales Executive -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Sales Executive</label>
                 <input type="text" value="{{ $salesExec }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Plate No -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Plate No</label>
                 <input type="text" value="{{ $delivery->plate_no ?? '—' }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Sales Invoice -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Sales Invoice No</label>
                 <input type="text" value="{{ $delivery->sales_invoice_no ?? '—' }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- PO Number -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">PO Number</label>
                 <input type="text" value="{{ $poNumber }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Request Delivery Date -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Request Delivery Date</label>
                 <input type="text" value="{{ $requestDeliveryDate }}"
-                  class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                  class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
 
             <!-- Approved By -->
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Approved By</label>
                 <input type="text" value="{{ $approvedBy }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
             
             <!-- Approval Details (if approved or rejected) -->
@@ -383,7 +383,7 @@
                 <label class="block text-sm font-semibold text-gray-500 mb-2">
                     {{ $delivery->approval_status === 'Approved' ? 'Approved By' : 'Rejected By' }}
                 </label>
-                <div class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300">
+                <div class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600">
                     <p class="text-gray-100">{{ $delivery->approved_by_user }}</p>
                     @if($delivery->approved_at)
                         <p class="text-xs text-gray-500 mt-1">
@@ -399,7 +399,7 @@
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Created By</label>
                 <input type="text" value="{{ $delivery->created_by }}" 
-                       class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100" readonly>
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100" readonly>
             </div>
             @endif
 
@@ -407,7 +407,7 @@
             @if($so && $so->po_image)
             <div class="md:col-span-2">
                 <label class="block text-sm font-semibold text-gray-500 mb-2">📸 PO Proof / Order Evidence (from Sales Order)</label>
-                <div class="bg-gray-100/50 border border-gray-300 rounded-lg p-4">
+                <div class="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
                     @if(Str::endsWith($so->po_image, '.pdf'))
                         {{-- PDF File --}}
                         <a href="{{ asset('po_images/' . $so->po_image) }}" 
@@ -426,7 +426,7 @@
                            class="block">
                             <img src="{{ asset('po_images/' . $so->po_image) }}" 
                                  alt="PO Proof" 
-                                 class="max-w-md w-full rounded border border-gray-300 hover:border-blue-500 transition-all hover:shadow-lg cursor-pointer">
+                                 class="max-w-md w-full rounded border border-gray-600 hover:border-blue-500 transition-all hover:shadow-lg cursor-pointer">
                         </a>
                         <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -452,7 +452,7 @@
             <!-- Additional Instructions -->
             <div class="md:col-span-2">
                 <label class="block text-sm font-semibold text-gray-500 mb-2">Additional Instructions</label>
-                <textarea class="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-100"
+                <textarea class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100"
                         rows="3" readonly>{{ $additionalInstructions }}</textarea>
             </div>
 
@@ -472,7 +472,7 @@
 
         </div>
 
-        <h3 class="text-lg font-semibold text-gray-800 mt-10 mb-4 border-b border-gray-200 pb-1">Delivery Items</h3>
+        <h3 class="text-lg font-semibold text-white mt-10 mb-4 border-b border-gray-700 pb-1">Delivery Items</h3>
 
         @php
             $items = $delivery->items;
@@ -504,8 +504,8 @@
         @endphp
 
         <div class="overflow-x-auto mt-6">
-            <table class="w-full border border-gray-200 rounded-md overflow-hidden text-sm">
-                <thead class="bg-gray-100 text-gray-500 uppercase">
+            <table class="w-full border border-gray-700 rounded-md overflow-hidden text-sm">
+                <thead class="bg-gray-700 text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-2 text-left">Item Code</th>
                         <th class="px-4 py-2 text-left">Description</th>
@@ -522,7 +522,7 @@
                     </tr>
                 </thead>
 
-                <tbody class="bg-gray-50">
+                <tbody class="bg-gray-900">
                   @forelse($items as $item)
                     @php
                         // ✅ FIXED: Use sales_order_item_id for lookups to handle duplicate item_codes
@@ -548,7 +548,7 @@
                         }
                     @endphp
 
-                    <tr class="border-b border-gray-800 hover:bg-white 
+                    <tr class="border-b border-gray-800 hover:bg-gray-800 
                         {{ $isPartial ? 'bg-orange-100/10' : '' }}">
                             <td class="px-4 py-2">{{ $item->item_code ?? '—' }}</td>
                             <td class="px-4 py-2">{{  $item->item_description ?? $item->item?->item_description ?? $item->salesOrderItem?->item_description ?? '—' }}</td>
@@ -608,7 +608,7 @@
                             <!-- Notes Column -->
                             <td class="px-4 py-2 text-left">
                                 @if($item->notes)
-                                    <span class="text-gray-700">{{ $item->notes }}</span>
+                                    <span class="text-gray-200">{{ $item->notes }}</span>
                                 @else
                                     <span class="text-gray-500 italic">—</span>
                                 @endif
@@ -624,7 +624,7 @@
 
                     @if($items->count() > 0)
                         <!-- Grand Total Row -->
-                        <tr class="bg-white font-semibold">
+                        <tr class="bg-gray-800 font-semibold">
                             <td colspan="10" class="px-4 py-3 text-right">Grand Total:</td>
                             <td class="px-4 py-3 text-right text-green-700">₱{{ number_format($grandTotal, 2) }}</td>
                             <td></td>
@@ -646,7 +646,7 @@
         <!-- Back Button -->
         <div class="flex justify-end mt-8">
             <a href="{{ route('deliveries.index') }}" 
-               class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg transition">
+               class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded-lg transition">
                 Back to List
             </a>
         </div>
@@ -655,8 +655,8 @@
 
 <!-- Approval/Rejection Modal -->
 <div id="approvalModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 id="modalTitle" class="text-xl font-bold text-gray-800 mb-4"></h3>
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 id="modalTitle" class="text-xl font-bold text-white mb-4"></h3>
         
         <form id="approvalForm" method="POST" action="{{ route('deliveries.approve', $delivery->id) }}">
             @csrf
@@ -669,19 +669,19 @@
                 <textarea name="rejection_reason" 
                           id="rejectionReason"
                           rows="4" 
-                          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                           placeholder="Please provide a reason for rejection..."></textarea>
             </div>
             
             <div class="flex justify-end gap-3">
                 <button type="button" 
                         onclick="closeApprovalModal()"
-                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition">
+                        class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded-lg transition">
                     Cancel
                 </button>
                 <button type="submit" 
                         id="modalSubmitBtn"
-                        class="px-4 py-2 rounded-lg transition text-gray-800 font-semibold">
+                        class="px-4 py-2 rounded-lg transition text-white font-semibold">
                     Confirm
                 </button>
             </div>
@@ -692,23 +692,23 @@
 <!-- 🚫 Hide DR Modal -->
 @if(auth()->user()->isAdminUser() && !$delivery->is_hidden)
 <div id="hideModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-xl font-bold text-gray-800 mb-2">🚫 Hide Delivery</h3>
-        <p class="text-sm text-gray-600 mb-4">
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold text-white mb-2">🚫 Hide Delivery</h3>
+        <p class="text-sm text-gray-300 mb-4">
             Hiding <strong>DR {{ $delivery->dr_no }}</strong> will make it invisible across <strong>all modules</strong> —
             delivery list, aging reports, treasury, SOA, etc. Only Admin/IT users can see and unhide it.
         </p>
         <form action="{{ route('deliveries.hide', $delivery->id) }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-600 mb-2">Reason for Hiding <span class="text-red-600">*</span></label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Reason for Hiding <span class="text-red-600">*</span></label>
                 <textarea name="hidden_reason" rows="3" required
-                          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                           placeholder="Please provide a reason for hiding this delivery..."></textarea>
             </div>
             <div class="flex justify-end gap-3">
                 <button type="button" onclick="closeHideModal()"
-                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition">
+                        class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded-lg transition">
                     Cancel
                 </button>
                 <button type="submit"

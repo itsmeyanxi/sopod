@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto bg-white p-6 rounded-lg text-gray-800">
+<div class="max-w-3xl mx-auto bg-gray-800 p-6 rounded-lg text-white">
     <h2 class="text-xl font-bold mb-4">📥 Import Data</h2>
 
     @if(session('success'))
@@ -33,7 +33,7 @@
 
         {{-- File input --}}
         <label class="block mb-2 font-semibold">Upload File (.xlsx, .xls, .csv)</label>
-        <input type="file" name="file" required class="w-full mb-4 text-gray-800">
+        <input type="file" name="file" required class="w-full mb-4 text-white">
 
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full">
             Upload

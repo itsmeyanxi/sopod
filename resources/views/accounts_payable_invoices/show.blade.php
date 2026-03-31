@@ -4,10 +4,10 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Action Buttons -->
         <div class="flex justify-between items-center mb-6">
-            <a href="{{ route('accounts_payable_invoices.index') }}" class="bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-100 transition">
+            <a href="{{ route('accounts_payable_invoices.index') }}" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
                 <i class="fas fa-arrow-left mr-1"></i> Back to List
             </a>
             <div class="flex gap-2">
@@ -40,12 +40,12 @@
         @endif
 
         <!-- Invoice Content -->
-        <div id="printableInvoice" class="bg-white text-black p-8 rounded">
+        <div id="printableInvoice" class="bg-gray-800 text-black p-8 rounded">
             <!-- Header -->
             <div class="border-b-2 border-black pb-4 mb-6">
                 <div class="text-center mb-4">
                     <h1 class="text-3xl font-bold">ACCOUNTS PAYABLE VOUCHER</h1>
-                    <p class="text-sm text-gray-600 mt-1">APV No: {{ $invoice->apv_no }}</p>
+                    <p class="text-sm text-gray-300 mt-1">APV No: {{ $invoice->apv_no }}</p>
                 </div>
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
@@ -106,7 +106,7 @@
             <!-- Particulars -->
             <div class="mb-6">
                 <h2 class="text-lg font-bold border-b border-gray-400 pb-2 mb-3">PARTICULARS</h2>
-                <div class="bg-gray-50 p-4 rounded text-sm whitespace-pre-wrap">{{ $invoice->particulars }}</div>
+                <div class="bg-gray-900 p-4 rounded text-sm whitespace-pre-wrap">{{ $invoice->particulars }}</div>
             </div>
 
             <!-- Accounting Details -->
@@ -161,7 +161,7 @@
                             <td class="py-2 text-right pr-4 font-semibold">Withholding Tax:</td>
                             <td class="py-2 text-right">({{ $invoice->currency }} {{ number_format($invoice->w_tax_amount, 2) }})</td>
                         </tr>
-                        <tr class="border-t-2 border-black bg-gray-100">
+                        <tr class="border-t-2 border-black bg-gray-700">
                             <td class="py-3 text-right pr-4 font-bold text-lg">GRAND TOTAL:</td>
                             <td class="py-3 text-right font-bold text-lg">{{ $invoice->currency }} {{ number_format($invoice->grand_total, 2) }}</td>
                         </tr>
@@ -173,7 +173,7 @@
             @if($invoice->remarks)
             <div class="mb-6">
                 <h2 class="text-lg font-bold border-b border-gray-400 pb-2 mb-3">REMARKS</h2>
-                <div class="bg-gray-50 p-4 rounded text-sm whitespace-pre-wrap">{{ $invoice->remarks }}</div>
+                <div class="bg-gray-900 p-4 rounded text-sm whitespace-pre-wrap">{{ $invoice->remarks }}</div>
             </div>
             @endif
 
@@ -184,12 +184,12 @@
                     <div class="text-center">
                         <div class="border-b-2 border-black h-16 mb-2"></div>
                         <p class="font-semibold">{{ $invoice->creator->name ?? ($invoice->prepared_by ?? '___________________') }}</p>
-                        <p class="text-xs text-gray-600">Prepared By</p>
+                        <p class="text-xs text-gray-300">Prepared By</p>
                     </div>
                     <div class="text-center">
                         <div class="border-b-2 border-black h-16 mb-2"></div>
                         <p class="font-semibold">{{ $invoice->departmentHeadApprover->name ?? ($invoice->reviewed_by ?? '___________________') }}</p>
-                        <p class="text-xs text-gray-600">Reviewed By (Dept Head)</p>
+                        <p class="text-xs text-gray-300">Reviewed By (Dept Head)</p>
                         @if($invoice->departmentHeadApprover && $invoice->department_head_approved_at)
                             <p class="text-xs text-gray-500 italic mt-1">
                                 Digitally Signed<br>
@@ -204,7 +204,7 @@
                     <div class="text-center">
                         <div class="border-b-2 border-black h-16 mb-2"></div>
                         <p class="font-semibold">{{ $invoice->approver->name ?? ($invoice->approved_by ?? '___________________') }}</p>
-                        <p class="text-xs text-gray-600">Approved By (Accounting Manager)</p>
+                        <p class="text-xs text-gray-300">Approved By (Accounting Manager)</p>
                         @if($invoice->approver && $invoice->approved_at)
                             <p class="text-xs text-gray-500 italic mt-1">
                                 Digitally Signed<br>
@@ -220,7 +220,7 @@
             </div>
 
             <!-- Footer -->
-            <div class="mt-8 pt-4 border-t border-gray-300 text-xs text-gray-500">
+            <div class="mt-8 pt-4 border-t border-gray-600 text-xs text-gray-500">
                 <div class="flex justify-between">
                     <div>
                         <p>Status:
@@ -241,15 +241,15 @@
         </div>
 
         <!-- Approval Trail -->
-        <div class="mb-6 mt-6 p-4 bg-gray-50 border border-gray-200 rounded">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Approval Trail</h3>
+        <div class="mb-6 mt-6 p-4 bg-gray-900 border border-gray-700 rounded">
+            <h3 class="text-lg font-semibold text-white mb-4">Approval Trail</h3>
             <div class="space-y-3">
                 <!-- Department Head Level -->
-                <div class="flex items-start gap-4 p-3 bg-white rounded">
+                <div class="flex items-start gap-4 p-3 bg-gray-800 rounded">
                     <div class="flex-shrink-0">
                         @if($invoice->department_head_approved_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-600">
-                                <i class="fas fa-check text-gray-800"></i>
+                                <i class="fas fa-check text-white"></i>
                             </div>
                         @else
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
@@ -275,18 +275,18 @@
                 </div>
 
                 <!-- Accounting Manager Level -->
-                <div class="flex items-start gap-4 p-3 bg-white rounded">
+                <div class="flex items-start gap-4 p-3 bg-gray-800 rounded">
                     <div class="flex-shrink-0">
                         @if($invoice->status === 'approved' && $invoice->approver)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-600">
-                                <i class="fas fa-check text-gray-800"></i>
+                                <i class="fas fa-check text-white"></i>
                             </div>
                         @elseif($invoice->department_head_approved_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300">
                                 <i class="fas fa-clock text-gray-500"></i>
                             </div>
                         @else
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
                                 <i class="fas fa-lock text-gray-500"></i>
                             </div>
                         @endif
@@ -315,7 +315,7 @@
                     <div class="flex items-start gap-4 p-3 bg-red-50 border border-red-200 rounded">
                         <div class="flex-shrink-0">
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-red-600">
-                                <i class="fas fa-times text-gray-800"></i>
+                                <i class="fas fa-times text-white"></i>
                             </div>
                         </div>
                         <div class="flex-1">
@@ -360,8 +360,8 @@
 
 <!-- Department Head Approval Modal -->
 <div id="approveDHModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 w-96">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">Approve as Department Head</h3>
+    <div class="bg-gray-800 rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-white mb-4">Approve as Department Head</h3>
         <form action="{{ route('accounts_payable_invoices.approve_dh', $invoice->id) }}" method="POST">
             @csrf
             <input type="hidden" name="latitude" id="dh_latitude">
@@ -372,10 +372,10 @@
                 <div id="dh_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveDHModal()" class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-700">
                     Cancel
                 </button>
-                <button type="submit" id="dh_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
+                <button type="submit" id="dh_submit_btn" class="bg-gray-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
                     <i class="fas fa-spinner fa-spin mr-1"></i> Waiting for location...
                 </button>
             </div>
@@ -385,8 +385,8 @@
 
 <!-- Accounting Manager Approval Modal -->
 <div id="approveModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 w-96">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">Approve as Accounting Manager</h3>
+    <div class="bg-gray-800 rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-white mb-4">Approve as Accounting Manager</h3>
         <form action="{{ route('accounts_payable_invoices.approve', $invoice->id) }}" method="POST">
             @csrf
             <input type="hidden" name="latitude" id="acct_latitude">
@@ -397,10 +397,10 @@
                 <div id="acct_geolocation_status" class="text-sm text-gray-500">Waiting for location...</div>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeApproveModal()" class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-700">
                     Cancel
                 </button>
-                <button type="submit" id="acct_submit_btn" class="bg-gray-500 text-gray-800 px-4 py-2 rounded cursor-not-allowed" disabled>
+                <button type="submit" id="acct_submit_btn" class="bg-gray-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
                     <i class="fas fa-spinner fa-spin mr-1"></i> Waiting for location...
                 </button>
             </div>
@@ -410,16 +410,16 @@
 
 <!-- Reject Modal -->
 <div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 w-96">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">Reject Invoice</h3>
+    <div class="bg-gray-800 rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-white mb-4">Reject Invoice</h3>
         <form action="{{ route('accounts_payable_invoices.reject', $invoice->id) }}" method="POST">
             @csrf
             <div class="mb-4">
                 <label class="block text-gray-500 mb-2">Rejection Reason (Optional):</label>
-                <textarea name="rejection_reason" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800" rows="4"></textarea>
+                <textarea name="rejection_reason" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" rows="4"></textarea>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeRejectModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeRejectModal()" class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-700">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
@@ -553,7 +553,7 @@ function getLocationName(lat, lng, prefix) {
         width: 100%;
         background: white;
     }
-    .bg-white, .bg-gray-100, .bg-gray-200 {
+    .bg-gray-800, .bg-gray-700, .bg-gray-200 {
         background-color: white !important;
     }
     button, .no-print {
@@ -565,14 +565,14 @@ function getLocationName(lat, lng, prefix) {
 <!-- Delete Confirmation Modal -->
 @if(auth()->user()->canApproveAPVAsDH() || auth()->user()->canApproveAPV())
 <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 w-96">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">Delete Invoice</h3>
+    <div class="bg-gray-800 rounded-lg p-6 w-96">
+        <h3 class="text-xl font-bold text-white mb-4">Delete Invoice</h3>
         <p class="text-gray-500 mb-4">Are you sure you want to delete invoice <strong>{{ $invoice->apv_no }}</strong>? This action cannot be undone.</p>
         <form action="{{ route('accounts_payable_invoices.destroy', $invoice->id) }}" method="POST">
             @csrf
             @method('DELETE')
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeDeleteModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-100">
+                <button type="button" onclick="closeDeleteModal()" class="bg-gray-200 text-white px-4 py-2 rounded hover:bg-gray-700">
                     Cancel
                 </button>
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">

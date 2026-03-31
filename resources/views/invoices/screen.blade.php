@@ -4,11 +4,11 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
         
         {{-- Header --}}
         <div class="mb-6">
-            <h2 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+            <h2 class="text-3xl font-bold text-white flex items-center gap-3">
                 <i class="fas fa-chart-line text-blue-700"></i>
                 AR Aging Dashboard
             </h2>
@@ -16,20 +16,20 @@
         </div>
 
         {{-- Week Selection & Date Display --}}
-        <div class="bg-gray-100 rounded-lg p-6 mb-6">
+        <div class="bg-gray-700 rounded-lg p-6 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Select Week End Date</label>
                     <input type="date" id="week_end_date" value="{{ now()->format('Y-m-d') }}"
-                           class="w-full bg-gray-200 text-gray-800 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full bg-gray-200 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div class="bg-white rounded-lg p-4 flex flex-col justify-center">
+                <div class="bg-gray-800 rounded-lg p-4 flex flex-col justify-center">
                     <p class="text-gray-500 text-xs mb-1">Week Number</p>
-                    <p class="text-gray-800 text-xl font-bold" id="week_number">{{ now()->format('Y') }} - {{ now()->weekOfYear }}</p>
+                    <p class="text-white text-xl font-bold" id="week_number">{{ now()->format('Y') }} - {{ now()->weekOfYear }}</p>
                 </div>
-                <div class="bg-white rounded-lg p-4 flex flex-col justify-center">
+                <div class="bg-gray-800 rounded-lg p-4 flex flex-col justify-center">
                     <p class="text-gray-500 text-xs mb-1">Week Beginning Date</p>
-                    <p class="text-gray-800 text-xl font-bold" id="week_beg_date">{{ now()->startOfWeek()->format('F j, Y') }}</p>
+                    <p class="text-white text-xl font-bold" id="week_beg_date">{{ now()->startOfWeek()->format('F j, Y') }}</p>
                 </div>
             </div>
             <div class="mt-4 flex justify-end">
@@ -56,7 +56,7 @@
                         <h3 class="text-sm font-semibold text-blue-700">Total Records</h3>
                         <i class="fas fa-users text-blue-700 text-xl"></i>
                     </div>
-                    <p class="text-gray-800 text-3xl font-bold" id="trader_balance">-</p>
+                    <p class="text-white text-3xl font-bold" id="trader_balance">-</p>
                     <p class="text-gray-500 text-xs mt-1">Active AR records</p>
                 </div>
 
@@ -65,7 +65,7 @@
                         <h3 class="text-sm font-semibold text-green-700">Outstanding AR</h3>
                         <i class="fas fa-dollar-sign text-green-700 text-xl"></i>
                     </div>
-                    <p class="text-gray-800 text-3xl font-bold" id="credit_balance">-</p>
+                    <p class="text-white text-3xl font-bold" id="credit_balance">-</p>
                     <p class="text-gray-500 text-xs mt-1">Total outstanding receivables</p>
                 </div>
 
@@ -74,7 +74,7 @@
                         <h3 class="text-sm font-semibold text-purple-700">Total AR</h3>
                         <i class="fas fa-chart-bar text-purple-700 text-xl"></i>
                     </div>
-                    <p class="text-gray-800 text-3xl font-bold" id="total_ar">-</p>
+                    <p class="text-white text-3xl font-bold" id="total_ar">-</p>
                     <p class="text-gray-500 text-xs mt-1">As of <span id="ar_date">{{ now()->format('F j, Y') }}</span></p>
                 </div>
             </div>
@@ -83,8 +83,8 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
                 {{-- Left Column: AR Aging Breakdown --}}
-                <div class="bg-gray-100 rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div class="bg-gray-700 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                         <i class="fas fa-hourglass-half text-orange-700"></i>
                         AR Aging Breakdown
                     </h3>
@@ -99,8 +99,8 @@
                 {{-- Right Column: Charts and Stats --}}
                 <div class="space-y-6">
                     {{-- Aging Distribution Chart --}}
-                    <div class="bg-gray-100 rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <div class="bg-gray-700 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                             <i class="fas fa-chart-pie text-purple-700"></i>
                             Aging Distribution
                         </h3>
@@ -119,7 +119,7 @@
                                 <i class="fas fa-table text-indigo-700 text-2xl"></i>
                                 <span class="text-xs text-indigo-700 font-semibold">VIEW</span>
                             </div>
-                            <p class="text-gray-800 text-sm font-bold">Summary Report</p>
+                            <p class="text-white text-sm font-bold">Summary Report</p>
                             <p class="text-gray-500 text-xs mt-1">Pivot table view</p>
                         </button>
                     </div>
@@ -384,60 +384,60 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update Aging Breakdown
     function updateAgingBreakdown(totals) {
         const breakdownHTML = `
-            <div class="bg-white rounded-lg p-4 flex justify-between items-center">
+            <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
                     <p class="text-gray-500 text-sm">Current</p>
-                    <p class="text-gray-800 text-2xl font-bold">${formatCurrency(totals.current)}</p>
+                    <p class="text-white text-2xl font-bold">${formatCurrency(totals.current)}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-green-600/20 flex items-center justify-center">
                     <i class="fas fa-check-circle text-green-700 text-2xl"></i>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg p-4 flex justify-between items-center">
+            <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
                     <p class="text-gray-500 text-sm">1-30 days</p>
-                    <p class="text-gray-800 text-2xl font-bold">${formatCurrency(totals['1_30'])}</p>
+                    <p class="text-white text-2xl font-bold">${formatCurrency(totals['1_30'])}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-yellow-600/20 flex items-center justify-center">
                     <i class="fas fa-clock text-yellow-700 text-2xl"></i>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg p-4 flex justify-between items-center">
+            <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
                     <p class="text-gray-500 text-sm">31-60 days</p>
-                    <p class="text-gray-800 text-2xl font-bold">${formatCurrency(totals['31_60'])}</p>
+                    <p class="text-white text-2xl font-bold">${formatCurrency(totals['31_60'])}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-orange-600/20 flex items-center justify-center">
                     <i class="fas fa-exclamation-circle text-orange-700 text-2xl"></i>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg p-4 flex justify-between items-center">
+            <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
                     <p class="text-gray-500 text-sm">61-90 days</p>
-                    <p class="text-gray-800 text-2xl font-bold">${formatCurrency(totals['61_90'])}</p>
+                    <p class="text-white text-2xl font-bold">${formatCurrency(totals['61_90'])}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-red-600/20 flex items-center justify-center">
                     <i class="fas fa-exclamation-triangle text-red-700 text-2xl"></i>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg p-4 flex justify-between items-center">
+            <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
                     <p class="text-gray-500 text-sm">91-120 days</p>
-                    <p class="text-gray-800 text-2xl font-bold">${formatCurrency(totals['91_120'])}</p>
+                    <p class="text-white text-2xl font-bold">${formatCurrency(totals['91_120'])}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-red-700/20 flex items-center justify-center">
                     <i class="fas fa-ban text-red-500 text-2xl"></i>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg p-4 flex justify-between items-center">
+            <div class="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
                     <p class="text-gray-500 text-sm">More than 120 Days</p>
-                    <p class="text-gray-800 text-2xl font-bold">${formatCurrency(totals.over_120)}</p>
+                    <p class="text-white text-2xl font-bold">${formatCurrency(totals.over_120)}</p>
                 </div>
                 <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
                     <i class="fas fa-times-circle text-red-600 text-2xl"></i>
@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="bg-gradient-to-r from-blue-900/50 to-purple-900/50 rounded-lg p-4 flex justify-between items-center border-2 border-blue-500">
                 <div>
                     <p class="text-blue-700 text-sm font-semibold">Total</p>
-                    <p class="text-gray-800 text-3xl font-bold">${formatCurrency(totals.total)}</p>
+                    <p class="text-white text-3xl font-bold">${formatCurrency(totals.total)}</p>
                 </div>
                 <i class="fas fa-calculator text-blue-700 text-3xl"></i>
             </div>
@@ -464,54 +464,54 @@ document.addEventListener('DOMContentLoaded', function() {
             <div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="text-gray-500">Current</span>
-                    <span class="text-gray-800 font-semibold">${((totals.current / total) * 100).toFixed(1)}%</span>
+                    <span class="text-white font-semibold">${((totals.current / total) * 100).toFixed(1)}%</span>
                 </div>
-                <div class="w-full bg-white rounded-full h-3">
+                <div class="w-full bg-gray-800 rounded-full h-3">
                     <div class="bg-green-500 h-3 rounded-full" style="width: ${(totals.current / total) * 100}%"></div>
                 </div>
             </div>
             <div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="text-gray-500">1-30 days</span>
-                    <span class="text-gray-800 font-semibold">${((totals['1_30'] / total) * 100).toFixed(1)}%</span>
+                    <span class="text-white font-semibold">${((totals['1_30'] / total) * 100).toFixed(1)}%</span>
                 </div>
-                <div class="w-full bg-white rounded-full h-3">
+                <div class="w-full bg-gray-800 rounded-full h-3">
                     <div class="bg-yellow-500 h-3 rounded-full" style="width: ${(totals['1_30'] / total) * 100}%"></div>
                 </div>
             </div>
             <div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="text-gray-500">31-60 days</span>
-                    <span class="text-gray-800 font-semibold">${((totals['31_60'] / total) * 100).toFixed(1)}%</span>
+                    <span class="text-white font-semibold">${((totals['31_60'] / total) * 100).toFixed(1)}%</span>
                 </div>
-                <div class="w-full bg-white rounded-full h-3">
+                <div class="w-full bg-gray-800 rounded-full h-3">
                     <div class="bg-orange-500 h-3 rounded-full" style="width: ${(totals['31_60'] / total) * 100}%"></div>
                 </div>
             </div>
             <div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="text-gray-500">61-90 days</span>
-                    <span class="text-gray-800 font-semibold">${((totals['61_90'] / total) * 100).toFixed(1)}%</span>
+                    <span class="text-white font-semibold">${((totals['61_90'] / total) * 100).toFixed(1)}%</span>
                 </div>
-                <div class="w-full bg-white rounded-full h-3">
+                <div class="w-full bg-gray-800 rounded-full h-3">
                     <div class="bg-red-500 h-3 rounded-full" style="width: ${(totals['61_90'] / total) * 100}%"></div>
                 </div>
             </div>
             <div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="text-gray-500">91-120 days</span>
-                    <span class="text-gray-800 font-semibold">${((totals['91_120'] / total) * 100).toFixed(1)}%</span>
+                    <span class="text-white font-semibold">${((totals['91_120'] / total) * 100).toFixed(1)}%</span>
                 </div>
-                <div class="w-full bg-white rounded-full h-3">
+                <div class="w-full bg-gray-800 rounded-full h-3">
                     <div class="bg-red-600 h-3 rounded-full" style="width: ${(totals['91_120'] / total) * 100}%"></div>
                 </div>
             </div>
             <div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="text-gray-500">>120 days</span>
-                    <span class="text-gray-800 font-semibold">${((totals.over_120 / total) * 100).toFixed(1)}%</span>
+                    <span class="text-white font-semibold">${((totals.over_120 / total) * 100).toFixed(1)}%</span>
                 </div>
-                <div class="w-full bg-white rounded-full h-3">
+                <div class="w-full bg-gray-800 rounded-full h-3">
                     <div class="bg-red-700 h-3 rounded-full" style="width: ${(totals.over_120 / total) * 100}%"></div>
                 </div>
             </div>

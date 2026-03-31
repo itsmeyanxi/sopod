@@ -3,10 +3,10 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">DEPRECIATION REPORT</h1>
-            <a href="{{ route('fixed_assets.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 text-sm">
+            <a href="{{ route('fixed_assets.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded hover:bg-gray-300 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
         </div>
@@ -15,7 +15,7 @@
         <form method="GET" class="flex flex-wrap gap-3 mb-6">
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Year</label>
-                <select name="year" class="border border-gray-300 rounded px-3 py-2 text-sm">
+                <select name="year" class="border border-gray-600 rounded px-3 py-2 text-sm">
                     @for($y = date('Y'); $y >= date('Y') - 5; $y--)
                         <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
@@ -23,7 +23,7 @@
             </div>
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Cost Center</label>
-                <select name="cost_center" class="border border-gray-300 rounded px-3 py-2 text-sm">
+                <select name="cost_center" class="border border-gray-600 rounded px-3 py-2 text-sm">
                     <option value="">All Cost Centers</option>
                     @foreach($costCenters as $cc)
                         <option value="{{ $cc }}" {{ $costCenter == $cc ? 'selected' : '' }}>{{ $cc }}</option>
@@ -44,8 +44,8 @@
         <div class="overflow-x-auto">
             <table class="w-full text-xs border-collapse whitespace-nowrap">
                 <thead>
-                    <tr class="bg-gray-100 text-gray-600 uppercase">
-                        <th class="px-2 py-2 text-left sticky left-0 bg-gray-100 z-10">Asset Code</th>
+                    <tr class="bg-gray-700 text-gray-300 uppercase">
+                        <th class="px-2 py-2 text-left sticky left-0 bg-gray-700 z-10">Asset Code</th>
                         <th class="px-2 py-2 text-left">Description</th>
                         <th class="px-2 py-2 text-left">Group</th>
                         <th class="px-2 py-2 text-left">Cost Center</th>
@@ -55,10 +55,10 @@
                         <th class="px-2 py-2 text-right font-bold">Total</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-gray-700">
                     @forelse($depData as $row)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-2 py-1.5 font-mono sticky left-0 bg-white">{{ $row['asset']->asset_code }}</td>
+                        <tr class="hover:bg-gray-900">
+                            <td class="px-2 py-1.5 font-mono sticky left-0 bg-gray-800">{{ $row['asset']->asset_code }}</td>
                             <td class="px-2 py-1.5 max-w-[200px] truncate" title="{{ $row['asset']->asset_description }}">{{ \Illuminate\Support\Str::limit($row['asset']->asset_description, 30) }}</td>
                             <td class="px-2 py-1.5">{{ $row['asset']->asset_group }}</td>
                             <td class="px-2 py-1.5">{{ $row['asset']->cost_center_name ?? '—' }}</td>
@@ -83,8 +83,8 @@
                 </tbody>
                 @if(count($depData) > 0)
                 <tfoot>
-                    <tr class="bg-gray-50 font-semibold text-xs border-t-2 border-gray-300">
-                        <td colspan="4" class="px-2 py-2 sticky left-0 bg-gray-50">TOTALS</td>
+                    <tr class="bg-gray-900 font-semibold text-xs border-t-2 border-gray-600">
+                        <td colspan="4" class="px-2 py-2 sticky left-0 bg-gray-900">TOTALS</td>
                         @for($m = 1; $m <= 12; $m++)
                             <td class="px-2 py-2 text-right font-mono">{{ number_format($monthTotals[$m], 2) }}</td>
                         @endfor

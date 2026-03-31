@@ -25,7 +25,7 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-5">
     <div>
-        <h2 class="text-xl font-bold text-gray-800">Daily Feed Usage</h2>
+        <h2 class="text-xl font-bold text-white">Daily Feed Usage</h2>
         <p class="text-xs text-gray-500 mt-0.5">Track daily material consumption from approved BOMs</p>
     </div>
     <a href="{{ route('daily_feed_usage.create') }}"
@@ -46,11 +46,11 @@
         <div class="flex-1 min-w-[200px]">
             <label class="block text-xs text-gray-500 font-semibold mb-1">Search</label>
             <input type="text" name="search" value="{{ $search }}" placeholder="Cycle ref, grower..."
-                class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
         </div>
         <div>
             <label class="block text-xs text-gray-500 font-semibold mb-1">BOM Cycle</label>
-            <select name="bom_id" class="bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700">
+            <select name="bom_id" class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200">
                 <option value="">All BOMs</option>
                 @foreach($boms as $bom)
                     <option value="{{ $bom->id }}" {{ $bomId == $bom->id ? 'selected' : '' }}>
@@ -63,7 +63,7 @@
             <i class="fas fa-search mr-1"></i> Filter
         </button>
         @if($search || $bomId)
-        <a href="{{ route('daily_feed_usage.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition">Clear</a>
+        <a href="{{ route('daily_feed_usage.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-200 px-4 py-2 rounded-md text-sm font-medium transition">Clear</a>
         @endif
     </form>
 </div>
@@ -86,7 +86,7 @@
             <tbody>
                 @forelse($usages as $usage)
                 <tr>
-                    <td class="font-semibold text-gray-800">{{ $usage->usage_date->format('M d, Y') }}</td>
+                    <td class="font-semibold text-white">{{ $usage->usage_date->format('M d, Y') }}</td>
                     <td>
                         <a href="{{ route('inhouse_bom.show', $usage->bom_id) }}" class="text-blue-700 hover:underline text-xs font-semibold">
                             {{ $usage->bom->cycle_ref ?? '—' }}

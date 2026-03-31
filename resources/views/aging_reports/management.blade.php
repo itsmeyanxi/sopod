@@ -4,12 +4,12 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
         
         {{-- Header --}}
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <div>
-                <h2 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3">
                     <i class="fas fa-chart-line text-blue-700"></i>
                     AR Management System
                 </h2>
@@ -18,19 +18,19 @@
         </div>
 
         {{-- Filters Section --}}
-        <div class="bg-gray-100 rounded-lg p-6 mb-6">
+        <div class="bg-gray-700 rounded-lg p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Filters</h3>
+                <h3 class="text-lg font-semibold text-white">Filters</h3>
             </div>
             <form method="GET" action="{{ route('ar.unified') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Record Date</label>
                     <input type="date" name="filter_date" value="{{ $filterDate }}"
-                           class="w-full bg-gray-200 text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Include</label>
-                    <select name="include" class="w-full bg-gray-200 text-gray-800 border border-gray-300 rounded px-3 py-2">
+                    <select name="include" class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
                         <option value="all" {{ $include === 'all' ? 'selected' : '' }}>All Records</option>
                         <option value="yes" {{ $include === 'yes' ? 'selected' : '' }}>Included Only</option>
                         <option value="no" {{ $include === 'no' ? 'selected' : '' }}>Excluded Only</option>
@@ -38,7 +38,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">View</label>
-                    <select name="view" id="view_selector" class="w-full bg-gray-200 text-gray-800 border border-gray-300 rounded px-3 py-2">
+                    <select name="view" id="view_selector" class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
                         <option value="list" {{ $view === 'list' ? 'selected' : '' }}>AR Aging List</option>
                         <option value="summary" {{ $view === 'summary' ? 'selected' : '' }}>Summary Report</option>
                         <option value="collections" {{ $view === 'collections' ? 'selected' : '' }}>Collections</option>
@@ -65,7 +65,7 @@
                     <h3 class="text-sm font-semibold text-blue-700">Total AR</h3>
                     <i class="fas fa-dollar-sign text-blue-700 text-xl"></i>
                 </div>
-                <p class="text-gray-800 text-2xl font-bold">₱{{ number_format($metrics['total_ar'], 2) }}</p>
+                <p class="text-white text-2xl font-bold">₱{{ number_format($metrics['total_ar'], 2) }}</p>
                 <p class="text-gray-500 text-xs mt-1">Outstanding balance</p>
             </div>
 
@@ -74,7 +74,7 @@
                     <h3 class="text-sm font-semibold text-green-700">Total Collected</h3>
                     <i class="fas fa-check-circle text-green-700 text-xl"></i>
                 </div>
-                <p class="text-gray-800 text-2xl font-bold">₱{{ number_format($metrics['total_collected'], 2) }}</p>
+                <p class="text-white text-2xl font-bold">₱{{ number_format($metrics['total_collected'], 2) }}</p>
                 <p class="text-gray-500 text-xs mt-1">Payments received</p>
             </div>
 
@@ -83,7 +83,7 @@
                     <h3 class="text-sm font-semibold text-purple-700">Total Invoiced</h3>
                     <i class="fas fa-file-invoice text-purple-700 text-xl"></i>
                 </div>
-                <p class="text-gray-800 text-2xl font-bold">₱{{ number_format($metrics['total_invoiced'], 2) }}</p>
+                <p class="text-white text-2xl font-bold">₱{{ number_format($metrics['total_invoiced'], 2) }}</p>
                 <p class="text-gray-500 text-xs mt-1">All invoices</p>
             </div>
 
@@ -92,7 +92,7 @@
                     <h3 class="text-sm font-semibold text-orange-700">Outstanding</h3>
                     <i class="fas fa-hourglass-half text-orange-700 text-xl"></i>
                 </div>
-                <p class="text-gray-800 text-2xl font-bold">{{ $metrics['outstanding_count'] }}</p>
+                <p class="text-white text-2xl font-bold">{{ $metrics['outstanding_count'] }}</p>
                 <p class="text-gray-500 text-xs mt-1">Unpaid invoices</p>
             </div>
         </div>
@@ -122,10 +122,10 @@
 
 {{-- Collection Modal --}}
 <div id="collection_modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-gray-800 rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-800">Record Collection</h3>
-            <button onclick="closeCollectionModal()" class="text-gray-500 hover:text-gray-800">
+            <h3 class="text-2xl font-bold text-white">Record Collection</h3>
+            <button onclick="closeCollectionModal()" class="text-gray-500 hover:text-white">
                 <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
@@ -136,7 +136,7 @@
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-500 mb-2">Customer Code *</label>
                     <input type="text" name="customer_code" id="customer_code_input" required
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     <button type="button" onclick="searchCustomer()" class="mt-2 text-blue-700 text-sm hover:underline">
                         <i class="fas fa-search mr-1"></i>Search Customer
                     </button>
@@ -145,25 +145,25 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Collection Receipt No. *</label>
                     <input type="text" name="collection_receipt_number" required
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Receipt Date *</label>
                     <input type="date" name="collection_receipt_date" value="{{ now()->format('Y-m-d') }}" required
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Posting Date *</label>
                     <input type="date" name="payment_posting_date" value="{{ now()->format('Y-m-d') }}" required
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Payment Option *</label>
                     <select name="payment_option" required
-                            class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                         <option value="Full Payment">Full Payment</option>
                         <option value="Partial Payment">Partial Payment</option>
                     </select>
@@ -173,7 +173,7 @@
                     <label class="block text-sm font-medium text-gray-500 mb-2">Check Amount (Gross) *</label>
                     <input type="number" name="check_amount" step="0.01" min="0" required
                            oninput="calculateNetAmount()"
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     <p class="text-xs text-gray-500 mt-1">Invoice/Gross amount</p>
                 </div>
 
@@ -181,27 +181,27 @@
                     <label class="block text-sm font-medium text-gray-500 mb-2">EWT (Withholding Tax)</label>
                     <input type="number" name="ewt" step="0.01" min="0" value="0"
                            oninput="calculateNetAmount()"
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     <p class="text-xs text-gray-500 mt-1">Tax withheld by customer</p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Net Amount (After Tax)</label>
                     <input type="text" id="net_amount_display" readonly
-                           class="w-full bg-gray-200 text-gray-800 border border-gray-300 rounded px-3 py-2 font-bold text-green-700">
+                           class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2 font-bold text-green-700">
                     <p class="text-xs text-gray-500 mt-1">Auto-calculated: Check Amount - EWT</p>
                 </div>
 
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-500 mb-2">Notes</label>
                     <textarea name="payment_notes" rows="3"
-                              class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2"></textarea>
+                              class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2"></textarea>
                 </div>
             </div>
 
             <div class="flex justify-end gap-4 mt-6">
                 <button type="button" onclick="closeCollectionModal()"
-                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded font-medium">
+                        class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded font-medium">
                     Cancel
                 </button>
                 <button type="submit"
@@ -215,10 +215,10 @@
 
 {{-- Adjustment Modal --}}
 <div id="adjustment_modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-gray-800 rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-800">Record AR Adjustment</h3>
-            <button onclick="closeAdjustmentModal()" class="text-gray-500 hover:text-gray-800">
+            <h3 class="text-2xl font-bold text-white">Record AR Adjustment</h3>
+            <button onclick="closeAdjustmentModal()" class="text-gray-500 hover:text-white">
                 <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
@@ -226,8 +226,8 @@
         <div class="bg-blue-100 border border-blue-200 rounded-lg p-4 mb-6">
             <p class="text-sm text-blue-700">
                 <i class="fas fa-info-circle mr-2"></i>
-                <strong>Formatting Guide:</strong> Enter amount with <code class="bg-gray-100 px-2 py-1 rounded">()</code> to decrease AR (e.g., <code class="bg-gray-100 px-2 py-1 rounded">(1000)</code>), 
-                or without to increase AR (e.g., <code class="bg-gray-100 px-2 py-1 rounded">1000</code>)
+                <strong>Formatting Guide:</strong> Enter amount with <code class="bg-gray-700 px-2 py-1 rounded">()</code> to decrease AR (e.g., <code class="bg-gray-700 px-2 py-1 rounded">(1000)</code>), 
+                or without to increase AR (e.g., <code class="bg-gray-700 px-2 py-1 rounded">1000</code>)
             </p>
         </div>
 
@@ -237,19 +237,19 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Customer Code *</label>
                     <input type="text" name="customer_code" required
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Reference Number *</label>
                     <input type="text" name="reference_number" required
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Type *</label>
                     <select name="transaction_type" required
-                            class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                            class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                         <option value="">Select Type</option>
                         <option value="Credit Memo">Credit Memo</option>
                         <option value="Debit Memo">Debit Memo</option>
@@ -261,27 +261,27 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Date *</label>
                     <input type="date" name="transaction_date" value="{{ now()->format('Y-m-d') }}" required
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Amount *</label>
                     <input type="text" name="amount" placeholder="1000 or (1000)" required
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     <p class="text-xs text-gray-500 mt-1">Use () to decrease AR</p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Invoice Number</label>
                     <input type="text" name="invoice_number"
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     <p class="text-xs text-gray-500 mt-1">Optional - leave blank to apply to oldest</p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">DR No.</label>
                     <input type="text" name="dr_no"
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div>
@@ -290,27 +290,27 @@
                         <input type="hidden" name="gl_account_id" id="arMgmtGlAccountId">
                         <input type="hidden" name="gl_account" id="arMgmtGlAccountCode">
                         <input type="text" id="arMgmtGlAccountSearch" placeholder="Search GL Account (code/name)"
-                               class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500" required>
-                        <div id="arMgmtGlAccountDropdown" class="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
+                               class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500" required>
+                        <div id="arMgmtGlAccountDropdown" class="absolute top-full left-0 right-0 bg-gray-800 border border-gray-600 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">Signed By *</label>
                     <input type="text" name="signed_by" required
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                 </div>
 
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-500 mb-2">Remarks</label>
                     <textarea name="remarks" rows="3"
-                              class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2"></textarea>
+                              class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2"></textarea>
                 </div>
             </div>
 
             <div class="flex justify-end gap-4 mt-6">
                 <button type="button" onclick="closeAdjustmentModal()"
-                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded font-medium">
+                        class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded font-medium">
                     Cancel
                 </button>
                 <button type="submit"

@@ -4,13 +4,13 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-            <h1 class="text-2xl font-bold text-gray-800">EDIT LIQUIDATION FORM</h1>
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+            <h1 class="text-2xl font-bold text-white">EDIT LIQUIDATION FORM</h1>
             <div class="text-right">
                 <label class="font-semibold text-gray-500">LIQ NO:</label>
-                <span class="ml-2 px-4 py-1 bg-gray-50 border border-gray-200 text-gray-800 rounded">{{ $liquidation->liq_no }}</span>
+                <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $liquidation->liq_no }}</span>
             </div>
         </div>
 
@@ -25,14 +25,14 @@
         @endif
 
         <!-- Search CAR Section -->
-        <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
-            <h3 class="font-semibold text-gray-800 mb-2"><i class="fas fa-search mr-2"></i>Search Approved Cash Advance Request</h3>
+        <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+            <h3 class="font-semibold text-white mb-2"><i class="fas fa-search mr-2"></i>Search Approved Cash Advance Request</h3>
             <p class="text-gray-500 text-sm mb-3">Search by CAR Number, Payee Name, or Department to link a Cash Advance Request</p>
             <div class="relative">
                 <input
                     type="text"
                     id="carSearchInput"
-                    class="w-full bg-white border border-gray-200 rounded px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                    class="w-full bg-gray-800 border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
                     placeholder="Type to search approved CARs..."
                     autocomplete="off"
                     value="{{ $liquidation->cashAdvanceRequest ? ($liquidation->cashAdvanceRequest->car_no ?? '') : '' }}"
@@ -40,7 +40,7 @@
                 <span class="absolute right-4 top-3.5 text-gray-500">
                     <i class="fas fa-search"></i>
                 </span>
-                <div id="carSearchResults" class="hidden absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+                <div id="carSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
             </div>
 
             <!-- Linked CAR Display -->
@@ -55,7 +55,7 @@
                         <button type="button" id="unlinkCAR" class="text-red-700 hover:text-red-700 text-sm"><i class="fas fa-times"></i></button>
                     </div>
                 @else
-                    <div class="p-3 bg-white border border-gray-200 rounded text-gray-500">
+                    <div class="p-3 bg-gray-800 border border-gray-700 rounded text-gray-500">
                         No CAR linked — use search above (optional)
                     </div>
                 @endif
@@ -71,15 +71,15 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">NAME: <span class="text-red-700">*</span></label>
-                    <input type="text" name="name" id="liqName" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('name', $liquidation->name) }}" required>
+                    <input type="text" name="name" id="liqName" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('name', $liquidation->name) }}" required>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">DEPARTMENT: <span class="text-red-700">*</span></label>
-                    <input type="text" name="department" id="liqDepartment" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('department', $liquidation->department) }}" required>
+                    <input type="text" name="department" id="liqDepartment" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('department', $liquidation->department) }}" required>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">DATE APPLIED: <span class="text-red-700">*</span></label>
-                    <input type="date" name="date_applied" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_applied', $liquidation->date_applied->format('Y-m-d')) }}" required>
+                    <input type="date" name="date_applied" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('date_applied', $liquidation->date_applied->format('Y-m-d')) }}" required>
                 </div>
             </div>
 
@@ -87,26 +87,26 @@
             <div class="mb-6">
                 <label class="block font-semibold text-gray-500 mb-3">PARTICULARS / LINE ITEMS:</label>
                 <div class="overflow-x-auto">
-                    <table class="w-full border-collapse border border-gray-200" id="itemsTable">
-                        <thead class="bg-gray-100 text-gray-500 uppercase text-sm">
+                    <table class="w-full border-collapse border border-gray-700" id="itemsTable">
+                        <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
                             <tr>
-                                <th class="border border-gray-200 px-4 py-3" style="width: 5%;">#</th>
-                                <th class="border border-gray-200 px-4 py-3" style="width: 65%;">Particulars</th>
-                                <th class="border border-gray-200 px-4 py-3" style="width: 20%;">Amount</th>
-                                <th class="border border-gray-200 px-4 py-3" style="width: 10%;">Action</th>
+                                <th class="border border-gray-700 px-4 py-3" style="width: 5%;">#</th>
+                                <th class="border border-gray-700 px-4 py-3" style="width: 65%;">Particulars</th>
+                                <th class="border border-gray-700 px-4 py-3" style="width: 20%;">Amount</th>
+                                <th class="border border-gray-700 px-4 py-3" style="width: 10%;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="itemsBody">
                             @foreach($liquidation->items as $index => $item)
                                 <tr>
-                                    <td class="border border-gray-200 px-4 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
-                                    <td class="border border-gray-200 px-2 py-2">
-                                        <input type="text" name="items[{{ $index }}][particulars]" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old("items.{$index}.particulars", $item->particulars) }}" placeholder="Enter particulars..." required>
+                                    <td class="border border-gray-700 px-4 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
+                                    <td class="border border-gray-700 px-2 py-2">
+                                        <input type="text" name="items[{{ $index }}][particulars]" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old("items.{$index}.particulars", $item->particulars) }}" placeholder="Enter particulars..." required>
                                     </td>
-                                    <td class="border border-gray-200 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[{{ $index }}][amount]" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 item-amount" value="{{ old("items.{$index}.amount", $item->amount) }}" placeholder="0.00" oninput="calculateTotal()" required>
+                                    <td class="border border-gray-700 px-2 py-2">
+                                        <input type="number" step="0.01" name="items[{{ $index }}][amount]" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 item-amount" value="{{ old("items.{$index}.amount", $item->amount) }}" placeholder="0.00" oninput="calculateTotal()" required>
                                     </td>
-                                    <td class="border border-gray-200 px-2 py-2 text-center">
+                                    <td class="border border-gray-700 px-2 py-2 text-center">
                                         <button type="button" onclick="removeRow(this)" class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -115,12 +115,12 @@
                             @endforeach
                         </tbody>
                         <tfoot>
-                            <tr class="bg-gray-100">
-                                <td colspan="2" class="border border-gray-200 px-4 py-3 text-right font-bold text-gray-800 uppercase">Total Amount Spent:</td>
-                                <td class="border border-gray-200 px-4 py-3 text-right font-bold text-gray-800 text-lg">
+                            <tr class="bg-gray-700">
+                                <td colspan="2" class="border border-gray-700 px-4 py-3 text-right font-bold text-white uppercase">Total Amount Spent:</td>
+                                <td class="border border-gray-700 px-4 py-3 text-right font-bold text-white text-lg">
                                     &#8369;<span id="totalDisplay">0.00</span>
                                 </td>
-                                <td class="border border-gray-200 px-4 py-3"></td>
+                                <td class="border border-gray-700 px-4 py-3"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -138,7 +138,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">SUBMITTED BY:</label>
-                    <input type="text" name="submitted_by" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('submitted_by', $liquidation->submitted_by) }}">
+                    <input type="text" name="submitted_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('submitted_by', $liquidation->submitted_by) }}">
                 </div>
             </div>
 
@@ -147,7 +147,7 @@
                 <label class="block font-semibold text-gray-500 mb-2">PROOF DOCUMENTS:</label>
 
                 @if($liquidation->proof_documents && count($liquidation->proof_documents) > 0)
-                    <div class="mb-4 p-4 bg-gray-50 border border-gray-200 rounded">
+                    <div class="mb-4 p-4 bg-gray-900 border border-gray-700 rounded">
                         <p class="text-gray-500 font-semibold mb-3">Currently uploaded documents:</p>
                         <ul class="list-disc list-inside text-gray-500 text-sm space-y-2">
                             @foreach($liquidation->proof_documents as $index => $doc)
@@ -160,7 +160,7 @@
                     </div>
                 @endif
 
-                <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded px-4 py-6 text-center">
+                <div class="bg-gray-900 border-2 border-dashed border-gray-700 rounded px-4 py-6 text-center">
                     <input type="file" name="proof_documents[]" id="proofDocuments" class="hidden" multiple accept=".doc,.docx,.odf,.jpg,.jpeg,.png,.gif,.bmp,.webp">
                     <label for="proofDocuments" class="cursor-pointer">
                         <div class="text-gray-500 mb-2">
@@ -176,7 +176,7 @@
             <!-- Remarks -->
             <div class="mb-6">
                 <label class="block font-semibold text-gray-500 mb-2">REMARKS (Optional):</label>
-                <textarea name="remarks" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter any additional remarks...">{{ old('remarks', $liquidation->remarks) }}</textarea>
+                <textarea name="remarks" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter any additional remarks...">{{ old('remarks', $liquidation->remarks) }}</textarea>
             </div>
 
             <!-- Footer Note -->
@@ -186,7 +186,7 @@
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-4">
-                <a href="{{ route('liquidation_forms.show', $liquidation->id) }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
+                <a href="{{ route('liquidation_forms.show', $liquidation->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-700 transition">
                     Cancel
                 </a>
                 <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
@@ -207,14 +207,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const rowCount = tbody.querySelectorAll('tr').length + 1;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="border border-gray-200 px-4 py-2 text-center text-gray-500">${rowCount}</td>
-            <td class="border border-gray-200 px-2 py-2">
-                <input type="text" name="items[${rowIndex}][particulars]" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter particulars..." required>
+            <td class="border border-gray-700 px-4 py-2 text-center text-gray-500">${rowCount}</td>
+            <td class="border border-gray-700 px-2 py-2">
+                <input type="text" name="items[${rowIndex}][particulars]" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter particulars..." required>
             </td>
-            <td class="border border-gray-200 px-2 py-2">
-                <input type="number" step="0.01" name="items[${rowIndex}][amount]" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 item-amount" placeholder="0.00" oninput="calculateTotal()" required>
+            <td class="border border-gray-700 px-2 py-2">
+                <input type="number" step="0.01" name="items[${rowIndex}][amount]" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 item-amount" placeholder="0.00" oninput="calculateTotal()" required>
             </td>
-            <td class="border border-gray-200 px-2 py-2 text-center">
+            <td class="border border-gray-700 px-2 py-2 text-center">
                 <button type="button" onclick="removeRow(this)" class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }) : '';
 
                             html += `
-                                <div class="car-result-item block p-4 hover:bg-gray-100 transition cursor-pointer"
+                                <div class="car-result-item block p-4 hover:bg-gray-700 transition cursor-pointer"
                                      data-id="${car.id}"
                                      data-car-no="${(car.car_no || '').replace(/"/g, '&quot;')}"
                                      data-payee="${(car.payee || car.name || '').replace(/"/g, '&quot;')}"
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                      data-amount="${car.amount || 0}">
                                     <div class="flex items-center justify-between">
                                         <div class="flex-1">
-                                            <div class="font-semibold text-gray-800 mb-1">
+                                            <div class="font-semibold text-white mb-1">
                                                 <i class="fas fa-file-invoice-dollar mr-2 text-purple-700"></i>${car.car_no}
                                             </div>
                                             <div class="text-sm text-gray-500">${car.payee || car.name || 'N/A'} &bull; ${car.department || 'N/A'}</div>
@@ -356,7 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
             unlinkBtn.addEventListener('click', function() {
                 document.getElementById('cash_advance_request_id').value = '';
                 document.getElementById('linkedCARDisplay').innerHTML = `
-                    <div class="p-3 bg-white border border-gray-200 rounded text-gray-500">
+                    <div class="p-3 bg-gray-800 border border-gray-700 rounded text-gray-500">
                         No CAR linked — use search above (optional)
                     </div>
                 `;
@@ -393,7 +393,7 @@ function calculateTotal() {
 // File upload handling
 const proofDocumentsInput = document.getElementById('proofDocuments');
 const fileListDiv = document.getElementById('fileList');
-const uploadArea = proofDocumentsInput.closest('.bg-gray-50');
+const uploadArea = proofDocumentsInput.closest('.bg-gray-900');
 
 // Click to upload
 proofDocumentsInput.addEventListener('change', function() {
@@ -403,17 +403,17 @@ proofDocumentsInput.addEventListener('change', function() {
 // Drag and drop
 uploadArea.addEventListener('dragover', function(e) {
     e.preventDefault();
-    uploadArea.classList.add('border-purple-500', 'bg-white');
+    uploadArea.classList.add('border-purple-500', 'bg-gray-800');
 });
 
 uploadArea.addEventListener('dragleave', function(e) {
     e.preventDefault();
-    uploadArea.classList.remove('border-purple-500', 'bg-white');
+    uploadArea.classList.remove('border-purple-500', 'bg-gray-800');
 });
 
 uploadArea.addEventListener('drop', function(e) {
     e.preventDefault();
-    uploadArea.classList.remove('border-purple-500', 'bg-white');
+    uploadArea.classList.remove('border-purple-500', 'bg-gray-800');
     proofDocumentsInput.files = e.dataTransfer.files;
     updateFileList();
 });

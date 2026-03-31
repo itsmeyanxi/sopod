@@ -4,11 +4,11 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
 
         {{-- Header --}}
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">AR Adjustments</h2>
+            <h2 class="text-2xl font-bold text-white">AR Adjustments</h2>
 
             {{-- Action Buttons --}}
             <div class="flex items-center gap-3">
@@ -32,8 +32,8 @@
         </div>
 
         {{-- Quick Stats Dashboard --}}
-        <div id="stats_dashboard" class="bg-gray-100 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <div id="stats_dashboard" class="bg-gray-700 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
                 <i class="fas fa-chart-bar mr-2"></i> Quick Statistics
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -61,12 +61,12 @@
         </div>
 
         {{-- Search Section --}}
-        <div class="bg-gray-100 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Search Customer / DR Number</h3>
+        <div class="bg-gray-700 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-white mb-4">Search Customer / DR Number</h3>
             <div class="flex items-center space-x-4">
                 <div class="flex-1">
                     <input type="text" id="customer_search" placeholder="Enter Customer Name or DR Number"
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button type="button" id="search_customer_btn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-search"></i>
@@ -76,9 +76,9 @@
         </div>
 
         {{-- Adjustment List View (shown initially) --}}
-        <div id="adjustment_list_view" class="bg-gray-100 rounded-lg p-4">
+        <div id="adjustment_list_view" class="bg-gray-700 rounded-lg p-4">
             <div class="flex justify-between items-center mb-4">
-                <h4 class="text-lg font-semibold text-gray-800">Adjustment List</h4>
+                <h4 class="text-lg font-semibold text-white">Adjustment List</h4>
                 <button type="button" onclick="exportAdjustmentList()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-2">
                     <i class="fas fa-file-excel"></i>
                     <span>Export to Excel</span>
@@ -86,19 +86,19 @@
             </div>
 
             {{-- Filter Section --}}
-            <div class="bg-white rounded-lg p-4 mb-4">
+            <div class="bg-gray-800 rounded-lg p-4 mb-4">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Date From</label>
-                        <input type="date" id="filter_start_date" class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                        <input type="date" id="filter_start_date" class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Date To</label>
-                        <input type="date" id="filter_end_date" class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                        <input type="date" id="filter_end_date" class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Type</label>
-                        <select id="filter_transaction_type" class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                        <select id="filter_transaction_type" class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                             <option value="">All Types</option>
                             <option value="debit_memo">Debit Memo</option>
                             <option value="credit_memo">Credit Memo</option>
@@ -123,9 +123,9 @@
 
             {{-- Adjustment List Table --}}
             <div class="overflow-x-auto">
-                <table class="min-w-full bg-white rounded-lg text-sm">
+                <table class="min-w-full bg-gray-800 rounded-lg text-sm">
                     <thead>
-                        <tr class="bg-gray-50 text-gray-500 text-xs">
+                        <tr class="bg-gray-900 text-gray-500 text-xs">
                             <th class="px-3 py-3 text-left">Date</th>
                             <th class="px-3 py-3 text-left">Ref No.</th>
                             <th class="px-3 py-3 text-left">Type</th>
@@ -154,8 +154,8 @@
         {{-- Adjustment Entries View (shown after search) --}}
         <div id="adjustment_entries_view" class="hidden">
             {{-- DR Selection --}}
-            <div id="dr_selection_container" class="bg-gray-100 rounded-lg p-4 mb-4">
-                <h4 class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+            <div id="dr_selection_container" class="bg-gray-700 rounded-lg p-4 mb-4">
+                <h4 class="text-sm font-semibold text-white mb-3 flex items-center">
                     <i class="fas fa-file-invoice mr-2"></i>
                     Select DR Number
                 </h4>
@@ -165,23 +165,23 @@
             </div>
 
             {{-- Customer & DR Information --}}
-            <div id="customer_info_container" class="bg-gray-100 rounded-lg p-4 mb-4">
-                <h4 class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+            <div id="customer_info_container" class="bg-gray-700 rounded-lg p-4 mb-4">
+                <h4 class="text-sm font-semibold text-white mb-3 flex items-center">
                     <i class="fas fa-user mr-2"></i>
                     Customer & DR Information
                 </h4>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
                     <div>
                         <label class="block text-gray-500 text-xs mb-1">Customer Name</label>
-                        <p class="text-gray-800 font-semibold" id="display_customer_name">—</p>
+                        <p class="text-white font-semibold" id="display_customer_name">—</p>
                     </div>
                     <div>
                         <label class="block text-gray-500 text-xs mb-1">DR Number</label>
-                        <p class="text-gray-800 font-semibold" id="display_dr_no">—</p>
+                        <p class="text-white font-semibold" id="display_dr_no">—</p>
                     </div>
                     <div>
                         <label class="block text-gray-500 text-xs mb-1">Invoice Number</label>
-                        <p class="text-gray-800 font-semibold" id="display_invoice_no">—</p>
+                        <p class="text-white font-semibold" id="display_invoice_no">—</p>
                     </div>
                     <div>
                         <label class="block text-gray-500 text-xs mb-1">Current AR Balance</label>
@@ -191,9 +191,9 @@
             </div>
 
             {{-- Adjustment Entry Form --}}
-            <div id="adjustment_table_container" class="bg-gray-100 rounded-lg p-4">
+            <div id="adjustment_table_container" class="bg-gray-700 rounded-lg p-4">
                 <div class="flex justify-between items-center mb-3">
-                    <h4 class="text-sm font-semibold text-gray-800">New AR Adjustment</h4>
+                    <h4 class="text-sm font-semibold text-white">New AR Adjustment</h4>
                     <button type="button" onclick="saveAdjustment()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-1">
                         <i class="fas fa-save"></i>
                         <span>Save Adjustment</span>
@@ -204,18 +204,18 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Date *</label>
                         <input type="date" id="transaction_date" required
-                               class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Reference Number *</label>
                         <input type="text" id="reference_number" required
                                placeholder="e.g., ADJ-2026-001"
-                               class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Transaction Type *</label>
                         <select id="transaction_type" required
-                                class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select Type</option>
                             <option value="debit_memo">Debit Memo</option>
                             <option value="credit_memo">Credit Memo</option>
@@ -234,42 +234,42 @@
                         <label class="block text-sm font-medium text-gray-500 mb-2">Amount *</label>
                         <input type="text" id="amount" required
                                placeholder="Enter amount (e.g., -100 to decrease AR by 100)"
-                               class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <p class="text-xs text-gray-500 mt-1">Use negative value (e.g., -100) to decrease AR</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">GL Account *</label>
                         <input type="text" id="gl_account" required
                                placeholder="e.g., 1200-AR"
-                               class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Signed By *</label>
                         <input type="text" id="signed_by" required
                                placeholder="e.g., John Doe"
-                               class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-500 mb-2">Remarks</label>
                         <textarea id="remarks" rows="3"
                                   placeholder="Optional remarks or notes"
-                                  class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                                  class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                 </div>
             </div>
         </div>
 
         {{-- No Results Message --}}
-        <div id="no_results_message" class="hidden bg-gray-100 rounded-lg p-8 text-center">
+        <div id="no_results_message" class="hidden bg-gray-700 rounded-lg p-8 text-center">
             <i class="fas fa-user-slash text-5xl text-gray-500 mb-4"></i>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">No Results Found</h3>
+            <h3 class="text-xl font-semibold text-white mb-2">No Results Found</h3>
             <p class="text-gray-500">The customer or DR number you searched for does not exist. Please check and try again.</p>
         </div>
 
         {{-- Delivery List View --}}
-        <div id="delivery_list_view" class="hidden bg-gray-100 rounded-lg p-4">
+        <div id="delivery_list_view" class="hidden bg-gray-700 rounded-lg p-4">
             <div class="flex justify-between items-center mb-4">
-                <h4 class="text-lg font-semibold text-gray-800">Fulfilled Orders Awaiting AR Adjustment</h4>
+                <h4 class="text-lg font-semibold text-white">Fulfilled Orders Awaiting AR Adjustment</h4>
                 <button type="button" onclick="reloadDeliveryList()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-2">
                     <i class="fas fa-sync-alt"></i>
                     <span>Refresh</span>
@@ -277,15 +277,15 @@
             </div>
 
             {{-- ✅ NEW: Filter Section for Deliveries --}}
-            <div class="bg-white rounded-lg p-4 mb-4">
+            <div class="bg-gray-800 rounded-lg p-4 mb-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Date From</label>
-                        <input type="date" id="delivery_filter_start_date" class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                        <input type="date" id="delivery_filter_start_date" class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Date To</label>
-                        <input type="date" id="delivery_filter_end_date" class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2">
+                        <input type="date" id="delivery_filter_end_date" class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div class="flex items-end gap-2">
                         <button type="button" onclick="filterDeliveryList()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
@@ -301,9 +301,9 @@
 
             {{-- Delivery List Table --}}
             <div class="overflow-x-auto">
-                <table class="min-w-full bg-white rounded-lg text-sm">
+                <table class="min-w-full bg-gray-800 rounded-lg text-sm">
                     <thead>
-                        <tr class="bg-gray-50 text-gray-500 text-xs">
+                        <tr class="bg-gray-900 text-gray-500 text-xs">
                             <th class="px-3 py-3 text-left">DR No.</th>
                             <th class="px-3 py-3 text-left">Customer</th>
                             <th class="px-3 py-3 text-left">Delivery Date</th>
@@ -326,10 +326,10 @@
 
         {{-- Import Modal --}}
         <div id="import_modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4">
+            <div class="bg-gray-800 rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-bold text-gray-800">Import AR Adjustments</h3>
-                    <button type="button" onclick="closeImportModal()" class="text-gray-500 hover:text-gray-800 text-2xl">×</button>
+                    <h3 class="text-2xl font-bold text-white">Import AR Adjustments</h3>
+                    <button type="button" onclick="closeImportModal()" class="text-gray-500 hover:text-white text-2xl">×</button>
                 </div>
 
                 {{-- Import Info --}}
@@ -344,10 +344,10 @@
                     @csrf
 
                     {{-- File Upload with Drag & Drop --}}
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-100/50 hover:bg-gray-100/70 transition cursor-pointer" id="drop_zone">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 bg-gray-700/50 hover:bg-gray-700/70 transition cursor-pointer" id="drop_zone">
                         <div class="text-center">
                             <i class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-3"></i>
-                            <p class="text-gray-800 font-semibold mb-1">Drag and drop your file here</p>
+                            <p class="text-white font-semibold mb-1">Drag and drop your file here</p>
                             <p class="text-gray-500 text-sm">or click to select a CSV/Excel file</p>
                             <input type="file" id="import_file" name="file" accept=".csv,.xlsx,.xls" class="hidden" required>
                         </div>
@@ -362,25 +362,25 @@
                     </div>
 
                     {{-- Import Options --}}
-                    <div class="bg-gray-100 rounded-lg p-4 space-y-4">
-                        <h4 class="font-semibold text-gray-800 text-sm">Import Options</h4>
+                    <div class="bg-gray-700 rounded-lg p-4 space-y-4">
+                        <h4 class="font-semibold text-white text-sm">Import Options</h4>
 
                         <label class="flex items-center space-x-3 cursor-pointer">
-                            <input type="checkbox" id="merge_dr" checked class="w-4 h-4 bg-white border border-gray-300 rounded">
+                            <input type="checkbox" id="merge_dr" checked class="w-4 h-4 bg-gray-800 border border-gray-600 rounded">
                             <span class="text-gray-500 text-sm">
                                 <strong>Merge existing DRs:</strong> Combine adjustments if DR already has records
                             </span>
                         </label>
 
                         <label class="flex items-center space-x-3 cursor-pointer">
-                            <input type="checkbox" id="auto_approve" checked class="w-4 h-4 bg-white border border-gray-300 rounded">
+                            <input type="checkbox" id="auto_approve" checked class="w-4 h-4 bg-gray-800 border border-gray-600 rounded">
                             <span class="text-gray-500 text-sm">
                                 <strong>Auto-approve deliveries:</strong> Mark linked deliveries as approved
                             </span>
                         </label>
 
                         <label class="flex items-center space-x-3 cursor-pointer">
-                            <input type="checkbox" id="create_rr_link" class="w-4 h-4 bg-white border border-gray-300 rounded">
+                            <input type="checkbox" id="create_rr_link" class="w-4 h-4 bg-gray-800 border border-gray-600 rounded">
                             <span class="text-gray-500 text-sm">
                                 <strong>Link to RR:</strong> Auto-link adjustments to Receiving Reports if available
                             </span>
@@ -388,8 +388,8 @@
                     </div>
 
                     {{-- Action Buttons --}}
-                    <div class="flex gap-3 pt-4 border-t border-gray-200">
-                        <button type="button" onclick="closeImportModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded font-medium transition">
+                    <div class="flex gap-3 pt-4 border-t border-gray-700">
+                        <button type="button" onclick="closeImportModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded font-medium transition">
                             Cancel
                         </button>
                         <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition flex items-center justify-center space-x-2">
@@ -560,7 +560,7 @@ function displayDRSelection(records) {
         records.forEach(record => {
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = 'w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded text-left transition flex justify-between items-center';
+            button.className = 'w-full bg-gray-700 hover:bg-gray-200 text-white px-4 py-3 rounded text-left transition flex justify-between items-center';
 
             // ✅ Determine status badge color and icon
             const isFullyPaid = parseFloat(record.net_ar_balance || 0) <= 0;
@@ -805,7 +805,7 @@ function filterAdjustmentList() {
 
             data.adjustments.forEach(adj => {
                 const row = document.createElement('tr');
-                row.className = 'border-b border-gray-200 hover:bg-gray-50';
+                row.className = 'border-b border-gray-700 hover:bg-gray-900';
 
                 const typeColor = {
                     'debit_memo': 'orange',
@@ -859,7 +859,7 @@ function filterAdjustmentList() {
                     </td>
                     <td class="px-3 py-3">${drStatusDisplay}</td>
                     <td class="px-3 py-3">
-                        <span class="bg-gray-100 px-2 py-1 rounded text-xs">
+                        <span class="bg-gray-700 px-2 py-1 rounded text-xs">
                             ${adj.invoice_number || 'N/A'}
                         </span>
                     </td>
@@ -1207,7 +1207,7 @@ function loadDeliveryList() {
             }
 
             const row = document.createElement('tr');
-            row.className = 'border-b border-gray-200 hover:bg-gray-50';
+            row.className = 'border-b border-gray-700 hover:bg-gray-900';
 
             const deliveryStatusColor = {
                 'approved': 'green',
@@ -1330,7 +1330,7 @@ function filterDeliveriesByDate(startDate, endDate) {
             }
 
             const row = document.createElement('tr');
-            row.className = 'border-b border-gray-200 hover:bg-gray-50';
+            row.className = 'border-b border-gray-700 hover:bg-gray-900';
 
             const deliveryStatusColor = {
                 'approved': 'green',

@@ -3,10 +3,10 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">ASSETS BY COST CENTER</h1>
-            <a href="{{ route('fixed_assets.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 text-sm">
+            <a href="{{ route('fixed_assets.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded hover:bg-gray-300 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
         </div>
@@ -15,7 +15,7 @@
         <div class="overflow-x-auto mb-8">
             <table class="w-full text-sm border-collapse">
                 <thead>
-                    <tr class="bg-gray-100 text-gray-600 uppercase text-xs">
+                    <tr class="bg-gray-700 text-gray-300 uppercase text-xs">
                         <th class="px-4 py-2 text-left">Cost Center</th>
                         <th class="px-4 py-2 text-right">Assets</th>
                         <th class="px-4 py-2 text-right">Total Cost</th>
@@ -25,7 +25,7 @@
                         <th class="px-4 py-2 text-center">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-gray-700">
                     @php $totalCost = 0; $totalDep = 0; $totalNbv = 0; $totalMonthly = 0; $totalCount = 0; @endphp
                     @forelse($costCenters as $cc)
                         @php
@@ -35,7 +35,7 @@
                             $totalMonthly += $cc->total_monthly_dep;
                             $totalCount   += $cc->asset_count;
                         @endphp
-                        <tr class="hover:bg-gray-50 {{ $selectedCenter == $cc->cost_center_name ? 'bg-blue-50' : '' }}">
+                        <tr class="hover:bg-gray-900 {{ $selectedCenter == $cc->cost_center_name ? 'bg-blue-50' : '' }}">
                             <td class="px-4 py-2 font-medium">{{ $cc->cost_center_name ?: '(Unassigned)' }}</td>
                             <td class="px-4 py-2 text-right font-mono">{{ number_format($cc->asset_count) }}</td>
                             <td class="px-4 py-2 text-right font-mono">{{ number_format($cc->total_cost, 2) }}</td>
@@ -55,7 +55,7 @@
                 </tbody>
                 @if($costCenters->count() > 0)
                 <tfoot>
-                    <tr class="bg-gray-50 font-semibold border-t-2 border-gray-300 text-sm">
+                    <tr class="bg-gray-900 font-semibold border-t-2 border-gray-600 text-sm">
                         <td class="px-4 py-2">TOTAL</td>
                         <td class="px-4 py-2 text-right font-mono">{{ number_format($totalCount) }}</td>
                         <td class="px-4 py-2 text-right font-mono">{{ number_format($totalCost, 2) }}</td>
@@ -72,7 +72,7 @@
         {{-- Drill-down detail --}}
         @if($selectedCenter && $assets)
             <div class="border-t-2 border-blue-200 pt-6">
-                <h2 class="text-lg font-semibold text-gray-700 mb-4">
+                <h2 class="text-lg font-semibold text-gray-200 mb-4">
                     Assets in: <span class="text-blue-700">{{ $selectedCenter ?: '(Unassigned)' }}</span>
                     <span class="text-sm text-gray-500 font-normal ml-2">({{ $assets->count() }} assets)</span>
                 </h2>
@@ -80,7 +80,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border-collapse">
                         <thead>
-                            <tr class="bg-gray-100 text-gray-600 uppercase text-xs">
+                            <tr class="bg-gray-700 text-gray-300 uppercase text-xs">
                                 <th class="px-3 py-2 text-left">Asset Code</th>
                                 <th class="px-3 py-2 text-left">Description</th>
                                 <th class="px-3 py-2 text-left">Group</th>
@@ -90,9 +90,9 @@
                                 <th class="px-3 py-2 text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-gray-700">
                             @foreach($assets as $asset)
-                                <tr class="hover:bg-gray-50">
+                                <tr class="hover:bg-gray-900">
                                     <td class="px-3 py-2 font-mono text-xs">
                                         <a href="{{ route('fixed_assets.show', $asset->id) }}" class="text-blue-600 hover:underline">{{ $asset->asset_code ?? '—' }}</a>
                                     </td>

@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 text-gray-800 p-8">
+<div class="min-h-screen bg-gray-900 text-white p-8">
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">Item Details</h1>
             <a href="{{ route('items.index') }}" 
-               class="bg-gray-100 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded transition">
+               class="bg-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition">
                 Back to Items
             </a>
         </div>
@@ -37,26 +37,26 @@
         </div>
 
         <!-- Item Details Card -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div class="bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="text-gray-500 text-sm">Item Code</label>
-                    <p class="text-gray-800 text-lg font-semibold">{{ $item->item_code }}</p>
+                    <p class="text-white text-lg font-semibold">{{ $item->item_code }}</p>
                 </div>
 
                 <div class="md:col-span-2">
                     <label class="text-gray-500 text-sm"> Item Description</label>
-                    <p class="text-gray-800">{{ $item->item_description }}</p>
+                    <p class="text-white">{{ $item->item_description }}</p>
                 </div>
 
                 <div>
                     <label class="text-gray-500 text-sm">Brand</label>
-                    <p class="text-gray-800">{{ $item->brand ?? 'N/A' }}</p>
+                    <p class="text-white">{{ $item->brand ?? 'N/A' }}</p>
                 </div>
 
                 <div>
                     <label class="text-gray-500 text-sm">Category</label>
-                    <p class="text-gray-800">{{ $item->item_category ?? 'N/A' }}</p>
+                    <p class="text-white">{{ $item->item_category ?? 'N/A' }}</p>
                 </div>
             </div>
         </div>
@@ -99,7 +99,7 @@
 
         <!-- Approval Info (if approved) -->
         @if($item->approval_status === 'approved' && $item->approver)
-            <div class="bg-white rounded-xl p-4 text-sm text-gray-500">
+            <div class="bg-gray-800 rounded-xl p-4 text-sm text-gray-500">
                 <p>Approved by <span class="text-green-700 font-semibold">{{ $item->approver->name }}</span> 
                    on {{ $item->approved_at->format('M d, Y h:i A') }}</p>
             </div>

@@ -3,11 +3,11 @@
 @section('title', 'Counter Date Approval — DR ' . ($delivery->dr_no ?? 'N/A'))
 
 @section('content')
-<div class="p-6 bg-gray-50 min-h-screen">
+<div class="p-6 bg-gray-900 min-h-screen">
     <div class="max-w-5xl mx-auto">
         <!-- Back + Actions -->
         <div class="mb-4 flex justify-between items-center">
-            <a href="{{ route('counter_date_approvals.index') }}" class="text-sm text-gray-500 hover:text-gray-700">
+            <a href="{{ route('counter_date_approvals.index') }}" class="text-sm text-gray-500 hover:text-gray-200">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Counter Date Approval
             </a>
             @if(!$delivery->counter_date_approved)
@@ -23,9 +23,9 @@
         </div>
 
         <!-- Main Card -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
             <!-- Header -->
-            <div class="px-6 py-4 border-b border-gray-200 bg-red-800">
+            <div class="px-6 py-4 border-b border-gray-700 bg-red-800">
                 <div class="flex justify-between items-center">
                     <div>
                         <h1 class="text-xl font-bold text-white">Delivery Details</h1>
@@ -77,37 +77,37 @@
 
                 <!-- Delivery Information -->
                 <div>
-                    <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <h3 class="font-bold text-white mb-3 flex items-center gap-2">
                         <i class="fas fa-truck text-gray-500"></i> Delivery Information
                     </h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">DR Number</p>
-                            <p class="text-sm font-mono font-bold text-gray-800">{{ $delivery->dr_no ?? '—' }}</p>
+                            <p class="text-sm font-mono font-bold text-white">{{ $delivery->dr_no ?? '—' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Sales Invoice No.</p>
-                            <p class="text-sm font-mono text-gray-700">{{ $delivery->sales_invoice_no ?? '—' }}</p>
+                            <p class="text-sm font-mono text-gray-200">{{ $delivery->sales_invoice_no ?? '—' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Sales Order No.</p>
-                            <p class="text-sm font-mono text-gray-700">{{ $delivery->sales_order_number ?? '—' }}</p>
+                            <p class="text-sm font-mono text-gray-200">{{ $delivery->sales_order_number ?? '—' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Delivery Batch</p>
-                            <p class="text-sm text-gray-700">{{ $delivery->delivery_batch ?? '—' }}</p>
+                            <p class="text-sm text-gray-200">{{ $delivery->delivery_batch ?? '—' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Customer Name</p>
-                            <p class="text-sm font-semibold text-gray-800">{{ $delivery->customer_name ?? '—' }}</p>
+                            <p class="text-sm font-semibold text-white">{{ $delivery->customer_name ?? '—' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Customer Code</p>
-                            <p class="text-sm text-gray-700">{{ $delivery->customer_code ?? '—' }}</p>
+                            <p class="text-sm text-gray-200">{{ $delivery->customer_code ?? '—' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Branch</p>
-                            <p class="text-sm text-gray-700">{{ $delivery->branch ?? '—' }}</p>
+                            <p class="text-sm text-gray-200">{{ $delivery->branch ?? '—' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Status</p>
@@ -115,30 +115,30 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Delivery Date</p>
-                            <p class="text-sm text-gray-700">{{ $delivery->request_delivery_date ? \Carbon\Carbon::parse($delivery->request_delivery_date)->format('F d, Y') : '—' }}</p>
+                            <p class="text-sm text-gray-200">{{ $delivery->request_delivery_date ? \Carbon\Carbon::parse($delivery->request_delivery_date)->format('F d, Y') : '—' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Sales Executive</p>
-                            <p class="text-sm text-gray-700">{{ $delivery->sales_executive ?? '—' }}</p>
+                            <p class="text-sm text-gray-200">{{ $delivery->sales_executive ?? '—' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Plate No.</p>
-                            <p class="text-sm text-gray-700">{{ $delivery->plate_no ?? '—' }}</p>
+                            <p class="text-sm text-gray-200">{{ $delivery->plate_no ?? '—' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase mb-1">PO Number</p>
-                            <p class="text-sm text-gray-700">{{ $delivery->po_number ?? '—' }}</p>
+                            <p class="text-sm text-gray-200">{{ $delivery->po_number ?? '—' }}</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Uploaded Document -->
                 <div>
-                    <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <h3 class="font-bold text-white mb-3 flex items-center gap-2">
                         <i class="fas fa-paperclip text-gray-500"></i> Supporting Document
                     </h3>
                     @if($delivery->counter_date_attachment_path)
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div class="bg-gray-900 border border-gray-700 rounded-lg p-4">
                             <div class="flex items-center gap-4">
                                 @php
                                     $ext = strtolower(pathinfo($delivery->counter_date_attachment_name, PATHINFO_EXTENSION));
@@ -151,7 +151,7 @@
                                     <i class="fas fa-file-image text-4xl text-blue-500"></i>
                                 @endif
                                 <div class="flex-1">
-                                    <p class="font-semibold text-gray-800">{{ $delivery->counter_date_attachment_name }}</p>
+                                    <p class="font-semibold text-white">{{ $delivery->counter_date_attachment_name }}</p>
                                     <p class="text-xs text-gray-400">Click to view or download</p>
                                 </div>
                                 <a href="{{ asset('storage/' . $delivery->counter_date_attachment_path) }}" target="_blank"
@@ -161,13 +161,13 @@
                             </div>
 
                             @if($isImage)
-                            <div class="mt-4 border border-gray-200 rounded overflow-hidden">
+                            <div class="mt-4 border border-gray-700 rounded overflow-hidden">
                                 <img src="{{ asset('storage/' . $delivery->counter_date_attachment_path) }}" alt="Attachment" class="max-w-full max-h-96 mx-auto">
                             </div>
                             @endif
                         </div>
                     @else
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                        <div class="bg-gray-900 border border-gray-700 rounded-lg p-6 text-center">
                             <i class="fas fa-file-upload text-3xl text-gray-300 mb-2"></i>
                             <p class="text-gray-400 text-sm">No document uploaded</p>
                             @if(!$delivery->counter_date_approved)
@@ -184,14 +184,14 @@
                 <!-- Delivery Items -->
                 @if($delivery->items && $delivery->items->count() > 0)
                 <div>
-                    <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <h3 class="font-bold text-white mb-3 flex items-center gap-2">
                         <i class="fas fa-boxes text-gray-500"></i> Delivery Items
-                        <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{{ $delivery->items->count() }}</span>
+                        <span class="text-xs bg-gray-200 text-gray-300 px-2 py-0.5 rounded-full">{{ $delivery->items->count() }}</span>
                     </h3>
-                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                    <div class="overflow-x-auto border border-gray-700 rounded-lg">
                         <table class="min-w-full text-sm">
                             <thead>
-                                <tr class="bg-gray-100 text-gray-600">
+                                <tr class="bg-gray-700 text-gray-300">
                                     <th class="px-3 py-2 text-left text-xs font-semibold">#</th>
                                     <th class="px-3 py-2 text-left text-xs font-semibold">Item Code</th>
                                     <th class="px-3 py-2 text-left text-xs font-semibold">Description</th>
@@ -205,22 +205,22 @@
                             <tbody>
                                 @php $totalAmount = 0; @endphp
                                 @foreach($delivery->items as $idx => $item)
-                                <tr class="border-t border-gray-100 hover:bg-gray-50">
+                                <tr class="border-t border-gray-100 hover:bg-gray-900">
                                     <td class="px-3 py-2 text-gray-500">{{ $idx + 1 }}</td>
                                     <td class="px-3 py-2 font-mono text-xs text-blue-700">{{ $item->item_code }}</td>
-                                    <td class="px-3 py-2 text-gray-800">{{ $item->item_description ?? '—' }}</td>
-                                    <td class="px-3 py-2 text-gray-600">{{ $item->brand ?? '—' }}</td>
-                                    <td class="px-3 py-2 text-right font-semibold text-gray-800">{{ number_format($item->quantity, 2) }}</td>
-                                    <td class="px-3 py-2 text-center text-gray-600">{{ $item->uom ?? 'Kgs' }}</td>
-                                    <td class="px-3 py-2 text-right text-gray-700">₱{{ number_format($item->unit_price, 2) }}</td>
-                                    <td class="px-3 py-2 text-right font-semibold text-gray-800">₱{{ number_format($item->total_amount, 2) }}</td>
+                                    <td class="px-3 py-2 text-white">{{ $item->item_description ?? '—' }}</td>
+                                    <td class="px-3 py-2 text-gray-300">{{ $item->brand ?? '—' }}</td>
+                                    <td class="px-3 py-2 text-right font-semibold text-white">{{ number_format($item->quantity, 2) }}</td>
+                                    <td class="px-3 py-2 text-center text-gray-300">{{ $item->uom ?? 'Kgs' }}</td>
+                                    <td class="px-3 py-2 text-right text-gray-200">₱{{ number_format($item->unit_price, 2) }}</td>
+                                    <td class="px-3 py-2 text-right font-semibold text-white">₱{{ number_format($item->total_amount, 2) }}</td>
                                 </tr>
                                 @php $totalAmount += $item->total_amount; @endphp
                                 @endforeach
                             </tbody>
                             <tfoot>
-                                <tr class="bg-gray-100 font-bold">
-                                    <td colspan="7" class="px-3 py-2 text-right text-gray-600">Total:</td>
+                                <tr class="bg-gray-700 font-bold">
+                                    <td colspan="7" class="px-3 py-2 text-right text-gray-300">Total:</td>
                                     <td class="px-3 py-2 text-right text-green-700">₱{{ number_format($totalAmount, 2) }}</td>
                                 </tr>
                             </tfoot>
@@ -231,8 +231,8 @@
 
                 @if($delivery->additional_instructions)
                 <div>
-                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-sticky-note text-gray-500 mr-1"></i> Additional Instructions</h3>
-                    <div class="bg-gray-50 border border-gray-200 rounded p-3 text-sm text-gray-700">{{ $delivery->additional_instructions }}</div>
+                    <h3 class="font-bold text-white mb-2"><i class="fas fa-sticky-note text-gray-500 mr-1"></i> Additional Instructions</h3>
+                    <div class="bg-gray-900 border border-gray-700 rounded p-3 text-sm text-gray-200">{{ $delivery->additional_instructions }}</div>
                 </div>
                 @endif
             </div>

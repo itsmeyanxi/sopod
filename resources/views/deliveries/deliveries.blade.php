@@ -3,8 +3,8 @@
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<div class="max-w-6xl mx-auto mt-10 bg-gray-50 text-gray-100 p-8 rounded-xl shadow-lg border border-gray-800">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">🚚 Delivery Module</h2>
+<div class="max-w-6xl mx-auto mt-10 bg-gray-900 text-gray-100 p-8 rounded-xl shadow-lg border border-gray-800">
+    <h2 class="text-2xl font-bold mb-6 text-white">🚚 Delivery Module</h2>
 
     {{-- 🔒 View Only Notice --}}
     @if(!\App\Helpers\RoleHelper::canManageDeliveries())
@@ -15,11 +15,11 @@
     @endif
 
     <!-- 🔍 Search by Sales Order Number -->
-    <div class="mb-6 bg-white/80 p-4 rounded-lg border border-gray-200">
+    <div class="mb-6 bg-gray-800/80 p-4 rounded-lg border border-gray-700">
         <label class="block text-gray-500 font-medium mb-2">Search Sales Order Number</label>
         <div class="flex gap-2">
             <input type="text" id="so_search" placeholder="Enter SO Number (e.g. SO-2025-001)" 
-                   class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2 focus:ring-2 focus:ring-blue-500">
+                   class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2 focus:ring-2 focus:ring-blue-500">
             <button id="search_btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md transition-all">
                 Search
             </button>
@@ -32,7 +32,7 @@
             📦 Multiple Delivery Batches Found - Select One:
         </label>
         <select id="delivery_batch_select" 
-                class="w-full bg-gray-50 border border-yellow-700 text-gray-700 rounded-md p-2 focus:ring-2 focus:ring-yellow-500">
+                class="w-full bg-gray-900 border border-yellow-700 text-gray-200 rounded-md p-2 focus:ring-2 focus:ring-yellow-500">
             <option value="">-- Select Delivery Batch --</option>
         </select>
         <p class="text-xs text-gray-500 mt-2">This Sales Order has multiple delivery dates. Please select the batch you want to create/edit a delivery for.</p>
@@ -57,7 +57,7 @@
 
     <!-- 🧾 Sales Order Information -->
     <div class="mb-8">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-1">Sales Order Information</h3>
+        <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-1">Sales Order Information</h3>
         <div class="grid grid-cols-2 gap-4">
             @foreach([
                 'sales_order_number' => 'Sales Order Number',
@@ -73,7 +73,7 @@
                 <div>
                     <label class="block text-gray-500 text-sm">{{ $label }}</label>
                     <input id="{{ $id }}" type="{{ $id === 'request_delivery_date' ? 'date' : 'text' }}" 
-                           class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2" readonly>
+                           class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2" readonly>
                 </div>
             @endforeach
         </div>
@@ -81,26 +81,26 @@
 
     <!-- 📦 Delivery Details -->
 <div class="mb-8">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-1">Delivery Details</h3>
+    <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-1">Delivery Details</h3>
     <div class="grid grid-cols-2 gap-4">
         <div>
             <label class="block text-gray-500 text-sm">Approved By</label>
             <input id="approved_by" type="text" 
                    value="{{ auth()->user()->name }}" 
-                   class="w-full bg-white border border-gray-200 text-gray-500 rounded-md p-2" readonly>
+                   class="w-full bg-gray-800 border border-gray-700 text-gray-500 rounded-md p-2" readonly>
         </div>
 
         <div>
             <label class="block text-gray-500 text-sm">Plate No</label>
             <input id="plate_no" type="text"
-                class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2"
+                class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
                 {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}>
         </div>
 
         <div>
             <label class="block text-gray-500 text-sm">Sales Invoice No (Optional)</label>
             <input id="sales_invoice_no" type="text"
-                class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2"
+                class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
                 {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}
                 placeholder="Optional">
         </div>
@@ -111,7 +111,7 @@
                 <span id="dr_rr_label">DR No</span>
             </label>
             <input id="dr_no" type="text"
-                class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2"
+                class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
                 {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'readonly' }}
                 placeholder="Will be auto-generated for Backload">
             <p id="dr_rr_hint" class="text-xs text-gray-500 mt-1 hidden">
@@ -123,7 +123,7 @@
         <div>
             <label class="block text-gray-500 text-sm mb-1">Type of Delivery</label>
             <select id="delivery_type"
-                    class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2"
+                    class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
                     {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
                 <option value="Full">Full Delivery</option>
                 <option value="Partial">Partial Delivery</option>
@@ -134,7 +134,7 @@
         <div>
             <label class="block text-gray-500 text-sm">Status</label>
             <select id="status"
-                    class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2"
+                    class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2"
                     {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
                 <option value="Delivered">Delivered</option>
                 <option value="Cancelled">Cancelled</option>
@@ -145,7 +145,7 @@
         <div>
             <label class="block text-gray-500 text-sm">Attachment (Optional)</label>
             <input id="attachment" type="file" accept="image/*,application/pdf"
-                   class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-500"
+                   class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-500"
                    {{ \App\Helpers\RoleHelper::canManageDeliveries() ? '' : 'disabled' }}>
             <p class="text-xs text-gray-500 mt-1">Upload an image or PDF file (JPG, PNG, PDF)</p>
             <div id="current_attachment_container" class="mt-2 hidden">
@@ -161,7 +161,7 @@
         <div class="col-span-2">
             <label class="block text-gray-500 text-sm">Additional Instructions</label>
             <textarea id="additional_instructions" readonly
-                    class="w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md p-2" rows="3"></textarea>
+                    class="w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md p-2" rows="3"></textarea>
         </div>
     </div>
 </div>
@@ -169,7 +169,7 @@
 <!-- 📋 Delivery Items Section - REDESIGNED -->
 <div class="mb-8">
     <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-1">Delivery Items</h3>
+        <h3 class="text-lg font-semibold text-white border-b border-gray-700 pb-1">Delivery Items</h3>
         @if(\App\Helpers\RoleHelper::canManageDeliveries())
         <button type="button" onclick="addDeliveryItem()" 
             class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2">
@@ -242,8 +242,8 @@ document.getElementById("status").addEventListener("change", function() {
                 html: `
                     <div class="text-left">
                         <p class="mb-2">Items have been reloaded with backload selection.</p>
-                        <p class="text-sm text-gray-600">✓ Check the items you want to include in the backload</p>
-                        <p class="text-sm text-gray-600">✓ Short-delivered items are pre-selected</p>
+                        <p class="text-sm text-gray-300">✓ Check the items you want to include in the backload</p>
+                        <p class="text-sm text-gray-300">✓ Short-delivered items are pre-selected</p>
                     </div>
                 `,
                 timer: 3000,
@@ -335,8 +335,8 @@ function checkPartialDelivery() {
         const remaining = originalQty - totalDelivered;
         
         // Get item details from the card
-        const itemCodeDiv = card.querySelector('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm.font-mono');
-        const itemDescDiv = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm')[0];
+        const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
+        const itemDescDiv = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
         
         const itemCode = itemCodeDiv?.textContent.trim() || '';
         const itemDesc = itemDescDiv?.textContent.trim() || '';
@@ -457,7 +457,7 @@ function populateItemsTable(items, isViewOnly = false) {
             const shortage = originalQty - deliveredQty;
             
             const itemCard = document.createElement('div');
-            itemCard.className = 'delivery-item-card border border-gray-200 rounded-lg p-4 bg-white/50 hover:bg-white/70 transition-colors';
+            itemCard.className = 'delivery-item-card border border-gray-700 rounded-lg p-4 bg-gray-800/50 hover:bg-gray-800/70 transition-colors';
             itemCard.setAttribute('data-original-qty', originalQty);
             itemCard.setAttribute('data-already-delivered', alreadyDelivered);
             itemCard.setAttribute('data-index', index);
@@ -524,21 +524,21 @@ function populateItemsTable(items, isViewOnly = false) {
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Item Code</label>
-                        <div class="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm font-mono">
+                        <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm font-mono">
                             ${item.item_code || '—'}
                         </div>
                     </div>
                     
                     <div class="col-span-2">
                         <label class="block text-xs text-gray-500 mb-1">Description</label>
-                        <div class="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm">
+                        <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm">
                             ${item.item_description || '—'}
                         </div>
                     </div>
                     
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Brand</label>
-                        <div class="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm">
+                        <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm">
                             ${item.brand || '—'}
                         </div>
                     </div>
@@ -547,14 +547,14 @@ function populateItemsTable(items, isViewOnly = false) {
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Category</label>
-                        <div class="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm">
+                        <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm">
                             ${item.item_category || '—'}
                         </div>
                     </div>
                     
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Original Qty</label>
-                        <div class="bg-gray-50 border border-blue-600/50 text-blue-700 rounded-md px-3 py-2 text-center">
+                        <div class="bg-gray-900 border border-blue-600/50 text-blue-700 rounded-md px-3 py-2 text-center">
                             <div class="font-semibold">${originalQty}</div>
                             <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
                         </div>
@@ -563,7 +563,7 @@ function populateItemsTable(items, isViewOnly = false) {
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Delivered Qty *</label>
                         <input type="number"
-                            class="delivered-qty-input w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-center font-semibold"
+                            class="delivered-qty-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-center font-semibold"
                             value="${parseFloat(deliveredQty).toFixed(3)}"
                             data-sales-order-item-id="${item.sales_order_item_id || ''}"
                             data-item-index="${index}"
@@ -574,7 +574,7 @@ function populateItemsTable(items, isViewOnly = false) {
                     
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Remaining</label>
-                        <div class="bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-center">
+                        <div class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-center">
                             <div class="remaining-qty ${remainingClass}">${remainingDisplay}</div>
                             <div class="text-xs text-gray-500">${item.uom || 'Kgs'}</div>
                         </div>
@@ -584,14 +584,14 @@ function populateItemsTable(items, isViewOnly = false) {
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">UOM</label>
-                        <div class="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm text-center">
+                        <div class="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm text-center">
                             ${item.uom || 'Kgs'}
                         </div>
                     </div>
                     
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Unit Price</label>
-                        <div class="price-cell bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm text-right font-mono">
+                        <div class="price-cell bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm text-right font-mono">
                             ${item.unit_price || 0}
                         </div>
                     </div>
@@ -599,7 +599,7 @@ function populateItemsTable(items, isViewOnly = false) {
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Amount</label>
                         <input type="number" 
-                            class="amount-input w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-right font-mono text-green-700" 
+                            class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-right font-mono text-green-700" 
                             value="${((deliveredQty || 0) * (item.unit_price || 0)).toFixed(2)}" 
                             readonly>
                     </div>
@@ -608,7 +608,7 @@ function populateItemsTable(items, isViewOnly = false) {
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Note</label>
                     <input type="text"
-                        class="notes-input w-full bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm"
+                        class="notes-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm"
                         value="${item.notes || ''}"
                         placeholder="Add notes for this item..."
                         ${inputReadonly}>
@@ -630,8 +630,8 @@ function populateItemsTable(items, isViewOnly = false) {
         }
     } else {
         container.innerHTML = `
-            <div class="border border-gray-200 rounded-lg p-8 bg-white/30 text-center">
-                <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="border border-gray-700 rounded-lg p-8 bg-gray-800/30 text-center">
+                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
                 <p class="text-gray-500 text-lg">No items available for delivery</p>
@@ -654,8 +654,8 @@ function addDeliveryItem() {
     // Build options for dropdown
     let optionsHTML = '<option value="">-- Select Item to Restore --</option>';
     hiddenItems.forEach((card, index) => {
-        const itemCodeDiv = card.querySelector('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm.font-mono');
-        const itemDescDiv = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm')[0];
+        const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
+        const itemDescDiv = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
         const itemCode = itemCodeDiv?.textContent.trim() || 'Unknown';
         const itemDesc = itemDescDiv?.textContent.trim() || 'No description';
         
@@ -666,8 +666,8 @@ function addDeliveryItem() {
         title: 'Restore Removed Item',
         html: `
             <div class="text-left">
-                <label class="block text-sm text-gray-600 mb-2">Select an item to restore:</label>
-                <select id="restore-item-select" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                <label class="block text-sm text-gray-300 mb-2">Select an item to restore:</label>
+                <select id="restore-item-select" class="w-full border border-gray-600 rounded-md px-3 py-2">
                     ${optionsHTML}
                 </select>
                 <p class="text-xs text-gray-500 mt-2">💡 These items were temporarily removed but are still part of the Sales Order.</p>
@@ -698,7 +698,7 @@ function addDeliveryItem() {
                 checkPartialDelivery();
                 
                 // Get item details for confirmation
-                const itemCodeDiv = cardToRestore.querySelector('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm.font-mono');
+                const itemCodeDiv = cardToRestore.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
                 const itemCode = itemCodeDiv?.textContent.trim() || 'Item';
                 
                 Swal.fire({
@@ -725,8 +725,8 @@ function removeDeliveryItem(button) {
     }
     
     // Get item details for confirmation
-    const itemCodeDiv = card.querySelector('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm.font-mono');
-    const itemDescDiv = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm')[0];
+    const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
+    const itemDescDiv = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
     const itemCode = itemCodeDiv?.textContent.trim() || 'this item';
     const itemDesc = itemDescDiv?.textContent.trim() || '';
     
@@ -735,9 +735,9 @@ function removeDeliveryItem(button) {
         html: `
             <div class="text-left">
                 <p class="mb-2">Item: <strong>${itemCode}</strong></p>
-                <p class="text-sm text-gray-600 mb-3">${itemDesc}</p>
+                <p class="text-sm text-gray-300 mb-3">${itemDesc}</p>
                 <p class="text-sm text-orange-600">⚠️ This item will be temporarily removed from this delivery.</p>
-                <p class="text-sm text-gray-600 mt-2">You can restore it using the "Add Item" button.</p>
+                <p class="text-sm text-gray-300 mt-2">You can restore it using the "Add Item" button.</p>
             </div>
         `,
         icon: 'warning',
@@ -827,8 +827,8 @@ document.getElementById("search_btn").addEventListener("click", async () => {
                     html: `
                         <div class="text-left">
                             <p class="mb-2">This Sales Order has been <strong class="text-red-600">rejected for delivery</strong>.</p>
-                            <p class="text-sm text-gray-600">Status: View-only</p>
-                            <p class="text-sm text-gray-600 mt-2">You cannot create new deliveries for rejected orders.</p>
+                            <p class="text-sm text-gray-300">Status: View-only</p>
+                            <p class="text-sm text-gray-300 mt-2">You cannot create new deliveries for rejected orders.</p>
                         </div>
                     `,
                     confirmButtonText: 'Understood',
@@ -841,8 +841,8 @@ document.getElementById("search_btn").addEventListener("click", async () => {
                     html: `
                         <div class="text-left">
                             <p class="mb-2">This Sales Order has been <strong class="text-orange-600">pulled out for delivery</strong>.</p>
-                            <p class="text-sm text-gray-600">Status: View-only</p>
-                            <p class="text-sm text-gray-600 mt-2">You cannot create new deliveries for cancelled orders.</p>
+                            <p class="text-sm text-gray-300">Status: View-only</p>
+                            <p class="text-sm text-gray-300 mt-2">You cannot create new deliveries for cancelled orders.</p>
                         </div>
                     `,
                     confirmButtonText: 'Understood',
@@ -855,7 +855,7 @@ document.getElementById("search_btn").addEventListener("click", async () => {
                     html: `
                         <div class="text-left">
                             <p class="mb-2">This Sales Order has already been <strong class="text-green-600">delivered and approved</strong>.</p>
-                            <p class="text-sm text-gray-600 mt-2">No new deliveries can be created.</p>
+                            <p class="text-sm text-gray-300 mt-2">No new deliveries can be created.</p>
                             <p class="text-sm text-blue-600 mt-2">💡 You can view delivery details in the <strong>Deliveries List</strong>.</p>
                         </div>
                     `,
@@ -884,7 +884,7 @@ document.getElementById("search_btn").addEventListener("click", async () => {
                 html: `
                     <div class="text-left">
                         <p class="mb-2">As a <strong class="text-green-600">Delivery Approver</strong>, your deliveries will be <strong>automatically approved</strong> upon creation.</p>
-                        <p class="text-sm text-gray-600 mt-2">This delivery will be marked as "Approved" and "Delivered" immediately after saving.</p>
+                        <p class="text-sm text-gray-300 mt-2">This delivery will be marked as "Approved" and "Delivered" immediately after saving.</p>
                     </div>
                 `,
                 confirmButtonText: 'Understood',
@@ -920,9 +920,9 @@ document.getElementById("search_btn").addEventListener("click", async () => {
                 html: `
                     <div class="text-left">
                         <p class="mb-2">${data.info_message}</p>
-                        ${data.delivery_count > 0 ? `<p class="text-sm text-gray-600 mt-2">Previous deliveries: <strong>${data.delivery_count}</strong></p>` : ''}
+                        ${data.delivery_count > 0 ? `<p class="text-sm text-gray-300 mt-2">Previous deliveries: <strong>${data.delivery_count}</strong></p>` : ''}
                         ${data.is_view_only ? `<p class="text-sm text-red-600 mt-2">⚠️ View-only mode - Cannot create new deliveries</p>` : ''}
-                        ${!data.is_view_only && data.items_count > 0 ? `<p class="text-sm text-gray-600">Items available: <strong>${data.items_count}</strong></p>` : ''}
+                        ${!data.is_view_only && data.items_count > 0 ? `<p class="text-sm text-gray-300">Items available: <strong>${data.items_count}</strong></p>` : ''}
                     </div>
                 `,
                 confirmButtonText: data.is_view_only ? 'View Details' : 'Continue'
@@ -960,10 +960,10 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         let textColor = 'text-blue-700';
         
         if (data.is_view_only) {
-            bgClass = 'bg-white/40 border-gray-300';
+            bgClass = 'bg-gray-800/40 border-gray-600';
             iconColor = 'text-gray-500';
             textColor = 'text-gray-500';
-            badgeHtml = '<span class="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded border border-gray-300">View Only</span>';
+            badgeHtml = '<span class="px-2 py-1 bg-gray-700 text-gray-500 text-xs rounded border border-gray-600">View Only</span>';
         } else if (data.is_edit_mode) {
             bgClass = 'bg-yellow-100/20 border-yellow-700';
             iconColor = 'text-yellow-700';
@@ -1269,7 +1269,7 @@ if (canManageDeliveries) {
             const notesInput = card.querySelector('.notes-input');
             const priceCell = card.querySelector('.price-cell');
 
-            const uomDivs = card.querySelectorAll('.bg-gray-50.border.border-gray-200.text-gray-700.rounded-md.px-3.py-2.text-sm.text-center');
+            const uomDivs = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.text-center');
 
             const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
             const deliveredQty = parseFloat(deliveredQtyInput?.value) || 0;

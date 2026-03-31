@@ -4,16 +4,16 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-start mb-6 border-b border-gray-200 pb-4">
+        <div class="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">
             <div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ $customerName }}</h1>
+                <h1 class="text-3xl font-bold text-white mb-2">{{ $customerName }}</h1>
                 <p class="text-gray-500 text-sm">Customer Code: <span class="text-gray-500 font-mono">{{ $customerCode }}</span></p>
                 <p class="text-gray-500 text-sm">Complete AR Summary for All Aging Periods</p>
             </div>
             <a href="{{ route('aging_reports.summary', ['filter_date' => $filterDate, 'include' => $include]) }}"
-               class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded font-medium transition flex items-center space-x-2">
+               class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded font-medium transition flex items-center space-x-2">
                 <i class="fas fa-arrow-left"></i>
                 <span>Back to Summary</span>
             </a>
@@ -128,7 +128,7 @@
         </div>
 
         <!-- Legend -->
-        <div class="mt-6 bg-gray-100 rounded-lg p-4">
+        <div class="mt-6 bg-gray-700 rounded-lg p-4">
             <p class="text-gray-500 text-sm mb-3 font-semibold">📋 How to Use:</p>
             <ul class="text-gray-500 text-sm space-y-1">
                 <li>• <strong>Click any card</strong> to see all invoices in that aging bucket</li>

@@ -3,8 +3,8 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">ASSET CLASSES</h1>
             <a href="{{ route('asset_classes.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
                 <i class="fas fa-plus mr-1"></i> Add Asset Class
@@ -17,21 +17,21 @@
 
         {{-- Filters --}}
         <form method="GET" class="flex flex-wrap gap-3 mb-6">
-            <select name="asset_group" class="border border-gray-300 rounded px-3 py-2 text-sm">
+            <select name="asset_group" class="border border-gray-600 rounded px-3 py-2 text-sm">
                 <option value="">All Groups</option>
                 @foreach($assetGroups as $g)
                     <option value="{{ $g }}" {{ request('asset_group') == $g ? 'selected' : '' }}>{{ $g }}</option>
                 @endforeach
             </select>
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search asset class..." class="border border-gray-300 rounded px-3 py-2 text-sm w-64">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search asset class..." class="border border-gray-600 rounded px-3 py-2 text-sm w-64">
             <button type="submit" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">Filter</button>
-            <a href="{{ route('asset_classes.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm">Reset</a>
+            <a href="{{ route('asset_classes.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded text-sm">Reset</a>
         </form>
 
         <div class="overflow-x-auto">
             <table class="w-full text-sm border-collapse">
                 <thead>
-                    <tr class="bg-gray-100 text-gray-600 uppercase text-xs">
+                    <tr class="bg-gray-700 text-gray-300 uppercase text-xs">
                         <th class="px-4 py-3 text-left">Asset Group</th>
                         <th class="px-4 py-3 text-left">Asset Class</th>
                         <th class="px-4 py-3 text-right">Useful Life (Months)</th>
@@ -42,9 +42,9 @@
                         <th class="px-4 py-3 text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-gray-700">
                     @forelse($classes as $class)
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-900">
                             <td class="px-4 py-3">{{ $class->asset_group }}</td>
                             <td class="px-4 py-3 font-medium">{{ $class->asset_class }}</td>
                             <td class="px-4 py-3 text-right font-mono">{{ number_format($class->useful_life_months) }}</td>
@@ -55,7 +55,7 @@
                                 @if($class->is_active)
                                     <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">Active</span>
                                 @else
-                                    <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-xs">Inactive</span>
+                                    <span class="bg-gray-700 text-gray-500 px-2 py-0.5 rounded text-xs">Inactive</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center">

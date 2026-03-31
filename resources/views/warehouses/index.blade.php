@@ -2,8 +2,8 @@
 @section('title', 'Warehouses')
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">WAREHOUSE LIST</h1>
             <a href="{{ route('warehouses.create') }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">
                 <i class="fas fa-plus mr-1"></i> Add Warehouse
@@ -17,7 +17,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="bg-gray-100 text-gray-500">
+                    <tr class="bg-gray-700 text-gray-500">
                         <th class="px-4 py-2 text-left">Code</th>
                         <th class="px-4 py-2 text-left">Name</th>
                         <th class="px-4 py-2 text-left">Address</th>
@@ -28,7 +28,7 @@
                 </thead>
                 <tbody>
                     @forelse($warehouses as $warehouse)
-                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                    <tr class="border-b border-gray-700 hover:bg-gray-700">
                         <td class="px-4 py-2 font-mono text-purple-700">{{ $warehouse->warehouse_code }}</td>
                         <td class="px-4 py-2 font-semibold">{{ $warehouse->warehouse_name }}</td>
                         <td class="px-4 py-2 text-gray-500">{{ Str::limit($warehouse->address, 40) }}</td>

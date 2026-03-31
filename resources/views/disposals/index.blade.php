@@ -21,9 +21,9 @@
 <div class="flex items-center justify-between mb-6">
     <div>
         <h1 class="text-3xl font-bold text-gray-900">Disposal Module</h1>
-        <p class="text-gray-600 mt-1">Archived assets marked for disposal</p>
+        <p class="text-gray-300 mt-1">Archived assets marked for disposal</p>
     </div>
-    <a href="{{ route('fixed_assets.index') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">
+    <a href="{{ route('fixed_assets.index') }}" class="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-200 font-semibold">
         ← Back to Fixed Assets
     </a>
 </div>
@@ -53,13 +53,13 @@
     <div class="table-header">
         <form method="GET" class="flex gap-3 flex-wrap items-end">
             <div class="flex-1 min-w-64">
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Search</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Search</label>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Asset code, description, plate no..."
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                       class="w-full px-3 py-2 border border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500">
             </div>
             <div class="min-w-48">
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Asset Group</label>
-                <select name="asset_group" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Asset Group</label>
+                <select name="asset_group" class="w-full px-3 py-2 border border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500">
                     <option value="">All Groups</option>
                     @foreach($assetGroups as $group)
                     <option value="{{ $group }}" {{ request('asset_group') === $group ? 'selected' : '' }}>{{ $group }}</option>
@@ -67,8 +67,8 @@
                 </select>
             </div>
             <div class="min-w-48">
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Asset Class</label>
-                <select name="asset_class" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Asset Class</label>
+                <select name="asset_class" class="w-full px-3 py-2 border border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500">
                     <option value="">All Classes</option>
                     @foreach($assetClasses as $class)
                     <option value="{{ $class }}" {{ request('asset_class') === $class ? 'selected' : '' }}>{{ $class }}</option>
@@ -76,20 +76,20 @@
                 </select>
             </div>
             <div class="min-w-40">
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Disposal From</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Disposal From</label>
                 <input type="date" name="disposal_date_from" value="{{ request('disposal_date_from') }}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                       class="w-full px-3 py-2 border border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500">
             </div>
             <div class="min-w-40">
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Disposal To</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Disposal To</label>
                 <input type="date" name="disposal_date_to" value="{{ request('disposal_date_to') }}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                       class="w-full px-3 py-2 border border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500">
             </div>
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
                 <i class="fas fa-search mr-1"></i> Search
             </button>
             @if(request()->hasAny(['search', 'asset_group', 'asset_class', 'disposal_date_from', 'disposal_date_to']))
-            <a href="{{ route('disposals.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Clear</a>
+            <a href="{{ route('disposals.index') }}" class="px-4 py-2 bg-gray-200 text-gray-200 rounded-lg hover:bg-gray-300">Clear</a>
             @endif
         </form>
     </div>
@@ -130,7 +130,7 @@
                     <td class="text-right font-semibold text-green-700">₱{{ number_format($asset->disposal_amount, 2) }}</td>
                     <td>{{ $asset->disposal_date ? $asset->disposal_date->format('M d, Y') : '—' }}</td>
                     <td>{{ $asset->disposed_by ?? '—' }}</td>
-                    <td class="text-xs text-gray-600">{{ Str::limit($asset->disposal_reason, 30) }}</td>
+                    <td class="text-xs text-gray-300">{{ Str::limit($asset->disposal_reason, 30) }}</td>
                     <td><a href="{{ route('disposals.show', $asset->id) }}" class="text-blue-600 hover:underline text-sm">View</a></td>
                 </tr>
             @empty

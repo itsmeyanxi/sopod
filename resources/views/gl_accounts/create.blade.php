@@ -2,9 +2,9 @@
 @section('title', 'Create GL Account')
 
 @section('content')
-<div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+<div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
     {{-- Header --}}
-    <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+    <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
         <h1 class="text-2xl font-bold">CREATE GL ACCOUNT</h1>
     </div>
 
@@ -29,7 +29,7 @@
                     Account Code: <span class="text-red-700">*</span>
                 </label>
                 <input type="text" name="account_code"
-                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g., 1000" value="{{ old('account_code') }}" required>
             </div>
             <div>
@@ -37,7 +37,7 @@
                     Account Name: <span class="text-red-700">*</span>
                 </label>
                 <input type="text" name="account_name"
-                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g., Cash" value="{{ old('account_name') }}" required>
             </div>
         </div>
@@ -47,13 +47,13 @@
             <div>
                 <label class="block font-semibold text-gray-500 mb-2">FS Line Item:</label>
                 <input type="text" name="fs_line_item"
-                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g., Current Assets" value="{{ old('fs_line_item') }}">
             </div>
             <div>
                 <label class="block font-semibold text-gray-500 mb-2">FS Notes:</label>
                 <textarea name="fs_notes" rows="3"
-                    class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Optional notes...">{{ old('fs_notes') }}</textarea>
             </div>
         </div>
@@ -69,7 +69,7 @@
         {{-- Form Action Buttons --}}
         <div class="flex justify-end gap-4">
             <a href="{{ route('gl_accounts.index') }}"
-                class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-200 transition">
+                class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">
                 Cancel
             </a>
             <button type="submit"

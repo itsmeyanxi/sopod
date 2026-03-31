@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 text-gray-800 p-8">
-    <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-2">
+<div class="min-h-screen bg-gray-900 text-white p-8">
+    <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-2">
         <h1 class="text-2xl font-bold">Sales Order List</h1>
     </div>
 
@@ -50,7 +50,7 @@
                         <ul class="list-disc list-inside space-y-1" id="cancelledList">
                             @foreach($cancelledOrders as $order)
                                 <li data-order-id="{{ $order->id }}">
-                                    <a href="{{ route('sales_orders.show', $order->id) }}" class="font-bold underline hover:text-gray-700">
+                                    <a href="{{ route('sales_orders.show', $order->id) }}" class="font-bold underline hover:text-gray-200">
                                         {{ $order->sales_order_number }}
                                     </a> - {{ $order->customer->customer_name ?? 'N/A' }}
                                 </li>
@@ -58,7 +58,7 @@
                         </ul>
                     </div>
                 </div>
-                <button onclick="closeAlert('cancelledAlert')" class="text-gray-800 hover:text-gray-700 text-2xl font-bold ml-4 leading-none">
+                <button onclick="closeAlert('cancelledAlert')" class="text-white hover:text-gray-200 text-2xl font-bold ml-4 leading-none">
                     ×
                 </button>
             </div>
@@ -76,7 +76,7 @@
                         <ul class="list-disc list-inside space-y-1" id="overdueList">
                             @foreach($overdueOrders as $order)
                                 <li data-order-id="{{ $order->id }}">
-                                    <a href="{{ route('sales_orders.show', $order->id) }}" class="font-bold underline hover:text-gray-700">
+                                    <a href="{{ route('sales_orders.show', $order->id) }}" class="font-bold underline hover:text-gray-200">
                                         {{ $order->sales_order_number }}
                                     </a> - {{ $order->customer->customer_name ?? 'N/A' }}
                                     <span class="text-sm opacity-90">
@@ -87,38 +87,38 @@
                         </ul>
                     </div>
                 </div>
-                <button onclick="closeAlert('overdueAlert')" class="text-gray-800 hover:text-gray-700 text-2xl font-bold ml-4 leading-none">
+                <button onclick="closeAlert('overdueAlert')" class="text-white hover:text-gray-200 text-2xl font-bold ml-4 leading-none">
                     ×
                 </button>
             </div>
         </div>
     @endif
 
-    <div class="bg-white rounded-lg p-4 mb-4 flex items-end justify-between">
+    <div class="bg-gray-800 rounded-lg p-4 mb-4 flex items-end justify-between">
         <!-- FILTER FORM (LEFT) -->
         <form action="{{ route('sales_orders.index') }}" method="GET" class="flex items-end gap-4">
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Delivery Date From</label>
                 <input type="date" name="date_from" value="{{ request('date_from') }}"
-                    class="bg-gray-100 text-gray-800 px-3 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500">
+                    class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Delivery Date To</label>
                 <input type="date" name="date_to" value="{{ request('date_to') }}"
-                    class="bg-gray-100 text-gray-800 px-3 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500">
+                    class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Search</label>
                 <input type="text" name="search" placeholder="Search..."
                     value="{{ request('search') }}"
-                    class="bg-gray-100 text-gray-800 px-3 py-2 rounded border border-gray-300 w-full">
+                    class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 w-full">
             </div>
 
             <div>
                 <label class="block text-sm text-gray-500 mb-1">SO Status</label>
-                <select name="so_status" class="bg-gray-100 text-gray-800 px-3 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500">
+                <select name="so_status" class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
                     <option value="">All</option>
                     <option value="Pending" {{ request('so_status') === 'Pending' ? 'selected' : '' }}>Pending</option>
                     <option value="Approved" {{ request('so_status') === 'Approved' ? 'selected' : '' }}>Approved</option>
@@ -129,7 +129,7 @@
 
             <div>
                 <label class="block text-sm text-gray-500 mb-1">DR Status</label>
-                <select name="dr_status" class="bg-gray-100 text-gray-800 px-3 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500">
+                <select name="dr_status" class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
                     <option value="">All</option>
                     <option value="Awaiting Delivery" {{ request('dr_status') === 'Awaiting Delivery' ? 'selected' : '' }}>Awaiting Delivery</option>
                     <option value="Partial" {{ request('dr_status') === 'Partial' ? 'selected' : '' }}>Partial</option>
@@ -145,7 +145,7 @@
             </button>
 
             <a href="{{ route('sales_orders.index') }}" 
-            class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded transition">
+            class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded transition">
                 Clear
             </a>
 
@@ -198,7 +198,7 @@
                     <span id="selectedCount">0</span> order(s) selected
                 </span>
                 <button type="button" onclick="deselectAll()" 
-                    class="text-sm underline hover:text-gray-700">
+                    class="text-sm underline hover:text-gray-200">
                     Deselect All
                 </button>
             </div>
@@ -212,7 +212,7 @@
                     ✗ Decline Selected
                 </button>
                 <button type="button" onclick="hideBulkBar()" 
-                    class="text-gray-800 hover:text-gray-700 text-2xl font-bold">
+                    class="text-white hover:text-gray-200 text-2xl font-bold">
                     ×
                 </button>
             </div>
@@ -225,7 +225,7 @@
         <div class="flex items-center gap-2 text-sm text-gray-500">
             <span>Number of rows:</span>
             <select onchange="changePerPage(this.value)"
-                class="bg-gray-100 border border-gray-200 text-gray-800 text-sm rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                class="bg-gray-700 border border-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500">
                 @foreach([25,50,100,250,500] as $n)
                     <option value="{{ $n }}" {{ request('per_page', 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
                 @endforeach
@@ -233,9 +233,9 @@
         </div>
         <div>{{ $salesOrders->onEachSide(1)->links('vendor.pagination.elegant') }}</div>
     </div>
-    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="bg-gray-800 rounded-xl shadow-md overflow-hidden">
         <table id="soTable" class="w-full text-sm">
-            <thead class="bg-gray-100 text-gray-500 uppercase text-xs">
+            <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
                 <tr>
                     @if($hasPendingOrders)
                     <th class="px-4 py-3 text-center w-12">
@@ -256,7 +256,7 @@
             </thead>
             <tbody>
                 @foreach($salesOrders as $order)
-                <tr class="border-b border-gray-200 hover:bg-gray-100">
+                <tr class="border-b border-gray-700 hover:bg-gray-700">
                     @if($hasPendingOrders)
                     <td class="px-4 py-3 text-center">
                         @if($order->status === 'Pending')
@@ -279,7 +279,7 @@
                         @elseif($order->status === 'Declined')
                             <span class="bg-red-600 text-white px-2 py-1 rounded text-xs">Declined</span>
                         @elseif($order->status === 'Cancelled')
-                            <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs">Cancelled</span>
+                            <span class="bg-gray-200 text-white px-2 py-1 rounded text-xs">Cancelled</span>
                         @endif
                     </td>
                     <td class="px-4 py-3">
@@ -334,7 +334,7 @@
                             }
                         @endphp
                         
-                        <span class="{{ $statusClass }} text-gray-800 px-2 py-1 rounded text-xs font-medium">
+                        <span class="{{ $statusClass }} text-white px-2 py-1 rounded text-xs font-medium">
                             {{ $drStatus }}
                         </span>
                     </td>
@@ -395,7 +395,7 @@
                     @endif
 
                     @if($isDelivered)
-                        <span class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-xs ml-2" title="Order has been delivered">
+                        <span class="bg-gray-200 text-white px-3 py-1 rounded text-xs ml-2" title="Order has been delivered">
                             🔒 Locked
                         </span>
                     @endif
@@ -426,7 +426,7 @@
 
 {{-- ✅ DECLINE REASON MODAL --}}
 <div id="declineModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+    <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
         <h3 class="text-xl font-bold mb-4">Decline Selected Orders</h3>
         <p class="text-gray-500 mb-4">Please provide a reason for declining these sales orders:</p>
         
@@ -435,12 +435,12 @@
             <div id="declineOrderIdsContainer"></div>
             
             <textarea name="decline_reason" id="declineReason" rows="4" required
-                class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-red-500 mb-4"
+                class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:border-red-500 mb-4"
                 placeholder="Enter reason for declining..."></textarea>
             
             <div class="flex justify-end gap-3">
                 <button type="button" onclick="closeDeclineModal()"
-                    class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded">
+                    class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded">
                     Cancel
                 </button>
                 <button type="submit"

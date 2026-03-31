@@ -3,11 +3,11 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
 
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-            <h1 class="text-2xl font-bold text-gray-800">NEW DEPRECIATION RUN</h1>
-            <a href="{{ route('depreciation_runs.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 text-sm">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+            <h1 class="text-2xl font-bold text-white">NEW DEPRECIATION RUN</h1>
+            <a href="{{ route('depreciation_runs.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded hover:bg-gray-300 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back
             </a>
         </div>
@@ -31,32 +31,32 @@
             <!-- Run Info -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-600 mb-1">Run Number</label>
-                    <input type="text" value="{{ $nextRunNumber }}" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm font-mono text-gray-500">
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">Run Number</label>
+                    <input type="text" value="{{ $nextRunNumber }}" readonly class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm font-mono text-gray-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-600 mb-1">Period <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">Period <span class="text-red-500">*</span></label>
                     <input type="month" name="period" value="{{ old('period', date('Y-m')) }}" required
-                           class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm @error('period') border-red-400 @enderror">
+                           class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm @error('period') border-red-400 @enderror">
                     @error('period')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-600 mb-1">Prepared By</label>
-                    <input type="text" value="{{ auth()->user()->name }}" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm text-gray-500">
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">Prepared By</label>
+                    <input type="text" value="{{ auth()->user()->name }}" readonly class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-gray-500">
                 </div>
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-600 mb-1">Description <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-semibold text-gray-300 mb-1">Description <span class="text-red-500">*</span></label>
                 <textarea name="description" rows="2" required
-                          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm @error('description') border-red-400 @enderror"
+                          class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm @error('description') border-red-400 @enderror"
                           placeholder="e.g. Monthly depreciation run for March 2026">{{ old('description') }}</textarea>
                 @error('description')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
 
             <!-- Asset Groups -->
             <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-600 mb-2">
+                <label class="block text-sm font-semibold text-gray-300 mb-2">
                     Asset Groups to Include <span class="text-red-500">*</span>
                 </label>
                 @error('asset_groups')<p class="text-red-500 text-xs mb-2">{{ $message }}</p>@enderror
@@ -65,7 +65,7 @@
                 @else
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                         @foreach($assetGroups as $group)
-                        <label class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded px-3 py-2 cursor-pointer hover:bg-blue-50 hover:border-blue-300 text-sm">
+                        <label class="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded px-3 py-2 cursor-pointer hover:bg-blue-50 hover:border-blue-300 text-sm">
                             <input type="checkbox" name="asset_groups[]" value="{{ $group }}"
                                    {{ in_array($group, old('asset_groups', [])) ? 'checked' : '' }}
                                    class="accent-blue-600">
@@ -94,7 +94,7 @@
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 text-sm">
                     <i class="fas fa-calculator mr-1"></i> Compute & Save Draft
                 </button>
-                <a href="{{ route('depreciation_runs.index') }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300 text-sm">Cancel</a>
+                <a href="{{ route('depreciation_runs.index') }}" class="bg-gray-200 text-gray-200 px-6 py-2 rounded hover:bg-gray-300 text-sm">Cancel</a>
             </div>
         </form>
     </div>

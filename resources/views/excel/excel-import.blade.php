@@ -18,12 +18,12 @@
         $canImportBomMaterials = $user->canAccessModule('inhouse_bom');
     @endphp
 
-    <h1 class="text-3xl font-bold text-gray-800 mb-2">Import Data from Excel/CSV</h1>
+    <h1 class="text-3xl font-bold text-white mb-2">Import Data from Excel/CSV</h1>
     <p class="text-gray-500 mb-6">Upload Excel or CSV files to import items, customers, suppliers, or monthly sales into your database</p>
 
     <!-- Tabs -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="border-b border-gray-200">
+    <div class="bg-gray-800 rounded-lg shadow-sm mb-6">
+        <div class="border-b border-gray-700">
             <div class="flex flex-wrap">
 
                 @if($canImportItems)
@@ -92,7 +92,7 @@
             @if($canImportItems)
             <div id="items-content" class="tab-content">
                 <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-800">Items Import Requirements</h3>
+                    <h3 class="text-lg font-semibold mb-2 text-white">Items Import Requirements</h3>
                     <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4">
                         <p class="text-sm text-gray-500 mb-2"><strong>✅ All fields are OPTIONAL:</strong></p>
                         <p class="text-xs text-gray-500 mb-3">Only item_code is checked. Rows without item_code will be skipped. All other fields are optional.</p>
@@ -110,7 +110,7 @@
                 </button>
                 <form action="{{ route('excel.import.items') }}" method="POST" enctype="multipart/form-data" id="items-form">
                     @csrf
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                         <input type="file" name="file" accept=".xlsx,.xls,.csv" id="items-file" class="hidden" onchange="handleFileSelect(this, 'items')" required>
                         <label for="items-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
@@ -129,7 +129,7 @@
             @if($canImportCustomers)
             <div id="customers-content" class="tab-content {{ $canImportItems ? 'hidden' : '' }}">
                 <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-800">Customers Import Requirements</h3>
+                    <h3 class="text-lg font-semibold mb-2 text-white">Customers Import Requirements</h3>
                     <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <p class="text-sm text-gray-500 mb-2"><strong>✅ Required columns:</strong></p>
                         <ul class="text-sm text-gray-500 space-y-1 ml-4 mb-4">
@@ -169,7 +169,7 @@
                 </button>
                 <form action="{{ route('excel.import.customers') }}" method="POST" enctype="multipart/form-data" id="customers-form">
                     @csrf
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                         <input type="file" name="file" accept=".xlsx,.xls,.csv" id="customers-file" class="hidden" onchange="handleFileSelect(this, 'customers')" required>
                         <label for="customers-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
@@ -188,7 +188,7 @@
             @if($canImportSuppliers)
             <div id="suppliers-content" class="tab-content hidden">
                 <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-800">Suppliers Import Requirements</h3>
+                    <h3 class="text-lg font-semibold mb-2 text-white">Suppliers Import Requirements</h3>
                     <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <p class="text-sm text-gray-500 mb-2"><strong>✅ All fields are OPTIONAL:</strong></p>
                         <p class="text-xs text-gray-500 mb-4">If supplier_code is missing, it will be auto-generated.</p>
@@ -210,7 +210,7 @@
                 </button>
                 <form action="{{ route('excel.import.suppliers') }}" method="POST" enctype="multipart/form-data" id="suppliers-form">
                     @csrf
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                         <input type="file" name="file" accept=".xlsx,.xls,.csv" id="suppliers-file" class="hidden" onchange="handleFileSelect(this, 'suppliers')" required>
                         <label for="suppliers-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
@@ -229,7 +229,7 @@
             @if($canImportMonthlySales)
             <div id="monthly_sales-content" class="tab-content hidden">
                 <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-800">Monthly Sales Import Requirements</h3>
+                    <h3 class="text-lg font-semibold mb-2 text-white">Monthly Sales Import Requirements</h3>
                     <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4">
                         <p class="text-sm text-gray-500 mb-2"><strong>Required columns:</strong></p>
                         <ul class="text-sm text-gray-500 space-y-1 ml-4">
@@ -249,7 +249,7 @@
                 </button>
                 <form action="{{ route('excel.import.monthly_sales') }}" method="POST" enctype="multipart/form-data" id="monthly_sales-form">
                     @csrf
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                         <input type="file" name="file" accept=".xlsx,.xls,.csv" id="monthly_sales-file" class="hidden" onchange="handleFileSelect(this, 'monthly_sales')" required>
                         <label for="monthly_sales-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
@@ -268,7 +268,7 @@
             @if($canImportARAging)
             <div id="ar_aging-content" class="tab-content hidden">
                 <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-800">AR Aging Import Requirements</h3>
+                    <h3 class="text-lg font-semibold mb-2 text-white">AR Aging Import Requirements</h3>
                     <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <p class="text-sm text-gray-500 mb-2"><strong>Available columns:</strong></p>
                         <div class="grid grid-cols-2 gap-x-4">
@@ -293,7 +293,7 @@
                 </button>
                 <form action="{{ route('excel.import.ar_aging') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                         <input type="file" name="file" accept=".xlsx,.xls,.csv" id="ar-aging-file" class="hidden" onchange="handleFileSelect(this, 'ar_aging')" required>
                         <label for="ar-aging-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
@@ -312,7 +312,7 @@
             @if($canImportCollections)
             <div id="collections-content" class="tab-content hidden">
                 <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-800">Collections (Payments) Import Requirements</h3>
+                    <h3 class="text-lg font-semibold mb-2 text-white">Collections (Payments) Import Requirements</h3>
                     <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <p class="text-sm text-gray-500 mb-2"><strong>Available columns (all optional):</strong></p>
                         <div class="grid grid-cols-2 gap-x-4">
@@ -336,7 +336,7 @@
                 </button>
                 <form action="{{ route('excel.import.collections') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                         <input type="file" name="file" accept=".xlsx,.xls,.csv" id="collections-file" class="hidden" onchange="handleFileSelect(this, 'collections')" required>
                         <label for="collections-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
@@ -355,7 +355,7 @@
             @if($canImportARAdjustments)
             <div id="ar_adjustments-content" class="tab-content hidden">
                 <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-800">AR Adjustments Import Requirements</h3>
+                    <h3 class="text-lg font-semibold mb-2 text-white">AR Adjustments Import Requirements</h3>
                     <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <p class="text-sm text-gray-500 mb-2"><strong>Available columns (all optional):</strong></p>
                         <div class="grid grid-cols-2 gap-x-4">
@@ -376,7 +376,7 @@
                 </button>
                 <form action="{{ route('excel.import.ar_adjustments') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                         <input type="file" name="file" accept=".xlsx,.xls,.csv" id="ar-adjustments-file" class="hidden" onchange="handleFileSelect(this, 'ar_adjustments')" required>
                         <label for="ar-adjustments-file" class="cursor-pointer">
                             <i class="fas fa-file-excel text-5xl text-gray-500 mb-4"></i>
@@ -395,7 +395,7 @@
             @if($canImportBomMaterials)
             <div id="bom_materials-content" class="tab-content hidden">
                 <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-800">BOM Materials Library Import</h3>
+                    <h3 class="text-lg font-semibold mb-2 text-white">BOM Materials Library Import</h3>
                     <p class="text-sm text-gray-500 mb-4">
                         Import your materials masterlist to pre-populate the In-House BOM material library.
                         Imported items will appear as searchable/selectable options when building a BOM.
@@ -428,7 +428,7 @@
                     </div>
 
                     {{-- Category mapping info --}}
-                    <div class="bg-white bg-opacity-30 border border-gray-300 rounded-lg p-4 mb-4">
+                    <div class="bg-gray-800 bg-opacity-30 border border-gray-600 rounded-lg p-4 mb-4">
                         <p class="text-xs font-semibold text-yellow-700 uppercase tracking-wide mb-2">🗂️ Category Values (for BOM grouping)</p>
                         <p class="text-xs text-gray-500 mb-3">
                             Use one of these exact values in the <strong class="text-white">category</strong> column so items are grouped correctly in the BOM form.
@@ -441,7 +441,7 @@
                             <span class="text-xs bg-amber-900/40 border border-amber-700 rounded px-2 py-1 text-amber-300">cleaning</span>
                             <span class="text-xs bg-rose-900/40 border border-rose-700 rounded px-2 py-1 text-rose-300">supply</span>
                             <span class="text-xs bg-orange-100/40 border border-orange-700 rounded px-2 py-1 text-orange-700">labor</span>
-                            <span class="text-xs bg-gray-100/60 border border-gray-300 rounded px-2 py-1 text-gray-500">overhead</span>
+                            <span class="text-xs bg-gray-700/60 border border-gray-600 rounded px-2 py-1 text-gray-500">overhead</span>
                         </div>
                         <p class="text-xs text-gray-500 mt-3">
                             💡 Tip: The category column is also auto-detected from your Excel sheet's section headers
@@ -464,23 +464,23 @@
 
                 {{-- Preview section (shown after file selection) --}}
                 <div id="bom-preview-container" class="hidden mb-4">
-                    <div class="border border-gray-200 rounded-lg overflow-hidden">
-                        <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
-                            <span class="text-sm font-semibold text-gray-700">📄 File Preview <span id="bom-preview-count" class="text-gray-500 font-normal"></span></span>
+                    <div class="border border-gray-700 rounded-lg overflow-hidden">
+                        <div class="bg-gray-900 px-4 py-2 border-b border-gray-700 flex items-center justify-between">
+                            <span class="text-sm font-semibold text-gray-200">📄 File Preview <span id="bom-preview-count" class="text-gray-500 font-normal"></span></span>
                             <button type="button" onclick="clearBomFile()" class="text-xs text-red-500 hover:text-red-700">✕ Clear</button>
                         </div>
                         <div class="overflow-x-auto max-h-64">
                             <table class="w-full text-xs">
                                 <thead>
-                                    <tr class="bg-gray-100">
-                                        <th class="px-3 py-2 text-left text-gray-600 font-semibold">Item Code</th>
-                                        <th class="px-3 py-2 text-left text-gray-600 font-semibold">Item Description</th>
-                                        <th class="px-3 py-2 text-left text-gray-600 font-semibold">UOM</th>
-                                        <th class="px-3 py-2 text-left text-gray-600 font-semibold">Category</th>
-                                        <th class="px-3 py-2 text-right text-gray-600 font-semibold">Default Cost</th>
+                                    <tr class="bg-gray-700">
+                                        <th class="px-3 py-2 text-left text-gray-300 font-semibold">Item Code</th>
+                                        <th class="px-3 py-2 text-left text-gray-300 font-semibold">Item Description</th>
+                                        <th class="px-3 py-2 text-left text-gray-300 font-semibold">UOM</th>
+                                        <th class="px-3 py-2 text-left text-gray-300 font-semibold">Category</th>
+                                        <th class="px-3 py-2 text-right text-gray-300 font-semibold">Default Cost</th>
                                     </tr>
                                 </thead>
-                                <tbody id="bom-preview-tbody" class="divide-y divide-gray-100"></tbody>
+                                <tbody id="bom-preview-tbody" class="divide-y divide-gray-700"></tbody>
                             </table>
                         </div>
                     </div>
@@ -492,7 +492,7 @@
 
                 <form action="{{ route('excel.import.bom_materials') }}" method="POST" enctype="multipart/form-data" id="bom_materials-form">
                     @csrf
-                    <div id="bom-dropzone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                    <div id="bom-dropzone" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                         <input type="file" name="file" accept=".xlsx,.xls,.csv" id="bom_materials-file"
                             class="hidden" onchange="handleBomFileSelect(this)" required>
                         <label for="bom_materials-file" class="cursor-pointer">
@@ -504,7 +504,7 @@
                     </div>
 
                     {{-- Import mode --}}
-                    <div class="mt-4 flex items-center gap-4 text-sm text-gray-600">
+                    <div class="mt-4 flex items-center gap-4 text-sm text-gray-300">
                         <span class="font-medium">On duplicate item code:</span>
                         <label class="flex items-center gap-1.5 cursor-pointer">
                             <input type="radio" name="duplicate_mode" value="update" checked class="accent-blue-600">
@@ -703,13 +703,13 @@ function renderBomPreview(rows) {
             feed:'bg-blue-50 text-blue-700', supplement:'bg-indigo-50 text-indigo-700',
             vaccine:'bg-teal-50 text-teal-700', cleaning:'bg-amber-50 text-amber-700',
             supply:'bg-rose-50 text-rose-700', labor:'bg-orange-50 text-orange-700',
-            overhead:'bg-gray-100 text-gray-600'
+            overhead:'bg-gray-700 text-gray-300'
         };
-        const catClass = catColors[cat] || 'bg-gray-50 text-gray-500';
+        const catClass = catColors[cat] || 'bg-gray-900 text-gray-500';
 
-        tbody.innerHTML += `<tr class="hover:bg-gray-50">
-            <td class="px-3 py-1.5 font-mono text-xs text-gray-700">${code || '—'}</td>
-            <td class="px-3 py-1.5 text-gray-800">${desc || '—'}</td>
+        tbody.innerHTML += `<tr class="hover:bg-gray-900">
+            <td class="px-3 py-1.5 font-mono text-xs text-gray-200">${code || '—'}</td>
+            <td class="px-3 py-1.5 text-white">${desc || '—'}</td>
             <td class="px-3 py-1.5 text-gray-500">${uom || '—'}</td>
             <td class="px-3 py-1.5"><span class="text-xs px-1.5 py-0.5 rounded ${catClass}">${cat}</span></td>
             <td class="px-3 py-1.5 text-right text-gray-500">${cost || '—'}</td>

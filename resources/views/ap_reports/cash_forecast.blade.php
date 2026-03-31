@@ -4,11 +4,11 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
 
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-            <h1 class="text-2xl font-bold text-gray-800">Cash Forecast (Next 60 Days)</h1>
-            <a href="{{ route('ap_dashboard') }}" class="text-gray-500 hover:text-gray-700 text-sm">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+            <h1 class="text-2xl font-bold text-white">Cash Forecast (Next 60 Days)</h1>
+            <a href="{{ route('ap_dashboard') }}" class="text-gray-500 hover:text-gray-200 text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
             </a>
         </div>
@@ -32,31 +32,31 @@
         <!-- Invoice List -->
         <div class="overflow-x-auto">
             <table class="w-full border-collapse text-sm">
-                <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
                     <tr>
-                        <th class="border border-gray-200 px-4 py-3 text-left">APV No.</th>
-                        <th class="border border-gray-200 px-4 py-3 text-left">Vendor</th>
-                        <th class="border border-gray-200 px-4 py-3 text-center">Due Date</th>
-                        <th class="border border-gray-200 px-4 py-3 text-center">Days Until Due</th>
-                        <th class="border border-gray-200 px-4 py-3 text-right">Amount</th>
+                        <th class="border border-gray-700 px-4 py-3 text-left">APV No.</th>
+                        <th class="border border-gray-700 px-4 py-3 text-left">Vendor</th>
+                        <th class="border border-gray-700 px-4 py-3 text-center">Due Date</th>
+                        <th class="border border-gray-700 px-4 py-3 text-center">Days Until Due</th>
+                        <th class="border border-gray-700 px-4 py-3 text-right">Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($invoices as $inv)
-                    <tr class="hover:bg-gray-50">
-                        <td class="border border-gray-200 px-4 py-3 font-semibold text-blue-600">{{ $inv->apv_no }}</td>
-                        <td class="border border-gray-200 px-4 py-3 text-gray-700">{{ $inv->vendor_name }}</td>
-                        <td class="border border-gray-200 px-4 py-3 text-center text-gray-700">{{ $inv->due_date ? $inv->due_date->format('M d, Y') : '-' }}</td>
-                        <td class="border border-gray-200 px-4 py-3 text-center">
-                            <span class="px-2 py-1 rounded text-xs font-semibold {{ $inv->days_until_due <= 7 ? 'bg-red-100 text-red-700' : ($inv->days_until_due <= 30 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700') }}">
+                    <tr class="hover:bg-gray-900">
+                        <td class="border border-gray-700 px-4 py-3 font-semibold text-blue-600">{{ $inv->apv_no }}</td>
+                        <td class="border border-gray-700 px-4 py-3 text-gray-200">{{ $inv->vendor_name }}</td>
+                        <td class="border border-gray-700 px-4 py-3 text-center text-gray-200">{{ $inv->due_date ? $inv->due_date->format('M d, Y') : '-' }}</td>
+                        <td class="border border-gray-700 px-4 py-3 text-center">
+                            <span class="px-2 py-1 rounded text-xs font-semibold {{ $inv->days_until_due <= 7 ? 'bg-red-100 text-red-700' : ($inv->days_until_due <= 30 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-700 text-gray-200') }}">
                                 {{ $inv->days_until_due }} day(s)
                             </span>
                         </td>
-                        <td class="border border-gray-200 px-4 py-3 text-right font-semibold text-gray-800">{{ number_format($inv->balance, 2) }}</td>
+                        <td class="border border-gray-700 px-4 py-3 text-right font-semibold text-white">{{ number_format($inv->balance, 2) }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="border border-gray-200 px-4 py-8 text-center text-gray-500">No invoices due in the next 60 days.</td>
+                        <td colspan="5" class="border border-gray-700 px-4 py-8 text-center text-gray-500">No invoices due in the next 60 days.</td>
                     </tr>
                     @endforelse
                 </tbody>

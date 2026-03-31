@@ -4,10 +4,10 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-            <h1 class="text-2xl font-bold text-gray-800">CHECK VOUCHERS</h1>
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+            <h1 class="text-2xl font-bold text-white">CHECK VOUCHERS</h1>
             <a href="{{ route('check_vouchers.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded hover:from-purple-700 hover:to-purple-800 transition">
                 <i class="fas fa-plus mr-1"></i> Create New Check Voucher
             </a>
@@ -26,61 +26,61 @@
         @endif
 
         <!-- Search APV Section -->
-        <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
-            <h3 class="font-semibold text-gray-800 mb-2">Create Check Voucher from Approved APV Invoice</h3>
+        <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+            <h3 class="font-semibold text-white mb-2">Create Check Voucher from Approved APV Invoice</h3>
             <div class="relative">
                 <input
                     type="text"
                     id="apvSearchInput"
-                    class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Search by APV No, Vendor Name, or Reference No..."
                 />
-                <div id="apvSearchResults" class="hidden absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+                <div id="apvSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
             </div>
         </div>
 
         <!-- Check Vouchers Table -->
         <div class="overflow-x-auto">
-            <table class="min-w-full bg-gray-50 border border-gray-200">
+            <table class="min-w-full bg-gray-900 border border-gray-700">
                 <thead>
-                    <tr class="bg-gray-100">
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">CV No</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">CV Date</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">Check No</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">APV No</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">Supplier Name</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">Bank</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-right text-gray-500">Check Amount</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-center text-gray-500">Status</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">Created By</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-center text-gray-500">Actions</th>
+                    <tr class="bg-gray-700">
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">CV No</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">CV Date</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Check No</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">APV No</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Supplier Name</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Bank</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-right text-gray-500">Check Amount</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-center text-gray-500">Status</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Created By</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-center text-gray-500">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($vouchers as $voucher)
-                        <tr class="hover:bg-gray-100 transition">
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $voucher->cv_no }}</td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $voucher->cv_date->format('Y-m-d') }}</td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">
+                        <tr class="hover:bg-gray-700 transition">
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $voucher->cv_no }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $voucher->cv_date->format('Y-m-d') }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">
                                 @if($voucher->check_no)
                                     <span class="text-purple-700">{{ $voucher->check_no }}</span>
                                 @else
                                     <span class="text-gray-500">Pending</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">
                                 @if($voucher->apv_no)
                                     <span class="text-blue-700">{{ $voucher->apv_no }}</span>
                                 @else
                                     <span class="text-gray-500">N/A</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $voucher->supplier_name }}</td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500 text-xs">{{ $voucher->bank ?? 'N/A' }}</td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-right text-gray-500">
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $voucher->supplier_name }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500 text-xs">{{ $voucher->bank ?? 'N/A' }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-right text-gray-500">
                                 ₱ {{ number_format($voucher->check_amount, 2) }}
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-center">
+                            <td class="px-4 py-2 border-b border-gray-700 text-center">
                                 @if($voucher->status === 'pending')
                                     <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">Pending</span>
                                 @elseif($voucher->status === 'approved')
@@ -90,13 +90,13 @@
                                 @elseif($voucher->status === 'paid')
                                     <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Paid</span>
                                 @elseif($voucher->status === 'cancelled')
-                                    <span class="px-2 py-1 bg-gray-100 text-gray-500 rounded text-xs">Cancelled</span>
+                                    <span class="px-2 py-1 bg-gray-700 text-gray-500 rounded text-xs">Cancelled</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">
                                 {{ $voucher->creator->name ?? 'N/A' }}
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-center">
+                            <td class="px-4 py-2 border-b border-gray-700 text-center">
                                 <div class="flex justify-center gap-2">
                                     <a href="{{ route('check_vouchers.show', $voucher->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs">
                                         <i class="fas fa-eye"></i> View
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     invoices.forEach(invoice => {
                         html += `
                             <a href="{{ route('check_vouchers.create') }}?apv_id=${invoice.id}"
-                               class="block p-3 hover:bg-gray-100 transition">
+                               class="block p-3 hover:bg-gray-700 transition">
                                 <div class="flex justify-between items-center">
                                     <div>
                                         <div class="font-semibold text-purple-700">${invoice.apv_no}</div>

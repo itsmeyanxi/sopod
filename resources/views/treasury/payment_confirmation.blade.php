@@ -35,7 +35,7 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-5">
     <div>
-        <h2 class="text-xl font-bold text-gray-800">Payment Confirmation</h2>
+        <h2 class="text-xl font-bold text-white">Payment Confirmation</h2>
         <p class="text-xs text-gray-500 mt-0.5">Treasury — Review and confirm posted payments</p>
     </div>
     <a href="{{ route('treasury.summary') }}"
@@ -74,11 +74,11 @@
             <input type="text" name="search" value="{{ request('search') }}" class="search-input" style="width:220px;" placeholder="Search customer, CR#, invoice...">
             <input type="date" name="date_from" value="{{ request('date_from') }}" class="search-input" style="width:140px;">
             <input type="date" name="date_to" value="{{ request('date_to') }}" class="search-input" style="width:140px;">
-            <button type="submit" class="px-3 py-1.5 bg-gray-100 border border-gray-300 rounded text-xs font-semibold text-gray-700 hover:bg-gray-200">
+            <button type="submit" class="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs font-semibold text-gray-200 hover:bg-gray-200">
                 <i class="fas fa-search"></i> Filter
             </button>
             @if(request()->hasAny(['search','date_from','date_to']))
-            <a href="{{ route('treasury.confirmation') }}" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700">Clear</a>
+            <a href="{{ route('treasury.confirmation') }}" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-200">Clear</a>
             @endif
         </form>
         <div class="flex items-center gap-2">
@@ -141,7 +141,7 @@
                     </td>
                     <td class="text-xs">
                         @if($glAccount)
-                            <span class="font-semibold text-gray-700">{{ $glAccount }}</span>
+                            <span class="font-semibold text-gray-200">{{ $glAccount }}</span>
                         @else
                             <div>
                                 <select class="bank-select text-xs border border-amber-300 bg-amber-50 rounded px-1.5 py-1" data-payment-id="{{ $payment->id }}" style="max-width:180px;">
@@ -155,7 +155,7 @@
                         @endif
                     </td>
                     <td class="r font-semibold">PHP {{ number_format($payment->gross_amount ?? $payment->amount, 2) }}</td>
-                    <td class="r font-semibold text-gray-800">PHP {{ number_format($payment->net ?? ($payment->gross_amount ?? $payment->amount), 2) }}</td>
+                    <td class="r font-semibold text-white">PHP {{ number_format($payment->net ?? ($payment->gross_amount ?? $payment->amount), 2) }}</td>
                     <td class="r">
                         @if($payment->overpayment > 0)
                             <span class="text-amber-600 font-semibold">PHP {{ number_format($payment->overpayment, 2) }}</span>

@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">Payment Entry Screen</h2>
+            <h2 class="text-2xl font-bold text-white">Payment Entry Screen</h2>
             
             <!-- ✅ UPDATED: Dynamic button that switches based on current view -->
             <button type="button" id="toggle_view_btn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
@@ -16,13 +16,13 @@
         </div>
 
         <!-- Search Section -->
-        <div class="bg-gray-100 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Search Customer</h3>
+        <div class="bg-gray-700 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-white mb-4">Search Customer</h3>
             <p class="text-gray-500 text-sm mb-3">Search by: Customer Name, Customer Code, or DR Number</p>
             <div class="flex items-center space-x-4">
                 <div class="flex-1">
                     <input type="text" id="customer_search" placeholder="Enter Customer Name, Code, or DR Number"
-                           class="w-full bg-gray-200 text-gray-800 border border-gray-300 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full bg-gray-200 text-white border border-gray-600 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button type="button" id="search_customer_btn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-search"></i>
@@ -32,9 +32,9 @@
         </div>
 
         <!-- ✅ Payment List View (shown initially) -->
-        <div id="payment_list_view" class="bg-gray-100 rounded-lg p-4">
+        <div id="payment_list_view" class="bg-gray-700 rounded-lg p-4">
             <div class="flex justify-between items-center mb-4">
-                <h4 class="text-lg font-semibold text-gray-800">Payment List</h4>
+                <h4 class="text-lg font-semibold text-white">Payment List</h4>
                 <button type="button" onclick="exportPaymentList()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-2">
                     <i class="fas fa-file-excel"></i>
                     <span>Export to Excel</span>
@@ -42,19 +42,19 @@
             </div>
 
             <!-- Filter Section -->
-            <div class="bg-white rounded-lg p-4 mb-4">
+            <div class="bg-gray-800 rounded-lg p-4 mb-4">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Date From</label>
-                        <input type="date" id="report_date_from" class="w-full bg-gray-200 text-gray-800 border border-gray-300 rounded px-3 py-2">
+                        <input type="date" id="report_date_from" class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Date To</label>
-                        <input type="date" id="report_date_to" class="w-full bg-gray-200 text-gray-800 border border-gray-300 rounded px-3 py-2">
+                        <input type="date" id="report_date_to" class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Customer</label>
-                        <input type="text" id="report_customer_filter" placeholder="Filter by customer" class="w-full bg-gray-200 text-gray-800 border border-gray-300 rounded px-3 py-2">
+                        <input type="text" id="report_customer_filter" placeholder="Filter by customer" class="w-full bg-gray-200 text-white border border-gray-600 rounded px-3 py-2">
                     </div>
                     <div class="flex items-end gap-2">
                         <button type="button" onclick="filterPaymentList()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
@@ -70,9 +70,9 @@
 
             <!-- Payment List Table -->
             <div class="overflow-x-auto">
-                <table class="min-w-full bg-white rounded-lg text-sm">
+                <table class="min-w-full bg-gray-800 rounded-lg text-sm">
                     <thead>
-                        <tr class="bg-gray-50 text-gray-500">
+                        <tr class="bg-gray-900 text-gray-500">
                             <th class="px-4 py-3 text-left">Customer Name</th>
                             <th class="px-4 py-3 text-left">CR Number</th>
                             <th class="px-4 py-3 text-left">DR No</th>
@@ -102,9 +102,9 @@
         <!-- ✅ Payment Entries View (shown after search) -->
         <div id="payment_entries_view" class="hidden">
             <!-- ✅ Customer Payment History with CHECKBOXES -->
-<div id="customer_payment_history" class="bg-gray-100 rounded-lg p-4 mb-4">
+<div id="customer_payment_history" class="bg-gray-700 rounded-lg p-4 mb-4">
     <div class="flex justify-between items-center mb-3">
-        <h4 class="text-sm font-semibold text-gray-800 flex items-center">
+        <h4 class="text-sm font-semibold text-white flex items-center">
             <i class="fas fa-file-invoice-dollar mr-2 text-orange-700"></i>
             Outstanding Payments for <span id="history_customer_name" class="ml-2 text-blue-700"></span>
         </h4>
@@ -114,22 +114,22 @@
                 <i class="fas fa-plus"></i>
                 <span>Add Selected (<span id="selected_count">0</span>)</span>
             </button>
-            <button type="button" onclick="togglePaymentHistory()" class="text-gray-500 hover:text-gray-800 text-xs">
+            <button type="button" onclick="togglePaymentHistory()" class="text-gray-500 hover:text-white text-xs">
                 <i class="fas fa-chevron-down" id="history_toggle_icon"></i>
             </button>
         </div>
     </div>
 
     <div id="payment_history_content" class="overflow-x-auto" style="max-height: 300px;">
-        <table class="min-w-full bg-white rounded-lg text-xs">
-            <thead class="bg-gray-50 text-gray-500 sticky top-0">
+        <table class="min-w-full bg-gray-800 rounded-lg text-xs">
+            <thead class="bg-gray-900 text-gray-500 sticky top-0">
                 <tr>
                     <!-- ✅ NEW: Select All Checkbox -->
                     <th class="px-2 py-2 text-left w-12">
                         <input type="checkbox" 
                                id="select_all_checkbox" 
                                onchange="toggleSelectAll()" 
-                               class="w-4 h-4 rounded bg-gray-100 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                               class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                title="Select All">
                     </th>
                     <th class="px-2 py-2 text-left">Invoice Date</th>
@@ -165,9 +165,9 @@
 </div>
 
             <!-- Customer Information -->
-            <div id="customer_info_container" class="bg-gray-100 rounded-lg p-4 mb-4">
+            <div id="customer_info_container" class="bg-gray-700 rounded-lg p-4 mb-4">
                 <div class="flex justify-between items-start mb-3">
-                    <h4 class="text-sm font-semibold text-gray-800 flex items-center">
+                    <h4 class="text-sm font-semibold text-white flex items-center">
                         <i class="fas fa-user mr-2"></i>
                         Customer Information
                     </h4>
@@ -178,7 +178,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                     <div>
                         <label class="block text-gray-500 text-xs mb-1">Customer Name</label>
-                        <p class="text-gray-800 font-semibold" id="display_customer_name">—</p>
+                        <p class="text-white font-semibold" id="display_customer_name">—</p>
                     </div>
                     <div>
                         <label class="block text-gray-500 text-xs mb-1">Outstanding Balance</label>
@@ -198,15 +198,15 @@
             <div id="credit_details_panel" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3 mt-3 mx-4 mb-4">
                 <div class="flex justify-between items-center mb-2">
                     <h5 class="text-xs font-bold text-purple-700 uppercase">Available Credits from Overpayments</h5>
-                    <button type="button" onclick="hideCreditDetails()" class="text-gray-400 hover:text-gray-600 text-xs"><i class="fas fa-times"></i></button>
+                    <button type="button" onclick="hideCreditDetails()" class="text-gray-400 hover:text-gray-300 text-xs"><i class="fas fa-times"></i></button>
                 </div>
                 <div id="credit_details_list" class="space-y-2 text-sm"></div>
             </div>
 
             <!-- Excel-like Payment Entry Table -->
-<div id="payment_table_container" class="bg-gray-100 rounded-lg p-4">
+<div id="payment_table_container" class="bg-gray-700 rounded-lg p-4">
     <div class="flex justify-between items-center mb-3">
-        <h4 class="text-sm font-semibold text-gray-800">Payment Entries</h4>
+        <h4 class="text-sm font-semibold text-white">Payment Entries</h4>
         <div class="flex space-x-2">
             <button type="button" onclick="addPaymentRow()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs flex items-center space-x-1">
                 <i class="fas fa-plus"></i>
@@ -220,8 +220,8 @@
     </div>
 
     <div class="overflow-x-auto" style="max-height: 400px;">
-        <table class="min-w-full bg-white rounded-lg text-xs">
-            <thead class="bg-gray-50 text-gray-500 sticky top-0">
+        <table class="min-w-full bg-gray-800 rounded-lg text-xs">
+            <thead class="bg-gray-900 text-gray-500 sticky top-0">
                 <tr>
                     <th class="px-2 py-2 text-left w-8">#</th>
                     <th class="px-2 py-2 text-left">DR Number *</th>
@@ -239,16 +239,16 @@
                     <th class="px-2 py-2 text-center w-12">Action</th>
                 </tr>
             </thead>
-            <tbody id="payment_entries_tbody" class="text-gray-800">
+            <tbody id="payment_entries_tbody" class="text-white">
                 <!-- Rows will be added here dynamically -->
             </tbody>
             <tfoot id="payment_totals_row" class="hidden">
                 <tr class="bg-blue-50 border-t-2 border-blue-300 font-bold text-xs">
                     <td colspan="9" class="px-2 py-2 text-right">
-                        <span class="text-gray-700 pr-2">TOTAL</span>
+                        <span class="text-gray-200 pr-2">TOTAL</span>
                     </td>
                     <td class="px-2 py-2 text-right text-orange-700" id="total_amount">₱0.00</td>
-                    <td class="px-2 py-2 text-right text-gray-700" id="total_tax">0.00</td>
+                    <td class="px-2 py-2 text-right text-gray-200" id="total_tax">0.00</td>
                     <td class="px-2 py-2 text-right text-green-700" id="total_net">₱0.00</td>
                     <td colspan="2" class="px-2 py-2"></td>
                 </tr>
@@ -259,38 +259,38 @@
         </div>
 
         <!-- No Results Message -->
-        <div id="no_results_message" class="hidden bg-gray-100 rounded-lg p-8 text-center">
+        <div id="no_results_message" class="hidden bg-gray-700 rounded-lg p-8 text-center">
             <i class="fas fa-user-slash text-5xl text-gray-500 mb-4"></i>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Customer Not Found</h3>
+            <h3 class="text-xl font-semibold text-white mb-2">Customer Not Found</h3>
             <p class="text-gray-500">The customer you searched for does not exist. Please check and try again.</p>
         </div>
     </div>
 </div>
 
 <!-- ✅ SIDE PANEL for Payment Means Details -->
-<div id="payment_means_panel" class="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+<div id="payment_means_panel" class="fixed top-0 right-0 h-full w-96 bg-gray-800 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
     <div class="p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-            <h3 class="text-lg font-bold text-gray-800 flex items-center">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+            <h3 class="text-lg font-bold text-white flex items-center">
                 <i class="fas fa-credit-card mr-2 text-blue-700"></i>
                 Payment Means Details
             </h3>
-            <button type="button" onclick="closePaymentMeansPanel()" class="text-gray-500 hover:text-gray-800 transition">
+            <button type="button" onclick="closePaymentMeansPanel()" class="text-gray-500 hover:text-white transition">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
 
         <!-- Row Info -->
-        <div class="bg-gray-50 rounded-lg p-3 mb-4">
-            <p class="text-sm text-gray-500">Editing Row: <span id="panel_row_number" class="text-gray-800 font-semibold">#1</span></p>
+        <div class="bg-gray-900 rounded-lg p-3 mb-4">
+            <p class="text-sm text-gray-500">Editing Row: <span id="panel_row_number" class="text-white font-semibold">#1</span></p>
             <p class="text-xs text-gray-500 mt-1">DR: <span id="panel_dr_number" class="text-gray-500">—</span></p>
         </div>
 
         <!-- Payment Type Selection -->
         <div class="mb-6">
             <label class="block text-sm font-medium text-gray-500 mb-2">Payment Means Type *</label>
-            <select id="panel_payment_type" onchange="updatePaymentMeansFields()" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+            <select id="panel_payment_type" onchange="updatePaymentMeansFields()" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 <option value="">Select Payment Type</option>
                 <option value="check">Check</option>
                 <option value="bank_transfer">Bank Transfer</option>
@@ -309,8 +309,8 @@
                 <label class="block text-sm font-medium text-gray-500 mb-2">G/L Account *</label>
                 <div class="relative">
                     <input type="hidden" id="check_gl_account_id">
-                    <input type="text" id="check_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                    <div id="check_gl_account_dropdown" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
+                    <input type="text" id="check_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                    <div id="check_gl_account_dropdown" class="absolute top-full left-0 right-0 bg-gray-800 border border-gray-700 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
                 </div>
                 <input type="hidden" id="check_gl_account">
                 <p class="text-xs text-gray-500 mt-1">For PDC, use Clearing Account - PDC</p>
@@ -318,12 +318,12 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-500 mb-2">Due Date *</label>
-                <input type="date" id="check_due_date" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <input type="date" id="check_due_date" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-500 mb-2">Amount *</label>
-                <input type="number" step="0.01" id="check_amount" placeholder="0.00" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <input type="number" step="0.01" id="check_amount" placeholder="0.00" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 <button type="button" onclick="copyBalanceDueToCheck()" class="text-xs text-blue-700 hover:text-blue-700 mt-1">
                     <i class="fas fa-copy mr-1"></i>Copy Balance Due
                 </button>
@@ -331,7 +331,7 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-500 mb-2">Bank Name *</label>
-                <select id="check_bank_name" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <select id="check_bank_name" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                     <option value="">Select Bank</option>
                     <option value="BDO">BDO</option>
                     <option value="BPI">BPI</option>
@@ -347,7 +347,7 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-500 mb-2">Check Number *</label>
-                <input type="text" id="check_number" placeholder="Check #" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="check_number" placeholder="Check #" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
             </div>
         </div>
 
@@ -362,25 +362,25 @@
                 <label class="block text-sm font-medium text-gray-500 mb-2">G/L Account *</label>
                 <div class="relative">
                     <input type="hidden" id="transfer_gl_account_id">
-                    <input type="text" id="transfer_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                    <div id="transfer_gl_account_dropdown" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
+                    <input type="text" id="transfer_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                    <div id="transfer_gl_account_dropdown" class="absolute top-full left-0 right-0 bg-gray-800 border border-gray-700 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
                 </div>
                 <input type="hidden" id="transfer_gl_account">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-500 mb-2">Transfer Date *</label>
-                <input type="date" id="transfer_date" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <input type="date" id="transfer_date" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-500 mb-2">Reference Number</label>
-                <input type="text" id="transfer_reference" placeholder="Reference #" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="transfer_reference" placeholder="Reference #" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-500 mb-2">Total Amount *</label>
-                <input type="number" step="0.01" id="transfer_amount" placeholder="0.00" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <input type="number" step="0.01" id="transfer_amount" placeholder="0.00" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 <button type="button" onclick="copyBalanceDueToTransfer()" class="text-xs text-blue-700 hover:text-blue-700 mt-1">
                     <i class="fas fa-copy mr-1"></i>Copy Balance Due
                 </button>
@@ -398,15 +398,15 @@
                 <label class="block text-sm font-medium text-gray-500 mb-2">G/L Account *</label>
                 <div class="relative">
                     <input type="hidden" id="cash_gl_account_id">
-                    <input type="text" id="cash_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                    <div id="cash_gl_account_dropdown" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
+                    <input type="text" id="cash_gl_account_search" placeholder="Search GL Account (code/name)" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                    <div id="cash_gl_account_dropdown" class="absolute top-full left-0 right-0 bg-gray-800 border border-gray-700 rounded max-h-48 overflow-y-auto z-10 hidden mt-1"></div>
                 </div>
                 <input type="hidden" id="cash_gl_account">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-500 mb-2">Total Amount *</label>
-                <input type="number" step="0.01" id="cash_amount" placeholder="0.00" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <input type="number" step="0.01" id="cash_amount" placeholder="0.00" class="w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 <button type="button" onclick="copyBalanceDueToCash()" class="text-xs text-blue-700 hover:text-blue-700 mt-1">
                     <i class="fas fa-copy mr-1"></i>Copy Balance Due
                 </button>
@@ -414,11 +414,11 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex space-x-3 mt-6 pt-4 border-t border-gray-200">
+        <div class="flex space-x-3 mt-6 pt-4 border-t border-gray-700">
             <button type="button" onclick="savePaymentMeans()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition">
                 <i class="fas fa-check mr-2"></i>Save
             </button>
-            <button type="button" onclick="closePaymentMeansPanel()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded font-medium transition">
+            <button type="button" onclick="closePaymentMeansPanel()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded font-medium transition">
                 Cancel
             </button>
         </div>
@@ -556,33 +556,33 @@ function addSelectedToPaymentTable() {
     const today = new Date().toISOString().split('T')[0];
     
     const row = document.createElement('tr');
-    row.className = 'border-b border-gray-200 bg-green-100 bg-opacity-10';
+    row.className = 'border-b border-gray-700 bg-green-100 bg-opacity-10';
     row.id = `payment_row_${paymentRowCounter}`;
     row.innerHTML = `
         <td class="px-2 py-1.5 text-xs">${paymentRowCounter}</td>
         <td class="px-2 py-1.5">
             <input type="text" 
                    value="${paymentData.dr_no || ''}"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs" 
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs" 
                    data-field="dr_number"
                    readonly>
         </td>
         <td class="px-2 py-1.5">
             <input type="text" 
                    value="${paymentData.invoice_no || ''}"
-                   class="w-full bg-gray-100 text-gray-500 border border-gray-300 rounded px-2 py-1 text-xs" 
+                   class="w-full bg-gray-700 text-gray-500 border border-gray-600 rounded px-2 py-1 text-xs" 
                    data-field="invoice_no"
                    readonly>
         </td>
         <td class="px-2 py-1.5">
             <input type="text"
                    value="₱${parseFloat(paymentData.check_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}"
-                   class="w-full bg-gray-100 text-orange-700 border border-gray-300 rounded px-2 py-1 text-xs text-right font-semibold"
+                   class="w-full bg-gray-700 text-orange-700 border border-gray-600 rounded px-2 py-1 text-xs text-right font-semibold"
                    data-field="outstanding_balance"
                    readonly>
         </td>
         <td class="px-2 py-1.5">
-            <select class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
+            <select class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
                     data-field="payment_type"
                     data-row-id="${paymentRowCounter}"
                     onchange="handlePaymentTypeChange(this)">
@@ -592,20 +592,20 @@ function addSelectedToPaymentTable() {
         </td>
         <td class="px-2 py-1.5">
             <input type="text"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
                    placeholder="Receipt No."
                    data-field="receipt_number">
         </td>
         <td class="px-2 py-1.5">
             <input type="date"
                    value="${today}"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
                    data-field="receipt_date">
         </td>
         <td class="px-2 py-1.5">
             <input type="date"
                    value="${today}"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
                    data-field="posting_date">
         </td>
         <td class="px-2 py-1.5">
@@ -620,7 +620,7 @@ function addSelectedToPaymentTable() {
         <td class="px-2 py-1.5">
             <input type="text"
                    value="₱${parseFloat(paymentData.check_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}"
-                   class="w-full bg-white text-orange-600 border border-blue-400 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500 font-semibold"
+                   class="w-full bg-gray-800 text-orange-600 border border-blue-400 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500 font-semibold"
                    data-field="amount"
                    data-row-id="${paymentRowCounter}"
                    onchange="handlePaymentAmountChange(this)">
@@ -629,20 +629,20 @@ function addSelectedToPaymentTable() {
             <input type="number"
                    step="0.01"
                    min="0"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500"
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500"
                    placeholder="0.00"
                    data-field="tax">
         </td>
         <td class="px-2 py-1.5">
             <input type="text"
-                   class="w-full bg-gray-100 text-green-600 border border-gray-300 rounded px-2 py-1 text-xs text-right font-semibold"
+                   class="w-full bg-gray-700 text-green-600 border border-gray-600 rounded px-2 py-1 text-xs text-right font-semibold"
                    placeholder="₱0.00"
                    data-field="net"
                    readonly>
         </td>
         <td class="px-2 py-1.5">
             <input type="text"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
                    placeholder="Notes"
                    data-field="notes">
         </td>
@@ -876,13 +876,13 @@ function addPaymentRow() {
     const today = new Date().toISOString().split('T')[0];
     
     const row = document.createElement('tr');
-    row.className = 'border-b border-gray-200 hover:bg-gray-50 transition';
+    row.className = 'border-b border-gray-700 hover:bg-gray-900 transition';
     row.id = `payment_row_${paymentRowCounter}`;
     row.innerHTML = `
         <td class="px-2 py-1.5 text-xs text-gray-500">${paymentRowCounter}</td>
         <td class="px-2 py-1.5">
             <input type="text" 
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500" 
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500" 
                    placeholder="DR Number" 
                    data-field="dr_number"
                    data-row-id="${paymentRowCounter}"
@@ -890,20 +890,20 @@ function addPaymentRow() {
         </td>
         <td class="px-2 py-1.5">
             <input type="text" 
-                   class="w-full bg-gray-100 text-gray-500 border border-gray-300 rounded px-2 py-1 text-xs" 
+                   class="w-full bg-gray-700 text-gray-500 border border-gray-600 rounded px-2 py-1 text-xs" 
                    placeholder="Auto-filled" 
                    data-field="invoice_no"
                    readonly>
         </td>
         <td class="px-2 py-1.5">
             <input type="text"
-                   class="w-full bg-gray-100 text-orange-700 border border-gray-300 rounded px-2 py-1 text-xs text-right font-semibold"
+                   class="w-full bg-gray-700 text-orange-700 border border-gray-600 rounded px-2 py-1 text-xs text-right font-semibold"
                    placeholder="₱0.00"
                    data-field="outstanding_balance"
                    readonly>
         </td>
         <td class="px-2 py-1.5">
-            <select class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
+            <select class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
                     data-field="payment_type"
                     data-row-id="${paymentRowCounter}"
                     onchange="handlePaymentTypeChange(this)">
@@ -913,20 +913,20 @@ function addPaymentRow() {
         </td>
         <td class="px-2 py-1.5">
             <input type="text"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
                    placeholder="Receipt No."
                    data-field="receipt_number">
         </td>
         <td class="px-2 py-1.5">
             <input type="date" 
                    value="${today}"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500" 
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500" 
                    data-field="receipt_date">
         </td>
         <td class="px-2 py-1.5">
             <input type="date" 
                    value="${today}"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500" 
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500" 
                    data-field="posting_date">
         </td>
         <td class="px-2 py-1.5">
@@ -940,7 +940,7 @@ function addPaymentRow() {
 </td>
         <td class="px-2 py-1.5">
             <input type="text"
-                   class="w-full bg-white text-orange-600 border border-blue-400 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500 font-semibold"
+                   class="w-full bg-gray-800 text-orange-600 border border-blue-400 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500 font-semibold"
                    placeholder="₱0.00"
                    data-field="amount"
                    data-row-id="${paymentRowCounter}"
@@ -950,20 +950,20 @@ function addPaymentRow() {
             <input type="number"
                    step="0.01"
                    min="0"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500"
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-blue-500"
                    placeholder="0.00"
                    data-field="tax">
         </td>
         <td class="px-2 py-1.5">
             <input type="text"
-                   class="w-full bg-gray-100 text-green-600 border border-gray-300 rounded px-2 py-1 text-xs text-right font-semibold"
+                   class="w-full bg-gray-700 text-green-600 border border-gray-600 rounded px-2 py-1 text-xs text-right font-semibold"
                    placeholder="₱0.00"
                    data-field="net"
                    readonly>
         </td>
         <td class="px-2 py-1.5">
             <input type="text"
-                   class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
+                   class="w-full bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
                    placeholder="Notes"
                    data-field="notes">
         </td>
@@ -1084,8 +1084,8 @@ function showInvoicePicker(drNumber, invoiceList, row, rowId) {
         title: `Multiple Invoices for DR #${drNumber}`,
         html: `
             <p class="text-sm text-gray-500 mb-3">This DR number has ${invoiceList.length} invoices. Select which one to pay:</p>
-            <table class="w-full text-left border border-gray-200 rounded">
-                <thead class="bg-gray-100">
+            <table class="w-full text-left border border-gray-700 rounded">
+                <thead class="bg-gray-700">
                     <tr>
                         <th class="p-2 text-xs text-center w-10"></th>
                         <th class="p-2 text-xs">Invoice No</th>
@@ -1133,8 +1133,8 @@ function applyInvoiceToRow(invoiceInfo, row, rowId) {
     const amountInput = row.querySelector('[data-field="amount"]');
     amountInput.value = '₱' + invoiceInfo.outstanding_balance.toLocaleString('en-PH', { minimumFractionDigits: 2 });
     amountInput.readOnly = false;
-    amountInput.classList.remove('bg-gray-100');
-    amountInput.classList.add('bg-white', 'border-blue-400');
+    amountInput.classList.remove('bg-gray-700');
+    amountInput.classList.add('bg-gray-800', 'border-blue-400');
 
     // Fetch customer tax rate and calculate net
     fetchCustomerTaxAndCalculateNet(rowId, invoiceInfo.outstanding_balance);
@@ -1200,8 +1200,8 @@ function checkIfDRAlreadyPaid(drNumber, row, rowId) {
             amountInput.value = '₱' + parseFloat(data.remaining).toLocaleString('en-PH', { minimumFractionDigits: 2 });
             row.querySelector('[data-field="payment_type"]').value = 'full';
             amountInput.readOnly = false;
-            amountInput.classList.remove('bg-gray-100');
-            amountInput.classList.add('bg-white', 'border-blue-400');
+            amountInput.classList.remove('bg-gray-700');
+            amountInput.classList.add('bg-gray-800', 'border-blue-400');
 
             // Store in outstandingInvoices for future reference (array format)
             outstandingInvoices[drNumber] = [{
@@ -1263,8 +1263,8 @@ function handlePaymentTypeChange(select) {
 
     // Amount is always editable
     amountInput.readOnly = false;
-    amountInput.classList.remove('bg-gray-100');
-    amountInput.classList.add('bg-white', 'border-blue-400');
+    amountInput.classList.remove('bg-gray-700');
+    amountInput.classList.add('bg-gray-800', 'border-blue-400');
 
     if (select.value === 'partial') {
         // Partial — clear amount for user input
@@ -1562,13 +1562,13 @@ function saveAllPayments() {
 
     const summaryHtml = `
         <div style="max-height: 400px; overflow-y: auto; text-align: left;">
-            <div class="mb-3 p-3 bg-gray-50 rounded">
-                <p class="text-sm text-gray-600"><strong>Customer:</strong> ${currentCustomer.name}</p>
-                <p class="text-sm text-gray-600"><strong>Entries:</strong> ${payments.length} payment(s)</p>
+            <div class="mb-3 p-3 bg-gray-900 rounded">
+                <p class="text-sm text-gray-300"><strong>Customer:</strong> ${currentCustomer.name}</p>
+                <p class="text-sm text-gray-300"><strong>Entries:</strong> ${payments.length} payment(s)</p>
             </div>
             <table class="w-full text-xs border-collapse">
                 <thead>
-                    <tr class="bg-gray-100 text-gray-600">
+                    <tr class="bg-gray-700 text-gray-300">
                         <th class="py-2 px-2 text-left">#</th>
                         <th class="py-2 px-2 text-left">DR No</th>
                         <th class="py-2 px-2 text-left">Invoice</th>
@@ -1581,7 +1581,7 @@ function saveAllPayments() {
                 <tbody>${summaryRows}</tbody>
                 <tfoot>
                     <tr class="bg-blue-50 font-bold border-t-2 border-blue-300">
-                        <td colspan="5" class="py-2 px-2 text-right text-gray-700">TOTAL</td>
+                        <td colspan="5" class="py-2 px-2 text-right text-gray-200">TOTAL</td>
                         <td class="py-2 px-2 text-right text-orange-700">₱${totalAmount.toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
                         <td class="py-2 px-2 text-right text-green-700">₱${totalNet.toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
                     </tr>
@@ -1698,11 +1698,11 @@ function loadPaymentList() {
 
             data.payments.forEach(payment => {
     const row = document.createElement('tr');
-    row.className = 'border-b border-gray-200 hover:bg-gray-50';
+    row.className = 'border-b border-gray-700 hover:bg-gray-900';
 
     // Handle BOTH old (payment_option) and new (payment_method) data
     let paymentMeansDisplay = '—';
-    let paymentMeansBadgeClass = 'bg-gray-100 text-gray-500';
+    let paymentMeansBadgeClass = 'bg-gray-700 text-gray-500';
 
     if (payment.payment_method) {
         const typeLabels = { 'check': 'Check', 'bank_transfer': 'Bank Transfer', 'cash': 'Cash' };
@@ -1727,7 +1727,7 @@ function loadPaymentList() {
     }
 
     row.innerHTML = `
-        <td class="px-4 py-3 text-gray-800 font-medium">${payment.customer_name || '—'}</td>
+        <td class="px-4 py-3 text-white font-medium">${payment.customer_name || '—'}</td>
         <td class="px-4 py-3">${payment.collection_receipt_number || '—'}</td>
         <td class="px-4 py-3">${payment.dr_no || '—'}</td>
         <td class="px-4 py-3">${payment.invoice_no || '—'}</td>
@@ -1738,7 +1738,7 @@ function loadPaymentList() {
                 ${paymentMeansDisplay}
             </span>
         </td>
-        <td class="px-4 py-3 text-right font-semibold text-gray-800">₱${displayAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+        <td class="px-4 py-3 text-right font-semibold text-white">₱${displayAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
         <td class="px-4 py-3 text-right text-orange-600">${displayEwt > 0 ? '₱' + displayEwt.toLocaleString('en-PH', { minimumFractionDigits: 2 }) : '—'}</td>
         <td class="px-4 py-3 text-right font-semibold text-green-700">₱${displayNet.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
         <td class="px-4 py-3 text-center">${statusBadge}</td>
@@ -1837,7 +1837,7 @@ function loadCustomerPaymentHistory(customerCode, customerName) {
         
         data.payments.forEach(payment => {
             const row = document.createElement('tr');
-            row.className = 'border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition';
+            row.className = 'border-b border-gray-700 hover:bg-gray-900 cursor-pointer transition';
             
             // ✅ Add click handler to row for checkbox toggle
             row.onclick = (e) => {
@@ -1869,7 +1869,7 @@ function loadCustomerPaymentHistory(customerCode, customerName) {
                            data-payment-checkbox 
                            data-dr-no="${payment.dr_no}"
                            onchange="toggleOutstandingPayment('${payment.dr_no}')"
-                           class="w-4 h-4 rounded bg-gray-100 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                           class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer">
                 </td>
                 <td class="px-2 py-2">${depositDate}</td>
                 <td class="px-2 py-2"><span class="bg-orange-100 border border-orange-200 px-2 py-1 rounded font-mono text-xs">${payment.collection_receipt_number || '—'}</span></td>
@@ -1898,7 +1898,7 @@ function loadCustomerPaymentHistory(customerCode, customerName) {
         totalRow.className = 'bg-orange-100/20 border-t-2 border-orange-600 font-bold';
         totalRow.innerHTML = `
             <td></td>
-            <td colspan="10" class="px-2 py-3 text-right text-gray-800">TOTAL OUTSTANDING:</td>
+            <td colspan="10" class="px-2 py-3 text-right text-white">TOTAL OUTSTANDING:</td>
             <td class="px-2 py-3 text-right text-orange-700 font-bold text-base">₱${totalOutstanding.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
             <td colspan="7"></td>
         `;
@@ -2218,7 +2218,7 @@ function setupGlAccountSearch(searchId, dropdownId, idInputId, codeInputId) {
             if (data.success && data.accounts.length > 0) {
                 if (!query) allAccountsCache = data.accounts;
                 dropdown.innerHTML = data.accounts.map(account => `
-                    <div class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-gray-800 border-b border-gray-100" onclick="selectPaymentGlAccount('${searchId}', '${dropdownId}', '${idInputId}', '${codeInputId}', ${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')" >
+                    <div class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-white border-b border-gray-100" onclick="selectPaymentGlAccount('${searchId}', '${dropdownId}', '${idInputId}', '${codeInputId}', ${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')" >
                         <div class="font-semibold text-sm">${account.display}</div>
                         <div class="text-xs text-gray-500">${account.fs_line_item || 'No FS Item'}</div>
                     </div>
@@ -2238,7 +2238,7 @@ function setupGlAccountSearch(searchId, dropdownId, idInputId, codeInputId) {
         if (allAccountsCache) {
             // Use cache for instant display
             dropdown.innerHTML = allAccountsCache.map(account => `
-                <div class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-gray-800 border-b border-gray-100" onclick="selectPaymentGlAccount('${searchId}', '${dropdownId}', '${idInputId}', '${codeInputId}', ${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')" >
+                <div class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-white border-b border-gray-100" onclick="selectPaymentGlAccount('${searchId}', '${dropdownId}', '${idInputId}', '${codeInputId}', ${account.id}, '${account.display.replace(/'/g, "\\'")}', '${(account.code || '').replace(/'/g, "\\'")}')" >
                     <div class="font-semibold text-sm">${account.display}</div>
                     <div class="text-xs text-gray-500">${account.fs_line_item || 'No FS Item'}</div>
                 </div>
@@ -2318,7 +2318,7 @@ function showCreditDetails() {
     availableCredits.forEach(c => {
         if (c.remaining_credit <= 0) return; // Skip fully used credits
         const div = document.createElement('div');
-        div.className = 'flex items-center justify-between bg-white rounded p-2 border border-purple-100';
+        div.className = 'flex items-center justify-between bg-gray-800 rounded p-2 border border-purple-100';
         div.innerHTML = `
             <div>
                 <a href="/payments/${c.payment_id}" target="_blank" class="text-blue-600 hover:underline text-xs font-semibold">

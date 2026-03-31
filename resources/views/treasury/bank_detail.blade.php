@@ -50,13 +50,13 @@
             {{ strtoupper(substr($account->bank_name, 0, 3)) }}
         </div>
         <div>
-            <h2 class="text-xl font-bold text-gray-800">{{ $account->short_name ?: $account->bank_name }}</h2>
+            <h2 class="text-xl font-bold text-white">{{ $account->short_name ?: $account->bank_name }}</h2>
             <p class="text-xs text-gray-500 mt-0.5 font-mono">{{ $account->account_number }} · {{ $account->bank_name }} · {{ $account->account_type ?: 'N/A' }}</p>
         </div>
     </div>
     <div class="flex gap-2">
         <a href="{{ route('treasury.banks', $account->currency === 'PHP' ? 'peso' : 'dollar') }}"
-           class="flex items-center gap-1.5 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 font-semibold border border-gray-300">
+           class="flex items-center gap-1.5 px-3 py-2 text-sm bg-gray-700 text-gray-200 rounded-md hover:bg-gray-200 font-semibold border border-gray-600">
             <i class="fas fa-arrow-left"></i> Back to {{ $account->currency === 'PHP' ? 'Peso' : 'Dollar' }} Accounts
         </a>
         <button onclick="document.getElementById('add-txn-modal').classList.remove('hidden')"
@@ -102,7 +102,7 @@
         <i class="fas fa-link text-blue-500"></i>
         <div>
             <span class="text-xs font-bold text-gray-500 uppercase">Linked G/L Account</span>
-            <div class="text-sm font-semibold text-gray-800">{{ $account->glAccount->account_code }} — {{ $account->glAccount->account_name }}</div>
+            <div class="text-sm font-semibold text-white">{{ $account->glAccount->account_code }} — {{ $account->glAccount->account_name }}</div>
         </div>
         <a href="{{ route('gl_accounts.show', $account->glAccount->id) }}" target="_blank" class="ml-auto text-xs text-blue-600 hover:underline font-semibold">
             <i class="fas fa-external-link-alt mr-0.5"></i> View GL Account
@@ -123,11 +123,11 @@
                 <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
                 @endforeach
             </select>
-            <button type="submit" class="px-3 py-1.5 bg-gray-100 border border-gray-300 rounded text-xs font-semibold text-gray-700 hover:bg-gray-200">
+            <button type="submit" class="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs font-semibold text-gray-200 hover:bg-gray-200">
                 <i class="fas fa-search"></i> Filter
             </button>
             @if(request()->hasAny(['date_from','date_to','type']))
-            <a href="{{ route('treasury.bank.show', $account->id) }}" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700">Clear</a>
+            <a href="{{ route('treasury.bank.show', $account->id) }}" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-200">Clear</a>
             @endif
         </form>
         <span class="text-xs text-gray-500">{{ $transactions->total() }} transaction{{ $transactions->total() != 1 ? 's' : '' }}</span>
@@ -185,10 +185,10 @@
 
 <!-- ADD TRANSACTION MODAL -->
 <div id="add-txn-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,.4);">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
-        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200">
-            <h3 class="font-bold text-gray-800">Add Transaction — {{ $account->short_name }}</h3>
-            <button onclick="document.getElementById('add-txn-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+    <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-700">
+            <h3 class="font-bold text-white">Add Transaction — {{ $account->short_name }}</h3>
+            <button onclick="document.getElementById('add-txn-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-300">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -196,11 +196,11 @@
             @csrf
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Date *</label>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Date *</label>
                     <input type="date" name="txn_date" value="{{ date('Y-m-d') }}" required class="search-input w-full">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Type *</label>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Type *</label>
                     <select name="type" required class="search-input w-full">
                         <option value="Deposit">Deposit</option>
                         <option value="Withdrawal">Withdrawal</option>
@@ -213,25 +213,25 @@
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Amount *</label>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Amount *</label>
                     <input type="number" name="amount" step="0.01" min="0.01" required class="search-input w-full" placeholder="0.00">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Reference</label>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Reference</label>
                     <input type="text" name="reference" class="search-input w-full" placeholder="Check #, transfer ref...">
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Payee / Source</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Payee / Source</label>
                 <input type="text" name="payee_or_source" class="search-input w-full" placeholder="Who paid or received?">
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Description</label>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Description</label>
                 <input type="text" name="description" class="search-input w-full" placeholder="Brief description...">
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="document.getElementById('add-txn-modal').classList.add('hidden')"
-                        class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md border border-gray-300 font-semibold hover:bg-gray-200">Cancel</button>
+                        class="px-4 py-2 text-sm bg-gray-700 text-gray-200 rounded-md border border-gray-600 font-semibold hover:bg-gray-200">Cancel</button>
                 <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-700 text-white rounded-md font-semibold hover:bg-blue-800">
                     <i class="fas fa-save mr-1"></i> Save Transaction

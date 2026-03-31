@@ -4,12 +4,12 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
 
         <!-- Filters Section -->
-        <div class="bg-gray-100 rounded-lg p-6 mb-6">
+        <div class="bg-gray-700 rounded-lg p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Filters</h3>
+                <h3 class="text-lg font-semibold text-white">Filters</h3>
                 <div class="flex gap-2">
                     <a href="{{ route('aging_reports.summary') }}" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition whitespace-nowrap flex items-center space-x-2">
                         <i class="fas fa-list"></i>
@@ -29,7 +29,7 @@
                     </label>
                     <input type="date" id="filter_date" name="filter_date"
                            value="{{ request('filter_date') ?? now()->format('Y-m-d') }}"
-                           class="w-full bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           class="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                            placeholder="Leave empty for all records">
                 </div>
             </form>
@@ -60,7 +60,7 @@
         </div>
 
         <!-- Search and Table Section -->
-        <div class="bg-gray-100 rounded-lg p-6">
+        <div class="bg-gray-700 rounded-lg p-6">
             <!-- Aging Date Filter (calculates age dynamically) -->
             <div class="mb-4">
                 <label for="aging_date" class="block text-sm font-medium text-gray-500 mb-2">
@@ -69,20 +69,20 @@
                 </label>
                 <input type="date" id="aging_date" name="aging_date" form="filter-form"
                        value="{{ request('aging_date') }}"
-                       class="bg-white text-gray-800 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                       class="bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                        placeholder="Leave empty for record date">
             </div>
 
             <!-- Enhanced Search Bar -->
             <div class="mb-4 flex items-center space-x-4">
                 <div class="flex-1 flex space-x-2">
-                    <select id="search_type" class="bg-white text-gray-800 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="search_type" class="bg-gray-800 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="customer">Customer / Branch</option>
                         <option value="invoice">Invoice No</option>
                         <option value="dr">DR Number</option>
                     </select>
                     <input type="text" id="search_input" placeholder="Search by Customer Name, Invoice No, or DR Number..."
-                           class="flex-1 bg-white text-gray-800 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="flex-1 bg-gray-800 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button type="button" id="search_button" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-search"></i>
@@ -109,9 +109,9 @@
 
             <!-- Table -->
             <div class="overflow-x-auto">
-                <table class="min-w-full bg-white rounded-lg">
+                <table class="min-w-full bg-gray-800 rounded-lg">
                     <thead>
-                        <tr class="bg-gray-50 text-gray-500 text-sm">
+                        <tr class="bg-gray-900 text-gray-500 text-sm">
                             <th class="px-4 py-3 text-left">Aging Date</th>
                             <th class="px-4 py-3 text-left">Counter Date</th>
                             <th class="px-4 py-3 text-left">Invoice Date</th>
@@ -128,7 +128,7 @@
                     <tbody class="text-gray-500">
                         @if(isset($agingReports) && count($agingReports) > 0)
                             @foreach($agingReports as $report)
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <tr class="border-b border-gray-700 hover:bg-gray-900">
                                 <td class="px-4 py-3">{{ $report['aging_date'] ?? 'N/A' }}</td>
                                 <td class="px-4 py-3">{{ $report['counter_date'] ?? 'N/A' }}</td>
                                 <td class="px-4 py-3">{{ $report['invoice_date'] ?? 'N/A' }}</td>
@@ -136,7 +136,7 @@
                                 <td class="px-4 py-3">{{ $report['sales_executive'] ?? 'N/A' }}</td>
                                 <td class="px-4 py-3">{{ $report['customer_name'] ?? 'N/A' }}</td>
                                 <td class="px-4 py-3 text-center">
-                                    <span class="bg-gray-100 px-2 py-1 rounded text-xs">
+                                    <span class="bg-gray-700 px-2 py-1 rounded text-xs">
                                         {{ $report['invoice_no'] ?? 'N/A' }}
                                     </span>
                                 </td>
@@ -368,7 +368,7 @@
             const viewUrl = reportId ? generateArProfileUrl(reportId) : '#';
 
             rows += `
-                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <tr class="border-b border-gray-700 hover:bg-gray-900">
                     <td class="px-4 py-3">${report.aging_date || 'N/A'}</td>
                     <td class="px-4 py-3">${report.counter_date || 'N/A'}</td>
                     <td class="px-4 py-3">${report.invoice_date || 'N/A'}</td>
@@ -376,7 +376,7 @@
                     <td class="px-4 py-3">${report.sales_executive || 'N/A'}</td>
                     <td class="px-4 py-3">${report.customer_name || 'N/A'}</td>
                     <td class="px-4 py-3 text-center">
-                        <span class="bg-gray-100 px-2 py-1 rounded text-xs">
+                        <span class="bg-gray-700 px-2 py-1 rounded text-xs">
                             ${report.invoice_no || 'N/A'}
                         </span>
                     </td>

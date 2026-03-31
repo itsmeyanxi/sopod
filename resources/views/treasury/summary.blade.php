@@ -46,7 +46,7 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-5">
     <div>
-        <h2 class="text-xl font-bold text-gray-800">Bank</h2>
+        <h2 class="text-xl font-bold text-white">Bank</h2>
         <p class="text-xs text-gray-500 mt-0.5">Bank — Overview of confirmed payments & credit balance</p>
     </div>
     <a href="{{ route('treasury.confirmation') }}"
@@ -122,11 +122,11 @@
             <input type="text" name="search" value="{{ request('search') }}" class="search-input" style="width:220px;" placeholder="Search customer, CR#, invoice...">
             <input type="date" name="date_from" value="{{ request('date_from') }}" class="search-input" style="width:140px;" placeholder="From">
             <input type="date" name="date_to" value="{{ request('date_to') }}" class="search-input" style="width:140px;" placeholder="To">
-            <button type="submit" class="px-3 py-1.5 bg-gray-100 border border-gray-300 rounded text-xs font-semibold text-gray-700 hover:bg-gray-200">
+            <button type="submit" class="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs font-semibold text-gray-200 hover:bg-gray-200">
                 <i class="fas fa-search"></i> Filter
             </button>
             @if(request()->hasAny(['search','date_from','date_to']))
-            <a href="{{ route('treasury.summary') }}" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700">Clear</a>
+            <a href="{{ route('treasury.summary') }}" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-200">Clear</a>
             @endif
         </form>
         <span class="text-xs text-gray-500">{{ $payments->total() }} confirmed payment{{ $payments->total() != 1 ? 's' : '' }}</span>
@@ -162,7 +162,7 @@
                     <td class="text-xs">{{ ucfirst($payment->payment_method ?? '—') }}</td>
                     <td class="r font-semibold">PHP {{ number_format($payment->amount, 2) }}</td>
                     <td class="r text-gray-500">{{ number_format($payment->tax, 2) }}</td>
-                    <td class="r font-semibold text-gray-800">PHP {{ number_format($payment->net ?? $payment->amount, 2) }}</td>
+                    <td class="r font-semibold text-white">PHP {{ number_format($payment->net ?? $payment->amount, 2) }}</td>
                     <td class="r">
                         @if($payment->overpayment > 0)
                             <span class="text-amber-600 font-bold">PHP {{ number_format($payment->overpayment, 2) }}</span>
@@ -188,7 +188,7 @@
             @if($payments->count() > 0)
             <tfoot>
                 <tr>
-                    <td colspan="6" class="text-right text-gray-600">Page Totals:</td>
+                    <td colspan="6" class="text-right text-gray-300">Page Totals:</td>
                     <td class="r">PHP {{ number_format($payments->sum('amount'), 2) }}</td>
                     <td class="r">{{ number_format($payments->sum('tax'), 2) }}</td>
                     <td class="r">PHP {{ number_format($payments->sum(fn($p) => $p->net ?? $p->amount), 2) }}</td>

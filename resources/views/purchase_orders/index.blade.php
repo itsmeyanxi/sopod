@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">PURCHASE ORDERS</h1>
+            <h1 class="text-2xl font-bold text-white">PURCHASE ORDERS</h1>
             <div class="flex items-center gap-3">
                 @if(auth()->user()->canApprovePurchaseOrders())
                     <button type="button" id="bulkApproveBtn"
@@ -37,10 +37,10 @@
         @endif
 
         <!-- Search PR Section -->
-        <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
+        <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
             <div class="flex items-center gap-3 mb-2">
                 <i class="fas fa-search text-purple-700 text-lg"></i>
-                <h3 class="font-semibold text-gray-800">Create PO from Approved Purchase Request</h3>
+                <h3 class="font-semibold text-white">Create PO from Approved Purchase Request</h3>
             </div>
             <p class="text-gray-500 text-sm mb-3">Search by PR Number, Requisitioner, or Company to create a new Purchase Order</p>
 
@@ -48,7 +48,7 @@
                 <input
                     type="text"
                     id="prSearchInput"
-                    class="w-full bg-white border border-gray-200 rounded px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                    class="w-full bg-gray-800 border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
                     placeholder="Type to search approved PRs..."
                     autocomplete="off">
                 <span class="absolute right-4 top-3.5 text-gray-500">
@@ -57,47 +57,47 @@
             </div>
 
             <!-- Search Results Dropdown -->
-            <div id="prSearchResults" class="hidden mt-2 bg-white border border-gray-200 rounded max-h-80 overflow-y-auto shadow-lg">
+            <div id="prSearchResults" class="hidden mt-2 bg-gray-800 border border-gray-700 rounded max-h-80 overflow-y-auto shadow-lg">
                 <!-- Results will be populated here by JavaScript -->
             </div>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full border-collapse border border-gray-200">
-                <thead class="bg-gray-100 text-gray-500 uppercase text-sm">
+            <table class="w-full border-collapse border border-gray-700">
+                <thead class="bg-gray-700 text-gray-500 uppercase text-sm">
                     <tr>
                         @if(auth()->user()->canApprovePurchaseOrders())
-                        <th class="border border-gray-200 px-3 py-3 w-10">
+                        <th class="border border-gray-700 px-3 py-3 w-10">
                             <input type="checkbox" id="selectAll" class="cursor-pointer" title="Select all pending">
                         </th>
                         @endif
-                        <th class="border border-gray-200 px-4 py-3">PO NO</th>
-                        <th class="border border-gray-200 px-4 py-3">PR NO</th>
-                        <th class="border border-gray-200 px-4 py-3">COMPANY</th>
-                        <th class="border border-gray-200 px-4 py-3">SUPPLIER</th>
-                        <th class="border border-gray-200 px-4 py-3">ORDER DATE</th>
-                        <th class="border border-gray-200 px-4 py-3">STATUS</th>
-                        <th class="border border-gray-200 px-4 py-3">CREATED BY</th>
-                        <th class="border border-gray-200 px-4 py-3">ACTIONS</th>
+                        <th class="border border-gray-700 px-4 py-3">PO NO</th>
+                        <th class="border border-gray-700 px-4 py-3">PR NO</th>
+                        <th class="border border-gray-700 px-4 py-3">COMPANY</th>
+                        <th class="border border-gray-700 px-4 py-3">SUPPLIER</th>
+                        <th class="border border-gray-700 px-4 py-3">ORDER DATE</th>
+                        <th class="border border-gray-700 px-4 py-3">STATUS</th>
+                        <th class="border border-gray-700 px-4 py-3">CREATED BY</th>
+                        <th class="border border-gray-700 px-4 py-3">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-500">
                     @forelse($purchaseOrders as $po)
-                        <tr class="hover:bg-gray-100/40">
+                        <tr class="hover:bg-gray-700/40">
                             @if(auth()->user()->canApprovePurchaseOrders())
-                            <td class="border border-gray-200 px-3 py-3 text-center">
+                            <td class="border border-gray-700 px-3 py-3 text-center">
                                 @if($po->status === 'pending')
                                     <input type="checkbox" name="ids[]" value="{{ $po->id }}"
                                         class="po-checkbox cursor-pointer" form="bulkApproveForm">
                                 @endif
                             </td>
                             @endif
-                            <td class="border border-gray-200 px-4 py-3">{{ $po->po_no }}</td>
-                            <td class="border border-gray-200 px-4 py-3">{{ $po->pr_no ?? 'N/A' }}</td>
-                            <td class="border border-gray-200 px-4 py-3">{{ $po->company }}</td>
-                            <td class="border border-gray-200 px-4 py-3">{{ $po->supplier ?? 'N/A' }}</td>
-                            <td class="border border-gray-200 px-4 py-3">{{ $po->order_date->format('M d, Y') }}</td>
-                            <td class="border border-gray-200 px-4 py-3">
+                            <td class="border border-gray-700 px-4 py-3">{{ $po->po_no }}</td>
+                            <td class="border border-gray-700 px-4 py-3">{{ $po->pr_no ?? 'N/A' }}</td>
+                            <td class="border border-gray-700 px-4 py-3">{{ $po->company }}</td>
+                            <td class="border border-gray-700 px-4 py-3">{{ $po->supplier ?? 'N/A' }}</td>
+                            <td class="border border-gray-700 px-4 py-3">{{ $po->order_date->format('M d, Y') }}</td>
+                            <td class="border border-gray-700 px-4 py-3">
                                 <span class="px-3 py-1 rounded text-xs font-semibold
                                     @if($po->status === 'pending') bg-yellow-600 text-white
                                     @elseif($po->status === 'approved') bg-green-600 text-white
@@ -107,8 +107,8 @@
                                     {{ ucfirst($po->status) }}
                                 </span>
                             </td>
-                            <td class="border border-gray-200 px-4 py-3">{{ $po->creator->name ?? 'N/A' }}</td>
-                            <td class="border border-gray-200 px-4 py-3">
+                            <td class="border border-gray-700 px-4 py-3">{{ $po->creator->name ?? 'N/A' }}</td>
+                            <td class="border border-gray-700 px-4 py-3">
                                 <div class="flex gap-2 justify-center">
                                     <a href="{{ route('purchase_orders.show', $po->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">
                                         View
@@ -128,7 +128,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->canApprovePurchaseOrders() ? 9 : 8 }}" class="border border-gray-200 px-4 py-8 text-center text-gray-500">
+                            <td colspan="{{ auth()->user()->canApprovePurchaseOrders() ? 9 : 8 }}" class="border border-gray-700 px-4 py-8 text-center text-gray-500">
                                 No purchase orders found. <a href="{{ route('purchase_orders.create') }}" class="text-purple-700 hover:text-purple-700">Create one now</a>
                             </td>
                         </tr>
@@ -191,10 +191,10 @@ prSearchInput.addEventListener('input', function() {
 
                 resultsHTML += `
                     <a href="{{ route('purchase_orders.create') }}?pr_id=${pr.id}"
-                       class="block p-4 hover:bg-gray-100 transition">
+                       class="block p-4 hover:bg-gray-700 transition">
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
-                                <div class="font-semibold text-gray-800 mb-1">
+                                <div class="font-semibold text-white mb-1">
                                     <i class="fas fa-file-alt mr-2 text-purple-700"></i>${pr.pr_no}
                                 </div>
                                 <div class="text-sm text-gray-500">${pr.requisitioner} • ${pr.company}</div>

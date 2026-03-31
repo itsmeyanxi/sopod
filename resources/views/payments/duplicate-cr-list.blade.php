@@ -4,10 +4,10 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Duplicate CR Numbers</h1>
-            <a href="{{ route('payments.entry') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded">
+            <h1 class="text-2xl font-bold text-white">Duplicate CR Numbers</h1>
+            <a href="{{ route('payments.entry') }}" class="bg-gray-200 hover:bg-gray-300 text-white px-4 py-2 rounded">
                 Back to Payments
             </a>
         </div>
@@ -20,15 +20,15 @@
         </div>
 
         @if(count($duplicates) > 0)
-            <div class="bg-gray-100 rounded-lg p-4">
+            <div class="bg-gray-700 rounded-lg p-4">
                 <p class="text-gray-500 mb-4">
                     <strong>Found {{ count($duplicates) }} CR numbers with duplicates</strong>
                 </p>
 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-lg">
+                    <table class="min-w-full bg-gray-800 rounded-lg">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-500 text-sm">
+                            <tr class="bg-gray-900 text-gray-500 text-sm">
                                 <th class="px-4 py-3 text-left">CR Number</th>
                                 <th class="px-4 py-3 text-center">Number of Records</th>
                                 <th class="px-4 py-3 text-center">Actions</th>
@@ -36,7 +36,7 @@
                         </thead>
                         <tbody class="text-gray-500">
                             @foreach($duplicates as $duplicate)
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <tr class="border-b border-gray-700 hover:bg-gray-900">
                                 <td class="px-4 py-3 font-semibold">
                                     {{ $duplicate->collection_receipt_number }}
                                 </td>
@@ -64,7 +64,7 @@
                 </div>
             </div>
         @else
-            <div class="bg-gray-100 rounded-lg p-8 text-center">
+            <div class="bg-gray-700 rounded-lg p-8 text-center">
                 <i class="fas fa-check-circle text-green-500 text-4xl mb-4"></i>
                 <p class="text-gray-500 text-lg">No duplicate CR numbers found!</p>
             </div>

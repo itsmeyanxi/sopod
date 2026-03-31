@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6 bg-gray-50 min-h-screen text-gray-700">
+<div class="p-6 bg-gray-900 min-h-screen text-gray-200">
     <h1 class="text-2xl font-bold mb-6">Add Item</h1>
 
     {{-- 💠 Form Container --}}
-    <div class="bg-white/90 border border-gray-200 p-6 rounded-xl shadow-lg max-w-3xl mx-auto">
+    <div class="bg-gray-800/90 border border-gray-700 p-6 rounded-xl shadow-lg max-w-3xl mx-auto">
         <form action="{{ route('items.store') }}" method="POST">
             @csrf
 
@@ -15,7 +15,7 @@
                 <input 
                     type="text" 
                     name="item_description" 
-                    class="w-full bg-gray-50 border border-gray-200 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                    class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
                     placeholder="Enter Item Description"
                 >
             </div>
@@ -26,7 +26,7 @@
                 <input 
                     type="text" 
                     name="item_code" 
-                    class="w-full bg-gray-50 border border-gray-200 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                    class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
                     placeholder="Enter Item Code"
                 >
             </div>
@@ -37,7 +37,7 @@
                 <input 
                     type="text" 
                     name="item_category" 
-                    class="w-full bg-gray-50 border border-gray-200 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                    class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
                     placeholder="Enter Category"
                 >
             </div>
@@ -48,7 +48,7 @@
                 <input 
                     type="text" 
                     name="brand" 
-                    class="w-full bg-gray-50 border border-gray-200 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                    class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
                     placeholder="Enter Brand"
                 >
             </div>
@@ -56,7 +56,7 @@
             {{-- 🔘 Buttons --}}
             <div class="flex justify-end gap-3">
                 <a href="{{ route('items.index') }}" 
-                   class="bg-gray-100 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md transition">
+                   class="bg-gray-700 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-md transition">
                     Cancel
                 </a>
 

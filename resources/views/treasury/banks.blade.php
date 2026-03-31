@@ -37,12 +37,12 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-5">
     <div>
-        <h2 class="text-xl font-bold text-gray-800">{{ $label }}</h2>
+        <h2 class="text-xl font-bold text-white">{{ $label }}</h2>
         <p class="text-xs text-gray-500 mt-0.5">Treasury — Bank accounts ({{ $cur === 'PHP' ? '₱ Peso' : '$ Dollar' }})</p>
     </div>
     <div class="flex gap-2">
         <a href="{{ route('treasury.summary') }}"
-           class="flex items-center gap-1.5 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 font-semibold border border-gray-300">
+           class="flex items-center gap-1.5 px-3 py-2 text-sm bg-gray-700 text-gray-200 rounded-md hover:bg-gray-200 font-semibold border border-gray-600">
             <i class="fas fa-arrow-left"></i> Back
         </a>
         @if($cur === 'PHP')
@@ -150,7 +150,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="6" class="text-right text-gray-600">TOTAL:</td>
+                    <td colspan="6" class="text-right text-gray-300">TOTAL:</td>
                     <td class="r text-gray-900" style="font-size:.95rem;">{{ $cur === 'PHP' ? '₱' : '$' }} {{ number_format($totalBalance, 2) }}</td>
                     <td></td>
                 </tr>

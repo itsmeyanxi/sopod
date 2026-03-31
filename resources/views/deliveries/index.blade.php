@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 text-gray-800 p-8">
-    <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-2">
+<div class="min-h-screen bg-gray-900 text-white p-8">
+    <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-2">
         <h1 class="text-2xl font-bold">Deliveries List</h1>
         
         @if(auth()->user()->canManageDeliveries())
@@ -27,12 +27,12 @@
     @endif
 
     {{-- 📅 Enhanced Filter Form --}}
-    <div class="bg-gradient-to-br from-gray-800 to-gray-850 rounded-2xl shadow-2xl p-6 mb-6 border border-gray-200/50">
+    <div class="bg-gradient-to-br from-gray-800 to-gray-850 rounded-2xl shadow-2xl p-6 mb-6 border border-gray-700/50">
         <div class="flex items-center gap-2 mb-4">
             <svg class="w-5 h-5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
             </svg>
-            <h2 class="text-lg font-semibold text-gray-700">Filter Options</h2>
+            <h2 class="text-lg font-semibold text-gray-200">Filter Options</h2>
         </div>
 
         <form method="GET" action="{{ route('deliveries.index') }}">
@@ -46,7 +46,7 @@
                         🚚 Delivery Date From
                     </label>
                     <input type="date" name="delivery_date_from" value="{{ request('delivery_date_from') }}" 
-                        class="w-full bg-gray-100/50 text-gray-800 px-4 py-2.5 rounded-lg border border-blue-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none">
+                        class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-blue-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none">
                 </div>
 
                 <div class="relative">
@@ -57,7 +57,7 @@
                         🚚 Delivery Date To
                     </label>
                     <input type="date" name="delivery_date_to" value="{{ request('delivery_date_to') }}" 
-                        class="w-full bg-gray-100/50 text-gray-800 px-4 py-2.5 rounded-lg border border-blue-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none">
+                        class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-blue-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none">
                 </div>
 
                 <div class="relative">
@@ -69,7 +69,7 @@
                     </label>
                     <div class="relative">
                         <input type="text" name="search" placeholder="Search DR No, SO, Customer..." value="{{ request('search') }}"
-                            class="w-full bg-gray-100/50 text-gray-800 px-4 py-2.5 pl-10 rounded-lg border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none">
+                            class="w-full bg-gray-700/50 text-white px-4 py-2.5 pl-10 rounded-lg border border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none">
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
@@ -77,10 +77,10 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50/30 rounded-xl border border-gray-200/30">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 p-4 bg-gray-900/30 rounded-xl border border-gray-700/30">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">📦 Delivery Status</label>
-                    <select name="status" class="w-full bg-gray-100/50 text-gray-800 px-4 py-2.5 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none cursor-pointer">
+                    <select name="status" class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none cursor-pointer">
                         <option value="">All Status</option>
                         <option value="Pending" {{ request('status') == 'Pending' ? 'selected' : '' }}>⏳ Pending</option>
                         <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>✓ Delivered</option>
@@ -90,7 +90,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-2">✅ Approval Status</label>
-                    <select name="approval_status" class="w-full bg-gray-100/50 text-gray-800 px-4 py-2.5 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all outline-none cursor-pointer">
+                    <select name="approval_status" class="w-full bg-gray-700/50 text-white px-4 py-2.5 rounded-lg border border-gray-600 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all outline-none cursor-pointer">
                         <option value="">All Approval Status</option>
                         <option value="Pending" {{ request('approval_status') == 'Pending' ? 'selected' : '' }}>⏳ Pending Approval</option>
                         <option value="Approved" {{ request('approval_status') == 'Approved' ? 'selected' : '' }}>✓ Approved</option>
@@ -106,7 +106,7 @@
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="show_hidden" value="1" {{ request('show_hidden') ? 'checked' : '' }}
                                class="sr-only peer" onchange="this.form.submit()">
-                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-800 after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                     </label>
                     <span class="text-sm font-medium text-red-700">Show Hidden DRs</span>
                     @if(request('show_hidden'))
@@ -124,7 +124,7 @@
                     Apply Filters
                 </button>
 
-                <a href="{{ route('deliveries.index') }}" class="bg-gray-100 hover:bg-gray-100 text-gray-800 px-6 py-2.5 rounded-lg transition-all flex items-center gap-2 font-medium">
+                <a href="{{ route('deliveries.index') }}" class="bg-gray-700 hover:bg-gray-700 text-white px-6 py-2.5 rounded-lg transition-all flex items-center gap-2 font-medium">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -151,7 +151,7 @@
             </div>
 
             @if(request('delivery_date_from') || request('delivery_date_to') || request('status') || request('approval_status'))
-                <div class="mt-4 pt-4 border-t border-gray-200/50">
+                <div class="mt-4 pt-4 border-t border-gray-700/50">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-sm font-medium text-gray-500 flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,28 +163,28 @@
                         @if(request('delivery_date_from'))
                             <span class="bg-blue-600/20 border border-blue-600/30 text-blue-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-blue-600/30 transition-all">
                                 🚚 From: {{ request('delivery_date_from') }}
-                                <a href="{{ route('deliveries.index', request()->except('delivery_date_from')) }}" class="hover:text-gray-800">×</a>
+                                <a href="{{ route('deliveries.index', request()->except('delivery_date_from')) }}" class="hover:text-white">×</a>
                             </span>
                         @endif
 
                         @if(request('delivery_date_to'))
                             <span class="bg-blue-600/20 border border-blue-600/30 text-blue-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-blue-600/30 transition-all">
                                 🚚 To: {{ request('delivery_date_to') }}
-                                <a href="{{ route('deliveries.index', request()->except('delivery_date_to')) }}" class="hover:text-gray-800">×</a>
+                                <a href="{{ route('deliveries.index', request()->except('delivery_date_to')) }}" class="hover:text-white">×</a>
                             </span>
                         @endif
 
                         @if(request('status'))
-                            <span class="bg-gray-100 border border-gray-300/30 text-gray-500 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-gray-100/30 transition-all">
+                            <span class="bg-gray-700 border border-gray-600/30 text-gray-500 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-gray-700/30 transition-all">
                                 📦 Status: {{ request('status') }}
-                                <a href="{{ route('deliveries.index', request()->except('status')) }}" class="hover:text-gray-800">×</a>
+                                <a href="{{ route('deliveries.index', request()->except('status')) }}" class="hover:text-white">×</a>
                             </span>
                         @endif
 
                         @if(request('approval_status'))
                             <span class="bg-green-600/20 border border-green-600/30 text-green-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 hover:bg-green-600/30 transition-all">
                                 ✅ Approval: {{ request('approval_status') }}
-                                <a href="{{ route('deliveries.index', request()->except('approval_status')) }}" class="hover:text-gray-800">×</a>
+                                <a href="{{ route('deliveries.index', request()->except('approval_status')) }}" class="hover:text-white">×</a>
                             </span>
                         @endif
                     </div>
@@ -238,7 +238,7 @@
         <div class="flex items-center gap-2 text-sm text-gray-500">
             <span>Number of rows:</span>
             <select onchange="changePerPage(this.value)"
-                class="bg-gray-100 border border-gray-300 text-gray-800 text-sm rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                class="bg-gray-700 border border-gray-600 text-white text-sm rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500">
                 @foreach([25,50,100,250,500] as $n)
                     <option value="{{ $n }}" {{ request('per_page', 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
                 @endforeach
@@ -246,16 +246,16 @@
         </div>
         <div>{{ $deliveries->onEachSide(1)->links('vendor.pagination.elegant') }}</div>
     </div>
-    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="bg-gray-800 rounded-xl shadow-md overflow-hidden">
         <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
             <table id="deliveriesTable" class="min-w-full text-sm border-collapse">
-                <thead class="bg-gray-100 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
                     <tr>
                         {{-- ✅ Checkbox column for batch selection --}}
                         @if(\App\Helpers\RoleHelper::canApproveDeliveries())
                             <th class="px-4 py-3 text-center">
                                 <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" 
-                                       class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-800">
+                                       class="w-4 h-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-800">
                             </th>
                         @endif
                         <th class="px-4 py-3 text-left">DR No</th>
@@ -272,18 +272,18 @@
                 </thead>
                 <tbody>
                     @forelse($deliveries as $delivery)
-                    <tr class="border-b border-gray-200 hover:bg-gray-100 transition-colors {{ $delivery->is_pulled_out ? 'opacity-60' : '' }} {{ $delivery->is_hidden ? 'bg-red-50/50 opacity-60' : '' }}">
+                    <tr class="border-b border-gray-700 hover:bg-gray-700 transition-colors {{ $delivery->is_pulled_out ? 'opacity-60' : '' }} {{ $delivery->is_hidden ? 'bg-red-50/50 opacity-60' : '' }}">
                         {{-- ✅ Checkbox column --}}
                         @if(\App\Helpers\RoleHelper::canApproveDeliveries())
                             <td class="px-4 py-3 text-center">
                                 @if($delivery->approval_status === 'Pending' && !$delivery->is_pulled_out)
                                     <input type="checkbox" 
-                                           class="delivery-checkbox w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-800" 
+                                           class="delivery-checkbox w-4 h-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-800" 
                                            data-delivery-id="{{ $delivery->id }}"
                                            data-dr-no="{{ $delivery->dr_no }}"
                                            onchange="updateBatchSelection()">
                                 @else
-                                    <span class="text-gray-600">—</span>
+                                    <span class="text-gray-300">—</span>
                                 @endif
                             </td>
                         @endif
@@ -352,7 +352,7 @@
                             @elseif($delivery->status === 'Delivered')
                                 <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">Delivered</span>
                             @else
-                                <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs">{{ $delivery->status }}</span>
+                                <span class="bg-gray-200 text-white px-2 py-1 rounded text-xs">{{ $delivery->status }}</span>
                             @endif
                         </td>
                         
@@ -466,14 +466,14 @@
 
 {{-- Reject Modal --}}
 <div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-xl font-bold mb-4 text-gray-800">Reject Delivery</h3>
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold mb-4 text-white">Reject Delivery</h3>
         <form id="rejectForm">
             <input type="hidden" id="rejectDeliveryId">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason</label>
                 <textarea id="rejectionReason" 
-                          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-800"
+                          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
                           rows="4" 
                           required
                           placeholder="Please provide a reason for rejection..."></textarea>
@@ -481,7 +481,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closeRejectModal()"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white rounded">
                     Cancel
                 </button>
                 <button type="submit"
@@ -495,8 +495,8 @@
 
 {{-- Pullout Modal --}}
 <div id="pulloutModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-xl font-bold mb-4 text-gray-800">Pullout Delivery</h3>
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold mb-4 text-white">Pullout Delivery</h3>
         <div class="mb-4 bg-orange-100/20 border border-orange-700 p-3 rounded">
             <p class="text-orange-700 text-sm">
                 ⚠️ Warning: Pulling out this delivery will cancel it and lock it from further editing.
@@ -507,7 +507,7 @@
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-500 mb-2">Pullout Reason</label>
                 <textarea id="pulloutReason" 
-                          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-800"
+                          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
                           rows="4" 
                           required
                           placeholder="Please provide a reason for pulling out this delivery..."></textarea>
@@ -515,7 +515,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closePulloutModal()"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white rounded">
                     Cancel
                 </button>
                 <button type="submit"
@@ -529,33 +529,33 @@
 
 {{-- ✅ Edit Delivery Modal - WITH DR NUMBER VALIDATION --}}
 <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-    <div class="bg-white rounded-lg p-6 max-w-5xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
+    <div class="bg-gray-800 rounded-lg p-6 max-w-5xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-gray-800">Edit Delivery</h3>
-            <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-800 text-2xl">×</button>
+            <h3 class="text-xl font-bold text-white">Edit Delivery</h3>
+            <button onclick="closeEditModal()" class="text-gray-500 hover:text-white text-2xl">×</button>
         </div>
         
         <form id="editForm">
             <input type="hidden" id="editDeliveryId">
             
             {{-- Read-only Information --}}
-            <div class="mb-6 bg-gray-100/50 p-4 rounded-lg">
+            <div class="mb-6 bg-gray-700/50 p-4 rounded-lg">
                 <h4 class="text-sm font-semibold text-gray-500 mb-3">Delivery Information (Read-Only)</h4>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
                         <label class="block text-gray-500 mb-1">Sales Order</label>
                         <input type="text" id="edit_sales_order" readonly 
-                               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-500 cursor-not-allowed">
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-500 cursor-not-allowed">
                     </div>
                     <div>
                         <label class="block text-gray-500 mb-1">Customer</label>
                         <input type="text" id="edit_customer" readonly 
-                               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-500 cursor-not-allowed">
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-500 cursor-not-allowed">
                     </div>
                     <div>
                         <label class="block text-gray-500 mb-1">Batch</label>
                         <input type="text" id="edit_batch" readonly 
-                               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-500 cursor-not-allowed">
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-500 cursor-not-allowed">
                     </div>
                 </div>
             </div>
@@ -564,7 +564,7 @@
             <div id="poImageSection" class="mb-6 bg-blue-50 border border-blue-700 p-4 rounded-lg" style="display: none;">
                 <h4 class="text-sm font-semibold text-blue-700 mb-3">📎 Purchase Order Image</h4>
                 <div class="flex items-center gap-4">
-                    <img id="poImagePreview" class="max-w-xs max-h-48 rounded border border-gray-300 cursor-pointer" 
+                    <img id="poImagePreview" class="max-w-xs max-h-48 rounded border border-gray-600 cursor-pointer" 
                          onclick="openPOImageFullscreen()" 
                          title="Click to view full size">
                     <div>
@@ -579,7 +579,7 @@
             </div>
 
             {{-- Editable Fields --}}
-            <div class="mb-6 bg-gray-50/50 p-4 rounded-lg border border-green-200/30">
+            <div class="mb-6 bg-gray-900/50 p-4 rounded-lg border border-green-200/30">
                 <h4 class="text-sm font-semibold text-green-700 mb-3">✎ Editable Fields</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -593,23 +593,23 @@
                                pattern="[0-9\-\/]+"
                                title="Only numbers, hyphens (-), and forward slashes (/) are allowed"
                                oninput="validateDRNumber(this)"
-                               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-800 focus:ring-2 focus:ring-green-500">
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500">
                         <p id="dr_no_error" class="text-red-700 text-xs mt-1 hidden">Only numbers, hyphens (-), and forward slashes (/) are allowed</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">SI Invoice No.</label>
                         <input type="text" id="edit_si_no"
-                               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-800 focus:ring-2 focus:ring-green-500">
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">PO Number</label>
                         <input type="text" id="edit_po_number"
-                               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-800 focus:ring-2 focus:ring-green-500">
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Plate No.</label>
                         <input type="text" id="edit_plate_no"
-                               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-800 focus:ring-2 focus:ring-green-500">
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500">
                     </div>
                     {{-- ✅ NEW: Request Delivery Date Field --}}
                     <div class="md:col-span-2">
@@ -618,7 +618,7 @@
                             Request Delivery Date <span class="text-red-500">*</span>
                         </label>
                         <input type="date" id="edit_request_delivery_date" required
-                               class="w-full px-3 py-2 bg-gray-100 border border-blue-600 rounded text-gray-800 focus:ring-2 focus:ring-blue-500">
+                               class="w-full px-3 py-2 bg-gray-700 border border-blue-600 rounded text-white focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
             </div>
@@ -628,7 +628,7 @@
                 <h4 class="text-sm font-semibold text-gray-500 mb-3">Delivery Items - Edit Quantities</h4>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
-                        <thead class="bg-gray-100 text-gray-500 uppercase text-xs">
+                        <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
                             <tr>
                                 <th class="px-3 py-2 text-left">Item Code</th>
                                 <th class="px-3 py-2 text-left">Description</th>
@@ -639,7 +639,7 @@
                                 <th class="px-3 py-2 text-right">Total Amount</th>
                             </tr>
                         </thead>
-                        <tbody id="editItemsTableBody" class="text-gray-800">
+                        <tbody id="editItemsTableBody" class="text-white">
                             <!-- Items will be loaded here dynamically -->
                         </tbody>
                     </table>
@@ -647,10 +647,10 @@
             </div>
 
             {{-- Action Buttons --}}
-            <div class="flex gap-3 justify-end pt-4 border-t border-gray-200">
+            <div class="flex gap-3 justify-end pt-4 border-t border-gray-700">
                 <button type="button" 
                         onclick="closeEditModal()"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white rounded transition">
                     Cancel
                 </button>
                 <button type="submit"
@@ -666,7 +666,7 @@
 <div id="poImageFullscreenModal" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[100]">
     <div class="relative max-w-7xl w-full h-full p-4 flex items-center justify-center">
         <button onclick="closePOImageFullscreen()" 
-                class="absolute top-4 right-4 text-gray-800 bg-red-600 hover:bg-red-700 rounded-full w-10 h-10 flex items-center justify-center text-2xl z-10">
+                class="absolute top-4 right-4 text-white bg-red-600 hover:bg-red-700 rounded-full w-10 h-10 flex items-center justify-center text-2xl z-10">
             ×
         </button>
         <img id="poImageFullscreen" class="max-w-full max-h-full object-contain">
@@ -676,14 +676,14 @@
 {{-- ============================================ --}}
 
 <div id="rejectEditModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-xl font-bold mb-4 text-gray-800">Reject Edit Request</h3>
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold mb-4 text-white">Reject Edit Request</h3>
         <form id="rejectEditForm">
             <input type="hidden" id="rejectEditDeliveryId">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason</label>
                 <textarea id="editRejectionReason" 
-                          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-800"
+                          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
                           rows="4" 
                           required
                           placeholder="Please provide a reason for rejecting the edit request..."></textarea>
@@ -691,7 +691,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closeRejectEditModal()"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white rounded">
                     Cancel
                 </button>
                 <button type="submit"
@@ -704,13 +704,13 @@
 </div>
 
 <div id="batchRejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-xl font-bold mb-4 text-gray-800">Batch Reject Deliveries</h3>
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold mb-4 text-white">Batch Reject Deliveries</h3>
         <div class="mb-4">
             <p class="text-gray-500 mb-3">
                 You are about to reject <strong id="batchRejectCount" class="text-red-700">0</strong> delivery(ies):
             </p>
-            <ul id="batchRejectList" class="bg-gray-50/50 border border-gray-200 rounded p-3 mb-4 max-h-40 overflow-y-auto">
+            <ul id="batchRejectList" class="bg-gray-900/50 border border-gray-700 rounded p-3 mb-4 max-h-40 overflow-y-auto">
                 <!-- List will be populated dynamically -->
             </ul>
         </div>
@@ -718,7 +718,7 @@
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-500 mb-2">Rejection Reason <span class="text-red-700">*</span></label>
                 <textarea id="batchRejectionReason" 
-                          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-800"
+                          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
                           rows="4" 
                           required
                           placeholder="Please provide a reason for batch rejection..."></textarea>
@@ -726,7 +726,7 @@
             <div class="flex gap-3 justify-end">
                 <button type="button" 
                         onclick="closeBatchRejectModal()"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white rounded">
                     Cancel
                 </button>
                 <button type="submit"
@@ -1193,7 +1193,7 @@ function populateEditModal(data) {
     
     data.items.forEach((item, index) => {
         const row = document.createElement('tr');
-        row.className = 'border-b border-gray-200';
+        row.className = 'border-b border-gray-700';
         
         const remaining = Math.max(0, item.original_quantity - item.already_delivered - item.quantity);
         
@@ -1215,7 +1215,7 @@ function populateEditModal(data) {
                        data-original-qty="${item.original_quantity || 0}"
                        data-already-delivered="${item.already_delivered || 0}"
                        onchange="updateItemTotal(this)"
-                       class="edit-item-qty w-24 px-2 py-1 bg-gray-100 border border-green-600 rounded text-gray-800 focus:ring-2 focus:ring-green-500">
+                       class="edit-item-qty w-24 px-2 py-1 bg-gray-700 border border-green-600 rounded text-white focus:ring-2 focus:ring-green-500">
             </td>
             <td class="px-3 py-2 remaining-qty-${index}">${remaining.toFixed(2)}</td>
             <td class="px-3 py-2 text-right item-total-${index}">₱${(parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0)).toFixed(2)}</td>

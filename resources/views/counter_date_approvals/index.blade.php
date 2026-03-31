@@ -3,12 +3,12 @@
 @section('title', 'Counter Date Approval')
 
 @section('content')
-<div class="p-6 bg-gray-50 min-h-screen">
+<div class="p-6 bg-gray-900 min-h-screen">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Counter Date Approval</h1>
+                <h1 class="text-2xl font-bold text-white">Counter Date Approval</h1>
                 <p class="text-sm text-gray-500 mt-1">Review and approve delivery counter dates for aging reports</p>
             </div>
             <button type="button" id="bulkApproveBtn" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-md font-medium transition hidden">
@@ -22,31 +22,31 @@
 
         <!-- Stats -->
         <div class="grid grid-cols-3 gap-4 mb-4">
-            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
+            <div class="bg-gray-800 rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
                 <p class="text-xs text-gray-500 font-semibold uppercase">Total with Counter Date</p>
-                <p class="text-2xl font-bold text-gray-800">{{ number_format($totalWithCounter) }}</p>
+                <p class="text-2xl font-bold text-white">{{ number_format($totalWithCounter) }}</p>
             </div>
-            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-orange-500">
+            <div class="bg-gray-800 rounded-lg shadow-sm p-4 border-l-4 border-orange-500">
                 <p class="text-xs text-gray-500 font-semibold uppercase">Pending Approval</p>
                 <p class="text-2xl font-bold text-orange-700">{{ number_format($pendingCount) }}</p>
             </div>
-            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500">
+            <div class="bg-gray-800 rounded-lg shadow-sm p-4 border-l-4 border-green-500">
                 <p class="text-xs text-gray-500 font-semibold uppercase">Approved</p>
                 <p class="text-2xl font-bold text-green-700">{{ number_format($approvedCount) }}</p>
             </div>
         </div>
 
         <!-- Filters -->
-        <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+        <div class="bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
             <form method="GET" action="{{ route('counter_date_approvals.index') }}" class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-xs text-gray-500 font-semibold mb-1">Search</label>
                     <input type="text" name="search" value="{{ $search }}" placeholder="Customer, DR No., Invoice..."
-                        class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 font-semibold mb-1">Status</label>
-                    <select name="filter" class="bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-gray-700">
+                    <select name="filter" class="bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-gray-200">
                         <option value="pending" {{ $filter === 'pending' ? 'selected' : '' }}>Pending Approval</option>
                         <option value="approved" {{ $filter === 'approved' ? 'selected' : '' }}>Approved</option>
                         <option value="all" {{ $filter === 'all' ? 'selected' : '' }}>All</option>
@@ -56,19 +56,19 @@
                     <i class="fas fa-search mr-1"></i> Filter
                 </button>
                 @if($search || $filter !== 'pending')
-                <a href="{{ route('counter_date_approvals.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md font-medium transition">Clear</a>
+                <a href="{{ route('counter_date_approvals.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-200 px-4 py-2 rounded-md font-medium transition">Clear</a>
                 @endif
             </form>
         </div>
 
         <!-- Table -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="bg-gray-800 rounded-lg shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="bg-red-800 text-white">
                             <th class="px-3 py-3 text-center w-10">
-                                <input type="checkbox" id="selectAll" class="rounded border-gray-300">
+                                <input type="checkbox" id="selectAll" class="rounded border-gray-600">
                             </th>
                             <th class="px-3 py-3 text-left font-semibold">DR No.</th>
                             <th class="px-3 py-3 text-left font-semibold">Invoice No.</th>
@@ -86,17 +86,17 @@
                         <tr class="border-b border-gray-100 hover:bg-red-50 transition" data-id="{{ $delivery->id }}">
                             <td class="px-3 py-2.5 text-center">
                                 @if(!$delivery->counter_date_approved)
-                                <input type="checkbox" class="row-check rounded border-gray-300" value="{{ $delivery->id }}">
+                                <input type="checkbox" class="row-check rounded border-gray-600" value="{{ $delivery->id }}">
                                 @endif
                             </td>
-                            <td class="px-3 py-2.5 font-mono text-xs text-gray-800 font-medium">{{ $delivery->dr_no ?? '—' }}</td>
-                            <td class="px-3 py-2.5 font-mono text-xs text-gray-600">{{ $delivery->sales_invoice_no ?? '—' }}</td>
+                            <td class="px-3 py-2.5 font-mono text-xs text-white font-medium">{{ $delivery->dr_no ?? '—' }}</td>
+                            <td class="px-3 py-2.5 font-mono text-xs text-gray-300">{{ $delivery->sales_invoice_no ?? '—' }}</td>
                             <td class="px-3 py-2.5">
-                                <div class="font-semibold text-gray-800">{{ $delivery->customer_name }}</div>
+                                <div class="font-semibold text-white">{{ $delivery->customer_name }}</div>
                                 <div class="text-xs text-gray-400">{{ $delivery->customer_code }}</div>
                             </td>
-                            <td class="px-3 py-2.5 text-gray-600">{{ $delivery->branch ?? '—' }}</td>
-                            <td class="px-3 py-2.5 text-center text-gray-600">
+                            <td class="px-3 py-2.5 text-gray-300">{{ $delivery->branch ?? '—' }}</td>
+                            <td class="px-3 py-2.5 text-center text-gray-300">
                                 {{ $delivery->request_delivery_date ? \Carbon\Carbon::parse($delivery->request_delivery_date)->format('m/d/Y') : '—' }}
                             </td>
                             <td class="px-3 py-2.5 text-center">

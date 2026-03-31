@@ -4,13 +4,13 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-            <h1 class="text-2xl font-bold text-gray-800">{{ $notesOnly ? 'EDIT NOTES' : 'EDIT PURCHASE ORDER' }}</h1>
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+            <h1 class="text-2xl font-bold text-white">{{ $notesOnly ? 'EDIT NOTES' : 'EDIT PURCHASE ORDER' }}</h1>
             <div class="text-right">
                 <label class="font-semibold text-gray-500">PO NO:</label>
-                <span class="ml-2 px-4 py-1 bg-gray-50 border border-gray-200 text-gray-800 rounded">{{ $purchaseOrder->po_no }}</span>
+                <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $purchaseOrder->po_no }}</span>
             </div>
         </div>
 
@@ -52,35 +52,35 @@
 
             <!-- Items Table with editable Notes only -->
             <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">Items</h3>
+                <h3 class="text-lg font-semibold text-white mb-2">Items</h3>
                 <div class="overflow-x-auto">
-                    <table class="border-collapse border border-gray-200" id="itemsTable" style="min-width:1100px; width:100%;">
+                    <table class="border-collapse border border-gray-700" id="itemsTable" style="min-width:1100px; width:100%;">
                         <thead class="bg-red-700 text-white">
                             <tr>
-                                <th class="border border-gray-200 px-2 py-2" style="width:40px">NO.</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:130px">ITEM CODE</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:70px">QTY</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:80px">UOM</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:280px">DESCRIPTION</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:200px">SUPPLIER</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:110px">UNIT PRICE</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:100px">TOTAL</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:220px">NOTE</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:40px">NO.</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:130px">ITEM CODE</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:70px">QTY</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:80px">UOM</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:280px">DESCRIPTION</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:200px">SUPPLIER</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:110px">UNIT PRICE</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:100px">TOTAL</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:220px">NOTE</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($purchaseOrder->items as $index => $item)
                             <tr>
-                                <td class="border border-gray-200 px-2 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
-                                <td class="border border-gray-200 px-2 py-2 text-gray-500">{{ $item->item_code }}</td>
-                                <td class="border border-gray-200 px-2 py-2 text-gray-500">{{ $item->qty }}</td>
-                                <td class="border border-gray-200 px-2 py-2 text-gray-500">{{ $item->uom }}</td>
-                                <td class="border border-gray-200 px-2 py-2 text-gray-500">{{ $item->description }}</td>
-                                <td class="border border-gray-200 px-2 py-2 text-gray-500">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? 'N/A' }}</td>
-                                <td class="border border-gray-200 px-2 py-2 text-gray-500">{{ number_format($item->unit_price, 2) }}</td>
-                                <td class="border border-gray-200 px-2 py-2 text-gray-500">{{ number_format($item->total, 2) }}</td>
-                                <td class="border border-gray-200 px-2 py-2">
-                                    <input type="text" name="notes[{{ $item->id }}]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" value="{{ $item->note }}" placeholder="Add note...">
+                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->item_code }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->qty }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->uom }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->description }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? 'N/A' }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ number_format($item->unit_price, 2) }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-500">{{ number_format($item->total, 2) }}</td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <input type="text" name="notes[{{ $item->id }}]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->note }}" placeholder="Add note...">
                                 </td>
                             </tr>
                             @endforeach
@@ -91,7 +91,7 @@
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-4">
-                <a href="{{ route('purchase_orders.show', $purchaseOrder->id) }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
+                <a href="{{ route('purchase_orders.show', $purchaseOrder->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-700 transition">
                     Cancel
                 </a>
                 <button type="submit" class="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700">
@@ -107,9 +107,9 @@
             @method('PUT')
 
             <!-- Select PR Section -->
-            <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
+            <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
                 <label class="block font-semibold text-gray-500 mb-2">LINKED PURCHASE REQUEST:</label>
-                <select name="purchase_request_id" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <select name="purchase_request_id" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="">-- No PR Linked --</option>
                     @foreach($purchaseRequests as $pr)
                         <option value="{{ $pr->id }}" {{ old('purchase_request_id', $purchaseOrder->purchase_request_id) == $pr->id ? 'selected' : '' }}>
@@ -122,7 +122,7 @@
             <!-- Company Selection -->
             <div class="mb-6">
                 <label class="block font-semibold text-gray-500 mb-2">COMPANY: <span class="text-red-700">*</span></label>
-                <select name="company" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                <select name="company" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                     <option value="">-- Select Company --</option>
                     @foreach($companies as $company)
                         <option value="{{ $company }}" {{ old('company', $purchaseOrder->company) == $company ? 'selected' : '' }}>
@@ -138,15 +138,15 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">CONSIGNEE:</label>
-                        <input type="text" name="consignee" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('consignee', $purchaseOrder->consignee) }}">
+                        <input type="text" name="consignee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('consignee', $purchaseOrder->consignee) }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">CONSIGNEE ADDRESS:</label>
-                        <textarea name="consignee_address" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('consignee_address', $purchaseOrder->consignee_address) }}</textarea>
+                        <textarea name="consignee_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('consignee_address', $purchaseOrder->consignee_address) }}</textarea>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">DELIVERY ADDRESS:</label>
-                        <textarea name="delivery_address" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('delivery_address', $purchaseOrder->delivery_address) }}</textarea>
+                        <textarea name="delivery_address" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2">{{ old('delivery_address', $purchaseOrder->delivery_address) }}</textarea>
                     </div>
                 </div>
 
@@ -154,35 +154,35 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">ORDER DATE: <span class="text-red-700">*</span></label>
-                        <input type="date" name="order_date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('order_date', $purchaseOrder->order_date->format('Y-m-d')) }}" required>
+                        <input type="date" name="order_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('order_date', $purchaseOrder->order_date->format('Y-m-d')) }}" required>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">EXPECTED DELIVERY DATE:</label>
-                        <input type="date" name="expected_delivery_date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('expected_delivery_date', $purchaseOrder->expected_delivery_date ? $purchaseOrder->expected_delivery_date->format('Y-m-d') : '') }}">
+                        <input type="date" name="expected_delivery_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('expected_delivery_date', $purchaseOrder->expected_delivery_date ? $purchaseOrder->expected_delivery_date->format('Y-m-d') : '') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">PAYMENT TERMS:</label>
-                        <input type="text" name="payment_terms" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms', $purchaseOrder->payment_terms) }}">
+                        <input type="text" name="payment_terms" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms', $purchaseOrder->payment_terms) }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">LOCATION:</label>
-                        <input type="text" name="location" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('location', $purchaseOrder->location) }}">
+                        <input type="text" name="location" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('location', $purchaseOrder->location) }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">HOUSE:</label>
-                        <input type="text" name="house" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('house', $purchaseOrder->house) }}">
+                        <input type="text" name="house" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('house', $purchaseOrder->house) }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">PR#:</label>
-                        <input type="text" name="pr_no" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('pr_no', $purchaseOrder->pr_no) }}">
+                        <input type="text" name="pr_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('pr_no', $purchaseOrder->pr_no) }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">LC PRICE:</label>
-                        <input type="number" step="0.01" name="lc_price" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('lc_price', $purchaseOrder->lc_price) }}">
+                        <input type="number" step="0.01" name="lc_price" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('lc_price', $purchaseOrder->lc_price) }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">CURRENCY:</label>
-                        <select name="currency" id="currency_select" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="onCurrencyChange()">
+                        <select name="currency" id="currency_select" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="onCurrencyChange()">
                             @foreach($currencies as $cur)
                                 <option value="{{ $cur->code }}"
                                         data-rate="{{ $cur->rate_to_php }}"
@@ -198,7 +198,7 @@
                         <label class="block font-semibold text-gray-500 mb-1">EXCHANGE RATE <span class="text-gray-500 text-xs" id="rate_label">(1 {{ $editCurrency }} = ? PHP)</span>:</label>
                         <div class="flex items-center gap-2">
                             <span class="text-gray-500">₱</span>
-                            <input type="number" step="0.0001" name="exchange_rate" id="exchange_rate" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('exchange_rate', $purchaseOrder->exchange_rate ?? 1) }}">
+                            <input type="number" step="0.0001" name="exchange_rate" id="exchange_rate" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('exchange_rate', $purchaseOrder->exchange_rate ?? 1) }}">
                         </div>
                         <p class="text-gray-500 text-xs mt-1">Rate used when PO was created. You may update.</p>
                     </div>
@@ -213,60 +213,60 @@
             <!-- Items Table -->
             <div class="mb-6">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold text-gray-800">Items</h3>
+                    <h3 class="text-lg font-semibold text-white">Items</h3>
                     <button type="button" onclick="addRow()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         <i class="fas fa-plus mr-1"></i> Add Row
                     </button>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="border-collapse border border-gray-200" id="itemsTable" style="min-width:1400px; width:100%;">
+                    <table class="border-collapse border border-gray-700" id="itemsTable" style="min-width:1400px; width:100%;">
                         <thead class="bg-red-700 text-white">
                             <tr>
-                                <th class="border border-gray-200 px-2 py-2" style="width:70px">ACTION</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:40px">NO.</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:130px">ITEM CODE</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:70px">QTY</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:80px">UOM</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:280px">DESCRIPTION</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:200px">SUPPLIER</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:110px">UNIT PRICE</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:80px">TAX</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:100px">TOTAL</th>
-                                <th class="border border-gray-200 px-2 py-2" style="width:180px">NOTE</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:70px">ACTION</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:40px">NO.</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:130px">ITEM CODE</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:70px">QTY</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:80px">UOM</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:280px">DESCRIPTION</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:200px">SUPPLIER</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:110px">UNIT PRICE</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:80px">TAX</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:100px">TOTAL</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:180px">NOTE</th>
                             </tr>
                         </thead>
                         <tbody id="itemsBody">
                             @foreach($purchaseOrder->items as $index => $item)
                             <tr>
-                                <td class="border border-gray-200 px-2 py-2 text-center">
+                                <td class="border border-gray-700 px-2 py-2 text-center">
                                     <button type="button" onclick="removeRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition" title="Delete row">
                                         <i class="fas fa-trash mr-1"></i>Delete
                                     </button>
                                 </td>
-                                <td class="border border-gray-200 px-2 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
-                                <td class="border border-gray-200 px-2 py-2">
-                                    <input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-code-input" value="{{ $item->item_code }}" autocomplete="off">
+                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">{{ $index + 1 }}</td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" value="{{ $item->item_code }}" autocomplete="off">
                                     <input type="hidden" name="items[{{ $index }}][purchase_request_item_id]" value="{{ $item->purchase_request_item_id }}">
                                 </td>
-                                <td class="border border-gray-200 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-qty" value="{{ $item->qty }}" required></td>
-                                <td class="border border-gray-200 px-2 py-2"><input type="text" name="items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" value="{{ $item->uom }}" required></td>
-                                <td class="border border-gray-200 px-2 py-2">
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" value="{{ $item->qty }}" required></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->uom }}" required></td>
+                                <td class="border border-gray-700 px-2 py-2">
                                     <div class="relative">
-                                        <input type="text" name="items[{{ $index }}][description]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 desc-input" value="{{ $item->description }}" required autocomplete="off">
-                                        <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                                        <input type="text" name="items[{{ $index }}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" value="{{ $item->description }}" required autocomplete="off">
+                                        <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
                                     </div>
                                 </td>
-                                <td class="border border-gray-200 px-2 py-2">
+                                <td class="border border-gray-700 px-2 py-2">
                                     <div class="relative">
-                                        <input type="text" name="items[{{ $index }}][supplier_name]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 supplier-input" value="{{ $item->supplier_name ?? $purchaseOrder->supplier }}" autocomplete="off" placeholder="Search supplier...">
+                                        <input type="text" name="items[{{ $index }}][supplier_name]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-input" value="{{ $item->supplier_name ?? $purchaseOrder->supplier }}" autocomplete="off" placeholder="Search supplier...">
                                         <input type="hidden" name="items[{{ $index }}][supplier_id]" class="supplier-id-input" value="{{ $item->supplier_id ?? $purchaseOrder->supplier_id }}">
-                                        <div class="supplier-dropdown hidden bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto"></div>
+                                        <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto"></div>
                                     </div>
                                 </td>
-                                <td class="border border-gray-200 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-price" value="{{ $item->unit_price }}"></td>
-                                <td class="border border-gray-200 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-tax" value="{{ $item->tax }}"></td>
-                                <td class="border border-gray-200 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-total" value="{{ $item->total }}" readonly></td>
-                                <td class="border border-gray-200 px-2 py-2"><input type="text" name="items[{{ $index }}][note]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" value="{{ $item->note }}" placeholder="Note..."></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" value="{{ $item->unit_price }}"></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="{{ $item->tax }}"></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" value="{{ $item->total }}" readonly></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->note }}" placeholder="Note..."></td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -276,16 +276,16 @@
 
             <!-- Currency Totals Summary -->
             <div id="currency_summary" class="mb-4 {{ ($purchaseOrder->currency ?? 'PHP') === 'PHP' ? 'hidden' : '' }}">
-                <div class="bg-gray-50 border border-purple-700 rounded p-4">
+                <div class="bg-gray-900 border border-purple-700 rounded p-4">
                     <h3 class="font-semibold text-purple-700 mb-2">PHP Equivalent Summary</h3>
                     <div class="flex flex-wrap gap-6 text-sm">
                         <div>
                             <span class="text-gray-500">Total (<span id="summary_currency">{{ $purchaseOrder->currency ?? 'USD' }}</span>):</span>
-                            <span class="text-gray-800 font-bold ml-2" id="summary_foreign_total">0.00</span>
+                            <span class="text-white font-bold ml-2" id="summary_foreign_total">0.00</span>
                         </div>
                         <div>
                             <span class="text-gray-500">Exchange Rate:</span>
-                            <span class="text-gray-800 ml-2">1 <span id="summary_code">{{ $purchaseOrder->currency ?? 'USD' }}</span> = ₱<span id="summary_rate">{{ number_format($purchaseOrder->exchange_rate ?? 1, 4) }}</span></span>
+                            <span class="text-white ml-2">1 <span id="summary_code">{{ $purchaseOrder->currency ?? 'USD' }}</span> = ₱<span id="summary_rate">{{ number_format($purchaseOrder->exchange_rate ?? 1, 4) }}</span></span>
                         </div>
                         <div>
                             <span class="text-gray-500">Total (PHP):</span>
@@ -297,13 +297,13 @@
 
             <!-- Remarks -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-800 mb-2">REMARKS:</label>
-                <textarea name="remarks" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter remarks...">{{ old('remarks', $purchaseOrder->remarks) }}</textarea>
+                <label class="block font-semibold text-white mb-2">REMARKS:</label>
+                <textarea name="remarks" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter remarks...">{{ old('remarks', $purchaseOrder->remarks) }}</textarea>
             </div>
 
             <!-- Quotation File Upload -->
             <div class="mb-6">
-                <label class="block font-semibold text-gray-800 mb-2">QUOTATION:</label>
+                <label class="block font-semibold text-white mb-2">QUOTATION:</label>
                 @if($purchaseOrder->quotation)
                     <div class="mb-3 p-3 bg-green-50 border border-green-200 rounded">
                         <p class="text-green-700 text-sm">
@@ -315,32 +315,32 @@
                     </div>
                 @endif
                 <div class="flex items-center gap-4">
-                    <input type="file" name="quotation" id="quotation" class="flex-1 bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                    <input type="file" name="quotation" id="quotation" class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
                     <span class="text-gray-500 text-sm">(PDF, Word, Excel, Image)</span>
                 </div>
             </div>
 
             <!-- Signature Section -->
             <div class="mb-6">
-                <div class="border border-gray-200 rounded">
+                <div class="border border-gray-700 rounded">
                     <table class="w-full">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-200 px-4 py-2 text-center text-gray-500 text-sm">Prepared By:</th>
-                                <th class="border border-gray-200 px-4 py-2 text-center text-gray-500 text-sm">Checked By:</th>
-                                <th class="border border-gray-200 px-4 py-2 text-center text-gray-500 text-sm">Approved By:</th>
+                            <tr class="bg-gray-700">
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Prepared By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Checked By:</th>
+                                <th class="border border-gray-700 px-4 py-2 text-center text-gray-500 text-sm">Approved By:</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="border border-gray-200 px-4 py-16 text-center"></td>
-                                <td class="border border-gray-200 px-4 py-16 text-center"></td>
-                                <td class="border border-gray-200 px-4 py-16 text-center"></td>
+                                <td class="border border-gray-700 px-4 py-16 text-center"></td>
+                                <td class="border border-gray-700 px-4 py-16 text-center"></td>
+                                <td class="border border-gray-700 px-4 py-16 text-center"></td>
                             </tr>
-                            <tr class="bg-gray-100 text-gray-500 text-xs italic">
-                                <td class="border border-gray-200 px-4 py-2 text-center">Purchasing Officer</td>
-                                <td class="border border-gray-200 px-4 py-2 text-center">Accounting Manager</td>
-                                <td class="border border-gray-200 px-4 py-2 text-center">Authorized Signatory</td>
+                            <tr class="bg-gray-700 text-gray-500 text-xs italic">
+                                <td class="border border-gray-700 px-4 py-2 text-center">Purchasing Officer</td>
+                                <td class="border border-gray-700 px-4 py-2 text-center">Accounting Manager</td>
+                                <td class="border border-gray-700 px-4 py-2 text-center">Authorized Signatory</td>
                             </tr>
                         </tbody>
                     </table>
@@ -349,7 +349,7 @@
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-4">
-                <a href="{{ route('purchase_orders.show', $purchaseOrder->id) }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
+                <a href="{{ route('purchase_orders.show', $purchaseOrder->id) }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-700 transition">
                     Cancel
                 </a>
                 <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
@@ -369,35 +369,35 @@ function addRow() {
     const tbody = document.getElementById('itemsBody');
     const newRow = tbody.insertRow();
     newRow.innerHTML = `
-        <td class="border border-gray-200 px-2 py-2 text-center">
+        <td class="border border-gray-700 px-2 py-2 text-center">
             <button type="button" onclick="removeRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition" title="Delete row">
                 <i class="fas fa-trash mr-1"></i>Delete
             </button>
         </td>
-        <td class="border border-gray-200 px-2 py-2 text-center text-gray-500">${rowCount + 1}</td>
-        <td class="border border-gray-200 px-2 py-2">
-            <input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-code-input" autocomplete="off">
+        <td class="border border-gray-700 px-2 py-2 text-center text-gray-500">${rowCount + 1}</td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off">
             <input type="hidden" name="items[${rowCount}][purchase_request_item_id]" value="">
         </td>
-        <td class="border border-gray-200 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-qty" required></td>
-        <td class="border border-gray-200 px-2 py-2"><input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" required></td>
-        <td class="border border-gray-200 px-2 py-2">
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
+        <td class="border border-gray-700 px-2 py-2">
             <div class="relative">
-                <input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 desc-input" required autocomplete="off">
-                <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                <input type="text" name="items[${rowCount}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off">
+                <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
             </div>
         </td>
-        <td class="border border-gray-200 px-2 py-2">
+        <td class="border border-gray-700 px-2 py-2">
             <div class="relative">
-                <input type="text" name="items[${rowCount}][supplier_name]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 supplier-input" autocomplete="off" placeholder="Search supplier...">
+                <input type="text" name="items[${rowCount}][supplier_name]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-input" autocomplete="off" placeholder="Search supplier...">
                 <input type="hidden" name="items[${rowCount}][supplier_id]" class="supplier-id-input" value="">
-                <div class="supplier-dropdown hidden bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto"></div>
+                <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto"></div>
             </div>
         </td>
-        <td class="border border-gray-200 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-price"></td>
-        <td class="border border-gray-200 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-tax" value="0"></td>
-        <td class="border border-gray-200 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][total]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800 item-total" readonly></td>
-        <td class="border border-gray-200 px-2 py-2"><input type="text" name="items[${rowCount}][note]" class="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-800" placeholder="Note..."></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price"></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="0"></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="Note..."></td>
     `;
     rowCount++;
     attachCalculationListeners();
@@ -546,7 +546,7 @@ function attachSupplierAutocomplete(input) {
                 const suppliers = await res.json();
                 if (!suppliers.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = suppliers.map(s =>
-                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 supplier-option"
+                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 supplier-option"
                           data-id="${s.id}" data-name="${s.supplier_name}">
                         <strong>${s.supplier_name}</strong>
                         <span class="text-gray-500 text-xs ml-1">${s.supplier_code || ''}</span>
@@ -591,7 +591,7 @@ function attachDescAutocomplete(input) {
                 const items = await res.json();
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(item =>
-                    `<div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 desc-option"
+                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 desc-option"
                           data-name="${(item.name || item).toString().replace(/"/g, '&quot;')}"
                           data-item-code="${(item.item_code || '').toString().replace(/"/g, '&quot;')}"
                           data-supplier-id="${item.supplier_id || ''}"

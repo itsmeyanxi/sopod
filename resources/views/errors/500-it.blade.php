@@ -25,20 +25,20 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4">
+<body class="bg-gray-700 min-h-screen p-4">
     <div class="max-w-7xl mx-auto">
         <!-- IT Badge -->
         <div class="mb-4 flex items-center gap-3">
             <span class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm">
                 🔧 IT DEBUG MODE
             </span>
-            <span class="text-gray-600 text-sm">
+            <span class="text-gray-300 text-sm">
                 Logged in as: <strong>{{ auth()->user()->name ?? 'IT User' }}</strong>
             </span>
         </div>
 
         <!-- Main Error Card -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-4">
+        <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden mb-4">
             <!-- Header -->
             <div class="bg-red-600 text-white p-4">
                 <h1 class="text-2xl font-bold flex items-center gap-2">
@@ -48,15 +48,15 @@
             </div>
 
             <!-- Error Message -->
-            <div class="p-6 border-b border-gray-200 error-highlight">
-                <h2 class="text-lg font-semibold text-gray-800 mb-2">Error Message:</h2>
+            <div class="p-6 border-b border-gray-700 error-highlight">
+                <h2 class="text-lg font-semibold text-white mb-2">Error Message:</h2>
                 <p class="text-red-700 text-lg font-mono">{{ $exception->getMessage() }}</p>
             </div>
 
             <!-- File Location -->
-            <div class="p-6 border-b border-gray-200 bg-gray-50">
-                <h2 class="text-lg font-semibold text-gray-800 mb-2">Location:</h2>
-                <p class="text-gray-700 font-mono text-sm">
+            <div class="p-6 border-b border-gray-700 bg-gray-900">
+                <h2 class="text-lg font-semibold text-white mb-2">Location:</h2>
+                <p class="text-gray-200 font-mono text-sm">
                     <strong>File:</strong> {{ $exception->getFile() }}<br>
                     <strong>Line:</strong> {{ $exception->getLine() }}
                 </p>
@@ -64,7 +64,7 @@
 
             <!-- Stack Trace -->
             <div class="p-6">
-                <h2 class="text-lg font-semibold text-gray-800 mb-4">Stack Trace:</h2>
+                <h2 class="text-lg font-semibold text-white mb-4">Stack Trace:</h2>
                 <div class="stack-trace">
                     <pre>{{ $exception->getTraceAsString() }}</pre>
                 </div>
@@ -72,33 +72,33 @@
         </div>
 
         <!-- Request Info -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-4">
+        <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden mb-4">
             <div class="bg-blue-600 text-white p-3">
                 <h2 class="text-lg font-bold">Request Information</h2>
             </div>
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <h3 class="font-semibold text-gray-700 mb-2">URL:</h3>
-                    <p class="text-sm font-mono bg-gray-100 p-2 rounded">{{ request()->fullUrl() }}</p>
+                    <h3 class="font-semibold text-gray-200 mb-2">URL:</h3>
+                    <p class="text-sm font-mono bg-gray-700 p-2 rounded">{{ request()->fullUrl() }}</p>
                 </div>
                 <div>
-                    <h3 class="font-semibold text-gray-700 mb-2">Method:</h3>
-                    <p class="text-sm font-mono bg-gray-100 p-2 rounded">{{ request()->method() }}</p>
+                    <h3 class="font-semibold text-gray-200 mb-2">Method:</h3>
+                    <p class="text-sm font-mono bg-gray-700 p-2 rounded">{{ request()->method() }}</p>
                 </div>
                 <div>
-                    <h3 class="font-semibold text-gray-700 mb-2">IP Address:</h3>
-                    <p class="text-sm font-mono bg-gray-100 p-2 rounded">{{ request()->ip() }}</p>
+                    <h3 class="font-semibold text-gray-200 mb-2">IP Address:</h3>
+                    <p class="text-sm font-mono bg-gray-700 p-2 rounded">{{ request()->ip() }}</p>
                 </div>
                 <div>
-                    <h3 class="font-semibold text-gray-700 mb-2">User Agent:</h3>
-                    <p class="text-sm font-mono bg-gray-100 p-2 rounded truncate">{{ request()->userAgent() }}</p>
+                    <h3 class="font-semibold text-gray-200 mb-2">User Agent:</h3>
+                    <p class="text-sm font-mono bg-gray-700 p-2 rounded truncate">{{ request()->userAgent() }}</p>
                 </div>
             </div>
         </div>
 
         <!-- Request Data -->
         @if(request()->all())
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-4">
+        <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden mb-4">
             <div class="bg-green-600 text-white p-3">
                 <h2 class="text-lg font-bold">Request Data</h2>
             </div>
@@ -115,7 +115,7 @@
                 🔄 Refresh Page
             </button>
             <a href="{{ route('dashboard') }}" 
-               class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-100 transition font-semibold">
+               class="px-6 py-3 bg-gray-200 text-white rounded-lg hover:bg-gray-700 transition font-semibold">
                 🏠 Go to Dashboard
             </a>
             <button onclick="copyError()" 

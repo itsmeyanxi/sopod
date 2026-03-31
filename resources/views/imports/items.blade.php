@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
         <h2 class="text-2xl font-bold mb-6">Import Items from Excel</h2>
 
         @if(session('success'))
@@ -61,7 +61,7 @@
                 
                 <a 
                     href="{{ route('items.index') }}" 
-                    class="text-gray-500 hover:text-gray-800 transition"
+                    class="text-gray-500 hover:text-white transition"
                 >
                     Cancel
                 </a>
@@ -69,7 +69,7 @@
         </form>
 
         <!-- Instructions -->
-        <div class="mt-8 bg-gray-100 p-4 rounded">
+        <div class="mt-8 bg-gray-700 p-4 rounded">
             <h3 class="font-semibold mb-3">📋 Excel File Format Guidelines</h3>
             <p class="text-sm text-gray-500 mb-2">Your Excel file can have the following columns (all optional):</p>
             <ul class="text-sm text-gray-500 space-y-1 list-disc list-inside">
@@ -81,7 +81,7 @@
                 <li><strong>unit_price</strong> - Price per unit</li>
             </ul>
             
-            <div class="mt-4 pt-4 border-t border-gray-300">
+            <div class="mt-4 pt-4 border-t border-gray-600">
                 <a 
                     href="{{ route('import.items.template') }}" 
                     class="inline-flex items-center text-blue-700 hover:text-blue-700 text-sm"

@@ -5,7 +5,7 @@
 @section('content')
 <div class="container mx-auto">
     <div class="mb-4">
-        <a href="{{ route('payments.entry') }}" class="text-sm text-gray-500 hover:text-gray-700">
+        <a href="{{ route('payments.entry') }}" class="text-sm text-gray-500 hover:text-gray-200">
             <i class="fas fa-arrow-left mr-1"></i> Back to Payments
         </a>
     </div>
@@ -22,7 +22,7 @@
         </div>
     @endif
 
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
         <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
             <h2 class="text-xl font-bold text-white">Payment Edit Requests</h2>
             <p class="text-orange-100 text-sm mt-0.5">Review and approve/reject payment edit requests</p>
@@ -47,7 +47,7 @@
                         <div class="px-4 py-3 flex justify-between items-start">
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <span class="font-semibold text-gray-800">{{ $req->customer_name }}</span>
+                                    <span class="font-semibold text-white">{{ $req->customer_name }}</span>
                                     <span class="text-xs text-gray-500">CR #{{ $req->cr_number }}</span>
                                     <span class="px-2 py-0.5 rounded text-xs font-bold
                                         {{ $isPending ? 'bg-orange-100 text-orange-700' : ($req->status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700') }}">
@@ -59,7 +59,7 @@
                                     on {{ \Carbon\Carbon::parse($req->created_at)->format('M d, Y h:i A') }}
                                 </p>
                                 @if($req->reason)
-                                <p class="text-sm text-gray-600 mt-1"><strong>Reason:</strong> {{ $req->reason }}</p>
+                                <p class="text-sm text-gray-300 mt-1"><strong>Reason:</strong> {{ $req->reason }}</p>
                                 @endif
                                 @if($req->attachment_path)
                                 <p class="text-xs text-blue-600 mt-1">
@@ -79,7 +79,7 @@
                         <div class="px-4 pb-3">
                             <table class="w-full text-xs border-collapse">
                                 <thead>
-                                    <tr class="border-b border-gray-200">
+                                    <tr class="border-b border-gray-700">
                                         <th class="text-left py-1 text-gray-500 w-1/4">Field</th>
                                         <th class="text-left py-1 text-gray-500 w-3/8">Original</th>
                                         <th class="text-left py-1 text-gray-500 w-3/8">Proposed</th>
@@ -89,7 +89,7 @@
                                     @foreach($fields as $key => $label)
                                         @if(($original[$key] ?? '') != ($proposed[$key] ?? ''))
                                         <tr class="border-b border-gray-100">
-                                            <td class="py-1 font-medium text-gray-600">{{ $label }}</td>
+                                            <td class="py-1 font-medium text-gray-300">{{ $label }}</td>
                                             <td class="py-1 text-red-600 line-through">{{ $original[$key] ?? '—' }}</td>
                                             <td class="py-1 text-green-700 font-semibold">{{ $proposed[$key] ?? '—' }}</td>
                                         </tr>
@@ -101,7 +101,7 @@
 
                         @if($isPending)
                             @if(auth()->user()->canApprovePaymentEditRequests())
-                            <div class="px-4 py-3 border-t border-gray-200 flex items-center gap-2">
+                            <div class="px-4 py-3 border-t border-gray-700 flex items-center gap-2">
                                 <form action="{{ route('payments.approveEditRequest', $req->id) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded text-sm font-medium transition"
@@ -111,7 +111,7 @@
                                 </form>
                                 <form action="{{ route('payments.rejectEditRequest', $req->id) }}" method="POST" class="inline flex items-center gap-2">
                                     @csrf
-                                    <input type="text" name="review_notes" placeholder="Rejection reason (optional)" class="border border-gray-300 rounded px-2 py-1.5 text-sm w-48">
+                                    <input type="text" name="review_notes" placeholder="Rejection reason (optional)" class="border border-gray-600 rounded px-2 py-1.5 text-sm w-48">
                                     <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded text-sm font-medium transition"
                                         onclick="return confirm('Reject this edit request?')">
                                         <i class="fas fa-times mr-1"></i>Reject
@@ -119,12 +119,12 @@
                                 </form>
                             </div>
                             @else
-                            <div class="px-4 py-2 border-t border-gray-200 text-xs text-orange-600">
+                            <div class="px-4 py-2 border-t border-gray-700 text-xs text-orange-600">
                                 <i class="fas fa-clock mr-1"></i> Awaiting approval from Joey Fernandez
                             </div>
                             @endif
                         @else
-                        <div class="px-4 py-2 border-t border-gray-200 text-xs text-gray-500">
+                        <div class="px-4 py-2 border-t border-gray-700 text-xs text-gray-500">
                             {{ $req->status }} by {{ $req->reviewed_by_name ?? 'System' }}
                             on {{ $req->reviewed_at ? \Carbon\Carbon::parse($req->reviewed_at)->format('M d, Y h:i A') : '—' }}
                             @if($req->review_notes)

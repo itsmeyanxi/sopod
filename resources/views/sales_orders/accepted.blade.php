@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6 bg-gray-50 min-h-screen text-gray-800">
+<div class="p-6 bg-gray-900 min-h-screen text-white">
     <h2 class="text-2xl font-bold mb-6">Accepted Sales Orders</h2>
 
     <!-- SEARCH BAR -->
@@ -10,14 +10,14 @@
             <input id="soSearchInput" 
                    type="text" 
                    placeholder="Search SO number / customer / approver"
-                   class="border border-gray-300 bg-white text-gray-800 rounded px-3 py-2 w-72 focus:outline-none focus:ring focus:ring-blue-500" />
+                   class="border border-gray-600 bg-gray-800 text-white rounded px-3 py-2 w-72 focus:outline-none focus:ring focus:ring-blue-500" />
         </div>
     </div>
 
     <!-- TABLE -->
-    <div class="overflow-x-auto bg-white rounded-lg shadow">
+    <div class="overflow-x-auto bg-gray-800 rounded-lg shadow">
         <table id="salesOrdersTable" class="w-full text-sm">
-            <thead class="bg-gray-100 text-gray-500 uppercase">
+            <thead class="bg-gray-700 text-gray-500 uppercase">
                 <tr>
                     <th class="px-4 py-3 text-left">SO Number</th>
                     <th class="px-4 py-3 text-left">Customer</th>
@@ -34,7 +34,7 @@
                     @endphp
 
                     @if(in_array($status, ['approved', 'declined', 'cancelled']))
-                    <tr class="border-b border-gray-200 hover:bg-gray-100 transition">
+                    <tr class="border-b border-gray-700 hover:bg-gray-700 transition">
                         <td class="px-4 py-3">{{ $order->sales_order_number ?? $order->so_number }}</td>
                         <td class="px-4 py-3">{{ $order->customer->customer_name ?? 'N/A' }}</td>
                         <td class="px-4 py-3">{{ $order->created_at->format('Y-m-d') }}</td>
@@ -45,7 +45,7 @@
                             @elseif($status === 'declined')
                                 <span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">Declined</span>
                             @elseif($status === 'cancelled')
-                                <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs font-semibold">Cancelled</span>
+                                <span class="bg-gray-200 text-white px-2 py-1 rounded text-xs font-semibold">Cancelled</span>
                             @endif
                         </td>
                         <td class="px-4 py- text-gray-500">

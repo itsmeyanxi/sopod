@@ -4,10 +4,10 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-            <h1 class="text-2xl font-bold text-gray-800">SUPPLIERS</h1>
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+            <h1 class="text-2xl font-bold text-white">SUPPLIERS</h1>
             <div class="flex gap-2">
                 <a href="{{ route('suppliers.export') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
                     <i class="fas fa-file-excel mr-1"></i> Export to Excel
@@ -32,39 +32,39 @@
 
         <!-- Suppliers Table -->
         <div class="overflow-x-auto">
-            <table class="min-w-full bg-gray-50 border border-gray-200">
+            <table class="min-w-full bg-gray-900 border border-gray-700">
                 <thead>
-                    <tr class="bg-gray-100">
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">Supplier</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">Payment Terms</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">Contact Person</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">Email</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">Contact Number</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-left text-gray-500">Bank</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-center text-gray-500">Status</th>
-                        <th class="px-4 py-2 border-b border-gray-200 text-center text-gray-500">Actions</th>
+                    <tr class="bg-gray-700">
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Supplier</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Payment Terms</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Contact Person</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Email</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Contact Number</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-left text-gray-500">Bank</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-center text-gray-500">Status</th>
+                        <th class="px-4 py-2 border-b border-gray-700 text-center text-gray-500">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($suppliers as $supplier)
-                        <tr class="hover:bg-gray-100 transition">
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">
-                                <div class="font-semibold text-gray-700">{{ $supplier->supplier_name }}</div>
+                        <tr class="hover:bg-gray-700 transition">
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">
+                                <div class="font-semibold text-gray-200">{{ $supplier->supplier_name }}</div>
                                 <div class="text-xs text-gray-500">{{ $supplier->supplier_code }}</div>
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $supplier->terms ?? 'N/A' }}</td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $supplier->contact_person ?? 'N/A' }}</td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $supplier->email ?? 'N/A' }}</td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500">{{ $supplier->contact_number ?? 'N/A' }}</td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-gray-500 text-sm">{{ $supplier->bank ?? 'N/A' }}</td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-center">
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $supplier->terms ?? 'N/A' }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $supplier->contact_person ?? 'N/A' }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $supplier->email ?? 'N/A' }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500">{{ $supplier->contact_number ?? 'N/A' }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-gray-500 text-sm">{{ $supplier->bank ?? 'N/A' }}</td>
+                            <td class="px-4 py-2 border-b border-gray-700 text-center">
                                 @if($supplier->status === 'active')
                                     <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Active</span>
                                 @else
                                     <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">Inactive</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-200 text-center">
+                            <td class="px-4 py-2 border-b border-gray-700 text-center">
                                 <div class="flex justify-center gap-2">
                                     <a href="{{ route('suppliers.show', $supplier->id) }}" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs">
                                         <i class="fas fa-eye"></i> View

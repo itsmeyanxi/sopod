@@ -2,9 +2,9 @@
 @section('title', 'Storage List')
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-            <h1 class="text-2xl font-bold text-gray-800">STORAGE MANAGEMENT</h1>
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+            <h1 class="text-2xl font-bold text-white">STORAGE MANAGEMENT</h1>
             <a href="{{ route('storages.create') }}" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
                 <i class="fas fa-plus mr-1"></i> Create Storage
             </a>
@@ -22,7 +22,7 @@
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 border-b border-gray-200">
+                    <thead class="bg-gray-900 border-b border-gray-700">
                         <tr>
                             <th class="px-4 py-3 text-left">Code</th>
                             <th class="px-4 py-3 text-left">Name</th>
@@ -34,15 +34,15 @@
                             <th class="px-4 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody class="divide-y divide-gray-700">
                         @foreach($storages as $storage)
-                        <tr class="hover:bg-gray-50 transition">
+                        <tr class="hover:bg-gray-900 transition">
                             <td class="px-4 py-3 font-mono font-semibold">{{ $storage->storage_code }}</td>
                             <td class="px-4 py-3">{{ $storage->storage_name }}</td>
                             <td class="px-4 py-3">{{ $storage->warehouse?->warehouse_name ?? 'N/A' }}</td>
                             <td class="px-4 py-3">{{ $storage->location ?? '-' }}</td>
                             <td class="px-4 py-3 text-center">
-                                <span class="px-2 py-1 rounded text-xs {{ $storage->temperature_controlled === 'Yes' ? 'bg-blue-100/50 text-blue-700' : 'bg-gray-100 text-gray-500' }}">
+                                <span class="px-2 py-1 rounded text-xs {{ $storage->temperature_controlled === 'Yes' ? 'bg-blue-100/50 text-blue-700' : 'bg-gray-700 text-gray-500' }}">
                                     {{ $storage->temperature_controlled }}
                                 </span>
                             </td>

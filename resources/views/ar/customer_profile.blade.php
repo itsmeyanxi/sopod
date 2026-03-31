@@ -2,11 +2,11 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <div class="bg-gray-50 rounded-xl shadow-lg border border-gray-200">
+    <div class="bg-gray-900 rounded-xl shadow-lg border border-gray-700">
         <!-- Header -->
-        <div class="bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <div class="bg-gray-800 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-2">
+                <h1 class="text-3xl font-bold text-white flex items-center gap-2">
                     👤 Customer AR Profile
                 </h1>
                 <p class="text-sm text-gray-500 mt-1">
@@ -15,7 +15,7 @@
                     <span class="font-mono text-blue-700">{{ $customerCode }}</span>
                 </p>
             </div>
-            <a href="{{ route('aging_reports.view') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg flex items-center gap-2">
+            <a href="{{ route('aging_reports.view') }}" class="bg-gray-700 hover:bg-gray-200 text-white px-4 py-2 rounded-lg flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
@@ -24,7 +24,7 @@
         </div>
 
         <!-- Summary Stats -->
-        <div class="p-6 border-b border-gray-200">
+        <div class="p-6 border-b border-gray-700">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-blue-100 rounded-lg p-4 border border-blue-700">
                     <p class="text-gray-500 text-sm font-semibold">Total Invoiced</p>
@@ -47,7 +47,7 @@
 
         <!-- Tabs -->
         <div class="p-6">
-            <div class="flex gap-4 border-b border-gray-200 mb-6">
+            <div class="flex gap-4 border-b border-gray-700 mb-6">
                 <button class="tab-btn active px-4 py-2 font-semibold border-b-2 border-blue-500 text-blue-700 hover:text-blue-700" data-tab="aging">
                     <i class="fas fa-file-invoice mr-2"></i> AR Aging
                 </button>
@@ -64,7 +64,7 @@
                 @if($arAging->count() > 0)
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
-                            <thead class="bg-white text-gray-500 uppercase text-xs">
+                            <thead class="bg-gray-800 text-gray-500 uppercase text-xs">
                                 <tr>
                                     <th class="px-4 py-3 text-left">Invoice No</th>
                                     <th class="px-4 py-3 text-left">Invoice Date</th>
@@ -76,9 +76,9 @@
                                     <th class="px-4 py-3 text-left">Status</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200">
+                            <tbody class="divide-y divide-gray-700">
                                 @foreach($arAging as $invoice)
-                                <tr class="text-gray-500 hover:bg-white/50">
+                                <tr class="text-gray-500 hover:bg-gray-800/50">
                                     <td class="px-4 py-3 font-mono text-blue-700">{{ $invoice->invoice_no }}</td>
                                     <td class="px-4 py-3">{{ $invoice->invoice_date ? Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') : '—' }}</td>
                                     <td class="px-4 py-3 font-mono text-green-700">{{ $invoice->so_dr_po ?? '—' }}</td>
@@ -104,7 +104,7 @@
                     </div>
                 @else
                     <div class="text-center py-8">
-                        <i class="fas fa-inbox text-gray-600 text-3xl mb-3 block"></i>
+                        <i class="fas fa-inbox text-gray-300 text-3xl mb-3 block"></i>
                         <p class="text-gray-500">No AR aging records found for this customer</p>
                     </div>
                 @endif
@@ -115,7 +115,7 @@
                 @if($payments->count() > 0)
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
-                            <thead class="bg-white text-gray-500 uppercase text-xs">
+                            <thead class="bg-gray-800 text-gray-500 uppercase text-xs">
                                 <tr>
                                     <th class="px-4 py-3 text-left">CR No</th>
                                     <th class="px-4 py-3 text-left">Date</th>
@@ -126,9 +126,9 @@
                                     <th class="px-4 py-3 text-left">Remarks</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200">
+                            <tbody class="divide-y divide-gray-700">
                                 @foreach($payments as $payment)
-                                <tr class="text-gray-500 hover:bg-white/50">
+                                <tr class="text-gray-500 hover:bg-gray-800/50">
                                     <td class="px-4 py-3 font-mono text-blue-700">{{ $payment->collection_receipt_number ?? '—' }}</td>
                                     <td class="px-4 py-3">{{ $payment->created_at?->format('M d, Y') ?? '—' }}</td>
                                     <td class="px-4 py-3 font-mono text-green-700">{{ $payment->dr_no ?? '—' }}</td>
@@ -140,7 +140,7 @@
                                                 $means = is_string($payment->payment_means) ? json_decode($payment->payment_means, true) : $payment->payment_means;
                                                 $type = is_array($means) ? ($means['type'] ?? 'Unknown') : 'Unknown';
                                             @endphp
-                                            <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs capitalize">{{ $type }}</span>
+                                            <span class="bg-gray-700 text-gray-500 px-2 py-1 rounded text-xs capitalize">{{ $type }}</span>
                                         @else
                                             <span class="text-gray-500 text-xs">—</span>
                                         @endif
@@ -153,7 +153,7 @@
                     </div>
                 @else
                     <div class="text-center py-8">
-                        <i class="fas fa-inbox text-gray-600 text-3xl mb-3 block"></i>
+                        <i class="fas fa-inbox text-gray-300 text-3xl mb-3 block"></i>
                         <p class="text-gray-500">No collections recorded for this customer</p>
                     </div>
                 @endif
@@ -164,7 +164,7 @@
                 @if($adjustments->count() > 0)
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
-                            <thead class="bg-white text-gray-500 uppercase text-xs">
+                            <thead class="bg-gray-800 text-gray-500 uppercase text-xs">
                                 <tr>
                                     <th class="px-4 py-3 text-left">Ref No</th>
                                     <th class="px-4 py-3 text-left">Date</th>
@@ -175,9 +175,9 @@
                                     <th class="px-4 py-3 text-left">Remarks</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200">
+                            <tbody class="divide-y divide-gray-700">
                                 @foreach($adjustments as $adj)
-                                <tr class="text-gray-500 hover:bg-white/50">
+                                <tr class="text-gray-500 hover:bg-gray-800/50">
                                     <td class="px-4 py-3 font-mono text-blue-700">{{ $adj->reference_number }}</td>
                                     <td class="px-4 py-3">{{ $adj->transaction_date?->format('M d, Y') ?? '—' }}</td>
                                     <td class="px-4 py-3">
@@ -198,7 +198,7 @@
                     </div>
                 @else
                     <div class="text-center py-8">
-                        <i class="fas fa-inbox text-gray-600 text-3xl mb-3 block"></i>
+                        <i class="fas fa-inbox text-gray-300 text-3xl mb-3 block"></i>
                         <p class="text-gray-500">No adjustments recorded for this customer</p>
                     </div>
                 @endif

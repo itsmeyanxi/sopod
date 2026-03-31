@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 text-gray-800 p-8">
+<div class="min-h-screen bg-gray-900 text-white p-8">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-2">
-        <h1 class="text-2xl text-gray-800 font-bold">Pending Items for Approval</h1>
+    <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-2">
+        <h1 class="text-2xl text-white font-bold">Pending Items for Approval</h1>
         <a href="{{ route('items.index') }}" 
-           class="bg-gray-100 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded transition">
+           class="bg-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition">
             Back to All Items
         </a>
     </div>
@@ -25,9 +25,9 @@
     @endif
 
     <!-- Pending Items Table -->
-    <div class="bg-white rounded-xl shadow-md overflow-x-auto">
+    <div class="bg-gray-800 rounded-xl shadow-md overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-gray-100 text-gray-500 uppercase text-xs">
+            <thead class="bg-gray-700 text-gray-500 uppercase text-xs">
                 <tr>
                     <th class="px-4 py-3 text-left">Item Code</th>
                     <th class="px-4 py-3 text-left">Description</th>
@@ -38,7 +38,7 @@
             </thead>
             <tbody>
                 @forelse($items as $item)
-                <tr class="border-b border-gray-200 hover:bg-gray-100 transition">
+                <tr class="border-b border-gray-700 hover:bg-gray-700 transition">
                     <td class="px-4 py-3">{{ $item->item_code }}</td>
                     <td class="px-4 py-3">{{ Str::limit($item->item_description, 50) }}</td>
                     <td class="px-4 py-3">{{ $item->brand ?? 'N/A' }}</td>
@@ -86,8 +86,8 @@
 
 <!-- Reject Modal -->
 <div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Reject Item</h2>
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 class="text-xl font-bold text-white mb-4">Reject Item</h2>
         <form id="rejectForm" method="POST">
             @csrf
             <div class="mb-4">
@@ -95,7 +95,7 @@
                 <textarea 
                     name="rejection_reason" 
                     rows="4" 
-                    class="w-full bg-gray-50 border border-gray-200 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
                     placeholder="Enter reason for rejection..."
                     required></textarea>
             </div>
@@ -103,7 +103,7 @@
                 <button 
                     type="button" 
                     onclick="closeRejectModal()"
-                    class="bg-gray-100 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md transition">
+                    class="bg-gray-700 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-md transition">
                     Cancel
                 </button>
                 <button 

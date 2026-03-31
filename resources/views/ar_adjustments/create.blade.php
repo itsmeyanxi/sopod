@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold">CREATE AR ADJUSTMENT</h1>
         </div>
 
@@ -27,11 +27,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">Transaction Date: <span class="text-red-700">*</span></label>
-                    <input type="date" name="transaction_date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('transaction_date', date('Y-m-d')) }}" required>
+                    <input type="date" name="transaction_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('transaction_date', date('Y-m-d')) }}" required>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">Reference Number:</label>
-                    <input type="text" name="reference_number" class="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-500 cursor-not-allowed" value="{{ $nextRefNumber }}" readonly>
+                    <input type="text" name="reference_number" class="w-full bg-gray-700 border border-gray-700 rounded px-3 py-2 text-gray-500 cursor-not-allowed" value="{{ $nextRefNumber }}" readonly>
                     <p class="text-xs text-gray-400 mt-1">Auto-generated on save</p>
                 </div>
             </div>
@@ -40,7 +40,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">Transaction Type: <span class="text-red-700">*</span></label>
-                    <select name="transaction_type" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                    <select name="transaction_type" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                         <option value="">-- Select Transaction Type --</option>
                         <option value="debit_memo" {{ old('transaction_type') == 'debit_memo' ? 'selected' : '' }}>Debit Memo</option>
                         <option value="credit_memo" {{ old('transaction_type') == 'credit_memo' ? 'selected' : '' }}>Credit Memo</option>
@@ -57,7 +57,7 @@
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">Customer Name: <span class="text-red-700">*</span></label>
-                    <input type="text" name="customer_name" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter customer name" value="{{ old('customer_name') }}" required>
+                    <input type="text" name="customer_name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter customer name" value="{{ old('customer_name') }}" required>
                 </div>
             </div>
 
@@ -66,12 +66,12 @@
                 <label class="block font-semibold text-purple-700 mb-2"><i class="fas fa-link mr-1"></i> Link Receiving Report (optional)</label>
                 <div class="relative">
                     <input type="text" id="rrSearchInput" autocomplete="off"
-                        class="w-full bg-white border border-purple-300 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        class="w-full bg-gray-800 border border-purple-300 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                         placeholder="Search by RR number, DR number, customer name, or SO number...">
-                    <div id="rrDropdown" class="absolute z-50 w-full bg-white border border-gray-200 rounded mt-1 shadow-lg hidden max-h-72 overflow-y-auto"></div>
+                    <div id="rrDropdown" class="absolute z-50 w-full bg-gray-800 border border-gray-700 rounded mt-1 shadow-lg hidden max-h-72 overflow-y-auto"></div>
                 </div>
                 <!-- Selected RR preview -->
-                <div id="rrPreview" class="hidden mt-3 p-3 bg-white rounded border border-purple-200">
+                <div id="rrPreview" class="hidden mt-3 p-3 bg-gray-800 rounded border border-purple-200">
                     <div class="flex justify-between items-start">
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm flex-1">
                             <div>
@@ -80,11 +80,11 @@
                             </div>
                             <div>
                                 <p class="text-xs text-gray-500">DR / Delivery Batch</p>
-                                <p class="font-semibold text-gray-800" id="rrPreviewDR"></p>
+                                <p class="font-semibold text-white" id="rrPreviewDR"></p>
                             </div>
                             <div>
                                 <p class="text-xs text-gray-500">Customer</p>
-                                <p class="font-semibold text-gray-800" id="rrPreviewCustomer"></p>
+                                <p class="font-semibold text-white" id="rrPreviewCustomer"></p>
                             </div>
                             <div>
                                 <p class="text-xs text-gray-500">RR Total Amount</p>
@@ -103,11 +103,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">Customer Code:</label>
-                    <input type="text" name="customer_code" id="customerCodeInput" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Customer code (optional)" value="{{ old('customer_code') }}">
+                    <input type="text" name="customer_code" id="customerCodeInput" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Customer code (optional)" value="{{ old('customer_code') }}">
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">Branch:</label>
-                    <input type="text" name="branch" id="branchInput" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Branch (optional)" value="{{ old('branch') }}">
+                    <input type="text" name="branch" id="branchInput" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Branch (optional)" value="{{ old('branch') }}">
                 </div>
             </div>
 
@@ -115,11 +115,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">DR Number:</label>
-                    <input type="text" name="dr_no" id="drNoInput" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Delivery Report number (optional)" value="{{ old('dr_no') }}">
+                    <input type="text" name="dr_no" id="drNoInput" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Delivery Report number (optional)" value="{{ old('dr_no') }}">
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">Invoice Number:</label>
-                    <input type="text" name="invoice_number" id="invoiceNumberInput" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Invoice number (optional)" value="{{ old('invoice_number') }}">
+                    <input type="text" name="invoice_number" id="invoiceNumberInput" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Invoice number (optional)" value="{{ old('invoice_number') }}">
                 </div>
             </div>
 
@@ -130,7 +130,7 @@
         <div class="relative">
             <span class="absolute left-3 top-2 text-gray-500 text-lg">₱</span>
             <input type="text" name="amount" id="amountInput"
-                class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 pl-8 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 pl-8 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="0.00 (use - or () for decrease)"
                 value="{{ old('amount') }}" required>
         </div>
@@ -150,7 +150,7 @@
             <input
                 type="text"
                 id="gl_search_input"
-                class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 pr-10 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 pr-10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Search by code or name..."
                 autocomplete="off">
             <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
@@ -162,22 +162,22 @@
 
         {{-- Dropdown: all options pre-rendered by Blade, filtered by JS --}}
         <div id="gl_dropdown"
-            class="absolute z-50 w-full bg-white border border-gray-200 rounded mt-1 shadow-lg hidden max-h-64 overflow-y-auto">
+            class="absolute z-50 w-full bg-gray-800 border border-gray-700 rounded mt-1 shadow-lg hidden max-h-64 overflow-y-auto">
 
-            <div class="sticky top-0 bg-gray-100 px-3 py-2 text-xs text-gray-500 font-semibold border-b border-gray-200">
+            <div class="sticky top-0 bg-gray-700 px-3 py-2 text-xs text-gray-500 font-semibold border-b border-gray-700">
                 Select a GL Account
             </div>
 
             @foreach($glAccounts as $account)
                 <div
-                    class="gl-option px-4 py-3 hover:bg-purple-600 hover:text-white cursor-pointer text-gray-800 border-b border-gray-100 last:border-b-0 transition-colors"
+                    class="gl-option px-4 py-3 hover:bg-purple-600 hover:text-white cursor-pointer text-white border-b border-gray-100 last:border-b-0 transition-colors"
                     data-id="{{ $account['id'] }}"
                     data-code="{{ $account['code'] }}"
                     data-name="{{ $account['name'] }}"
                     data-display="{{ $account['display'] }}"
                     data-search="{{ strtolower($account['code'] . ' ' . $account['name'] . ' ' . ($account['fs_line_item'] ?? '')) }}">
                     <div class="font-semibold text-sm">{{ $account['code'] }}
-                        <span class="font-normal text-gray-600"> — {{ $account['name'] }}</span>
+                        <span class="font-normal text-gray-300"> — {{ $account['name'] }}</span>
                     </div>
                     <div class="text-xs text-gray-400">{{ $account['fs_line_item'] ?? 'No FS Item' }}</div>
                 </div>
@@ -189,18 +189,18 @@
             <!-- Signed By -->
             <div class="mb-6">
                 <label class="block font-semibold text-gray-500 mb-2">Signed By: <span class="text-red-700">*</span></label>
-                <input type="text" name="signed_by" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Name of person who signed" value="{{ old('signed_by') }}" required>
+                <input type="text" name="signed_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Name of person who signed" value="{{ old('signed_by') }}" required>
             </div>
 
             <!-- Remarks & Attachment -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">Remarks:</label>
-                    <textarea name="remarks" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter any remarks...">{{ old('remarks') }}</textarea>
+                    <textarea name="remarks" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter any remarks...">{{ old('remarks') }}</textarea>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">Supporting Document:</label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-400 transition" id="dropZone">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-purple-400 transition" id="dropZone">
                         <input type="file" name="attachment" id="attachmentInput" accept=".pdf,.png,.jpg,.jpeg" class="hidden">
                         <div id="uploadPlaceholder">
                             <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
@@ -209,7 +209,7 @@
                         </div>
                         <div id="filePreview" class="hidden">
                             <i class="fas fa-file text-2xl text-purple-600 mb-1"></i>
-                            <p class="text-sm font-medium text-gray-700" id="fileName"></p>
+                            <p class="text-sm font-medium text-gray-200" id="fileName"></p>
                             <p class="text-xs text-gray-400" id="fileSize"></p>
                             <button type="button" id="removeFile" class="text-red-500 text-xs mt-1 hover:underline">
                                 <i class="fas fa-times mr-1"></i>Remove
@@ -226,7 +226,7 @@
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-4">
-                <a href="{{ route('ar_adjustments.index') }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-200 transition">
+                <a href="{{ route('ar_adjustments.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-200 transition">
                     Cancel
                 </a>
                 <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div>
                         <span class="font-semibold text-purple-700 text-sm">${rr.rr_number}</span>
                         <span class="text-gray-400 mx-1">|</span>
-                        <span class="text-gray-600 text-sm">DR: ${rr.delivery_batch || '—'}</span>
+                        <span class="text-gray-300 text-sm">DR: ${rr.delivery_batch || '—'}</span>
                     </div>
                     <span class="text-green-700 font-semibold text-sm">₱${Number(rr.total_amount).toLocaleString('en', {minimumFractionDigits: 2})}</span>
                 </div>

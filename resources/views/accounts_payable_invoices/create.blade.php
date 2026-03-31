@@ -4,13 +4,13 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-            <h1 class="text-2xl font-bold text-gray-800">ACCOUNTS PAYABLE VOUCHER</h1>
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+            <h1 class="text-2xl font-bold text-white">ACCOUNTS PAYABLE VOUCHER</h1>
             <div class="text-right">
                 <label class="font-semibold text-gray-500">APV NO:</label>
-                <span class="ml-2 px-4 py-1 bg-gray-50 border border-gray-200 text-gray-800 rounded">{{ $apvNo }}</span>
+                <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $apvNo }}</span>
             </div>
         </div>
 
@@ -26,12 +26,12 @@
 
         <!-- Reference Document Type Selector -->
         @if(!$selectedRFP)
-        <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
-            <h3 class="font-semibold text-gray-800 mb-3">REFERENCE DOCUMENT TYPE</h3>
+        <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+            <h3 class="font-semibold text-white mb-3">REFERENCE DOCUMENT TYPE</h3>
             <div class="flex gap-3 mb-4">
                 <button type="button" class="ref-type-btn px-4 py-2 rounded border border-purple-500 bg-purple-600 text-white font-semibold transition" data-type="rfp">RFP</button>
-                <button type="button" class="ref-type-btn px-4 py-2 rounded border border-gray-200 bg-white text-gray-800 hover:bg-purple-700 transition" data-type="car">Cash Advance</button>
-                <button type="button" class="ref-type-btn px-4 py-2 rounded border border-gray-200 bg-white text-gray-800 hover:bg-purple-700 transition" data-type="reimbursement">Reimbursement</button>
+                <button type="button" class="ref-type-btn px-4 py-2 rounded border border-gray-700 bg-gray-800 text-white hover:bg-purple-700 transition" data-type="car">Cash Advance</button>
+                <button type="button" class="ref-type-btn px-4 py-2 rounded border border-gray-700 bg-gray-800 text-white hover:bg-purple-700 transition" data-type="reimbursement">Reimbursement</button>
             </div>
 
             <!-- RFP Search (default) -->
@@ -39,9 +39,9 @@
                 <label class="block text-gray-500 text-sm mb-1">Search Approved Request for Payment</label>
                 <div class="relative">
                     <input type="text" id="rfpSearchInput"
-                        class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                         placeholder="Search by RFP No, Payee, or Company..." />
-                    <div id="rfpSearchResults" class="hidden absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+                    <div id="rfpSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
                 </div>
             </div>
 
@@ -50,9 +50,9 @@
                 <label class="block text-gray-500 text-sm mb-1">Search Approved Cash Advance Request</label>
                 <div class="relative">
                     <input type="text" id="carSearchInput"
-                        class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                         placeholder="Search by CAR No, Payee, or Department..." />
-                    <div id="carSearchResults" class="hidden absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+                    <div id="carSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
                 </div>
             </div>
 
@@ -61,9 +61,9 @@
                 <label class="block text-gray-500 text-sm mb-1">Search Approved Reimbursement Form</label>
                 <div class="relative">
                     <input type="text" id="reimbursementSearchInput"
-                        class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                         placeholder="Search by RI No, Department, or Submitted By..." />
-                    <div id="reimbursementSearchResults" class="hidden absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+                    <div id="reimbursementSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
                 </div>
             </div>
 
@@ -84,18 +84,18 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">APV DATE: <span class="text-red-700">*</span></label>
-                    <input type="date" name="apv_date" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('apv_date', date('Y-m-d')) }}" required>
+                    <input type="date" name="apv_date" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('apv_date', date('Y-m-d')) }}" required>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">PAYMENT TYPE: <span class="text-red-700">*</span></label>
                     <div class="flex gap-4">
-                        <label class="flex items-center p-3 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 cursor-pointer transition flex-1">
-                            <input type="radio" name="payment_type" value="full_payment" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500" {{ old('payment_type', 'full_payment') == 'full_payment' ? 'checked' : '' }} required>
-                            <span class="ml-3 text-gray-800">Full Payment</span>
+                        <label class="flex items-center p-3 bg-gray-900 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer transition flex-1">
+                            <input type="radio" name="payment_type" value="full_payment" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500" {{ old('payment_type', 'full_payment') == 'full_payment' ? 'checked' : '' }} required>
+                            <span class="ml-3 text-white">Full Payment</span>
                         </label>
-                        <label class="flex items-center p-3 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 cursor-pointer transition flex-1">
-                            <input type="radio" name="payment_type" value="downpayment" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500" {{ old('payment_type') == 'downpayment' ? 'checked' : '' }}>
-                            <span class="ml-3 text-gray-800">Downpayment</span>
+                        <label class="flex items-center p-3 bg-gray-900 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer transition flex-1">
+                            <input type="radio" name="payment_type" value="downpayment" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500" {{ old('payment_type') == 'downpayment' ? 'checked' : '' }}>
+                            <span class="ml-3 text-white">Downpayment</span>
                         </label>
                     </div>
                 </div>
@@ -114,55 +114,55 @@
             @endif
 
             <!-- Vendor Information -->
-            <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
-                <h3 class="font-semibold text-gray-800 mb-4">VENDOR INFORMATION</h3>
+            <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+                <h3 class="font-semibold text-white mb-4">VENDOR INFORMATION</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">VENDOR CODE:</label>
-                        <input type="text" name="vendor_code" id="vendor_code" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_code', $supplierInfo['code'] ?? '') }}">
+                        <input type="text" name="vendor_code" id="vendor_code" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_code', $supplierInfo['code'] ?? '') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">VENDOR NAME: <span class="text-red-700">*</span></label>
-                        <input type="text" name="vendor_name" id="vendor_name" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_name', $selectedRFP->payee ?? '') }}" required>
+                        <input type="text" name="vendor_name" id="vendor_name" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_name', $selectedRFP->payee ?? '') }}" required>
                     </div>
                     <div class="md:col-span-2">
                         <label class="block font-semibold text-gray-500 mb-2">VENDOR ADDRESS:</label>
-                        <textarea name="vendor_address" id="vendor_address" rows="2" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('vendor_address', $supplierInfo['address'] ?? '') }}</textarea>
+                        <textarea name="vendor_address" id="vendor_address" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('vendor_address', $supplierInfo['address'] ?? '') }}</textarea>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">VENDOR TIN:</label>
-                        <input type="text" name="vendor_tin" id="vendor_tin" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_tin', $supplierInfo['tin'] ?? '') }}">
+                        <input type="text" name="vendor_tin" id="vendor_tin" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_tin', $supplierInfo['tin'] ?? '') }}">
                     </div>
                 </div>
             </div>
 
             <!-- Document Details -->
-            <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
-                <h3 class="font-semibold text-gray-800 mb-4">DOCUMENT DETAILS</h3>
+            <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+                <h3 class="font-semibold text-white mb-4">DOCUMENT DETAILS</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">DOCUMENT DATE: <span class="text-red-700">*</span></label>
-                        <input type="date" name="document_date" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('document_date', date('Y-m-d')) }}" required>
+                        <input type="date" name="document_date" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('document_date', date('Y-m-d')) }}" required>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">PAYMENT TERMS:</label>
-                        <input type="text" name="payment_terms" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms') }}" placeholder="e.g., Net 30">
+                        <input type="text" name="payment_terms" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payment_terms') }}" placeholder="e.g., Net 30">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">DUE DATE:</label>
-                        <input type="date" name="due_date" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('due_date') }}">
+                        <input type="date" name="due_date" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('due_date') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">REFERENCE NO:</label>
-                        <input type="text" name="reference_no" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reference_no') }}">
+                        <input type="text" name="reference_no" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reference_no') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">PURCHASE ORDER NO:</label>
-                        <input type="text" name="purchase_order_no" id="purchase_order_no" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('purchase_order_no', $selectedRFP->purchaseOrder->po_no ?? '') }}">
+                        <input type="text" name="purchase_order_no" id="purchase_order_no" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('purchase_order_no', $selectedRFP->purchaseOrder->po_no ?? '') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">CURRENCY: <span class="text-red-700">*</span></label>
-                        <select name="currency" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                        <select name="currency" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                             <option value="PHP" {{ old('currency', 'PHP') == 'PHP' ? 'selected' : '' }}>PHP</option>
                             <option value="USD" {{ old('currency') == 'USD' ? 'selected' : '' }}>USD</option>
                             <option value="EUR" {{ old('currency') == 'EUR' ? 'selected' : '' }}>EUR</option>
@@ -171,26 +171,26 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">FOREX RATE:</label>
-                        <input type="number" step="0.0001" name="forex_rate" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('forex_rate') }}" placeholder="1.0000">
+                        <input type="number" step="0.0001" name="forex_rate" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('forex_rate') }}" placeholder="1.0000">
                     </div>
                 </div>
             </div>
 
             <!-- Particulars and Accounting -->
-            <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
-                <h3 class="font-semibold text-gray-800 mb-4">PARTICULARS & ACCOUNTING</h3>
+            <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+                <h3 class="font-semibold text-white mb-4">PARTICULARS & ACCOUNTING</h3>
                 <div class="mb-4">
                     <label class="block font-semibold text-gray-500 mb-2">PARTICULARS: <span class="text-red-700">*</span></label>
-                    <textarea name="particulars" rows="4" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" required>{{ old('particulars', $selectedRFP->particulars ?? '') }}</textarea>
+                    <textarea name="particulars" rows="4" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>{{ old('particulars', $selectedRFP->particulars ?? '') }}</textarea>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">ITEM CODE:</label>
-                        <input type="text" name="item_code" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('item_code') }}">
+                        <input type="text" name="item_code" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('item_code') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">COST CENTER:</label>
-                        <input type="text" name="cost_center" class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('cost_center') }}">
+                        <input type="text" name="cost_center" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('cost_center') }}">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block font-semibold text-gray-500 mb-2">ACCOUNT CODE / NAME:</label>
@@ -213,41 +213,41 @@
             </div>
 
             <!-- Amount Calculations -->
-            <div class="mb-6 bg-gray-50 border border-gray-200 rounded p-4">
-                <h3 class="font-semibold text-gray-800 mb-4">AMOUNT DETAILS</h3>
+            <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+                <h3 class="font-semibold text-white mb-4">AMOUNT DETAILS</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">TOTAL AMOUNT: <span class="text-red-700">*</span></label>
                         <div class="relative">
                             <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
-                            <input type="number" step="0.01" name="total" id="totalAmount" class="w-full bg-white border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('total', $selectedRFP->amount ?? '') }}" required>
+                            <input type="number" step="0.01" name="total" id="totalAmount" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('total', $selectedRFP->amount ?? '') }}" required>
                         </div>
                     </div>
                     <div id="downpaymentField" style="display: none;">
                         <label class="block font-semibold text-gray-500 mb-2">DOWNPAYMENT AMOUNT: <span class="text-red-700">*</span></label>
                         <div class="relative">
                             <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
-                            <input type="number" step="0.01" name="downpayment_amount" id="downpaymentAmount" class="w-full bg-white border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('downpayment_amount') }}">
+                            <input type="number" step="0.01" name="downpayment_amount" id="downpaymentAmount" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('downpayment_amount') }}">
                         </div>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">VAT AMOUNT:</label>
                         <div class="relative">
                             <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
-                            <input type="number" step="0.01" name="vat_amount" id="vatAmount" class="w-full bg-white border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vat_amount', '0.00') }}">
+                            <input type="number" step="0.01" name="vat_amount" id="vatAmount" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vat_amount', '0.00') }}">
                         </div>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-2">W-TAX AMOUNT:</label>
                         <div class="relative">
                             <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
-                            <input type="number" step="0.01" name="w_tax_amount" id="wTaxAmount" class="w-full bg-white border border-gray-200 rounded pl-8 pr-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('w_tax_amount', '0.00') }}">
+                            <input type="number" step="0.01" name="w_tax_amount" id="wTaxAmount" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('w_tax_amount', '0.00') }}">
                         </div>
                     </div>
                 </div>
 
                 <!-- Grand Total Display -->
-                <div class="mt-4 p-4 bg-white border-2 border-purple-600 rounded">
+                <div class="mt-4 p-4 bg-gray-800 border-2 border-purple-600 rounded">
                     <div class="flex justify-between items-center">
                         <span class="text-lg font-semibold text-gray-500">GRAND TOTAL:</span>
                         <span id="grandTotalDisplay" class="text-2xl font-bold text-purple-700">₱ 0.00</span>
@@ -259,23 +259,23 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">PREPARED BY:</label>
-                    <input type="text" name="prepared_by" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('prepared_by') }}">
+                    <input type="text" name="prepared_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('prepared_by') }}">
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-2">REVIEWED BY:</label>
-                    <input type="text" name="reviewed_by" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reviewed_by') }}">
+                    <input type="text" name="reviewed_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reviewed_by') }}">
                 </div>
             </div>
 
             <!-- Remarks -->
             <div class="mb-6">
                 <label class="block font-semibold text-gray-500 mb-2">REMARKS:</label>
-                <textarea name="remarks" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('remarks') }}</textarea>
+                <textarea name="remarks" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('remarks') }}</textarea>
             </div>
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-4">
-                <a href="{{ route('accounts_payable_invoices.index') }}" class="bg-gray-100 text-gray-800 px-6 py-2 rounded hover:bg-gray-100 transition">
+                <a href="{{ route('accounts_payable_invoices.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-700 transition">
                     Cancel
                 </a>
                 <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         let html = '<div class="divide-y divide-gray-700">';
                         rfps.forEach(rfp => {
                             html += `
-                                <div class="rfp-result-item block p-3 hover:bg-gray-100 transition cursor-pointer"
+                                <div class="rfp-result-item block p-3 hover:bg-gray-700 transition cursor-pointer"
                                      data-id="${rfp.id}"
                                      data-rfp-no="${(rfp.rfp_no || '').replace(/"/g, '&quot;')}"
                                      data-payee="${(rfp.payee || '').replace(/"/g, '&quot;')}"
@@ -546,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Update button styles
                 refTypeBtns.forEach(b => {
-                    b.className = 'ref-type-btn px-4 py-2 rounded border border-gray-200 bg-white text-gray-800 hover:bg-purple-700 transition';
+                    b.className = 'ref-type-btn px-4 py-2 rounded border border-gray-700 bg-gray-800 text-white hover:bg-purple-700 transition';
                 });
                 this.className = 'ref-type-btn px-4 py-2 rounded border border-purple-500 bg-purple-600 text-white font-semibold transition';
 
@@ -586,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         let html = '<div class="divide-y divide-gray-700">';
                         cars.forEach(car => {
-                            html += `<div class="car-result-item block p-3 hover:bg-gray-100 transition cursor-pointer"
+                            html += `<div class="car-result-item block p-3 hover:bg-gray-700 transition cursor-pointer"
                                 data-id="${car.id}" data-car-no="${(car.car_no||'').replace(/"/g,'&quot;')}"
                                 data-payee="${(car.payee||'').replace(/"/g,'&quot;')}" data-department="${(car.department||'').replace(/"/g,'&quot;')}"
                                 data-amount="${car.amount||0}" data-purpose="${(car.purpose||'').replace(/"/g,'&quot;')}">
@@ -667,7 +667,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         let html = '<div class="divide-y divide-gray-700">';
                         ris.forEach(ri => {
-                            html += `<div class="ri-result-item block p-3 hover:bg-gray-100 transition cursor-pointer"
+                            html += `<div class="ri-result-item block p-3 hover:bg-gray-700 transition cursor-pointer"
                                 data-id="${ri.id}" data-ri-no="${(ri.ri_no||'').replace(/"/g,'&quot;')}"
                                 data-submitted-by="${(ri.submitted_by||'').replace(/"/g,'&quot;')}" data-department="${(ri.department||'').replace(/"/g,'&quot;')}"
                                 data-amount="${ri.amount||0}" data-total-spent="${ri.total_spent||0}">

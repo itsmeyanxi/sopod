@@ -4,8 +4,8 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">🔍 AR Profile Debug Information</h2>
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-white mb-4">🔍 AR Profile Debug Information</h2>
         
         <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <h3 class="text-red-700 font-semibold mb-2">❌ No Records Found</h3>
@@ -14,14 +14,14 @@
 
         <div class="space-y-6">
             {{-- Database Stats --}}
-            <div class="bg-gray-100 rounded-lg p-4">
-                <h3 class="text-gray-800 font-semibold mb-3">📊 Database Statistics</h3>
+            <div class="bg-gray-700 rounded-lg p-4">
+                <h3 class="text-white font-semibold mb-3">📊 Database Statistics</h3>
                 <p class="text-gray-500">Total records in ar_aging table: <strong class="text-green-700">{{ $totalRecords }}</strong></p>
             </div>
 
             {{-- Query Results --}}
-            <div class="bg-gray-100 rounded-lg p-4">
-                <h3 class="text-gray-800 font-semibold mb-3">🔍 Query Results</h3>
+            <div class="bg-gray-700 rounded-lg p-4">
+                <h3 class="text-white font-semibold mb-3">🔍 Query Results</h3>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
                         <span class="text-gray-500">Query 1 (customer_code = '{{ $customerCode }}'):</span>
@@ -43,13 +43,13 @@
             </div>
 
             {{-- Sample Records --}}
-            <div class="bg-gray-100 rounded-lg p-4">
-                <h3 class="text-gray-800 font-semibold mb-3">📝 Sample Records from Database (First 5)</h3>
+            <div class="bg-gray-700 rounded-lg p-4">
+                <h3 class="text-white font-semibold mb-3">📝 Sample Records from Database (First 5)</h3>
                 @if($sampleRecords->count() > 0)
                     <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white rounded text-sm">
+                        <table class="min-w-full bg-gray-800 rounded text-sm">
                             <thead>
-                                <tr class="bg-gray-50 text-gray-500">
+                                <tr class="bg-gray-900 text-gray-500">
                                     <th class="px-3 py-2 text-left">Customer Code</th>
                                     <th class="px-3 py-2 text-left">Client Name</th>
                                     <th class="px-3 py-2 text-left">Invoice No</th>
@@ -57,7 +57,7 @@
                             </thead>
                             <tbody class="text-gray-500">
                                 @foreach($sampleRecords as $record)
-                                <tr class="border-b border-gray-200">
+                                <tr class="border-b border-gray-700">
                                     <td class="px-3 py-2">{{ $record->customer_code ?? 'NULL' }}</td>
                                     <td class="px-3 py-2">{{ $record->client_name ?? 'NULL' }}</td>
                                     <td class="px-3 py-2">{{ $record->invoice_no ?? 'NULL' }}</td>
@@ -79,14 +79,14 @@
                     <li>✓ The customer_code field might be case-sensitive</li>
                     <li>✓ The customer might be stored under a different code or name</li>
                     <li>✓ Compare the sample records above with your search</li>
-                    <li>✓ Check your logs at <code class="bg-white px-2 py-1 rounded">storage/logs/laravel.log</code></li>
+                    <li>✓ Check your logs at <code class="bg-gray-800 px-2 py-1 rounded">storage/logs/laravel.log</code></li>
                 </ul>
             </div>
 
             {{-- Actions --}}
             <div class="flex gap-3">
                 <a href="{{ route('aging_reports.view') }}" 
-                   class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded transition">
+                   class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded transition">
                     ← Back to Reports
                 </a>
                 <button onclick="window.location.reload()" 

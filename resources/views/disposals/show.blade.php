@@ -16,10 +16,10 @@
 <div class="flex items-center justify-between mb-6">
     <div>
         <h1 class="text-3xl font-bold text-gray-900">{{ $asset->asset_description }}</h1>
-        <p class="text-gray-600 mt-1">Asset Code: <strong>{{ $asset->asset_code ?? 'N/A' }}</strong></p>
+        <p class="text-gray-300 mt-1">Asset Code: <strong>{{ $asset->asset_code ?? 'N/A' }}</strong></p>
     </div>
     <div class="flex gap-3">
-        <a href="{{ route('disposals.index') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">
+        <a href="{{ route('disposals.index') }}" class="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-200 font-semibold">
             ← Back to Disposals
         </a>
     </div>
@@ -31,7 +31,7 @@
         <i class="fas fa-archive text-red-600 text-2xl"></i>
         <div>
             <div class="font-bold text-gray-900">Asset Disposed</div>
-            <div class="text-sm text-gray-700">This asset has been permanently disposed and removed from active capitalization.</div>
+            <div class="text-sm text-gray-200">This asset has been permanently disposed and removed from active capitalization.</div>
         </div>
         <span class="badge badge-disposed ml-auto">DISPOSED</span>
     </div>
@@ -41,7 +41,7 @@
 <div class="grid grid-cols-3 gap-6">
     <!-- LEFT COLUMN: ASSET DETAILS -->
     <div class="col-span-2">
-        <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
             <h2 class="text-lg font-bold text-gray-900 mb-4">Asset Information</h2>
             <div class="info-grid">
                 <div>
@@ -84,7 +84,7 @@
         </div>
 
         <!-- FINANCIAL DETAILS -->
-        <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
             <h2 class="text-lg font-bold text-gray-900 mb-4">Financial Details</h2>
             <div class="info-grid">
                 <div>
@@ -158,12 +158,12 @@
 
     <!-- RIGHT COLUMN: SUMMARY -->
     <div>
-        <div class="bg-white border border-gray-200 rounded-lg p-6 sticky top-4">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 sticky top-4">
             <h3 class="font-bold text-gray-900 mb-4">Summary</h3>
 
             <div class="space-y-3 text-sm">
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Status</span>
+                    <span class="text-gray-300">Status</span>
                     <span class="badge badge-disposed">DISPOSED</span>
                 </div>
 
@@ -174,7 +174,7 @@
                     </div>
                 </div>
 
-                <div class="flex justify-between text-gray-600">
+                <div class="flex justify-between text-gray-300">
                     <span>Less: Accumulated Depreciation</span>
                     <span>₱{{ number_format($asset->accumulated_depreciation, 2) }}</span>
                 </div>

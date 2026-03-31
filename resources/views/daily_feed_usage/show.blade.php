@@ -20,9 +20,9 @@
     <div class="flex items-center justify-between mb-4">
         <div>
             <div class="text-sm text-gray-500 mb-1">
-                <a href="{{ route('daily_feed_usage.index') }}" class="hover:text-gray-600"><i class="fas fa-arrow-left mr-1"></i>Usage List</a>
+                <a href="{{ route('daily_feed_usage.index') }}" class="hover:text-gray-300"><i class="fas fa-arrow-left mr-1"></i>Usage List</a>
             </div>
-            <h2 class="text-xl font-bold text-gray-800">Usage Log — {{ $usage->usage_date->format('F d, Y') }}</h2>
+            <h2 class="text-xl font-bold text-white">Usage Log — {{ $usage->usage_date->format('F d, Y') }}</h2>
             <p class="text-xs text-gray-500 mt-0.5">
                 {{ $usage->bom->cycle_ref ?? '—' }}
                 · {{ $house?->house_name ?: 'House '.$usage->house_number }}
@@ -50,19 +50,19 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 text-sm">
             <div>
                 <div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">BOM Cycle</div>
-                <div class="font-semibold text-gray-800">{{ $usage->bom->cycle_ref ?? '—' }}</div>
+                <div class="font-semibold text-white">{{ $usage->bom->cycle_ref ?? '—' }}</div>
             </div>
             <div>
                 <div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">House</div>
-                <div class="font-semibold text-gray-800">{{ $house?->house_name ?: 'House '.$usage->house_number }}</div>
+                <div class="font-semibold text-white">{{ $house?->house_name ?: 'House '.$usage->house_number }}</div>
             </div>
             <div>
                 <div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Usage Date</div>
-                <div class="font-semibold text-gray-800">{{ $usage->usage_date->format('M d, Y') }}</div>
+                <div class="font-semibold text-white">{{ $usage->usage_date->format('M d, Y') }}</div>
             </div>
             <div>
                 <div class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Logged By</div>
-                <div class="font-semibold text-gray-800">{{ $usage->logged_by ?? '—' }}</div>
+                <div class="font-semibold text-white">{{ $usage->logged_by ?? '—' }}</div>
             </div>
             @if($usage->notes)
             <div class="col-span-2 md:col-span-4">

@@ -3,13 +3,13 @@
 @section('title', 'Records')
 
 @section('content')
-<div class="bg-gray-50 text-gray-100 min-h-screen p-8">
+<div class="bg-gray-900 text-gray-100 min-h-screen p-8">
 
     <!-- HEADER -->
-    <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
+    <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-3">
         <h1 class="text-2xl font-bold">Records — {{ ucfirst(str_replace('_', ' ', $type)) }}</h1>
 
-        <div class="inline-flex gap-2 p-1.5 bg-white rounded-lg border border-gray-200 shadow-lg">
+        <div class="inline-flex gap-2 p-1.5 bg-gray-800 rounded-lg border border-gray-700 shadow-lg">
 
             <!-- Export Excel -->
             <a href="{{ route('records.export.excel', ['type' => $type, 'report' => $report ?? null]) }}"
@@ -22,7 +22,7 @@
                 class="relative px-6 py-2.5 rounded-md font-medium transition-all duration-200 ease-in-out
                 {{ $type === 'sales_orders'
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/50' 
-                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100/50' }}">
+                    : 'text-gray-500 hover:text-white hover:bg-gray-700/50' }}">
                 <span class="relative z-10 flex items-center gap-2">
                     <i class="fa-solid fa-file-invoice"></i> Sales Orders
                 </span>
@@ -33,7 +33,7 @@
                 class="relative px-6 py-2.5 rounded-md font-medium transition-all duration-200 ease-in-out
                 {{ $type === 'deliveries'
                     ? 'bg-green-600 text-white shadow-md shadow-green-600/50' 
-                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100/50' }}">
+                    : 'text-gray-500 hover:text-white hover:bg-gray-700/50' }}">
                 <span class="relative z-10 flex items-center gap-2">
                     <i class="fa-solid fa-truck"></i> Deliveries
                 </span>
@@ -44,7 +44,7 @@
                 class="relative px-6 py-2.5 rounded-md font-medium transition-all duration-200 ease-in-out
                 {{ $type === 'monthly_sales'
                     ? 'bg-purple-600 text-white shadow-md shadow-purple-600/50' 
-                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100/50' }}">
+                    : 'text-gray-500 hover:text-white hover:bg-gray-700/50' }}">
                 <span class="relative z-10 flex items-center gap-2">
                     <i class="fa-solid fa-chart-line"></i> Monthly Sales
                 </span>
@@ -53,7 +53,7 @@
     </div>
 
 @if($type === 'deliveries')
-<div class="bg-white p-4 rounded-md mb-4">
+<div class="bg-gray-800 p-4 rounded-md mb-4">
     <h2 class="text-xl font-bold mb-2">Monthly Summary</h2>
 
     <div class="flex gap-3">
@@ -62,20 +62,20 @@
             <input type="hidden" name="type" value="deliveries">
 
             <!-- Sort By -->
-            <select name="sort" class="bg-gray-100 text-gray-800 px-3 py-2 rounded">
+            <select name="sort" class="bg-gray-700 text-white px-3 py-2 rounded">
                 <option value="">Sort By</option>
                 <option value="amount" {{ $sort=='amount' ? 'selected' : '' }}>Sales Amount</option>
                 <option value="customer" {{ $sort=='customer' ? 'selected' : '' }}>Customer</option>
                 <option value="item" {{ $sort=='item' ? 'selected' : '' }}>Item</option>
             </select>
 
-            <select name="dir" class="bg-gray-100 text-gray-800 px-3 py-2 rounded">
+            <select name="dir" class="bg-gray-700 text-white px-3 py-2 rounded">
                 <option value="asc" {{ $direction=='asc' ? 'selected' : '' }}>Ascending</option>
                 <option value="desc" {{ $direction=='desc' ? 'selected' : '' }}>Descending</option>
             </select>
 
             <!-- Cancelled Filter -->
-            <label class="flex items-center gap-2 text-gray-800 ml-4">
+            <label class="flex items-center gap-2 text-white ml-4">
                 <input 
                     type="checkbox" 
                     name="cancelled" 
@@ -87,7 +87,7 @@
             </label>
 
             <!-- Delivered Only Filter -->
-            <label class="flex items-center gap-2 text-gray-800">
+            <label class="flex items-center gap-2 text-white">
                 <input 
                     type="checkbox" 
                     name="delivered_only" 
@@ -124,7 +124,7 @@
     </style>
 
 @if($type === 'sales_orders' && !$report)
-<div class="bg-white p-4 rounded-lg mb-5 border border-gray-200">
+<div class="bg-gray-800 p-4 rounded-lg mb-5 border border-gray-700">
 
     <h2 class="text-xl font-semibold mb-3">Search Sales Order Range</h2>
 
@@ -135,14 +135,14 @@
             <label class="text-gray-500 text-sm">From SO #</label>
             <input type="text" name="from" value="{{ request('from') }}"
                 placeholder="SO-0010"
-                class="px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-100 w-40">
+                class="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 w-40">
         </div>
 
         <div>
             <label class="text-gray-500 text-sm">To SO #</label>
             <input type="text" name="to" value="{{ request('to') }}"
                 placeholder="SO-0020"
-                class="px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-100 w-40">
+                class="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 w-40">
         </div>
 
         <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white font-medium">
@@ -164,7 +164,7 @@
     <!-- MONTHLY SALES SECTION -->
     <!-- ====================== -->
     @if($type === 'monthly_sales')
-    <div class="bg-white p-6 rounded-lg mb-6 border border-gray-200">
+    <div class="bg-gray-800 p-6 rounded-lg mb-6 border border-gray-700">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold text-purple-700">
                 <i class="fa-solid fa-chart-bar"></i> Monthly Sales Summary
@@ -179,19 +179,19 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-4 rounded-lg shadow-lg">
                     <div class="text-blue-700 text-sm mb-1">Total Quantity</div>
-                    <div class="text-2xl font-bold text-gray-800">
+                    <div class="text-2xl font-bold text-white">
                         {{ number_format($records->sum('quantity'), 2) }}
                     </div>
                 </div>
                 <div class="bg-gradient-to-br from-green-600 to-green-800 p-4 rounded-lg shadow-lg">
                     <div class="text-green-700 text-sm mb-1">Total Sales (PHP)</div>
-                    <div class="text-2xl font-bold text-gray-800">
+                    <div class="text-2xl font-bold text-white">
                         ₱{{ number_format($records->sum('php_amount'), 2) }}
                     </div>
                 </div>
                 <div class="bg-gradient-to-br from-purple-600 to-purple-800 p-4 rounded-lg shadow-lg">
                     <div class="text-purple-700 text-sm mb-1">Average per Month</div>
-                    <div class="text-2xl font-bold text-gray-800">
+                    <div class="text-2xl font-bold text-white">
                         ₱{{ number_format($records->avg('php_amount'), 2) }}
                     </div>
                 </div>
@@ -199,8 +199,8 @@
 
             <!-- Table -->
             <div class="overflow-x-auto rounded-lg">
-                <table class="min-w-full bg-gray-50 rounded-lg overflow-hidden">
-                    <thead class="bg-purple-100 text-gray-700">
+                <table class="min-w-full bg-gray-900 rounded-lg overflow-hidden">
+                    <thead class="bg-purple-100 text-gray-200">
                         <tr>
                             <th class="px-6 py-3 text-left">#</th>
                             <th class="px-6 py-3 text-left">Month</th>
@@ -211,7 +211,7 @@
                     </thead>
                     <tbody>
                         @foreach($records as $index => $record)
-                        <tr class="border-b border-gray-800 hover:bg-white transition-colors">
+                        <tr class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
                             <td class="px-6 py-4 text-gray-500">{{ $index + 1 }}</td>
                             <td class="px-6 py-4 font-semibold text-purple-700">
                                 <i class="fa-solid fa-calendar-alt mr-2"></i>{{ $record->month }}
@@ -232,7 +232,7 @@
             </div>
         @else
             <div class="text-center py-12">
-                <i class="fa-solid fa-chart-line text-6xl text-gray-600 mb-4"></i>
+                <i class="fa-solid fa-chart-line text-6xl text-gray-300 mb-4"></i>
                 <p class="text-gray-500 text-lg">No monthly sales data available.</p>
                 <p class="text-gray-500 text-sm mt-2">Upload data through the Import module to see results here.</p>
             </div>
@@ -245,8 +245,8 @@
     <!-- ====================== -->
     @if($type !== 'monthly_sales' && $records->count() > 0)
         <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded-lg overflow-hidden text-left">
-            <thead class="bg-gray-100 text-gray-700 ">
+        <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden text-left">
+            <thead class="bg-gray-700 text-gray-200 ">
                 <tr>
                     @if($report === 'monthly_sales')
                         <th class="px-4 py-2">Month</th>
@@ -290,7 +290,7 @@
                         $so = $type === 'deliveries' ? $record->salesOrder : $record;
                     @endphp
 
-                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                    <tr class="border-b border-gray-700 hover:bg-gray-700">
 
                         {{-- ===================== REPORT: Monthly Sales ===================== --}}
                         @if($report === 'monthly_sales')

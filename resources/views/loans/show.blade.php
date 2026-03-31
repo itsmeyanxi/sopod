@@ -3,12 +3,12 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white text-gray-800 rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
 
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">LOAN DETAILS</h1>
+                <h1 class="text-2xl font-bold text-white">LOAN DETAILS</h1>
                 <p class="text-sm text-gray-500 mt-1 font-mono font-bold">{{ $loan->loan_no }}</p>
             </div>
             <div class="flex items-center gap-3">
@@ -24,7 +24,7 @@
                         <i class="fas fa-edit mr-1"></i> Edit
                     </a>
                 @endif
-                <a href="{{ route('loans.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 text-sm">
+                <a href="{{ route('loans.index') }}" class="bg-gray-200 text-gray-200 px-4 py-2 rounded hover:bg-gray-300 text-sm">
                     <i class="fas fa-arrow-left mr-1"></i> Back
                 </a>
             </div>
@@ -74,15 +74,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Loan Date</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm">{{ $loan->loan_date->format('M d, Y') }}</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->loan_date->format('M d, Y') }}</p>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Disbursement Date</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm">{{ $loan->disbursement_date ? $loan->disbursement_date->format('M d, Y') : '—' }}</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->disbursement_date ? $loan->disbursement_date->format('M d, Y') : '—' }}</p>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Maturity Date</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm {{ $loan->status === 'Active' && $loan->maturity_date < now() ? 'text-red-600 font-semibold' : '' }}">
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm {{ $loan->status === 'Active' && $loan->maturity_date < now() ? 'text-red-600 font-semibold' : '' }}">
                     {{ $loan->maturity_date->format('M d, Y') }}
                     @if($loan->status === 'Active' && $loan->maturity_date >= now())
                         <span class="text-gray-400 ml-1">({{ $loan->remaining_months }} months left)</span>
@@ -93,34 +93,34 @@
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Lender</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm font-semibold">{{ $loan->lender_name }}</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm font-semibold">{{ $loan->lender_name }}</p>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Loan Type</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm">{{ $loan->loan_type }}</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->loan_type }}</p>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Payment Frequency</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm">{{ $loan->payment_frequency }}</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->payment_frequency }}</p>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Interest Rate</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm">{{ number_format($loan->interest_rate, 4) }}% per annum</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ number_format($loan->interest_rate, 4) }}% per annum</p>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Loan Term</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm">{{ $loan->loan_term_months }} months</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->loan_term_months }} months</p>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Total Interest Paid</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm">{{ number_format($loan->total_interest_paid, 2) }}</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ number_format($loan->total_interest_paid, 2) }}</p>
             </div>
         </div>
 
         @if($loan->purpose)
         <div class="mb-4">
             <label class="block text-xs font-semibold text-gray-500 mb-1">Purpose</label>
-            <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm">{{ $loan->purpose }}</p>
+            <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm">{{ $loan->purpose }}</p>
         </div>
         @endif
 
@@ -129,15 +129,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Loans Payable GL</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm font-mono">{{ $loan->gl_loan_account ?? '—' }}</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm font-mono">{{ $loan->gl_loan_account ?? '—' }}</p>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Cash / Bank GL</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm font-mono">{{ $loan->gl_cash_account ?? '—' }}</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm font-mono">{{ $loan->gl_cash_account ?? '—' }}</p>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Interest Expense GL</label>
-                <p class="px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm font-mono">{{ $loan->gl_interest_expense ?? '—' }}</p>
+                <p class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm font-mono">{{ $loan->gl_interest_expense ?? '—' }}</p>
             </div>
         </div>
         @endif
@@ -150,28 +150,28 @@
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Payment Date <span class="text-red-500">*</span></label>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Payment Date <span class="text-red-500">*</span></label>
                         <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" required
-                               class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm">
+                               class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Principal Paid <span class="text-red-500">*</span></label>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Principal Paid <span class="text-red-500">*</span></label>
                         <input type="number" name="principal_paid" value="0" step="0.01" min="0" required
-                               class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm">
+                               class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Interest Paid <span class="text-red-500">*</span></label>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Interest Paid <span class="text-red-500">*</span></label>
                         <input type="number" name="interest_paid" value="0" step="0.01" min="0" required
-                               class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm">
+                               class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Reference No.</label>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Reference No.</label>
                         <input type="text" name="reference_no"
-                               class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Check/Voucher No.">
+                               class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm" placeholder="Check/Voucher No.">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Payment Method</label>
-                        <select name="payment_method" class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm">
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Payment Method</label>
+                        <select name="payment_method" class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm">
                             <option value="">— Select —</option>
                             <option value="Cash">Cash</option>
                             <option value="Check">Check</option>
@@ -180,9 +180,9 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Remarks</label>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Remarks</label>
                         <input type="text" name="remarks"
-                               class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm">
+                               class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm">
                     </div>
                 </div>
                 <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 text-sm">
@@ -193,34 +193,34 @@
         @endif
 
         <!-- Payment History -->
-        <h2 class="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">Payment History</h2>
+        <h2 class="text-lg font-semibold text-gray-200 mb-3 border-b pb-2">Payment History</h2>
         <div class="overflow-x-auto mb-6">
             <table class="w-full text-sm border-collapse">
-                <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                <thead class="bg-gray-900 text-gray-500 uppercase text-xs">
                     <tr>
-                        <th class="border border-gray-200 px-3 py-2 text-center">#</th>
-                        <th class="border border-gray-200 px-3 py-2 text-center">Date</th>
-                        <th class="border border-gray-200 px-3 py-2 text-right">Principal</th>
-                        <th class="border border-gray-200 px-3 py-2 text-right">Interest</th>
-                        <th class="border border-gray-200 px-3 py-2 text-right">Total</th>
-                        <th class="border border-gray-200 px-3 py-2 text-left">Reference</th>
-                        <th class="border border-gray-200 px-3 py-2 text-left">Method</th>
-                        <th class="border border-gray-200 px-3 py-2 text-left">Remarks</th>
-                        <th class="border border-gray-200 px-3 py-2 text-left">By</th>
+                        <th class="border border-gray-700 px-3 py-2 text-center">#</th>
+                        <th class="border border-gray-700 px-3 py-2 text-center">Date</th>
+                        <th class="border border-gray-700 px-3 py-2 text-right">Principal</th>
+                        <th class="border border-gray-700 px-3 py-2 text-right">Interest</th>
+                        <th class="border border-gray-700 px-3 py-2 text-right">Total</th>
+                        <th class="border border-gray-700 px-3 py-2 text-left">Reference</th>
+                        <th class="border border-gray-700 px-3 py-2 text-left">Method</th>
+                        <th class="border border-gray-700 px-3 py-2 text-left">Remarks</th>
+                        <th class="border border-gray-700 px-3 py-2 text-left">By</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($loan->payments as $i => $pmt)
-                    <tr class="hover:bg-gray-50 border-b border-gray-100">
-                        <td class="border border-gray-200 px-3 py-2 text-center text-gray-400 text-xs">{{ $i + 1 }}</td>
-                        <td class="border border-gray-200 px-3 py-2 text-center text-xs">{{ $pmt->payment_date->format('M d, Y') }}</td>
-                        <td class="border border-gray-200 px-3 py-2 text-right">{{ number_format($pmt->principal_paid, 2) }}</td>
-                        <td class="border border-gray-200 px-3 py-2 text-right">{{ number_format($pmt->interest_paid, 2) }}</td>
-                        <td class="border border-gray-200 px-3 py-2 text-right font-semibold text-blue-700">{{ number_format($pmt->total_payment, 2) }}</td>
-                        <td class="border border-gray-200 px-3 py-2 text-xs font-mono">{{ $pmt->reference_no ?? '—' }}</td>
-                        <td class="border border-gray-200 px-3 py-2 text-xs">{{ $pmt->payment_method ?? '—' }}</td>
-                        <td class="border border-gray-200 px-3 py-2 text-xs text-gray-500">{{ $pmt->remarks ?? '—' }}</td>
-                        <td class="border border-gray-200 px-3 py-2 text-xs text-gray-500">{{ $pmt->created_by ?? '—' }}</td>
+                    <tr class="hover:bg-gray-900 border-b border-gray-100">
+                        <td class="border border-gray-700 px-3 py-2 text-center text-gray-400 text-xs">{{ $i + 1 }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-center text-xs">{{ $pmt->payment_date->format('M d, Y') }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-right">{{ number_format($pmt->principal_paid, 2) }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-right">{{ number_format($pmt->interest_paid, 2) }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-right font-semibold text-blue-700">{{ number_format($pmt->total_payment, 2) }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-xs font-mono">{{ $pmt->reference_no ?? '—' }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-xs">{{ $pmt->payment_method ?? '—' }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-xs text-gray-500">{{ $pmt->remarks ?? '—' }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-xs text-gray-500">{{ $pmt->created_by ?? '—' }}</td>
                     </tr>
                     @empty
                     <tr>
@@ -229,13 +229,13 @@
                     @endforelse
                 </tbody>
                 @if($loan->payments->count() > 0)
-                <tfoot class="bg-gray-50 font-semibold text-sm">
+                <tfoot class="bg-gray-900 font-semibold text-sm">
                     <tr>
-                        <td colspan="2" class="border border-gray-200 px-3 py-2 text-right">Totals:</td>
-                        <td class="border border-gray-200 px-3 py-2 text-right">{{ number_format($loan->total_principal_paid, 2) }}</td>
-                        <td class="border border-gray-200 px-3 py-2 text-right">{{ number_format($loan->total_interest_paid, 2) }}</td>
-                        <td class="border border-gray-200 px-3 py-2 text-right text-blue-700">{{ number_format($loan->total_principal_paid + $loan->total_interest_paid, 2) }}</td>
-                        <td colspan="4" class="border border-gray-200"></td>
+                        <td colspan="2" class="border border-gray-700 px-3 py-2 text-right">Totals:</td>
+                        <td class="border border-gray-700 px-3 py-2 text-right">{{ number_format($loan->total_principal_paid, 2) }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-right">{{ number_format($loan->total_interest_paid, 2) }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-right text-blue-700">{{ number_format($loan->total_principal_paid + $loan->total_interest_paid, 2) }}</td>
+                        <td colspan="4" class="border border-gray-700"></td>
                     </tr>
                 </tfoot>
                 @endif
@@ -244,7 +244,7 @@
 
         <!-- Actions -->
         @if($loan->status === 'Active' && $loan->payments->count() === 0)
-        <div class="flex gap-3 border-t border-gray-200 pt-4">
+        <div class="flex gap-3 border-t border-gray-700 pt-4">
             <form method="POST" action="{{ route('loans.void', $loan->id) }}"
                   onsubmit="return confirm('Void this loan record?')">
                 @csrf

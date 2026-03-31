@@ -24,9 +24,9 @@
     <div class="flex items-center justify-between mb-4">
         <div>
             <div class="text-sm text-gray-500 mb-1">
-                <a href="{{ route('daily_feed_usage.index') }}" class="hover:text-gray-600"><i class="fas fa-arrow-left mr-1"></i>Usage List</a>
+                <a href="{{ route('daily_feed_usage.index') }}" class="hover:text-gray-300"><i class="fas fa-arrow-left mr-1"></i>Usage List</a>
             </div>
-            <h2 class="text-xl font-bold text-gray-800">Log Daily Feed Usage</h2>
+            <h2 class="text-xl font-bold text-white">Log Daily Feed Usage</h2>
             <p class="text-xs text-gray-500 mt-0.5">Record how much material was used today from an approved BOM</p>
         </div>
     </div>
@@ -42,7 +42,7 @@
                 <div>
                     <label class="block text-xs text-gray-500 font-semibold mb-1">BOM Cycle <span class="text-red-500">*</span></label>
                     <select name="bom_id" id="bomSelect" required
-                        class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700">
+                        class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200">
                         <option value="">— Select Approved BOM —</option>
                         @foreach($boms as $bom)
                             <option value="{{ $bom->id }}" {{ ($selectedBom && $selectedBom->id == $bom->id) ? 'selected' : '' }}>
@@ -54,7 +54,7 @@
                 <div>
                     <label class="block text-xs text-gray-500 font-semibold mb-1">House <span class="text-red-500">*</span></label>
                     <select name="house_number" id="houseSelect" required
-                        class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700">
+                        class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200">
                         <option value="">— Select House —</option>
                         @if($selectedBom)
                             @foreach($houses as $house)
@@ -68,7 +68,7 @@
                 <div>
                     <label class="block text-xs text-gray-500 font-semibold mb-1">Usage Date <span class="text-red-500">*</span></label>
                     <input type="date" name="usage_date" id="usageDate" value="{{ date('Y-m-d') }}" required
-                        class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700">
+                        class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200">
                 </div>
             </div>
         </div>
@@ -100,13 +100,13 @@
             <div class="b-hd">Notes</div>
             <div class="p-4">
                 <textarea name="notes" rows="2" placeholder="Optional notes about today's usage..."
-                    class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700"></textarea>
+                    class="w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-200"></textarea>
             </div>
         </div>
 
         <!-- Submit -->
         <div id="submitSection" style="display:none;" class="flex justify-end gap-3">
-            <a href="{{ route('daily_feed_usage.index') }}" class="px-5 py-2.5 text-sm border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50">Cancel</a>
+            <a href="{{ route('daily_feed_usage.index') }}" class="px-5 py-2.5 text-sm border border-gray-600 rounded-md text-gray-300 hover:bg-gray-900">Cancel</a>
             <button type="submit" class="px-6 py-2.5 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold shadow-sm">
                 <i class="fas fa-save mr-1"></i> Save Usage Log
             </button>

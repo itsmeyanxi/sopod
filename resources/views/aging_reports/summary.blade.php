@@ -4,19 +4,19 @@
 
 @section('content')
 <div class="container mx-auto">
-    <div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">AR Aging Summary Report</h2>
+                <h2 class="text-2xl font-bold text-white mb-2">AR Aging Summary Report</h2>
                 <p class="text-gray-500 text-sm">
-                    Record Date ≤ <strong class="text-gray-800">{{ $filterDate }}</strong> 
-                    | Include: <strong class="text-gray-800">{{ ucfirst($include) }}</strong>
+                    Record Date ≤ <strong class="text-white">{{ $filterDate }}</strong> 
+                    | Include: <strong class="text-white">{{ ucfirst($include) }}</strong>
                 </p>
             </div>
             <div class="flex space-x-3">
                 <a href="{{ route('aging_reports.view') }}" 
-                   class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded font-medium transition flex items-center space-x-2">
+                   class="bg-gray-200 hover:bg-gray-300 text-white px-6 py-2 rounded font-medium transition flex items-center space-x-2">
                     <i class="fas fa-arrow-left"></i>
                     <span>Back to List</span>
                 </a>
@@ -32,12 +32,12 @@
         <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 mb-6 shadow-lg">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="text-gray-800 text-sm opacity-90 mb-1">Grand Total AR Balance</p>
-                    <p class="text-gray-800 text-4xl font-bold">₱{{ number_format($grandTotals['total'], 2) }}</p>
+                    <p class="text-white text-sm opacity-90 mb-1">Grand Total AR Balance</p>
+                    <p class="text-white text-4xl font-bold">₱{{ number_format($grandTotals['total'], 2) }}</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-gray-800 text-sm opacity-90">Total Clients</p>
-                    <p class="text-gray-800 text-2xl font-bold">{{ count($agingSummary) }}</p>
+                    <p class="text-white text-sm opacity-90">Total Clients</p>
+                    <p class="text-white text-2xl font-bold">{{ count($agingSummary) }}</p>
                 </div>
             </div>
         </div>
@@ -123,7 +123,7 @@
         @endif
 
         <!-- Summary Table -->
-        <div class="bg-gray-100 rounded-lg overflow-hidden">
+        <div class="bg-gray-700 rounded-lg overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
@@ -139,9 +139,9 @@
                             <th class="px-4 py-3 text-right font-semibold bg-orange-700">Grand Total</th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-700">
+                    <tbody class="text-gray-200">
                         @forelse($agingSummary as $index => $row)
-                        <tr class="border-b border-gray-300 hover:bg-gray-100 transition {{ $index % 2 == 0 ? 'bg-gray-750' : 'bg-gray-100' }}">
+                        <tr class="border-b border-gray-600 hover:bg-gray-700 transition {{ $index % 2 == 0 ? 'bg-gray-750' : 'bg-gray-700' }}">
                             <td class="px-4 py-3 font-medium">{{ $row['client_name'] }}</td>
                             <td class="px-4 py-3">{{ $row['se2'] }}</td>
                             <td class="px-4 py-3 text-right">
@@ -186,7 +186,7 @@
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-right font-bold text-gray-800 bg-white">
+                            <td class="px-4 py-3 text-right font-bold text-white bg-gray-800">
                                 ₱{{ number_format($row['total'], 2) }}
                             </td>
                         </tr>
@@ -220,22 +220,22 @@
         <!-- Stats Cards -->
         @if(count($agingSummary) > 0)
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <div class="bg-gray-100 rounded-lg p-4">
+            <div class="bg-gray-700 rounded-lg p-4">
                 <p class="text-gray-500 text-sm mb-1">Current</p>
                 <p class="text-green-700 text-xl font-bold">₱{{ number_format($grandTotals['current'], 2) }}</p>
                 <p class="text-gray-500 text-xs mt-1">{{ number_format(($grandTotals['current'] / $grandTotals['total']) * 100, 1) }}% of total</p>
             </div>
-            <div class="bg-gray-100 rounded-lg p-4">
+            <div class="bg-gray-700 rounded-lg p-4">
                 <p class="text-gray-500 text-sm mb-1">1-30 Days</p>
                 <p class="text-yellow-700 text-xl font-bold">₱{{ number_format($grandTotals['1_30'], 2) }}</p>
                 <p class="text-gray-500 text-xs mt-1">{{ number_format(($grandTotals['1_30'] / $grandTotals['total']) * 100, 1) }}% of total</p>
             </div>
-            <div class="bg-gray-100 rounded-lg p-4">
+            <div class="bg-gray-700 rounded-lg p-4">
                 <p class="text-gray-500 text-sm mb-1">31-60 Days</p>
                 <p class="text-orange-700 text-xl font-bold">₱{{ number_format($grandTotals['31_60'], 2) }}</p>
                 <p class="text-gray-500 text-xs mt-1">{{ number_format(($grandTotals['31_60'] / $grandTotals['total']) * 100, 1) }}% of total</p>
             </div>
-            <div class="bg-gray-100 rounded-lg p-4">
+            <div class="bg-gray-700 rounded-lg p-4">
                 <p class="text-gray-500 text-sm mb-1">Over 120 Days</p>
                 <p class="text-red-600 text-xl font-bold">₱{{ number_format($grandTotals['over_120'], 2) }}</p>
                 <p class="text-gray-500 text-xs mt-1">{{ number_format(($grandTotals['over_120'] / $grandTotals['total']) * 100, 1) }}% of total</p>
