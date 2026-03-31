@@ -294,13 +294,6 @@ Route::prefix('lock')->name('lock.')->group(function () {
         Route::get('/screen', [InvoiceController::class, 'screen'])->name('screen');
     });
 
-    // =================== PAYMENT ROUTES ===================
-    Route::prefix('payments')->name('payments.')->group(function () {
-        Route::get('/entry', [PaymentController::class, 'entry'])->name('entry');
-    });
-Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
-    Route::get('/', [AgingReportController::class, 'adjustments'])->name('index');
-});
 
 
 
