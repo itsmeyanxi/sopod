@@ -346,7 +346,7 @@
             <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100">
                 <span class="flex items-center space-x-2">
                     <span>🏦</span>
-                    <span class="sidebar-text">Banking</span>
+                    <span class="sidebar-text">Treasury</span>
                 </span>
                 <span class="chevron">▼</span>
             </button>
@@ -362,7 +362,7 @@
                 @endif
                 @if(auth()->user()->canAccessModule('treasury'))
                     <a href="{{ route('treasury.confirmation') }}" class="block hover:underline">Payment Confirmation</a>
-                    <a href="{{ route('treasury.summary') }}" class="block hover:underline">Treasury Summary</a>
+                    <a href="{{ route('treasury.summary') }}" class="block hover:underline">Bank</a>
                     <a href="{{ route('treasury.banks', 'peso') }}" class="block hover:underline">Peso Accounts</a>
                     <a href="{{ route('treasury.banks', 'dollar') }}" class="block hover:underline">Dollar Accounts</a>
                 @endif

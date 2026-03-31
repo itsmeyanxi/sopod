@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Treasury Summary')
+@section('title', 'Bank')
 
 @section('content')
 <style>
@@ -46,8 +46,8 @@
 <!-- HEADER -->
 <div class="flex items-center justify-between mb-5">
     <div>
-        <h2 class="text-xl font-bold text-gray-800">Treasury Summary</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Treasury — Overview of confirmed payments & credit balance</p>
+        <h2 class="text-xl font-bold text-gray-800">Bank</h2>
+        <p class="text-xs text-gray-500 mt-0.5">Bank — Overview of confirmed payments & credit balance</p>
     </div>
     <a href="{{ route('treasury.confirmation') }}"
        class="flex items-center gap-1.5 px-4 py-2 text-sm bg-amber-500 text-white rounded-md hover:bg-amber-600 font-semibold shadow-sm">

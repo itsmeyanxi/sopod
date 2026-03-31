@@ -40,7 +40,7 @@
     </div>
     <a href="{{ route('treasury.summary') }}"
        class="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-700 text-white rounded-md hover:bg-blue-800 font-semibold shadow-sm">
-        <i class="fas fa-chart-bar"></i> Treasury Summary
+        <i class="fas fa-chart-bar"></i> Bank
     </a>
 </div>
 
@@ -208,7 +208,7 @@ function confirmPayment(id) {
 
     Swal.fire({
         title: 'Confirm this payment?',
-        text: 'This will mark the payment as confirmed and move it to treasury summary.',
+        text: 'This will mark the payment as confirmed and move it to bank.',
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#15803d',
