@@ -16,6 +16,7 @@
         $canImportCollections = $user->canAccessModule('payments');
         $canImportARAdjustments = $user->canAccessModule('aging_reports');
         $canImportBomMaterials = $user->canAccessModule('inhouse_bom');
+        $canImportAssetClasses = $user->canAccessModule('asset_classes');
     @endphp
 
     <h1 class="text-3xl font-bold text-white mb-2">Import Data from Excel/CSV</h1>
@@ -83,6 +84,12 @@
                 </button>
                 @endif
 
+                @if($canImportAssetClasses)
+                <button onclick="switchTab('asset_classes')" id="asset_classes-tab"
+                    class="tab-button px-6 py-3 font-medium text-gray-300 hover:text-gray-300">
+                    Asset Classes
+                </button>
+                @endif
 
             </div>
         </div>
@@ -519,6 +526,54 @@
 
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         <i class="fas fa-upload mr-2"></i> Upload & Import BOM Materials
+                    </button>
+                </form>
+            </div>
+            @endif
+
+            {{-- ASSET CLASSES TAB CONTENT --}}
+            @if($canImportAssetClasses)
+            <div id="asset_classes-content" class="tab-content hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">Asset Classes Import</h3>
+                    <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4">
+                        <p class="text-sm text-gray-300 mb-2"><strong>Upload the FA Asset Class List sheet</strong> from your Fixed Asset Masterdata.xlsx — or any file with these columns:</p>
+                        <ul class="text-sm text-gray-300 space-y-1 ml-4">
+                            <li>• <strong>Code</strong> — Asset code (e.g. ACS01)</li>
+                            <li>• <strong>Name</strong> — Asset class name (e.g. AIRCON)</li>
+                            <li>• <strong>Acquisition GL Code</strong> — GL account code</li>
+                            <li>• <strong>Acquisition GL Account</strong> — Used to map asset group</li>
+                            <li>• <strong>Deprciation GL Code</strong> — Depreciation account code</li>
+                            <li>• <strong>Depreciaion Type</strong> — e.g. Straight line</li>
+                            <li>• <strong>Useful Life</strong> — In months (e.g. 36)</li>
+                        </ul>
+                        <p class="text-xs text-gray-400 mt-3">Rows without a Code are skipped. Existing records matched by Code will be updated or skipped depending on your choice below.</p>
+                    </div>
+                </div>
+
+                <form action="{{ route('excel.import.asset_classes') }}" method="POST" enctype="multipart/form-data" id="asset_classes-form">
+                    @csrf
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="asset_classes-file" class="hidden" onchange="handleFileSelect(this, 'asset_classes')" required>
+                        <label for="asset_classes-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-300 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
+                            <p id="asset_classes-filename" class="text-sm text-blue-400 mt-2"></p>
+                        </label>
+                    </div>
+                    <div class="mt-4 flex items-center gap-4 text-sm text-gray-300">
+                        <span class="font-medium">On duplicate asset code:</span>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="duplicate_mode" value="update" checked class="accent-blue-600">
+                            <span>Update existing</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="duplicate_mode" value="skip" class="accent-blue-600">
+                            <span>Skip duplicates</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        <i class="fas fa-upload mr-2"></i> Upload & Import Asset Classes
                     </button>
                 </form>
             </div>
