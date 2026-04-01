@@ -442,6 +442,28 @@ Route::prefix('lock')->name('lock.')->group(function () {
 Route::post('/excel/import/bom-materials', [ExcelImportController::class, 'importBomMaterials'])->name('excel.import.bom_materials');
 Route::post('/excel/import/asset-classes', [ExcelImportController::class, 'importAssetClasses'])->name('excel.import.asset_classes');
 
+// ── Imports Module ──────────────────────────────────────────────────────────
+Route::middleware(['auth'])->group(function () {
+    Route::get('/imports', function () {
+        return view('imports.index');
+    })->name('imports.index');
+
+    Route::post('/imports/upload', function (\Illuminate\Http\Request $request) {
+        $type = $request->input('import_type');
+        $ec   = app(\App\Http\Controllers\ExcelImportController::class);
+        return match ($type) {
+            'customers'     => $ec->importCustomers($request),
+            'items'         => $ec->importItems($request),
+            'monthly_sales' => $ec->importMonthlySales($request),
+            'asset_classes' => $ec->importAssetClasses($request),
+            default         => redirect()->back()->with('error', 'Unknown import type.'),
+        };
+    })->name('import.upload');
+
+    Route::get('/imports/template/monthly-sales', [ImportController::class, 'downloadMonthlySalesTemplate'])
+        ->name('import.monthly_sales.template');
+});
+
 // ✅ NEW: AR Adjustments Import Route
 Route::post('/excel/import/ar-adjustments', [ExcelImportController::class, 'importArAdjustments'])
     ->name('excel.import.ar_adjustments')
