@@ -32,11 +32,11 @@ class SalesOrderController extends Controller
 
     // This allows filtering even for SOs without deliveries yet
     if ($request->filled('date_from')) {
-        $query->whereDate('request_delivery_date', '>=', $request->date_from);
+        $query->whereDate('sales_orders.request_delivery_date', '>=', $request->date_from);
     }
 
     if ($request->filled('date_to')) {
-        $query->whereDate('request_delivery_date', '<=', $request->date_to);
+        $query->whereDate('sales_orders.request_delivery_date', '<=', $request->date_to);
     }
 
     if ($request->filled('search')) {
