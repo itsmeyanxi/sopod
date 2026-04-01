@@ -55,7 +55,7 @@
                 class="gl-option px-3 py-2 hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-100 last:border-0 transition-colors"
                 data-code="{{ $acct['code'] }}"
                 data-name="{{ $acct['name'] }}"
-                data-search="{{ $acct['search'] }}"
+                data-search="{{ $acct['search'] ?? strtolower(($acct['code'] ?? '') . ' ' . ($acct['name'] ?? '')) }}"
                 data-uid="{{ $uid }}"
             >
                 <div class="font-mono font-semibold text-sm">{{ $acct['code'] }}</div>

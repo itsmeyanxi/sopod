@@ -11,10 +11,11 @@ class AssetClassController extends Controller
     private function getGlAccounts(): array
     {
         return GlAccount::orderBy('account_code')
-            ->get(['id', 'account_code', 'account_name'])
+            ->get(['account_code', 'account_name'])
             ->map(fn($a) => [
-                'code' => $a->account_code,
-                'name' => $a->account_name,
+                'code'   => $a->account_code,
+                'name'   => $a->account_name,
+                'search' => strtolower($a->account_code . ' ' . $a->account_name),
             ])->toArray();
     }
 

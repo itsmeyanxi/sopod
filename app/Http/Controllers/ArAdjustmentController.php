@@ -36,6 +36,7 @@ class ArAdjustmentController extends Controller
                 'code'        => $account->account_code,
                 'name'        => $account->account_name,
                 'display'     => $account->account_code . ' - ' . $account->account_name,
+                'search'      => strtolower($account->account_code . ' ' . $account->account_name),
                 'fs_line_item'=> $account->fs_line_item,
             ];
         });
@@ -458,6 +459,7 @@ public function store(Request $request)
                 'code'        => $account->account_code,
                 'name'        => $account->account_name,
                 'display'     => $account->account_code . ' - ' . $account->account_name,
+                'search'      => strtolower($account->account_code . ' ' . $account->account_name),
                 'fs_line_item'=> $account->fs_line_item,
             ];
         });

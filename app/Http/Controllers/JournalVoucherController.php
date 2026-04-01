@@ -64,6 +64,7 @@ class JournalVoucherController extends Controller
                     'code'    => $account->account_code,
                     'name'    => $account->account_name,
                     'display' => $account->account_code . ' - ' . $account->account_name,
+                    'search'  => strtolower($account->account_code . ' ' . $account->account_name),
                 ];
             });
 
@@ -172,6 +173,7 @@ class JournalVoucherController extends Controller
                     'code'    => $account->account_code,
                     'name'    => $account->account_name,
                     'display' => $account->account_code . ' - ' . $account->account_name,
+                    'search'  => strtolower($account->account_code . ' ' . $account->account_name),
                 ];
             });
 

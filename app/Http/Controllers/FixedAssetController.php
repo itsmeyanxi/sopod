@@ -68,8 +68,11 @@ class FixedAssetController extends Controller
 
         $glAccounts = GlAccount::orderBy('account_code')
             ->get(['id', 'account_code', 'account_name'])
-            ->map(fn($a) => ['code' => $a->account_code, 'name' => $a->account_name])
-            ->toArray();
+            ->map(fn($a) => [
+                'code'   => $a->account_code,
+                'name'   => $a->account_name,
+                'search' => strtolower($a->account_code . ' ' . $a->account_name),
+            ])->toArray();
 
         return view('fixed_assets.show', compact('asset', 'glAccounts'));
     }
@@ -92,9 +95,10 @@ class FixedAssetController extends Controller
             ->get(['id', 'account_code', 'account_name'])
             ->map(function ($account) {
                 return [
-                    'id'   => $account->id,
-                    'code' => $account->account_code,
-                    'name' => $account->account_name,
+                    'id'     => $account->id,
+                    'code'   => $account->account_code,
+                    'name'   => $account->account_name,
+                    'search' => strtolower($account->account_code . ' ' . $account->account_name),
                 ];
             });
 
@@ -191,9 +195,10 @@ class FixedAssetController extends Controller
             ->get(['id', 'account_code', 'account_name'])
             ->map(function ($account) {
                 return [
-                    'id'   => $account->id,
-                    'code' => $account->account_code,
-                    'name' => $account->account_name,
+                    'id'     => $account->id,
+                    'code'   => $account->account_code,
+                    'name'   => $account->account_name,
+                    'search' => strtolower($account->account_code . ' ' . $account->account_name),
                 ];
             });
 
