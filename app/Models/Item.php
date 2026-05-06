@@ -14,6 +14,8 @@ class Item extends Model
         'item_code',
         'item_category',
         'brand',
+        'unit',
+        'type',
         'approval_status',
         'approved_by',
         'approved_at',

@@ -53,6 +53,15 @@
                 >
             </div>
 
+            {{-- Type --}}
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-400 mb-1">Type</label>
+                <select name="type" class="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="trade" {{ old('type','trade') === 'trade' ? 'selected' : '' }}>Trade</option>
+                    <option value="non_trade" {{ old('type') === 'non_trade' ? 'selected' : '' }}>Non-Trade</option>
+                </select>
+            </div>
+
             {{-- 🔘 Buttons --}}
             <div class="flex justify-end gap-3">
                 <a href="{{ route('items.index') }}" 

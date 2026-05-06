@@ -319,54 +319,61 @@
             </div>
         </div>
 
-        <!-- Items Table -->
+        <!-- Items / Service Description -->
         <div class="mb-6">
-            <h3 class="text-lg font-semibold text-white mb-2">Items</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full border-collapse border border-gray-700">
-                    <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
-                        <tr>
-                            <th class="border border-gray-700 px-4 py-3">NO.</th>
-                            <th class="border border-gray-700 px-4 py-3">ITEM CODE</th>
-                            <th class="border border-gray-700 px-4 py-3">QTY</th>
-                            <th class="border border-gray-700 px-4 py-3">UOM</th>
-                            <th class="border border-gray-700 px-4 py-3">DESCRIPTION</th>
-                            <th class="border border-gray-700 px-4 py-3">SUPPLIER</th>
-                            <th class="border border-gray-700 px-4 py-3">DATE NEEDED</th>
-                            <th class="border border-gray-700 px-4 py-3">UNIT PRICE</th>
-                            <th class="border border-gray-700 px-4 py-3">TAX</th>
-                            <th class="border border-gray-700 px-4 py-3">TOTAL</th>
-                            <th class="border border-gray-700 px-4 py-3">NOTE</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-200 divide-y divide-gray-700">
-                        @foreach($purchaseOrder->items as $item)
-                            <tr class="hover:bg-gray-700/40">
-                                <td class="border border-gray-700 px-4 py-3 text-center">{{ $item->item_no }}</td>
-                                <td class="border border-gray-700 px-4 py-3">{{ $item->item_code ?? 'N/A' }}</td>
-                                <td class="border border-gray-700 px-4 py-3">{{ number_format($item->qty, 2) }}</td>
-                                <td class="border border-gray-700 px-4 py-3">{{ $item->uom }}</td>
-                                <td class="border border-gray-700 px-4 py-3">{{ $item->description }}</td>
-                                <td class="border border-gray-700 px-4 py-3">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? 'N/A' }}</td>
-                                <td class="border border-gray-700 px-4 py-3 text-center">
-                                    {{ $item->date_needed ? \Carbon\Carbon::parse($item->date_needed)->format('M d, Y') : 'N/A' }}
-                                </td>
-                                <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->unit_price ? '₱' . number_format($item->unit_price, 2) : 'N/A' }}</td>
-                                <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->tax ? '₱' . number_format($item->tax, 2) : 'N/A' }}</td>
-                                <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->total ? '₱' . number_format($item->total, 2) : 'N/A' }}</td>
-                                <td class="border border-gray-700 px-4 py-3">{{ $item->note ?? '' }}</td>
+            @if(($purchaseOrder->po_type ?? 'items') === 'service')
+                <h3 class="text-lg font-semibold text-white mb-2"><i class="fas fa-tools mr-2"></i>Service Description</h3>
+                <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-gray-200 min-h-[80px] whitespace-pre-line">
+                    {{ $purchaseOrder->service_description ?? 'No description provided.' }}
+                </div>
+            @else
+                <h3 class="text-lg font-semibold text-white mb-2">Items</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-gray-700">
+                        <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
+                            <tr>
+                                <th class="border border-gray-700 px-4 py-3">NO.</th>
+                                <th class="border border-gray-700 px-4 py-3">ITEM CODE</th>
+                                <th class="border border-gray-700 px-4 py-3">QTY</th>
+                                <th class="border border-gray-700 px-4 py-3">UOM</th>
+                                <th class="border border-gray-700 px-4 py-3">DESCRIPTION</th>
+                                <th class="border border-gray-700 px-4 py-3">SUPPLIER</th>
+                                <th class="border border-gray-700 px-4 py-3">DATE NEEDED</th>
+                                <th class="border border-gray-700 px-4 py-3">UNIT PRICE</th>
+                                <th class="border border-gray-700 px-4 py-3">TAX</th>
+                                <th class="border border-gray-700 px-4 py-3">TOTAL</th>
+                                <th class="border border-gray-700 px-4 py-3">NOTE</th>
                             </tr>
-                        @endforeach
-                        @if($purchaseOrder->items->count() > 0)
-                            <tr class="font-semibold bg-gray-700">
-                                <td colspan="9" class="border border-gray-700 px-4 py-3 text-right">GRAND TOTAL:</td>
-                                <td class="border border-gray-700 px-4 py-3 text-right">₱{{ number_format($purchaseOrder->items->sum('total'), 2) }}</td>
-                                <td class="border border-gray-700 px-4 py-3"></td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody class="text-gray-200 divide-y divide-gray-700">
+                            @foreach($purchaseOrder->items as $item)
+                                <tr class="hover:bg-gray-700/40">
+                                    <td class="border border-gray-700 px-4 py-3 text-center">{{ $item->item_no }}</td>
+                                    <td class="border border-gray-700 px-4 py-3">{{ $item->item_code ?? 'N/A' }}</td>
+                                    <td class="border border-gray-700 px-4 py-3">{{ number_format($item->qty, 2) }}</td>
+                                    <td class="border border-gray-700 px-4 py-3">{{ $item->uom }}</td>
+                                    <td class="border border-gray-700 px-4 py-3">{{ $item->description }}</td>
+                                    <td class="border border-gray-700 px-4 py-3">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? 'N/A' }}</td>
+                                    <td class="border border-gray-700 px-4 py-3 text-center">
+                                        {{ $item->date_needed ? \Carbon\Carbon::parse($item->date_needed)->format('M d, Y') : 'N/A' }}
+                                    </td>
+                                    <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->unit_price ? '₱' . number_format($item->unit_price, 2) : 'N/A' }}</td>
+                                    <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->tax ? '₱' . number_format($item->tax, 2) : '—' }}</td>
+                                    <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->total ? '₱' . number_format($item->total, 2) : 'N/A' }}</td>
+                                    <td class="border border-gray-700 px-4 py-3">{{ $item->note ?? '' }}</td>
+                                </tr>
+                            @endforeach
+                            @if($purchaseOrder->items->count() > 0)
+                                <tr class="bg-gray-700 font-semibold">
+                                    <td colspan="8" class="border border-gray-700 px-4 py-3 text-right text-white">TOTAL:</td>
+                                    <td class="border border-gray-700 px-4 py-3 text-right text-green-400">₱{{ number_format($purchaseOrder->items->sum('total'), 2) }}</td>
+                                    <td class="border border-gray-700"></td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </div>
 
         <!-- Remarks -->
@@ -417,7 +424,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $purchaseOrder->departmentHeadApprover->name ?? '' }}</span>
                                 @if($purchaseOrder->departmentHeadApprover && $purchaseOrder->department_head_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $purchaseOrder->departmentHeadApprover])<br>
                                         {{ $purchaseOrder->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($purchaseOrder->department_head_approved_latitude && $purchaseOrder->department_head_approved_longitude)
                                             <br>Coords: {{ $purchaseOrder->department_head_approved_latitude }}, {{ $purchaseOrder->department_head_approved_longitude }}
@@ -430,7 +437,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $purchaseOrder->managementApprover->name ?? '' }}</span>
                                 @if($purchaseOrder->managementApprover && $purchaseOrder->management_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $purchaseOrder->managementApprover])<br>
                                         {{ $purchaseOrder->management_approved_at->format('d M Y | H:i') }}
                                         @if($purchaseOrder->management_approved_latitude && $purchaseOrder->management_approved_longitude)
                                             <br>Coords: {{ $purchaseOrder->management_approved_latitude }}, {{ $purchaseOrder->management_approved_longitude }}
@@ -444,7 +451,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $purchaseOrder->approver->name ?? '' }}</span>
                                 @if($purchaseOrder->approver && $purchaseOrder->approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $purchaseOrder->approver])<br>
                                         {{ $purchaseOrder->approved_at->format('d M Y | H:i') }}
                                         @if($purchaseOrder->approved_latitude && $purchaseOrder->approved_longitude)
                                             <br>Coords: {{ $purchaseOrder->approved_latitude }}, {{ $purchaseOrder->approved_longitude }}
@@ -468,9 +475,15 @@
 
         <!-- Form Actions -->
         <div class="flex justify-between items-center">
-            <a href="{{ route('purchase_orders.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-700 transition">
-                <i class="fas fa-arrow-left mr-1"></i> Back to List
-            </a>
+            @if(request('from_mapping'))
+                <a href="{{ route('mapping.index') }}" class="bg-purple-700 text-white px-6 py-2 rounded hover:bg-purple-800 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Mapping
+                </a>
+            @else
+                <a href="{{ route('purchase_orders.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-700 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to List
+                </a>
+            @endif
             <div class="flex gap-4">
                 @if($purchaseOrder->status === 'approved' && $purchaseOrder->approved_at !== null)
                     <a href="{{ route('purchase_orders.edit', $purchaseOrder->id) }}" class="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700 transition">

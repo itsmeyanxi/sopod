@@ -134,11 +134,40 @@
             @endif
         </div>
 
-        <!-- Particulars -->
-        <div class="section-title">PARTICULARS</div>
-        <div style="border: 1px solid #999; padding: 8px; min-height: 40px; font-size: 10px; margin-bottom: 12px;">
-            {{ $apv->particulars ?? '' }}
-        </div>
+        <!-- Items Table -->
+        <div class="section-title">PARTICULARS & ACCOUNTING</div>
+        <table style="margin-bottom:12px; font-size:9px;">
+            <thead style="background:#e8e8e8;">
+                <tr>
+                    <th style="width:22px; text-align:center;">#</th>
+                    <th>PARTICULARS</th>
+                    <th style="width:90px;">ITEM CODE</th>
+                    <th style="width:65px;">DIVISION</th>
+                    <th style="width:30px; text-align:center;">VAT</th>
+                    <th style="width:55px;">TAX CODE</th>
+                    <th style="width:80px;">ACCT CODE</th>
+                    <th style="width:130px;">ACCOUNT NAME</th>
+                    <th style="width:80px; text-align:right;">GROSS AMT</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($apv->items as $i => $item)
+                <tr style="{{ $loop->even ? 'background:#f9f9f9;' : '' }}">
+                    <td style="text-align:center;">{{ $i + 1 }}</td>
+                    <td>{{ $item->particulars }}</td>
+                    <td>{{ $item->item_code }}</td>
+                    <td>{{ $item->division }}</td>
+                    <td style="text-align:center;">{{ $item->vat ? '✓' : '' }}</td>
+                    <td>{{ $item->tax_code }}</td>
+                    <td>{{ $item->account_code }}</td>
+                    <td>{{ $item->account_name }}</td>
+                    <td style="text-align:right;">{{ number_format($item->gross_amount, 2) }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="9" style="text-align:center; color:#999;">No items</td></tr>
+                @endforelse
+            </tbody>
+        </table>
 
         <!-- Amount Breakdown -->
         <div class="section-title">AMOUNT BREAKDOWN</div>
@@ -198,14 +227,14 @@
                     <td>
                         <div class="sig-name">{{ $apv->creator->name ?? '' }}</div>
                         @if($apv->creator && $apv->created_at)
-                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $apv->creator])</div>
                             <div class="e-signature-detail">Date/Time: {{ $apv->created_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                         @endif
                     </td>
                     <td>
                         <div class="sig-name">{{ $apv->departmentHeadApprover->name ?? '' }}</div>
                         @if($apv->departmentHeadApprover && $apv->department_head_approved_at)
-                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $apv->departmentHeadApprover])</div>
                             <div class="e-signature-detail">Date/Time: {{ $apv->department_head_approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                             @if($apv->department_head_approved_latitude && $apv->department_head_approved_longitude)
                                 <div class="e-signature-detail">Coords: {{ $apv->department_head_approved_latitude }}, {{ $apv->department_head_approved_longitude }}@if($apv->department_head_approved_location) ({{ $apv->department_head_approved_location }})@endif</div>
@@ -215,7 +244,7 @@
                     <td>
                         <div class="sig-name">{{ $apv->approver->name ?? '' }}</div>
                         @if($apv->approver && $apv->approved_at)
-                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $apv->approver])</div>
                             <div class="e-signature-detail">Date/Time: {{ $apv->approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                             @if($apv->approved_latitude && $apv->approved_longitude)
                                 <div class="e-signature-detail">Coords: {{ $apv->approved_latitude }}, {{ $apv->approved_longitude }}@if($apv->approved_location) ({{ $apv->approved_location }})@endif</div>

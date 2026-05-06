@@ -258,7 +258,7 @@ let rowCount = 1;
 
 // ── Route URLs ──────────────────────────────────────────────────────────────
 const SUPPLIER_SEARCH_URL    = '{{ route("purchase_requests.search_suppliers") }}';
-const SEARCH_URL             = '{{ route("non_trade_items.search") }}';
+const SEARCH_URL             = '{{ route("items.search") }}';
 const ITEM_CODE_SEARCH_URL   = '{{ route("purchase_orders.search_by_item_code") }}';
 const GENERATE_ITEM_CODE_URL = '{{ route("purchase_orders.generate_item_code") }}';
 
@@ -489,17 +489,18 @@ function attachDescAutocomplete(input) {
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(item =>
                     `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 desc-option"
-                          data-name="${(item.name || item).toString().replace(/"/g, '&quot;')}"
-                          data-item-code="${(item.item_code || '').toString().replace(/"/g, '&quot;')}"
-                          data-supplier-id="${item.supplier_id || ''}"
-                          data-supplier-name="${(item.supplier_name || '').toString().replace(/"/g, '&quot;')}">${typeof item === 'string' ? item : item.display_name}</div>`
+                          data-name="${(item.item_description || '').replace(/"/g, '&quot;')}"
+                          data-item-code="${(item.item_code || '').replace(/"/g, '&quot;')}">
+                        <div class="font-semibold">${item.item_description || ''}</div>
+                        <div class="text-xs text-gray-400">${item.item_code || ''} ${item.brand ? '· '+item.brand : ''} <span class="text-yellow-400">${item.type === 'non_trade' ? 'Non-Trade' : 'Trade'}</span></div>
+                    </div>`
                 ).join('');
                 positionFixedDropdown(input, dropdown);
                 dropdown.classList.remove('hidden');
                 dropdown.querySelectorAll('.desc-option').forEach(opt => {
                     opt.addEventListener('mousedown', function (e) {
                         e.preventDefault();
-                        input.value = this.dataset.name || this.textContent.trim();
+                        input.value = this.dataset.name || '';
                         dropdown.classList.add('hidden');
                         const row = input.closest('tr');
                         if (!row) return;

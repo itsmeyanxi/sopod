@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\RequestForPayment;
 use App\Models\PurchaseOrder;
 use App\Models\Activity;
+use App\Models\Vendor;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -49,7 +51,14 @@ class RequestForPaymentController extends Controller
     }
 }
 
-        return view('request_for_payments.create', compact('rfpNo', 'companies', 'selectedPO', 'poAmount'));
+        $payeeOptions = collect();
+        $payeeOptions = $payeeOptions->merge(
+            Vendor::orderBy('vendor_name')->get(['id', 'vendor_name'])->map(fn($v) => ['label' => $v->vendor_name, 'type' => 'Vendor'])
+        )->merge(
+            Supplier::where('status', 'active')->orderBy('supplier_name')->get(['id', 'supplier_name'])->map(fn($s) => ['label' => $s->supplier_name, 'type' => 'Supplier'])
+        )->sortBy('label')->values();
+
+        return view('request_for_payments.create', compact('rfpNo', 'companies', 'selectedPO', 'poAmount', 'payeeOptions'));
     }
 
     /**
@@ -109,6 +118,22 @@ class RequestForPaymentController extends Controller
         ], 500);
     }
 }
+
+    /**
+     * Get PO items (AJAX)
+     */
+    public function getPoItems($poId)
+    {
+        $po = PurchaseOrder::with('items')->find($poId);
+        if (!$po) {
+            return response()->json(['po_type' => 'items', 'items' => [], 'service_description' => null]);
+        }
+        return response()->json([
+            'po_type'             => $po->po_type ?? 'items',
+            'service_description' => $po->service_description,
+            'items'               => $po->items,
+        ]);
+    }
 
     /**
      * Store a newly created request for payment
@@ -187,7 +212,7 @@ class RequestForPaymentController extends Controller
      */
     public function show($id)
     {
-        $rfp = RequestForPayment::with(['creator', 'purchaseOrder', 'approver', 'departmentHeadApprover', 'accountingApprover'])
+        $rfp = RequestForPayment::with(['creator', 'purchaseOrder.items', 'approver', 'departmentHeadApprover', 'accountingApprover'])
             ->findOrFail($id);
 
         return view('request_for_payments.show', compact('rfp'));
@@ -198,7 +223,7 @@ class RequestForPaymentController extends Controller
      */
     public function edit($id)
     {
-        $rfp = RequestForPayment::findOrFail($id);
+        $rfp = RequestForPayment::with(['purchaseOrder.items'])->findOrFail($id);
 
         $companies = [
             'North Breeders Corporation',
@@ -448,7 +473,7 @@ class RequestForPaymentController extends Controller
      */
     public function print($id)
     {
-        $rfp = RequestForPayment::with(['creator', 'purchaseOrder', 'approver', 'departmentHeadApprover', 'accountingApprover'])->findOrFail($id);
+        $rfp = RequestForPayment::with(['creator', 'purchaseOrder.items', 'approver', 'departmentHeadApprover', 'accountingApprover'])->findOrFail($id);
         return view('request_for_payments.print', ['rfp' => $rfp]);
     }
 }

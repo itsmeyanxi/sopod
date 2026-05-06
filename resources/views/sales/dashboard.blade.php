@@ -2,7 +2,7 @@
 
 @section('content')
 <!-- Link CSS -->
-<link rel="stylesheet" href="{{ asset('css/sales-dashboard.css') }}">
+<link rel="stylesheet" href="{{ asset('css/sales-dashboard.css') }}?v={{ filemtime(public_path('css/sales-dashboard.css')) }}">
 
 <div class="dashboard-wrapper">
     <div class="dashboard-container">
@@ -25,30 +25,31 @@
                     <label class="filter-label">Year</label>
                     <select name="year" class="filter-select">
                         @for($i = 2020; $i <= date('Y') + 1; $i++)
-                            <option value="{{ $i }}" {{ (isset($year) && $year == $i) ? 'selected' : '' }}>{{ $i }}</option>
+                            <option value="{{ $i }}" {{ $year == $i ? 'selected' : '' }}>{{ $i }}</option>
                         @endfor
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label class="filter-label">Month</label>
-                    <select name="month" class="filter-select">
-                        @for($i = 1; $i <= 12; $i++)
-                            <option value="{{ $i }}" {{ (isset($month) && $month == $i) ? 'selected' : '' }}>
-                                {{ date('F', mktime(0, 0, 0, $i, 1)) }}
-                            </option>
-                        @endfor
-                    </select>
+                    <label class="filter-label">Date From</label>
+                    <input type="date" name="date_from" value="{{ request('date_from', $dateFrom->format('Y-m-d')) }}" class="filter-select">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Date To</label>
+                    <input type="date" name="date_to" value="{{ request('date_to', $dateTo->format('Y-m-d')) }}" class="filter-select">
                 </div>
                 <button type="submit" class="filter-button">Apply</button>
+                <a href="{{ route('sales.dashboard') }}" class="filter-button" style="background:#6b7280;text-decoration:none;">Reset</a>
             </form>
 
             <!-- Metrics Grid -->
             <div class="metrics-grid">
+                @php $rangeLabel = $dateFrom->format('M d, Y') . ' – ' . $dateTo->format('M d, Y'); @endphp
+
                 <div class="metric-card blue-card">
                     <div class="metric-content">
-                        <p class="metric-label">Monthly Sales</p>
-                        <h3 class="metric-value">₱{{ number_format($monthlySalesPHP ?? 0, 2) }}</h3>
-                        <p class="metric-subtitle">{{ number_format($monthlySalesKG ?? 0, 2) }} KG</p>
+                        <p class="metric-label">Sales (Selected Range)</p>
+                        <h3 class="metric-value">₱{{ number_format($rangeSalesPHP ?? 0, 2) }}</h3>
+                        <p class="metric-subtitle">{{ number_format($rangeSalesKG ?? 0, 2) }} KG</p>
                     </div>
                     <div class="metric-icon">
                         <i class="fas fa-calendar-alt"></i>
@@ -81,7 +82,7 @@
                     <div class="metric-content">
                         <p class="metric-label">Total Sales Orders</p>
                         <h3 class="metric-value">{{ number_format($totalSalesOrders ?? 0) }}</h3>
-                        <p class="metric-subtitle">All time</p>
+                        <p class="metric-subtitle">{{ $rangeLabel }}</p>
                     </div>
                     <div class="metric-icon">
                         <i class="fas fa-file-invoice"></i>
@@ -92,7 +93,7 @@
                     <div class="metric-content">
                         <p class="metric-label">Delivered Orders</p>
                         <h3 class="metric-value">{{ number_format($deliveredCount ?? 0) }}</h3>
-                        <p class="metric-subtitle">Completed</p>
+                        <p class="metric-subtitle">{{ $rangeLabel }}</p>
                     </div>
                     <div class="metric-icon">
                         <i class="fas fa-truck"></i>
@@ -103,7 +104,7 @@
                     <div class="metric-content">
                         <p class="metric-label">Pending Orders</p>
                         <h3 class="metric-value">{{ number_format($pendingSO ?? 0) }}</h3>
-                        <p class="metric-subtitle">Awaiting processing</p>
+                        <p class="metric-subtitle">{{ $rangeLabel }}</p>
                     </div>
                     <div class="metric-icon">
                         <i class="fas fa-clock"></i>
@@ -159,7 +160,11 @@
             @include('partials.monthly-breakdown', [
                 'monthlyDataPHP' => $monthlyDataPHP ?? array_fill(0, 12, 0),
                 'monthlyDataKG' => $monthlyDataKG ?? array_fill(0, 12, 0),
-                'year' => $year ?? date('Y')
+                'year' => $year ?? date('Y'),
+                'monthlyInternalPHP' => $monthlyInternalPHP ?? array_fill(0, 12, 0),
+                'monthlyInternalKG'  => $monthlyInternalKG  ?? array_fill(0, 12, 0),
+                'monthlyExternalPHP' => $monthlyExternalPHP ?? array_fill(0, 12, 0),
+                'monthlyExternalKG'  => $monthlyExternalKG  ?? array_fill(0, 12, 0),
             ])
 
             <!-- Recent Deliveries -->

@@ -17,8 +17,8 @@
 
     /* ── KPI Cards ── */
     .kpi-card {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
+        background: #1f2937;
+        border: 1px solid #374151;
         border-radius: 8px;
         padding: 1.25rem 1.5rem;
         position: relative;
@@ -32,7 +32,7 @@
         width: 3px;
         height: 100%;
     }
-    .kpi-card:hover { transform: translateY(-2px); border-color: #d1d5db; }
+    .kpi-card:hover { transform: translateY(-2px); border-color: #4b5563; }
     .kpi-card.accent-blue::before  { background: #3b82f6; }
     .kpi-card.accent-green::before { background: #22c55e; }
     .kpi-card.accent-amber::before { background: #f59e0b; }
@@ -43,7 +43,7 @@
         font-family: 'IBM Plex Mono', monospace;
         font-size: 1.6rem;
         font-weight: 600;
-        color: #111827;
+        color: #f9fafb;
         line-height: 1.2;
     }
     .kpi-label {
@@ -57,7 +57,7 @@
     .kpi-sub {
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.7rem;
-        color: #4b5563;
+        color: #9ca3af;
         margin-top: 0.3rem;
     }
 
@@ -83,14 +83,14 @@
 
     /* ── Panels ── */
     .panel {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
+        background: #1f2937;
+        border: 1px solid #374151;
         border-radius: 8px;
         overflow: hidden;
     }
     .panel-header {
         padding: 0.9rem 1.25rem;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #374151;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -110,14 +110,14 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.55rem 1.25rem;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #374151;
         transition: background 0.15s;
     }
     .bar-row:last-child { border-bottom: none; }
-    .bar-row:hover { background: #f3f4f6; }
+    .bar-row:hover { background: #2d3748; }
     .bar-track {
         height: 6px;
-        background: #e5e7eb;
+        background: #374151;
         border-radius: 3px;
         overflow: hidden;
     }
@@ -136,7 +136,7 @@
     .bar-amount {
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.72rem;
-        color: #4b5563;
+        color: #9ca3af;
         text-align: right;
     }
 
@@ -148,34 +148,34 @@
         font-weight: 600;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: #4b5563;
-        background: #f3f4f6;
+        color: #6b7280;
+        background: #111827;
         text-align: left;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #374151;
         position: sticky;
         top: 0;
         z-index: 5;
     }
     .po-table tbody tr {
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #374151;
         transition: background 0.12s;
     }
-    .po-table tbody tr:hover { background: #f3f4f6; }
+    .po-table tbody tr:hover { background: #2d3748; }
     .po-table tbody td {
         padding: 0.6rem 1rem;
         font-size: 0.8rem;
-        color: #4b5563;
+        color: #d1d5db;
     }
     .po-table tbody td.mono-col {
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.72rem;
-        color: #9ca3af;
+        color: #6b7280;
     }
 
     /* ── Filters ── */
     .filter-select {
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
+        background: #1f2937;
+        border: 1px solid #374151;
         border-radius: 4px;
         color: #9ca3af;
         font-size: 0.75rem;
@@ -184,13 +184,13 @@
         cursor: pointer;
         font-family: 'IBM Plex Sans', sans-serif;
     }
-    .filter-select:focus { border-color: #3b82f6; color: #111827; }
+    .filter-select:focus { border-color: #3b82f6; color: #d1d5db; }
 
     .search-input {
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
+        background: #1f2937;
+        border: 1px solid #374151;
         border-radius: 4px;
-        color: #4b5563;
+        color: #d1d5db;
         font-size: 0.75rem;
         padding: 0.35rem 0.75rem;
         outline: none;
@@ -199,7 +199,7 @@
         transition: border-color 0.15s, width 0.3s;
     }
     .search-input:focus { border-color: #3b82f6; width: 260px; }
-    .search-input::placeholder { color: #9ca3af; }
+    .search-input::placeholder { color: #4b5563; }
 
     /* ── Company tabs ── */
     .company-tab {
@@ -214,7 +214,7 @@
         background: transparent;
         font-family: 'IBM Plex Sans', sans-serif;
     }
-    .company-tab:hover { color: #4b5563; background: #e5e7eb; }
+    .company-tab:hover { color: #d1d5db; background: #2d3748; }
     .company-tab.active {
         color: #60a5fa;
         background: rgba(59,130,246,0.1);
@@ -252,19 +252,19 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.55rem 1.25rem;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #374151;
     }
     .status-row:last-child { border-bottom: none; }
     .status-name { width: 9rem; font-size: 0.72rem; color: #9ca3af; }
-    .status-bar-wrap { flex: 1; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+    .status-bar-wrap { flex: 1; height: 6px; background: #374151; border-radius: 3px; overflow: hidden; }
     .status-count-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #6b7280; width: 2.5rem; text-align: right; }
-    .status-amount-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #4b5563; width: 8rem; text-align: right; }
+    .status-amount-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #9ca3af; width: 8rem; text-align: right; }
 
     /* ── Table scroll wrapper ── */
     .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 420px; }
     .table-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
     .table-scroll::-webkit-scrollbar-track { background: transparent; }
-    .table-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+    .table-scroll::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }
 
     /* ── Divider badge ── */
     .section-badge {
@@ -275,14 +275,14 @@
         font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: #4b5563;
+        color: #6b7280;
     }
     .section-badge::before {
         content: '';
         display: block;
         width: 12px;
         height: 1px;
-        background: #d1d5db;
+        background: #374151;
     }
 
     /* ── Stagger animations ── */
@@ -300,7 +300,7 @@
 
     /* Loading shimmer */
     .shimmer {
-        background: linear-gradient(90deg, #e5e7eb 25%, #d1d5db 50%, #e5e7eb 75%);
+        background: linear-gradient(90deg, #1f2937 25%, #2d3748 50%, #1f2937 75%);
         background-size: 200% 100%;
         animation: shimmer 1.5s infinite;
         border-radius: 4px;

@@ -95,6 +95,7 @@ class ArAdjustmentController extends Controller
             })
             ->where('deliveries.status', 'Delivered')
             ->where('deliveries.is_pulled_out', '!=', 1)
+            ->where('deliveries.is_locked', '!=', 1)
             ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('ar_aging')
@@ -279,24 +280,127 @@ public function getAdjustments(Request $request)
     }
 }
 
-public function store(Request $request)
+/**
+     * Parse factoring XLSX file and return rows as JSON
+     */
+    public function parseFactoringFile(Request $request)
+    {
+        try {
+            $request->validate([
+                'factoring_file' => 'required|file|max:51200',
+            ]);
+
+            $file = $request->file('factoring_file');
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file->getPathname());
+            $reader->setReadDataOnly(true);
+
+            // Only read first 5000 rows to avoid memory issues
+            $reader->setReadFilter(new class implements \PhpOffice\PhpSpreadsheet\Reader\IReadFilter {
+                public function readCell($columnAddress, $row, $worksheetName = '') {
+                    return $row <= 5000;
+                }
+            });
+
+            $spreadsheet = $reader->load($file->getPathname());
+            $sheet = $spreadsheet->getActiveSheet();
+
+            $rows = [];
+            $highRow = min(5000, $sheet->getHighestDataRow());
+
+            for ($row = 2; $row <= $highRow; $row++) {
+                $drNo = $sheet->getCell('A' . $row)->getValue();
+                if ($drNo === null || $drNo === '') continue;
+
+                // Convert Excel serial dates to readable strings
+                $depositedDate = $sheet->getCell('C' . $row)->getValue();
+                $depositedDateRaw = '';
+                if ($depositedDate && is_numeric($depositedDate)) {
+                    try {
+                        $dtObj = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($depositedDate);
+                        $depositedDateRaw = $dtObj->format('Y-m-d');
+                        $depositedDate = $dtObj->format('M d, Y');
+                    } catch (\Exception $e) { /* keep raw */ }
+                }
+
+                $crOr = $sheet->getCell('D' . $row)->getValue();
+                if ($crOr && is_numeric($crOr)) {
+                    try {
+                        $crOr = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($crOr)->format('M d, Y');
+                    } catch (\Exception $e) { /* keep raw */ }
+                }
+
+                // Calculate total collection by summing all amount columns (F through N)
+                // Column O contains a formula which won't resolve with ReadDataOnly
+                $totalCollection = (float)($sheet->getCell('F' . $row)->getValue() ?? 0)
+                    + (float)($sheet->getCell('G' . $row)->getValue() ?? 0)
+                    + (float)($sheet->getCell('H' . $row)->getValue() ?? 0)
+                    + (float)($sheet->getCell('I' . $row)->getValue() ?? 0)
+                    + (float)($sheet->getCell('J' . $row)->getValue() ?? 0)
+                    + (float)($sheet->getCell('K' . $row)->getValue() ?? 0)
+                    + (float)($sheet->getCell('L' . $row)->getValue() ?? 0)
+                    + (float)($sheet->getCell('M' . $row)->getValue() ?? 0)
+                    + (float)($sheet->getCell('N' . $row)->getValue() ?? 0);
+
+                $rows[] = [
+                    'dr_no'            => $drNo,
+                    'customer'         => $sheet->getCell('B' . $row)->getValue() ?? '',
+                    'deposited_date'   => $depositedDate ?? '',
+                    'deposited_date_raw' => $depositedDateRaw,
+                    'cr_or'            => $crOr ?? '',
+                    'bank'             => $sheet->getCell('E' . $row)->getValue() ?? '',
+                    'check_amount'     => $sheet->getCell('F' . $row)->getValue() ?? 0,
+                    'ewt'              => $sheet->getCell('G' . $row)->getValue() ?? 0,
+                    'rebate'           => $sheet->getCell('H' . $row)->getValue() ?? 0,
+                    'overpayment'      => $sheet->getCell('I' . $row)->getValue() ?? 0,
+                    'short_payment'    => $sheet->getCell('J' . $row)->getValue() ?? 0,
+                    'factoring'        => $sheet->getCell('K' . $row)->getValue() ?? 0,
+                    'refund'           => $sheet->getCell('L' . $row)->getValue() ?? 0,
+                    'small_balance'    => $sheet->getCell('M' . $row)->getValue() ?? 0,
+                    'others'           => $sheet->getCell('N' . $row)->getValue() ?? 0,
+                    'total_collection' => $totalCollection,
+                    'remarks'          => $sheet->getCell('P' . $row)->getValue() ?? '',
+                    'week'             => $sheet->getCell('Q' . $row)->getValue() ?? '',
+                ];
+            }
+
+            $spreadsheet->disconnectWorksheets();
+            unset($spreadsheet);
+
+            return response()->json([
+                'success' => true,
+                'rows' => $rows,
+                'message' => count($rows) . ' rows parsed successfully.',
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Factoring file parse failed', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to parse file: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function store(Request $request)
 {
     try {
         $validated = $request->validate([
             'transaction_date' => 'required|date',
             'reference_number' => 'nullable|string|max:255',
-            'transaction_type' => 'required|in:atd,offset,credit_memo,debit_memo,adjustment,write_off,sales_return_allowances,price_adjustment,rebates,distribution_fees,penalty,promotional_expenses,small_balance_adjustment',
+            'transaction_type' => 'required|in:atd,offset,credit_memo,debit_memo,adjustment,write_off,sales_return_allowances,price_adjustment,rebates,distribution_fees,penalty,promotional_expenses,small_balance_adjustment,quantity_variants,short_payment,factoring',
             'dr_no' => 'nullable|string|max:255',
             'invoice_number' => 'nullable|string|max:255',
             'customer_code' => 'nullable|string|max:255',
             'customer_name' => 'required|string|max:255',
             'branch' => 'nullable|string|max:255',
-            'amount' => 'required|string',
+            'amount' => 'nullable|string',
+            'factoring_amount' => 'nullable|numeric',
             'gl_account' => 'nullable|string|max:255',
             'gl_account_id' => 'nullable|exists:gl_accounts,id',
             'remarks' => 'nullable|string',
             'attachment' => 'nullable|file|max:5120|mimes:pdf,png,jpg,jpeg',
             'receiving_report_id' => 'nullable|exists:receiving_reports,id',
+            'delivery_id' => 'nullable|exists:deliveries,id',
             'signed_by' => 'required|string|max:255',
         ]);
 
@@ -316,15 +420,31 @@ public function store(Request $request)
             $validated['reference_number'] = "ADJ-{$year}-" . str_pad($nextNum, 5, '0', STR_PAD_LEFT);
         }
 
-        // Parse amount
+        // For factoring, use factoring_amount if amount is empty
+        if (($validated['transaction_type'] ?? '') === 'factoring' && empty($validated['amount'])) {
+            $factoringAmt = floatval($validated['factoring_amount'] ?? 0);
+            if ($factoringAmt <= 0) {
+                return back()->withInput()->withErrors(['factoring_amount' => 'The factoring amount is required.']);
+            }
+            $validated['amount'] = (string) $factoringAmt;
+        }
+
+        if (empty($validated['amount'])) {
+            return back()->withInput()->withErrors(['amount' => 'The amount field is required.']);
+        }
+
+        // Parse amount — positive input = decrease AR, negative/() input = increase AR
         $amountStr = $validated['amount'];
-        $isDecrease = strpos($amountStr, '(') !== false || strpos($amountStr, '-') !== false;
+        $isNegativeInput = strpos($amountStr, '(') !== false || strpos($amountStr, '-') !== false;
         $amount = floatval(str_replace(['(', ')', ',', ' ', '-'], '', $amountStr));
-        
-        if ($isDecrease) {
-            $amount = -abs($amount);
-        } else {
+
+        // Flip: positive input → negative (decrease AR), negative input → positive (increase AR)
+        if ($isNegativeInput) {
             $amount = abs($amount);
+            $isDecrease = false;
+        } else {
+            $amount = -abs($amount);
+            $isDecrease = true;
         }
 
         // Get GL account code if ID is provided
@@ -360,6 +480,7 @@ public function store(Request $request)
             'gl_account' => $glAccountCode ?? $validated['gl_account'] ?? null,
             'gl_account_id' => $validated['gl_account_id'] ?? null,
             'receiving_report_id' => $validated['receiving_report_id'] ?? null,
+            'delivery_id' => $validated['delivery_id'] ?? null,
             'remarks' => $validated['remarks'] ?? null,
             'attachment_path' => $attachmentPath,
             'attachment_name' => $attachmentName,
@@ -570,7 +691,7 @@ public function store(Request $request)
     /**
      * Delete an adjustment
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
             $adjustment = ArAdjustment::findOrFail($id);
@@ -957,9 +1078,9 @@ public function store(Request $request)
 
         // Log transaction
         DB::table('ar_transactions')->insert([
-            'ar_aging_id' => $record->id,
+            'customer_code' => $customerCode,
             'transaction_type' => 'Adjustment',
-            'amount' => $adjustmentAmount,
+            'gross_amount' => $adjustmentAmount,
             'transaction_date' => $transactionDate,
             'reference_number' => $referenceNumber,
             'created_by' => Auth::user()->name ?? 'System',
@@ -991,7 +1112,7 @@ public function store(Request $request)
             )
             ->where('status', 'Delivered')  // Only delivered orders
             ->where('is_pulled_out', '!=', 1)  // Exclude pulled out deliveries
-            // ✅ REMOVED: Now showing ALL deliveries, including those without customer_code
+            ->where('is_locked', '!=', 1)  // Exclude locked deliveries
             ->whereNotExists(function ($query) {
                 // Exclude deliveries that have a matching AR adjustment by DR number
                 $query->select(DB::raw(1))
@@ -1058,6 +1179,7 @@ public function store(Request $request)
             })
             ->where('status', 'Delivered')
             ->where('is_pulled_out', '!=', 1)
+            ->where('is_locked', '!=', 1)
             ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('ar_adjustments')
@@ -1092,6 +1214,53 @@ public function store(Request $request)
     /**
      * Get delivery information by DR number
      */
+    /**
+     * Search deliveries for linking in AR Adjustments
+     */
+    public function searchDeliveries(Request $request)
+    {
+        try {
+            $search = trim($request->input('search', ''));
+            if (strlen($search) < 2) {
+                return response()->json(['results' => []]);
+            }
+
+            $deliveries = Deliveries::where(function($q) use ($search) {
+                    $q->where('dr_no', 'LIKE', "%{$search}%")
+                      ->orWhere('customer_name', 'LIKE', "%{$search}%")
+                      ->orWhere('customer_code', 'LIKE', "%{$search}%")
+                      ->orWhere('sales_order_number', 'LIKE', "%{$search}%");
+                })
+                ->select('id', 'dr_no', 'customer_code', 'customer_name', 'branch',
+                         'sales_order_number', 'sales_invoice_no', 'status',
+                         'request_delivery_date')
+                ->orderBy('request_delivery_date', 'desc')
+                ->limit(20)
+                ->get()
+                ->map(function($d) {
+                    // Get delivery items total
+                    $totalAmount = \App\Models\DeliveryItem::where('delivery_id', $d->id)->sum('total_amount');
+                    return [
+                        'id' => $d->id,
+                        'dr_no' => $d->dr_no,
+                        'customer_code' => $d->customer_code,
+                        'customer_name' => $d->customer_name,
+                        'branch' => $d->branch,
+                        'sales_order_number' => $d->sales_order_number,
+                        'sales_invoice_no' => $d->sales_invoice_no,
+                        'status' => $d->status,
+                        'delivery_date' => $d->request_delivery_date,
+                        'total_amount' => $totalAmount,
+                    ];
+                });
+
+            return response()->json(['results' => $deliveries]);
+        } catch (\Exception $e) {
+            Log::error('Delivery search failed', ['error' => $e->getMessage()]);
+            return response()->json(['results' => []], 500);
+        }
+    }
+
     public function getDeliveryInfo($drNo)
     {
         try {

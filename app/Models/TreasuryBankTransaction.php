@@ -30,16 +30,19 @@ class TreasuryBankTransaction extends Model
     }
 
     protected $fillable = [
-        'bank_account_id', 'txn_date', 'type', 'reference',
+        'bank_account_id', 'txn_date', 'type', 'reference', 'check_number',
+        'currency', 'exchange_rate', 'amount_php',
         'description', 'payee_or_source', 'debit', 'credit',
-        'running_balance', 'logged_by',
+        'running_balance', 'logged_by', 'dr_account', 'cr_account',
     ];
 
     protected $casts = [
-        'txn_date' => 'date',
-        'debit' => 'decimal:2',
-        'credit' => 'decimal:2',
-        'running_balance' => 'decimal:2',
+        'txn_date'       => 'date',
+        'debit'          => 'decimal:2',
+        'credit'         => 'decimal:2',
+        'running_balance'=> 'decimal:2',
+        'exchange_rate'  => 'decimal:4',
+        'amount_php'     => 'decimal:2',
     ];
 
     public function bankAccount()

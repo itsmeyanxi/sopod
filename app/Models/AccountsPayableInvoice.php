@@ -104,4 +104,9 @@ class AccountsPayableInvoice extends Model
     {
         return $this->belongsTo(ReimbursementForm::class);
     }
+
+    public function items()
+    {
+        return $this->hasMany(ApvItem::class, 'apv_id');
+    }
 }

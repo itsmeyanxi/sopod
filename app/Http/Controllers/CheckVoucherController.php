@@ -69,12 +69,13 @@ class CheckVoucherController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'cv_date' => 'required|date',
-            'check_date' => 'required|date',
-            'supplier_name' => 'required|string',
-            'check_amount' => 'required|numeric|min:0',
-            'paid_amount' => 'required|numeric|min:0',
-            'particulars' => 'required|string',
+            'accounts_payable_invoice_id' => 'required|exists:accounts_payable_invoices,id',
+            'cv_date'                     => 'required|date',
+            'check_date'                  => 'required|date',
+            'supplier_name'               => 'required|string',
+            'check_amount'                => 'required|numeric|min:0',
+            'paid_amount'                 => 'required|numeric|min:0',
+            'particulars'                 => 'required|string',
         ]);
 
         // Validate amounts do not exceed APV grand total

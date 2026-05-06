@@ -279,7 +279,7 @@
                 </div>
                 <div class="sig-subtitle">Signature Over Printed Name</div>
                 @if($reimbursement->creator && $reimbursement->created_at)
-                <div class="sig-detail">Digitally Signed &middot; {{ $reimbursement->created_at->format('d M Y | H:i') }}</div>
+                <div class="sig-detail">@include('partials.esignature', ['signer' => $reimbursement->creator]) &middot; {{ $reimbursement->created_at->format('d M Y | H:i') }}</div>
                 @endif
             </div>
             <div class="sig-block">
@@ -290,7 +290,7 @@
                 <div class="sig-subtitle">Department Head</div>
                 @if($reimbursement->dhApprover && $reimbursement->dh_approved_at)
                 <div class="sig-detail">
-                    Digitally Signed &middot; {{ $reimbursement->dh_approved_at->format('d M Y | H:i') }}
+                    @include('partials.esignature', ['signer' => $reimbursement->dhApprover]) &middot; {{ $reimbursement->dh_approved_at->format('d M Y | H:i') }}
                     @if($reimbursement->dh_approved_location) &middot; {{ $reimbursement->dh_approved_location }} @endif
                 </div>
                 @endif
@@ -305,7 +305,7 @@
             </div>
             @if($reimbursement->executiveApprover && $reimbursement->executive_approved_at)
             <div style="font-size: 7px; color: #888; margin-top: 2px;">
-                Digitally Signed &middot; {{ $reimbursement->executive_approved_at->format('d M Y | H:i') }}
+                @include('partials.esignature', ['signer' => $reimbursement->executiveApprover]) &middot; {{ $reimbursement->executive_approved_at->format('d M Y | H:i') }}
                 @if($reimbursement->executive_approved_location) &middot; {{ $reimbursement->executive_approved_location }} @endif
             </div>
             @else

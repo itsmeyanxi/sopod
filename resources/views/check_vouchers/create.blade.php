@@ -235,7 +235,9 @@
                 <a href="{{ route('check_vouchers.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-700 transition">
                     Cancel
                 </a>
-                <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800">
+                <button type="submit" id="cvSubmitBtn"
+                    class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2 rounded hover:from-purple-700 hover:to-purple-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                    {{ !$selectedAPV ? 'disabled' : '' }}>
                     <i class="fas fa-save mr-1"></i> Create Check Voucher
                 </button>
             </div>
@@ -305,8 +307,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Attach click handlers for inline auto-fill
                         apvSearchResults.querySelectorAll('.apv-result-item').forEach(item => {
                             item.addEventListener('click', function() {
-                                // Fill hidden APV ID
+                                // Fill hidden APV ID and enable submit
                                 document.querySelector('input[name="accounts_payable_invoice_id"]').value = this.dataset.id;
+                                document.getElementById('cvSubmitBtn').disabled = false;
 
                                 // Fill supplier info
                                 const supplierCode = document.querySelector('input[name="supplier_code"]');

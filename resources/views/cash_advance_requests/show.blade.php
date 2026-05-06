@@ -79,6 +79,45 @@
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $car->remarks ?? 'N/A' }}</p>
         </div>
 
+        <!-- Attachment -->
+        <div class="mb-6 p-4 bg-gray-900 border border-gray-700 rounded">
+            <label class="block font-semibold text-gray-300 mb-2"><i class="fas fa-paperclip mr-1"></i> ATTACHMENT:</label>
+            @if($car->attachment_path)
+                <div class="flex items-center gap-3 mb-3">
+                    <i class="fas fa-file text-purple-400 text-lg"></i>
+                    <a href="{{ Storage::url($car->attachment_path) }}" target="_blank"
+                       class="text-purple-400 hover:underline text-sm font-medium">{{ $car->attachment_name }}</a>
+                    @php $ext = strtolower(pathinfo($car->attachment_name, PATHINFO_EXTENSION)); @endphp
+                    @if(in_array($ext, ['jpg','jpeg','png']))
+                        <a href="{{ Storage::url($car->attachment_path) }}" target="_blank">
+                            <img src="{{ Storage::url($car->attachment_path) }}" class="mt-2 max-h-48 rounded border border-gray-600" alt="attachment">
+                        </a>
+                    @endif
+                </div>
+            @else
+                <p class="text-gray-500 text-sm">No attachment.</p>
+            @endif
+
+            <!-- Quick replace attachment -->
+            @if($car->status === 'pending')
+            <form action="{{ route('cash_advance_requests.update', $car->id) }}" method="POST" enctype="multipart/form-data" class="mt-3 flex items-center gap-3">
+                @csrf @method('PUT')
+                <input type="hidden" name="car_no" value="{{ $car->car_no }}">
+                <input type="hidden" name="payee" value="{{ $car->payee }}">
+                <input type="hidden" name="department" value="{{ $car->department }}">
+                <input type="hidden" name="purpose" value="{{ $car->purpose }}">
+                <input type="hidden" name="date_requested" value="{{ $car->date_requested?->format('Y-m-d') }}">
+                <input type="hidden" name="date_needed" value="{{ $car->date_needed?->format('Y-m-d') }}">
+                <input type="hidden" name="amount_advanced" value="{{ $car->amount_advanced }}">
+                <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.doc,.docx" required
+                    class="bg-gray-800 border border-gray-700 rounded px-3 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1 rounded text-sm">
+                    <i class="fas fa-upload mr-1"></i> {{ $car->attachment_path ? 'Replace' : 'Upload' }}
+                </button>
+            </form>
+            @endif
+        </div>
+
         <!-- Fine Print -->
         <div class="mb-6 p-4 bg-gray-900 border border-gray-700 rounded">
             <p class="text-gray-300 text-sm italic">
@@ -117,7 +156,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $car->departmentHeadApprover->name ?? '' }}</span>
                                 @if($car->departmentHeadApprover && $car->department_head_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $car->departmentHeadApprover])<br>
                                         {{ $car->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($car->department_head_approved_latitude && $car->department_head_approved_longitude)
                                             <br>Coords: {{ $car->department_head_approved_latitude }}, {{ $car->department_head_approved_longitude }}
@@ -132,7 +171,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $car->approver->name ?? '' }}</span>
                                 @if($car->approver && $car->approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $car->approver])<br>
                                         {{ $car->approved_at->format('d M Y | H:i') }}
                                         @if($car->approved_latitude && $car->approved_longitude)
                                             <br>Coords: {{ $car->approved_latitude }}, {{ $car->approved_longitude }}

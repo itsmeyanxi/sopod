@@ -73,7 +73,37 @@ class DeliveriesController extends Controller
     $perPage = in_array((int)$request->per_page, [25, 50, 100, 250, 500]) ? (int)$request->per_page : 25;
     $deliveries = $query->paginate($perPage)->withQueryString();
 
-    return view('deliveries.index', compact('deliveries', 'showHidden'));
+    // Summary totals: shown whenever both date filters are set
+    $deliverySummary = null;
+    if ($request->filled('delivery_date_from') && $request->filled('delivery_date_to')) {
+        $baseQuery = Deliveries::whereDate('request_delivery_date', '>=', $request->delivery_date_from)
+            ->whereDate('request_delivery_date', '<=', $request->delivery_date_to);
+        if ($request->filled('approval_status')) {
+            $baseQuery->where('approval_status', $request->approval_status);
+        }
+
+        $statuses = ['Pending', 'Delivered', 'Cancelled'];
+        $breakdown = [];
+        foreach ($statuses as $s) {
+            $rows = (clone $baseQuery)->where('status', $s)
+                ->withSum('items as total_amount', 'total_amount')
+                ->get();
+            $breakdown[$s] = [
+                'count'        => $rows->count(),
+                'total_amount' => $rows->sum('total_amount'),
+            ];
+        }
+
+        $allRows = (clone $baseQuery)->withSum('items as total_amount', 'total_amount')->get();
+        $deliverySummary = [
+            'breakdown'    => $breakdown,
+            'total_count'  => $allRows->count(),
+            'total_amount' => $allRows->sum('total_amount'),
+            'filtered_status' => $request->status ?: null,
+        ];
+    }
+
+    return view('deliveries.index', compact('deliveries', 'showHidden', 'deliverySummary'));
 }
 
     // Create form
@@ -339,7 +369,7 @@ public function update(Request $request, $id)
 
             // ✅ ALWAYS recalculate - ignore client value
             $unitPrice = $item['unit_price'] ?? 0;
-            $totalAmount = round($deliveredQty * $unitPrice, 2);
+            $totalAmount = round($deliveredQty * $unitPrice, 3);
 
             DeliveryItem::create([
                 'delivery_id' => $delivery->id,
@@ -399,7 +429,7 @@ public function fixExistingTotals()
             $items = DeliveryItem::where('delivery_id', $delivery->id)->get();
             
             foreach ($items as $item) {
-                $correctTotal = round(($item->quantity ?? 0) * ($item->unit_price ?? 0), 2);
+                $correctTotal = round(($item->quantity ?? 0) * ($item->unit_price ?? 0), 3);
                 
                 if (abs($item->total_amount - $correctTotal) > 0.01) {
                     Log::info('🔧 Fixing total for item', [
@@ -584,7 +614,7 @@ public function store(Request $request)
 
             // ✅ ALWAYS calculate server-side - IGNORE client value
             $unitPrice = $item['unit_price'] ?? 0;
-            $totalAmount = round($deliveredQty * $unitPrice, 2); // ✅ Round to 2 decimals
+            $totalAmount = round($deliveredQty * $unitPrice, 3);
 
             // ✅ Log if client sent different value
             if (isset($item['total_amount']) && abs($item['total_amount'] - $totalAmount) > 0.01) {
@@ -1105,8 +1135,8 @@ public function search(Request $request)
                 'remaining_quantity' => $remainingAvailable,
                 'already_delivered' => $alreadyDelivered,
                 'uom' => $soItem->unit ?? 'Kgs',
-                'unit_price' => $soItem->unit_price ?? 0,
-                'total_amount' => ($deliveredQty * ($soItem->unit_price ?? 0)),
+                'unit_price' => round((float)($soItem->unit_price ?? 0), 2),
+                'total_amount' => round($deliveredQty * (float)($soItem->unit_price ?? 0), 2),
                 'notes' => $notes,
                 'is_hidden' => $deliveredQty == 0,
             ];
@@ -1134,8 +1164,8 @@ public function search(Request $request)
                 'remaining_quantity' => $remainingAvailable,
                 'already_delivered' => $alreadyDelivered,
                 'uom' => $soItem->unit ?? 'Kgs',
-                'unit_price' => $soItem->unit_price ?? 0,
-                'total_amount' => ($remainingAvailable * ($soItem->unit_price ?? 0)),
+                'unit_price' => round((float)($soItem->unit_price ?? 0), 2),
+                'total_amount' => round($remainingAvailable * (float)($soItem->unit_price ?? 0), 2),
                 'notes' => $soItem->note ?? null,
                 'is_hidden' => false,
             ];
@@ -1341,11 +1371,11 @@ public function reject(Request $request, $id)
 private function recalculateDeliveryItemTotals($deliveryId)
 {
     $items = DeliveryItem::where('delivery_id', $deliveryId)->get();
-    
+
+    $rolledUpTotal = 0;
     foreach ($items as $item) {
         $correctTotal = ($item->quantity ?? 0) * ($item->unit_price ?? 0);
-        
-        // Only update if there's a mismatch
+
         if ($item->total_amount != $correctTotal) {
             Log::warning('⚠️ Total amount mismatch detected', [
                 'delivery_id' => $deliveryId,
@@ -1355,9 +1385,16 @@ private function recalculateDeliveryItemTotals($deliveryId)
                 'quantity' => $item->quantity,
                 'unit_price' => $item->unit_price,
             ]);
-            
+
             $item->update(['total_amount' => $correctTotal]);
         }
+
+        $rolledUpTotal += $correctTotal;
+    }
+
+    $delivery = Deliveries::find($deliveryId);
+    if ($delivery && (float)$delivery->total_amount !== (float)$rolledUpTotal) {
+        $delivery->update(['total_amount' => $rolledUpTotal]);
     }
 }
 
@@ -2435,7 +2472,7 @@ public function recalculateAllTotals(Request $request)
             $deliveriesAffected = [];
 
             foreach ($allItems as $item) {
-                $correctTotal = round(($item->quantity ?? 0) * ($item->unit_price ?? 0), 2);
+                $correctTotal = round(($item->quantity ?? 0) * ($item->unit_price ?? 0), 3);
 
                 // Only update if there's a mismatch
                 if (abs($item->total_amount - $correctTotal) > 0.01) {
@@ -2459,26 +2496,53 @@ public function recalculateAllTotals(Request $request)
                 }
             }
 
+            // Roll up delivery totals for all affected deliveries
+            $deliveryTotalsFixed = 0;
+            foreach ($deliveriesAffected as $affectedDeliveryId) {
+                $sumFromItems = DeliveryItem::where('delivery_id', $affectedDeliveryId)->sum('total_amount');
+                $affectedDelivery = Deliveries::find($affectedDeliveryId);
+                if ($affectedDelivery && abs((float)$affectedDelivery->total_amount - (float)$sumFromItems) > 0.01) {
+                    $affectedDelivery->update(['total_amount' => $sumFromItems]);
+                    $deliveryTotalsFixed++;
+                }
+            }
+
+            // Also fix any delivered DRs where delivery total_amount=0 but items sum > 0
+            // (items may already be correct but delivery header never got rolled up)
+            $zeroTotalDeliveries = Deliveries::where('total_amount', 0)->get();
+            foreach ($zeroTotalDeliveries as $zd) {
+                $sumFromItems = DeliveryItem::where('delivery_id', $zd->id)->sum('total_amount');
+                if ($sumFromItems > 0) {
+                    $zd->update(['total_amount' => $sumFromItems]);
+                    $deliveryTotalsFixed++;
+                    if (!in_array($zd->id, $deliveriesAffected)) {
+                        $deliveriesAffected[] = $zd->id;
+                    }
+                }
+            }
+
             Activity::create([
                 'user_name' => auth()->user()->name,
                 'action' => 'System Recalculation',
                 'item' => 'All Deliveries',
                 'target' => "{$updatedCount} items across " . count($deliveriesAffected) . " deliveries",
                 'type' => 'Delivery',
-                'message' => "Recalculated total amounts for {$updatedCount} delivery items",
+                'message' => "Recalculated total amounts for {$updatedCount} delivery items; fixed {$deliveryTotalsFixed} delivery headers",
             ]);
 
             Log::info('🔄 Bulk recalculation completed', [
                 'total_items_updated' => $updatedCount,
                 'deliveries_affected' => count($deliveriesAffected),
+                'delivery_headers_fixed' => $deliveryTotalsFixed,
                 'user' => auth()->user()->name,
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => "Successfully recalculated {$updatedCount} item(s) across " . count($deliveriesAffected) . " deliveries",
+                'message' => "Successfully recalculated {$updatedCount} item(s) across " . count($deliveriesAffected) . " deliveries; fixed {$deliveryTotalsFixed} delivery headers",
                 'updated_count' => $updatedCount,
                 'deliveries_affected' => count($deliveriesAffected),
+                'delivery_headers_fixed' => $deliveryTotalsFixed,
             ]);
         }
 
@@ -2502,6 +2566,7 @@ private function recalculateSingleDelivery($deliveryId)
 {
     $items = DeliveryItem::where('delivery_id', $deliveryId)->get();
     $updatedCount = 0;
+    $rolledUpTotal = 0;
 
     foreach ($items as $item) {
         $correctTotal = round(($item->quantity ?? 0) * ($item->unit_price ?? 0), 2);
@@ -2510,6 +2575,15 @@ private function recalculateSingleDelivery($deliveryId)
             $item->update(['total_amount' => $correctTotal]);
             $updatedCount++;
         }
+
+        $rolledUpTotal += $correctTotal;
+    }
+
+    // Always roll up to deliveries.total_amount
+    $delivery = Deliveries::find($deliveryId);
+    if ($delivery && abs((float)$delivery->total_amount - $rolledUpTotal) > 0.01) {
+        $delivery->update(['total_amount' => $rolledUpTotal]);
+        $updatedCount++;
     }
 
     return $updatedCount;
@@ -2792,6 +2866,85 @@ public function recalculateSODeliveries(Request $request)
         ]);
 
         return redirect()->route('deliveries.index', ['show_hidden' => 1])->with('success', "DR {$delivery->dr_no} has been restored.");
+    }
+
+    /**
+     * Permanently delete a delivery (IT only).
+     * Resets linked SO items so the DR number can be reused.
+     */
+    public function destroy(Request $request, $id)
+    {
+        if (!auth()->user()->isAdminUser()) {
+            abort(403, 'Unauthorized: Only IT can delete deliveries.');
+        }
+
+        $request->validate([
+            'delete_reason' => 'required|string|max:500',
+        ]);
+
+        $delivery = Deliveries::withHidden()->findOrFail($id);
+        $drNo = $delivery->dr_no;
+        $soNumber = $delivery->sales_order_number;
+        $deliveryBatch = $delivery->delivery_batch;
+
+        DB::beginTransaction();
+
+        try {
+            // Reset linked SO items batch_status and delivery_batch
+            if ($soNumber) {
+                SalesOrderItem::whereHas('salesOrder', function ($q) use ($soNumber) {
+                    $q->where('sales_order_number', $soNumber);
+                })->where(function ($q) use ($deliveryBatch) {
+                    if ($deliveryBatch) {
+                        $q->where('delivery_batch', $deliveryBatch);
+                    }
+                })->update([
+                    'batch_status' => 'Active',
+                    'delivery_batch' => null,
+                ]);
+            }
+
+            // Reopen the sales order if it was closed
+            if ($soNumber) {
+                $salesOrder = SalesOrder::where('sales_order_number', $soNumber)->first();
+                if ($salesOrder && $salesOrder->is_closed) {
+                    $salesOrder->update(['is_closed' => false]);
+                    Log::info('Reopened SO after delivery deletion', [
+                        'so_number' => $soNumber,
+                        'deleted_dr' => $drNo,
+                    ]);
+                }
+            }
+
+            // Delete delivery items first
+            $delivery->items()->delete();
+
+            // Delete the delivery record
+            $delivery->delete();
+
+            // Log activity
+            Activity::create([
+                'user_name' => auth()->user()->name ?? 'System',
+                'action' => 'Deleted',
+                'item' => $drNo . ' - ' . ($delivery->customer_name ?? 'N/A'),
+                'target' => $soNumber ?? 'N/A',
+                'type' => 'Delivery',
+                'message' => "Permanently deleted delivery: {$drNo}. Reason: {$request->delete_reason}",
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('deliveries.index')
+                ->with('success', "DR {$drNo} has been permanently deleted. Linked SO items have been reset.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Delivery deletion failed', [
+                'delivery_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+            return redirect()->back()->with('error', 'Failed to delete delivery: ' . $e->getMessage());
+        }
     }
 
 }

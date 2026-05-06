@@ -135,7 +135,7 @@
                                 @endif
                             </td>
                             <td class="px-3 py-2.5 text-center">
-                                <div class="flex items-center justify-center gap-2">
+                                <div class="flex items-center justify-center gap-2 flex-wrap">
                                     <a href="{{ route('counter_date_approvals.show', $delivery->id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition">
                                         <i class="fas fa-eye mr-1"></i>View
                                     </a>
@@ -144,6 +144,28 @@
                                         data-id="{{ $delivery->id }}" data-dr="{{ $delivery->dr_no }}">
                                         <i class="fas fa-check mr-1"></i>Approve
                                     </button>
+                                    @endif
+                                    @if(auth()->user()->isAdminUser())
+                                        <button type="button" class="direct-edit-btn bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-xs font-medium transition relative"
+                                            data-id="{{ $delivery->id }}" data-dr="{{ $delivery->dr_no }}"
+                                            data-current="{{ $delivery->counter_date }}">
+                                            <i class="fas fa-edit mr-1"></i>Edit
+                                        </button>
+                                        @if(($pendingEditCounts[$delivery->id] ?? 0) > 0)
+                                        <span class="relative">
+                                            <button type="button" class="view-requests-btn bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs font-medium transition"
+                                                data-id="{{ $delivery->id }}" data-dr="{{ $delivery->dr_no }}">
+                                                <i class="fas fa-inbox mr-1"></i>Approve Edit
+                                                <span class="ml-1 bg-white text-purple-700 rounded-full px-1.5 text-xs font-bold">{{ $pendingEditCounts[$delivery->id] }}</span>
+                                            </button>
+                                        </span>
+                                        @endif
+                                    @else
+                                        <button type="button" class="request-edit-btn bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-medium transition"
+                                            data-id="{{ $delivery->id }}" data-dr="{{ $delivery->dr_no }}"
+                                            data-current="{{ $delivery->counter_date }}">
+                                            <i class="fas fa-pen mr-1"></i>Request Edit
+                                        </button>
                                     @endif
                                 </div>
                             </td>
@@ -165,6 +187,54 @@
                 {{ $deliveries->appends(request()->query())->links() }}
             </div>
             @endif
+        </div>
+    </div>
+</div>
+
+<!-- Edit Counter Date Modal (IT direct edit) -->
+<div id="directEditModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+        <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-edit text-yellow-400 mr-2"></i>Edit Counter Date</h3>
+        <p class="text-xs text-gray-400 mb-4">DR No: <span id="directEditDr" class="font-mono text-white"></span></p>
+        <div class="mb-4">
+            <label class="block text-xs text-gray-300 font-semibold mb-1">Current Counter Date</label>
+            <p class="text-sm text-gray-200" id="directEditCurrent"></p>
+        </div>
+        <div class="mb-4">
+            <label class="block text-xs text-gray-300 font-semibold mb-1">New Counter Date <span class="text-red-400">*</span></label>
+            <input type="date" id="directEditDate" class="w-full bg-gray-900 border border-gray-600 rounded-md px-3 py-2 text-gray-100 focus:ring-2 focus:ring-yellow-500">
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" id="directEditCancel" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded text-sm font-medium transition">Cancel</button>
+            <button type="button" id="directEditConfirm" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded text-sm font-medium transition">
+                <i class="fas fa-save mr-1"></i>Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Request Edit Modal (non-IT) -->
+<div id="requestEditModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+        <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-pen text-orange-400 mr-2"></i>Request Counter Date Edit</h3>
+        <p class="text-xs text-gray-400 mb-4">DR No: <span id="requestEditDr" class="font-mono text-white"></span> — Requires IT approval</p>
+        <div class="mb-4">
+            <label class="block text-xs text-gray-300 font-semibold mb-1">Current Counter Date</label>
+            <p class="text-sm text-gray-200" id="requestEditCurrent"></p>
+        </div>
+        <div class="mb-4">
+            <label class="block text-xs text-gray-300 font-semibold mb-1">New Counter Date <span class="text-red-400">*</span></label>
+            <input type="date" id="requestEditDate" class="w-full bg-gray-900 border border-gray-600 rounded-md px-3 py-2 text-gray-100 focus:ring-2 focus:ring-orange-500">
+        </div>
+        <div class="mb-4">
+            <label class="block text-xs text-gray-300 font-semibold mb-1">Reason</label>
+            <textarea id="requestEditReason" rows="3" placeholder="Why does this date need to change?" class="w-full bg-gray-900 border border-gray-600 rounded-md px-3 py-2 text-gray-100 focus:ring-2 focus:ring-orange-500 resize-none"></textarea>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" id="requestEditCancel" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded text-sm font-medium transition">Cancel</button>
+            <button type="button" id="requestEditConfirm" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-medium transition">
+                <i class="fas fa-paper-plane mr-1"></i>Submit Request
+            </button>
         </div>
     </div>
 </div>
@@ -260,6 +330,83 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) {
             Swal.fire('Error', 'Bulk approve failed.', 'error');
         }
+    });
+
+    // ===== DIRECT EDIT (IT only) =====
+    let directEditId = null;
+    document.querySelectorAll('.direct-edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            directEditId = this.dataset.id;
+            document.getElementById('directEditDr').textContent = this.dataset.dr;
+            const cur = this.dataset.current;
+            document.getElementById('directEditCurrent').textContent = cur ? new Date(cur).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}) : '—';
+            document.getElementById('directEditDate').value = cur || '';
+            document.getElementById('directEditModal').classList.remove('hidden');
+        });
+    });
+    document.getElementById('directEditCancel').addEventListener('click', () => document.getElementById('directEditModal').classList.add('hidden'));
+    document.getElementById('directEditConfirm').addEventListener('click', async function() {
+        const newDate = document.getElementById('directEditDate').value;
+        if (!newDate) { Swal.fire('Required', 'Please select a new counter date.', 'warning'); return; }
+        document.getElementById('directEditModal').classList.add('hidden');
+        Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        try {
+            const res = await fetch(`/counter-date-approvals/${directEditId}/direct-edit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                body: JSON.stringify({ new_counter_date: newDate })
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'Updated!', text: data.message, timer: 2000, showConfirmButton: false });
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch(e) { Swal.fire('Error', 'Failed to update.', 'error'); }
+    });
+
+    // ===== REQUEST EDIT (non-IT) =====
+    let requestEditId = null;
+    document.querySelectorAll('.request-edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            requestEditId = this.dataset.id;
+            document.getElementById('requestEditDr').textContent = this.dataset.dr;
+            const cur = this.dataset.current;
+            document.getElementById('requestEditCurrent').textContent = cur ? new Date(cur).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}) : '—';
+            document.getElementById('requestEditDate').value = '';
+            document.getElementById('requestEditReason').value = '';
+            document.getElementById('requestEditModal').classList.remove('hidden');
+        });
+    });
+    document.getElementById('requestEditCancel').addEventListener('click', () => document.getElementById('requestEditModal').classList.add('hidden'));
+    document.getElementById('requestEditConfirm').addEventListener('click', async function() {
+        const newDate = document.getElementById('requestEditDate').value;
+        const reason = document.getElementById('requestEditReason').value;
+        if (!newDate) { Swal.fire('Required', 'Please select a new counter date.', 'warning'); return; }
+        document.getElementById('requestEditModal').classList.add('hidden');
+        Swal.fire({ title: 'Submitting...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        try {
+            const res = await fetch(`/counter-date-approvals/${requestEditId}/request-edit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                body: JSON.stringify({ new_counter_date: newDate, reason })
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'Request Submitted!', text: data.message, timer: 2500, showConfirmButton: false });
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch(e) { Swal.fire('Error', 'Failed to submit request.', 'error'); }
+    });
+
+    // ===== VIEW EDIT REQUESTS (IT: redirects to show page) =====
+    document.querySelectorAll('.view-requests-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            window.location.href = `/counter-date-approvals/${this.dataset.id}`;
+        });
     });
 
     // File upload

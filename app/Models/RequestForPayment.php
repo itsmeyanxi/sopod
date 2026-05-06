@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\AccountsPayableInvoice;
 
 class RequestForPayment extends Model
 {
@@ -78,6 +79,11 @@ class RequestForPayment extends Model
     public function accountingApprover()
     {
         return $this->belongsTo(User::class, 'accounting_approved_by');
+    }
+
+    public function apvs()
+    {
+        return $this->hasMany(AccountsPayableInvoice::class, 'request_for_payment_id');
     }
 
     /**

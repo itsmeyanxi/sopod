@@ -38,6 +38,7 @@ use App\Http\Controllers\{
     CashAdvanceRequestController,
     LiquidationFormController,
     ReimbursementFormController,
+    LiveChickenController,
     RoleController,
     WarehouseController,
     StorageController,
@@ -61,7 +62,9 @@ use App\Http\Controllers\{
     DisposalController,
     JournalVoucherController,
     DepreciationRunController,
-    LoanController
+    LoanController,
+    CostCenterController,
+    MappingController
 };
 
 Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAttempts'])
@@ -104,6 +107,9 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     Route::get('/debug-delivery/{drNo}', [PaymentController::class, 'debugDeliverySearch'])->name('debugDelivery');
     Route::get('/debug-search/{search}', [PaymentController::class, 'debugSearch'])->name('debugSearch');
 
+    // IT-only: Manage / delete payments (must be before /{id} routes)
+    Route::get('/manage', [PaymentController::class, 'managePayments'])->name('manage');
+
     // Edit requests management (must be before /{id} routes)
     Route::get('/edit-requests', [PaymentController::class, 'editRequests'])->name('editRequests');
     Route::post('/edit-requests/{requestId}/approve', [PaymentController::class, 'approveEditRequest'])->name('approveEditRequest');
@@ -114,6 +120,7 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     Route::put('/{id}', [PaymentController::class, 'update'])->name('update')->where('id', '[0-9]+');
     Route::post('/{id}/edit-request', [PaymentController::class, 'submitEditRequest'])->name('submitEditRequest')->where('id', '[0-9]+');
 
+    Route::delete('/{id}', [PaymentController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
     Route::get('/{id}', [PaymentController::class, 'show'])->name('show')->where('id', '[0-9]+');
 });
 
@@ -135,10 +142,14 @@ Route::post('/users/reset-login-attempts', [UserController::class, 'resetLoginAt
     // ===================== COUNTER DATE APPROVAL =====================
     Route::prefix('counter-date-approvals')->name('counter_date_approvals.')->group(function () {
         Route::get('/', [CounterDateApprovalController::class, 'index'])->name('index');
+        Route::post('/bulk-approve', [CounterDateApprovalController::class, 'bulkApprove'])->name('bulkApprove');
+        Route::post('/edit-requests/{requestId}/approve', [CounterDateApprovalController::class, 'approveEditRequest'])->name('approveEditRequest');
+        Route::post('/edit-requests/{requestId}/reject', [CounterDateApprovalController::class, 'rejectEditRequest'])->name('rejectEditRequest');
         Route::get('/{id}', [CounterDateApprovalController::class, 'show'])->name('show');
         Route::post('/{id}/approve', [CounterDateApprovalController::class, 'approve'])->name('approve');
         Route::post('/{id}/upload', [CounterDateApprovalController::class, 'uploadAttachment'])->name('upload');
-        Route::post('/bulk-approve', [CounterDateApprovalController::class, 'bulkApprove'])->name('bulkApprove');
+        Route::post('/{id}/request-edit', [CounterDateApprovalController::class, 'requestEdit'])->name('requestEdit');
+        Route::post('/{id}/direct-edit', [CounterDateApprovalController::class, 'directEdit'])->name('directEdit');
     });
 
     // ===================== CHANGE LOG & NOTIFICATIONS =====================
@@ -182,6 +193,15 @@ Route::prefix('aging-reports')->name('aging_reports.')->group(function () {
 
     // ✅ AR PROFILE - View single customer profile
     Route::get('/ar-profile/{id}', [AgingReportController::class, 'showARProfile'])->name('ar_profile');
+
+    // IT only: Create a new ar_aging row manually (auto-appears in SOA)
+    Route::post('/ar-aging/create', [AgingReportController::class, 'storeArAgingRow'])->name('ar_aging.row.store');
+
+    // IT only: Edit ar_aging row (cascades DR change to payments + ar_adjustments)
+    Route::put('/ar-aging/{id}/update', [AgingReportController::class, 'updateArAgingRow'])->name('ar_aging.row.update');
+
+    // IT only: Delete ar_aging row + linked payments
+    Route::delete('/ar-aging/{id}/delete', [AgingReportController::class, 'deleteArAgingRow'])->name('ar_aging.row.delete');
 });
 
 // ===================== AR ADJUSTMENTS =====================
@@ -221,6 +241,12 @@ Route::prefix('ar-adjustments')->name('ar_adjustments.')->group(function () {
 
     // ✅ NEW: View adjustments by customer (must be before /{id} route)
     Route::get('/customer/{customerCode}', [ArAdjustmentController::class, 'byCustomer'])->name('by_customer');
+
+    // Search deliveries for linking
+    Route::get('/search-delivery', [ArAdjustmentController::class, 'searchDeliveries'])->name('search_delivery');
+
+    // Parse factoring file (AJAX)
+    Route::post('/parse-factoring', [ArAdjustmentController::class, 'parseFactoringFile'])->name('parse_factoring');
 
     // Store new adjustment
     Route::post('/', [ArAdjustmentController::class, 'store'])->name('store');
@@ -287,6 +313,27 @@ Route::prefix('lock')->name('lock.')->group(function () {
         }
         return app(LockController::class)->unlock(request());
     })->name('unlock');
+
+    Route::post('/unlock-delivery/{id}', function ($id) {
+        if (!auth()->check() || !auth()->user()->canAccessModule('record_lock')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        return app(LockController::class)->unlockDelivery(request(), $id);
+    })->name('unlockDelivery');
+
+    Route::post('/lock-delivery/{id}', function ($id) {
+        if (!auth()->check() || !auth()->user()->canAccessModule('record_lock')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        return app(LockController::class)->lockDelivery(request(), $id);
+    })->name('lockDelivery');
+
+    Route::get('/search-deliveries', function () {
+        if (!auth()->check() || !auth()->user()->canAccessModule('record_lock')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        return app(LockController::class)->searchDeliveries(request());
+    })->name('searchDeliveries');
 });
 
     // =================== INVOICE ROUTES ===================
@@ -412,10 +459,17 @@ Route::prefix('lock')->name('lock.')->group(function () {
         Route::post('/confirm/{id}', [PaymentConfirmationController::class, 'confirm'])->name('confirm');
         Route::post('/bulk-confirm', [PaymentConfirmationController::class, 'bulkConfirm'])->name('bulkConfirm');
         Route::post('/unconfirm/{id}', [PaymentConfirmationController::class, 'unconfirm'])->name('unconfirm');
+        Route::post('/bounce/{id}', [PaymentConfirmationController::class, 'bounce'])->name('bounce');
+        Route::get('/bounced-history', [PaymentConfirmationController::class, 'bouncedHistory'])->name('bounced-history');
         Route::get('/summary', [TreasurySummaryController::class, 'index'])->name('summary');
+        Route::get('/bank-accounts', [TreasuryBankController::class, 'allAccounts'])->name('bank-accounts');
         Route::get('/banks/{currency}', [TreasuryBankController::class, 'banks'])->name('banks')->where('currency', 'peso|dollar');
+        Route::post('/banks/store', [TreasuryBankController::class, 'store'])->name('banks.store');
+        Route::put('/banks/{id}', [TreasuryBankController::class, 'update'])->name('banks.update')->where('id', '[0-9]+');
+        Route::delete('/banks/{id}', [TreasuryBankController::class, 'destroy'])->name('banks.destroy')->where('id', '[0-9]+');
         Route::get('/bank/{id}', [TreasuryBankController::class, 'show'])->name('bank.show')->where('id', '[0-9]+');
         Route::post('/bank/{id}/transaction', [TreasuryBankController::class, 'addTransaction'])->name('bank.addTransaction')->where('id', '[0-9]+');
+        Route::delete('/bank/transaction/{txnId}', [TreasuryBankController::class, 'deleteTransaction'])->name('bank.deleteTransaction')->where('txnId', '[0-9]+');
         Route::patch('/bank/{id}/balance', [TreasuryBankController::class, 'updateBalance'])->name('bank.updateBalance')->where('id', '[0-9]+');
     });
 
@@ -441,11 +495,14 @@ Route::prefix('lock')->name('lock.')->group(function () {
 
 Route::post('/excel/import/bom-materials', [ExcelImportController::class, 'importBomMaterials'])->name('excel.import.bom_materials');
 Route::post('/excel/import/asset-classes', [ExcelImportController::class, 'importAssetClasses'])->name('excel.import.asset_classes');
+Route::post('/excel/import/fixed-assets', [ExcelImportController::class, 'importFixedAssets'])->name('excel.import.fixed_assets')->middleware(['auth']);
+Route::post('/excel/import/vendors', [ExcelImportController::class, 'importVendors'])->name('excel.import.vendors')->middleware(['auth']);
 
 // ── Imports Module ──────────────────────────────────────────────────────────
 Route::middleware(['auth'])->group(function () {
     Route::get('/imports', function () {
-        return view('imports.index');
+        $context = request('context', '');
+        return view('imports.index', compact('context'));
     })->name('imports.index');
 
     Route::post('/imports/upload', function (\Illuminate\Http\Request $request) {
@@ -456,6 +513,8 @@ Route::middleware(['auth'])->group(function () {
             'items'         => $ec->importItems($request),
             'monthly_sales' => $ec->importMonthlySales($request),
             'asset_classes' => $ec->importAssetClasses($request),
+            'fixed_assets'  => $ec->importFixedAssets($request),
+            'vendors'       => $ec->importVendors($request),
             default         => redirect()->back()->with('error', 'Unknown import type.'),
         };
     })->name('import.upload');
@@ -487,6 +546,20 @@ Route::post('/excel/import/gl-accounts', [ExcelImportController::class, 'importG
     ->middleware(['auth']);
 
 // ===================== ASSET CLASSES MASTERDATA =====================
+// ===================== COST CENTERS =====================
+Route::prefix('accounting/cost-centers')->name('cost_centers.')->middleware(['auth'])->group(function () {
+    Route::get('/',              [CostCenterController::class, 'index'])->name('index');
+    Route::get('/create',        [CostCenterController::class, 'create'])->name('create');
+    Route::post('/',             [CostCenterController::class, 'store'])->name('store');
+    Route::post('/import',       [ExcelImportController::class, 'importCostCenters'])->name('import');
+    // Route::post('/debug-import', [ExcelImportController::class, 'debugImport'])->name('debug_import'); // ADD THIS
+    Route::get('/search',        [CostCenterController::class, 'search'])->name('search');
+    Route::get('/{id}',          [CostCenterController::class, 'show'])->name('show');
+    Route::get('/{id}/edit',     [CostCenterController::class, 'edit'])->name('edit');
+    Route::put('/{id}',          [CostCenterController::class, 'update'])->name('update');
+    Route::delete('/{id}',       [CostCenterController::class, 'destroy'])->name('destroy');
+});
+
 Route::prefix('accounting/asset-classes')->name('asset_classes.')->middleware(['auth', 'module:asset_classes'])->group(function () {
     Route::get('/',           [AssetClassController::class, 'index'])->name('index');
     Route::get('/create',     [AssetClassController::class, 'create'])->name('create');
@@ -809,6 +882,21 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
         return view('errors.noaccess');
     })->name('approveForEdit');
 
+    // Approve/Revoke Customer Change
+    Route::post('/{id}/approve-customer-change', function ($id) {
+        if (auth()->user()->canApproveCustomerChange()) {
+            return app(SalesOrderController::class)->approveCustomerChange($id);
+        }
+        return view('errors.noaccess');
+    })->name('approveCustomerChange');
+
+    Route::post('/{id}/revoke-customer-change', function ($id) {
+        if (auth()->user()->canApproveCustomerChange()) {
+            return app(SalesOrderController::class)->revokeCustomerChange($id);
+        }
+        return view('errors.noaccess');
+    })->name('revokeCustomerChange');
+
     // Update
     Route::put('/{id}', function ($id) {
         if (auth()->user()->canPerformInModule('can_edit', 'sales_orders')) {
@@ -861,7 +949,29 @@ Route::prefix('sales_orders')->name('sales_orders.')->group(function () {
 });
 
     // ===================== ITEMS =====================
+Route::prefix('items-library')->name('items_library.')->middleware('auth')->group(function () {
+    Route::get('/',          [\App\Http\Controllers\ItemsLibraryController::class, 'index'])->name('index');
+    Route::get('/create',    [\App\Http\Controllers\ItemsLibraryController::class, 'create'])->name('create');
+    Route::post('/',         [\App\Http\Controllers\ItemsLibraryController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [\App\Http\Controllers\ItemsLibraryController::class, 'edit'])->name('edit');
+    Route::put('/{id}',      [\App\Http\Controllers\ItemsLibraryController::class, 'update'])->name('update');
+    Route::delete('/{id}',   [\App\Http\Controllers\ItemsLibraryController::class, 'destroy'])->name('destroy');
+});
+
 Route::prefix('items')->name('items.')->group(function () {
+
+    // Search items (AJAX — used by PR, PO, APV)
+    Route::get('/search', function () {
+        $q = trim(request('q', ''));
+        if (strlen($q) < 1) return response()->json([]);
+        return response()->json(
+            \DB::table('items')
+                ->where('approval_status', 'approved')->where('is_enabled', 1)
+                ->where(fn($w) => $w->where('item_description', 'like', "%{$q}%")->orWhere('item_code', 'like', "%{$q}%"))
+                ->orderBy('item_description')->limit(30)
+                ->get(['item_code', 'item_description', 'item_category', 'brand', 'unit', 'type'])
+        );
+    })->name('search');
 
     // ✅ FIXED: Remove the duplicate '/items' prefix - just use '/export'
     Route::get('/export', [ItemController::class, 'export'])->name('export');
@@ -879,9 +989,9 @@ Route::prefix('items')->name('items.')->group(function () {
     Route::post('/{item}/toggle', [ItemController::class, 'toggleStatus'])->name('toggle');
     
     // ✅ Index
-    Route::get('/', function () {
+    Route::get('/', function (\Illuminate\Http\Request $request) {
         if (auth()->user()->canManageItems()) {
-            return app(ItemController::class)->index();
+            return app(ItemController::class)->index($request);
         }
         return view('errors.noaccess');
     })->name('index');
@@ -1031,12 +1141,12 @@ Route::prefix('items')->name('items.')->group(function () {
 
         // Index
         Route::get('/', function () {
-            $user = auth()->user();
-            if ($user->canManageSuppliers()) {
-                return app(SuppliersController::class)->index();
-            }
-            return view('errors.noaccess');
-        })->name('index');
+    $user = auth()->user();
+    if ($user->canManageSuppliers()) {
+        return app(SuppliersController::class)->index(request());
+    }
+    return view('errors.noaccess');
+})->name('index');
 
         // Export
         Route::get('/export', function () {
@@ -1137,6 +1247,71 @@ Route::prefix('items')->name('items.')->group(function () {
             return view('errors.noaccess');
         })->name('deleteDocument');
 
+        // Search (AJAX — must be before /{id})
+        Route::get('/search-quick', function () {
+            $q = trim(request('q', ''));
+            $query = \App\Models\Supplier::where('status', 'active')
+                ->when($q, fn($sq) => $sq->where(function($sq2) use ($q) {
+                    $sq2->where('supplier_name', 'like', "%{$q}%")
+                        ->orWhere('supplier_code', 'like', "%{$q}%");
+                }))
+                ->orderBy('supplier_name')
+                ->limit(20)
+                ->get(['id', 'supplier_name', 'supplier_code', 'address', 'tin', 'terms', 'contact_person']);
+            return response()->json($query);
+        })->name('search_quick');
+
+        // Vendor edit/update/destroy
+        Route::get('/vendors/{id}/edit', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->editVendor($id);
+            }
+            return view('errors.noaccess');
+        })->name('vendors.edit');
+
+        Route::put('/vendors/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->updateVendor(request(), $id);
+            }
+            return view('errors.noaccess');
+        })->name('vendors.update');
+
+        Route::delete('/vendors/{id}', function ($id) {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->destroyVendor($id);
+            }
+            return view('errors.noaccess');
+        })->name('vendors.destroy');
+
+        // Search employees (for cash advance payee dropdown)
+        Route::get('/employees/search', function () {
+            $q = trim(request('q', ''));
+            $query = \App\Models\Vendor::where('category', 'EMPLOYEES')
+                ->where('status', 'active')
+                ->when($q, fn($sq) => $sq->where(function($sq2) use ($q) {
+                    $sq2->where('vendor_name', 'like', "%{$q}%")
+                        ->orWhere('vendor_code', 'like', "%{$q}%");
+                }))
+                ->orderBy('vendor_name')
+                ->limit(30)
+                ->get(['id', 'vendor_code', 'vendor_name', 'department']);
+            return response()->json($query);
+        })->name('vendors.employees_search');
+
+        // Department suggestions from employees
+        Route::get('/employees/departments', function () {
+            $q = trim(request('q', ''));
+            $depts = \App\Models\Vendor::where('category', 'EMPLOYEES')
+                ->whereNotNull('department')->where('department', '!=', '')
+                ->when($q, fn($sq) => $sq->where('department', 'like', "%{$q}%"))
+                ->distinct()->orderBy('department')
+                ->limit(20)->pluck('department');
+            return response()->json($depts);
+        })->name('vendors.departments_search');
+
         // Show (must be last)
         Route::get('/{id}', function ($id) {
             $user = auth()->user();
@@ -1173,6 +1348,14 @@ Route::prefix('items')->name('items.')->group(function () {
             }
             return response()->json([]);
         })->name('searchPurchaseOrders');
+
+        // Get PO Items for qty validation (AJAX)
+        Route::get('/get-po-items', function () {
+            if (auth()->user()->canManageSupplierReceivingReports()) {
+                return app(SupplierReceivingReportController::class)->getPOItems(request());
+            }
+            return response()->json(['po_qty' => 0, 'items' => []]);
+        })->name('getPOItems');
 
         // Create
         Route::get('/create', function () {
@@ -1503,6 +1686,12 @@ Route::prefix('items')->name('items.')->group(function () {
             return app(DeliveriesController::class)->unhide($id);
         })->name('unhide');
 
+        // DELETE DR (Admin/IT only - permanent deletion)
+        Route::delete('/{id}', function($id) {
+            if (!auth()->user()->isAdminUser()) { abort(403); }
+            return app(DeliveriesController::class)->destroy(request(), $id);
+        })->name('destroy');
+
         // SHOW (must be last because it catches any /{id})
         Route::get('/{id}', function($id) {
             if (auth()->user()->canManageDeliveries()) {
@@ -1511,6 +1700,9 @@ Route::prefix('items')->name('items.')->group(function () {
             return view('errors.noaccess');
         })->name('show');
     });
+
+    // ===================== DOCUMENT MAPPING =====================
+    Route::get('/supply-chain/mapping', [MappingController::class, 'index'])->name('mapping.index');
 
     // ===================== PURCHASE REQUESTS =====================
     Route::prefix('purchase_requests')->name('purchase_requests.')->group(function () {
@@ -1699,6 +1891,15 @@ Route::prefix('items')->name('items.')->group(function () {
         }
         return response()->json(['error' => 'Unauthorized'], 403);
     })->name('search_by_item_code');
+
+    // ===================== LAST SUPPLIER FOR ITEM =====================
+    Route::get('/last-supplier-for-item', function () {
+        $user = auth()->user();
+        if ($user->canManagePurchaseOrders() || $user->canManagePurchaseRequests()) {
+            return app(\App\Http\Controllers\PurchaseOrderController::class)->getLastSupplierForItem(request());
+        }
+        return response()->json(null);
+    })->name('last_supplier_for_item');
 
         // Search Suppliers (AJAX) — uses controller method with description filtering
         Route::get('/search-suppliers', function () {
@@ -1960,6 +2161,15 @@ Route::prefix('items')->name('items.')->group(function () {
             return response()->json([]);
         })->name('search_pos');
 
+        // PO Items (AJAX)
+        Route::get('/po-items/{poId}', function ($poId) {
+            $user = auth()->user();
+            if ($user->canManageRequestForPayments()) {
+                return app(RequestForPaymentController::class)->getPoItems($poId);
+            }
+            return response()->json([]);
+        })->name('po_items');
+
         // Index
         Route::get('/', function () {
             $user = auth()->user();
@@ -2071,6 +2281,33 @@ Route::prefix('items')->name('items.')->group(function () {
 
     // ===================== ACCOUNTS PAYABLE INVOICES =====================
     Route::prefix('accounts_payable_invoices')->name('accounts_payable_invoices.')->group(function () {
+
+        // Search Vendors (AJAX — vendors table)
+        Route::get('/search-vendors', function () {
+            $q = trim(request('q', ''));
+            if (strlen($q) < 1) return response()->json([]);
+            return response()->json(
+                \DB::table('vendors')
+                    ->where(fn($w) => $w->where('vendor_name', 'like', "%{$q}%")->orWhere('vendor_code', 'like', "%{$q}%"))
+                    ->where('status', 'active')
+                    ->orderBy('vendor_name')->limit(20)
+                    ->get(['id', 'vendor_code', 'vendor_name', 'gl_account'])
+            );
+        })->name('search_vendors');
+
+        // Search Items (AJAX — items table)
+        Route::get('/search-items', function () {
+            $q = trim(request('q', ''));
+            if (strlen($q) < 1) return response()->json([]);
+            return response()->json(
+                \DB::table('items')
+                    ->where('approval_status', 'approved')
+                    ->where('is_enabled', 1)
+                    ->where(fn($w) => $w->where('item_description', 'like', "%{$q}%")->orWhere('item_code', 'like', "%{$q}%"))
+                    ->orderBy('item_description')->limit(30)
+                    ->get(['item_code', 'item_description', 'item_category', 'brand'])
+            );
+        })->name('search_items');
 
         // Search RFPs (AJAX)
         Route::get('/search-rfps', function () {
@@ -2648,6 +2885,10 @@ Route::prefix('currencies')->name('currencies.')->group(function () {
         return app(CurrencyController::class)->index();
     })->name('index');
 
+    Route::get('/{id}', function ($id) {
+        return redirect()->route('currencies.index');
+    })->name('show');
+
     Route::put('/{id}', function ($id) {
         $user = auth()->user();
         if ($user->canAccessModule('currency_rates')) {
@@ -2664,6 +2905,8 @@ Route::prefix('currencies')->name('currencies.')->group(function () {
 // ===================== USER PROFILE (All authenticated users) =====================
 Route::get('/profile', [UserController::class, 'profile'])->name('profile');
 Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
+Route::put('/profile/password', [UserController::class, 'updatePassword'])->name('profile.password');
+Route::post('/profile/signature', [UserController::class, 'updateSignature'])->name('profile.signature');
 
     }); 
 
@@ -2850,5 +3093,65 @@ Route::middleware('auth')->prefix('ap-reports')->name('ap_reports.')->group(func
     Route::get('/aging', [ApReportController::class, 'aging'])->name('aging');
     Route::get('/cash-forecast', [ApReportController::class, 'cashForecast'])->name('cash_forecast');
     Route::get('/spend-analysis', [ApReportController::class, 'spendAnalysis'])->name('spend_analysis');
+});
+
+// ===================== LIVE CHICKEN =====================
+Route::middleware('auth')->prefix('live-chickens')->name('live_chickens.')->group(function () {
+
+    Route::get('/search-pos', function () {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->searchPOs(request());
+        }
+        return response()->json([]);
+    })->name('searchPOs');
+
+    Route::get('/', function () {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->index(request());
+        }
+        return view('errors.noaccess');
+    })->name('index');
+
+    Route::get('/create', function () {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->create();
+        }
+        return view('errors.noaccess');
+    })->name('create');
+
+    Route::post('/', function () {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->store(request());
+        }
+        return view('errors.noaccess');
+    })->name('store');
+
+    Route::get('/{id}/edit', function ($id) {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->edit($id);
+        }
+        return view('errors.noaccess');
+    })->name('edit');
+
+    Route::put('/{id}', function ($id) {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->update(request(), $id);
+        }
+        return view('errors.noaccess');
+    })->name('update');
+
+    Route::get('/{id}', function ($id) {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->show($id);
+        }
+        return view('errors.noaccess');
+    })->name('show');
+
+    Route::delete('/{id}', function ($id) {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->destroy($id);
+        }
+        return redirect()->back();
+    })->name('destroy');
 });
 

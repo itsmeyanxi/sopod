@@ -6,21 +6,73 @@
 <div class="p-6 bg-gray-900 min-h-screen">
     <div class="max-w-5xl mx-auto">
         <!-- Back + Actions -->
-        <div class="mb-4 flex justify-between items-center">
+        <div class="mb-4 flex justify-between items-center flex-wrap gap-3">
             <a href="{{ route('counter_date_approvals.index') }}" class="text-sm text-gray-300 hover:text-gray-200">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Counter Date Approval
             </a>
-            @if(!$delivery->counter_date_approved)
-            <button type="button" id="approveBtn" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md font-medium transition">
-                <i class="fas fa-check mr-1"></i> Approve Counter Date
-            </button>
-            @else
-            <span class="px-4 py-2 bg-green-100 text-green-700 rounded-md text-sm font-semibold">
-                <i class="fas fa-check-circle mr-1"></i> Approved by {{ $delivery->counter_date_approved_by }}
-                on {{ \Carbon\Carbon::parse($delivery->counter_date_approved_at)->format('M d, Y h:i A') }}
-            </span>
-            @endif
+            <div class="flex items-center gap-2 flex-wrap">
+                @if(!$delivery->counter_date_approved)
+                <button type="button" id="approveBtn" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md font-medium transition">
+                    <i class="fas fa-check mr-1"></i> Approve Counter Date
+                </button>
+                @else
+                <span class="px-4 py-2 bg-green-100 text-green-700 rounded-md text-sm font-semibold">
+                    <i class="fas fa-check-circle mr-1"></i> Approved by {{ $delivery->counter_date_approved_by }}
+                    on {{ \Carbon\Carbon::parse($delivery->counter_date_approved_at)->format('M d, Y h:i A') }}
+                </span>
+                @endif
+
+                @if(auth()->user()->isAdminUser())
+                <button type="button" id="directEditBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-5 py-2 rounded-md font-medium transition">
+                    <i class="fas fa-edit mr-1"></i> Edit
+                </button>
+                @else
+                <button type="button" id="requestEditBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-md font-medium transition">
+                    <i class="fas fa-pen mr-1"></i> Request Edit
+                </button>
+                @endif
+            </div>
         </div>
+
+        @if(auth()->user()->isAdminUser() && $pendingEditRequests->count() > 0)
+        <!-- Pending Edit Requests (IT only) -->
+        <div class="bg-purple-900/30 border border-purple-500/50 rounded-lg p-4 mb-4">
+            <h3 class="font-bold text-purple-300 mb-3 flex items-center gap-2">
+                <i class="fas fa-inbox"></i> Pending Edit Requests
+                <span class="bg-purple-500 text-white text-xs rounded-full px-2 py-0.5">{{ $pendingEditRequests->count() }}</span>
+            </h3>
+            <div class="space-y-3">
+                @foreach($pendingEditRequests as $req)
+                <div class="bg-gray-800 rounded-lg p-4 flex flex-wrap items-center justify-between gap-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <span class="text-sm font-semibold text-white">{{ $req->requested_by }}</span>
+                            <span class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($req->requested_at)->format('M d, Y h:i A') }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="text-gray-400">{{ $req->old_counter_date ? \Carbon\Carbon::parse($req->old_counter_date)->format('m/d/Y') : '—' }}</span>
+                            <i class="fas fa-arrow-right text-gray-500 text-xs"></i>
+                            <span class="text-yellow-300 font-semibold">{{ \Carbon\Carbon::parse($req->new_counter_date)->format('m/d/Y') }}</span>
+                        </div>
+                        @if($req->reason)
+                        <p class="text-xs text-gray-400 italic">"{{ $req->reason }}"</p>
+                        @endif
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" class="approve-edit-req-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs font-medium transition"
+                            data-req-id="{{ $req->id }}" data-new-date="{{ $req->new_counter_date }}" data-name="{{ $req->requested_by }}">
+                            <i class="fas fa-check mr-1"></i>Approve
+                        </button>
+                        <button type="button" class="reject-edit-req-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-medium transition"
+                            data-req-id="{{ $req->id }}" data-name="{{ $req->requested_by }}">
+                            <i class="fas fa-times mr-1"></i>Reject
+                        </button>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
 
         <!-- Main Card -->
         <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
@@ -240,6 +292,54 @@
     </div>
 </div>
 
+<!-- Direct Edit Modal -->
+<div id="directEditModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+        <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-edit text-yellow-400 mr-2"></i>Edit Counter Date</h3>
+        <p class="text-xs text-gray-400 mb-4">DR No: <span class="font-mono text-white">{{ $delivery->dr_no }}</span></p>
+        <div class="mb-4">
+            <label class="block text-xs text-gray-300 font-semibold mb-1">Current Counter Date</label>
+            <p class="text-sm text-gray-200">{{ $delivery->counter_date ? \Carbon\Carbon::parse($delivery->counter_date)->format('F d, Y') : '—' }}</p>
+        </div>
+        <div class="mb-4">
+            <label class="block text-xs text-gray-300 font-semibold mb-1">New Counter Date <span class="text-red-400">*</span></label>
+            <input type="date" id="directEditDate" value="{{ $delivery->counter_date }}" class="w-full bg-gray-900 border border-gray-600 rounded-md px-3 py-2 text-gray-100 focus:ring-2 focus:ring-yellow-500">
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" id="directEditCancel" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded text-sm font-medium transition">Cancel</button>
+            <button type="button" id="directEditConfirm" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded text-sm font-medium transition">
+                <i class="fas fa-save mr-1"></i>Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Request Edit Modal -->
+<div id="requestEditModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+        <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-pen text-orange-400 mr-2"></i>Request Counter Date Edit</h3>
+        <p class="text-xs text-gray-400 mb-4">DR No: <span class="font-mono text-white">{{ $delivery->dr_no }}</span> — Requires IT approval</p>
+        <div class="mb-4">
+            <label class="block text-xs text-gray-300 font-semibold mb-1">Current Counter Date</label>
+            <p class="text-sm text-gray-200">{{ $delivery->counter_date ? \Carbon\Carbon::parse($delivery->counter_date)->format('F d, Y') : '—' }}</p>
+        </div>
+        <div class="mb-4">
+            <label class="block text-xs text-gray-300 font-semibold mb-1">New Counter Date <span class="text-red-400">*</span></label>
+            <input type="date" id="requestEditDate" class="w-full bg-gray-900 border border-gray-600 rounded-md px-3 py-2 text-gray-100 focus:ring-2 focus:ring-orange-500">
+        </div>
+        <div class="mb-4">
+            <label class="block text-xs text-gray-300 font-semibold mb-1">Reason</label>
+            <textarea id="requestEditReason" rows="3" placeholder="Why does this date need to change?" class="w-full bg-gray-900 border border-gray-600 rounded-md px-3 py-2 text-gray-100 focus:ring-2 focus:ring-orange-500 resize-none"></textarea>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" id="requestEditCancel" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded text-sm font-medium transition">Cancel</button>
+            <button type="button" id="requestEditConfirm" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-medium transition">
+                <i class="fas fa-paper-plane mr-1"></i>Submit Request
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
@@ -279,6 +379,135 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ===== DIRECT EDIT (IT only) =====
+    const directEditBtn = document.getElementById('directEditBtn');
+    if (directEditBtn) {
+        directEditBtn.addEventListener('click', () => document.getElementById('directEditModal').classList.remove('hidden'));
+    }
+    const directEditCancel = document.getElementById('directEditCancel');
+    if (directEditCancel) directEditCancel.addEventListener('click', () => document.getElementById('directEditModal').classList.add('hidden'));
+    const directEditConfirm = document.getElementById('directEditConfirm');
+    if (directEditConfirm) {
+        directEditConfirm.addEventListener('click', async function() {
+            const newDate = document.getElementById('directEditDate').value;
+            if (!newDate) { Swal.fire('Required', 'Please select a new counter date.', 'warning'); return; }
+            document.getElementById('directEditModal').classList.add('hidden');
+            Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            try {
+                const res = await fetch(`/counter-date-approvals/${deliveryId}/direct-edit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                    body: JSON.stringify({ new_counter_date: newDate })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Updated!', text: data.message, timer: 2000, showConfirmButton: false });
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch(e) { Swal.fire('Error', 'Failed to update.', 'error'); }
+        });
+    }
+
+    // ===== REQUEST EDIT (non-IT) =====
+    const requestEditBtn = document.getElementById('requestEditBtn');
+    if (requestEditBtn) {
+        requestEditBtn.addEventListener('click', () => document.getElementById('requestEditModal').classList.remove('hidden'));
+    }
+    const requestEditCancel = document.getElementById('requestEditCancel');
+    if (requestEditCancel) requestEditCancel.addEventListener('click', () => document.getElementById('requestEditModal').classList.add('hidden'));
+    const requestEditConfirm = document.getElementById('requestEditConfirm');
+    if (requestEditConfirm) {
+        requestEditConfirm.addEventListener('click', async function() {
+            const newDate = document.getElementById('requestEditDate').value;
+            const reason = document.getElementById('requestEditReason').value;
+            if (!newDate) { Swal.fire('Required', 'Please select a new counter date.', 'warning'); return; }
+            document.getElementById('requestEditModal').classList.add('hidden');
+            Swal.fire({ title: 'Submitting...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            try {
+                const res = await fetch(`/counter-date-approvals/${deliveryId}/request-edit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                    body: JSON.stringify({ new_counter_date: newDate, reason })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Request Submitted!', text: data.message, timer: 2500, showConfirmButton: false });
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch(e) { Swal.fire('Error', 'Failed to submit request.', 'error'); }
+        });
+    }
+
+    // ===== APPROVE EDIT REQUEST (IT only) =====
+    document.querySelectorAll('.approve-edit-req-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const reqId = this.dataset.reqId;
+            const newDate = this.dataset.newDate;
+            const name = this.dataset.name;
+            const result = await Swal.fire({
+                title: 'Approve Edit Request?',
+                html: `This will change the counter date to <strong>${newDate}</strong> as requested by <strong>${name}</strong>.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#16a34a',
+                confirmButtonText: 'Yes, Approve'
+            });
+            if (!result.isConfirmed) return;
+            Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            try {
+                const res = await fetch(`/counter-date-approvals/edit-requests/${reqId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Approved!', text: data.message, timer: 2000, showConfirmButton: false });
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch(e) { Swal.fire('Error', 'Failed to approve.', 'error'); }
+        });
+    });
+
+    // ===== REJECT EDIT REQUEST (IT only) =====
+    document.querySelectorAll('.reject-edit-req-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const reqId = this.dataset.reqId;
+            const name = this.dataset.name;
+            const result = await Swal.fire({
+                title: 'Reject Edit Request?',
+                input: 'textarea',
+                inputLabel: 'Reason for rejection (optional)',
+                inputPlaceholder: 'Enter reason...',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Reject'
+            });
+            if (!result.isConfirmed) return;
+            Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            try {
+                const res = await fetch(`/counter-date-approvals/edit-requests/${reqId}/reject`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                    body: JSON.stringify({ review_notes: result.value })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Rejected', text: data.message, timer: 2000, showConfirmButton: false });
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch(e) { Swal.fire('Error', 'Failed to reject.', 'error'); }
+        });
+    });
 
     // Upload from show page
     const uploadInput = document.getElementById('uploadInput');

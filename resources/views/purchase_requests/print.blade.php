@@ -113,7 +113,7 @@
         <div class="header">
             <img src="{{ asset('images/sopod-logo.PNG') }}" class="header-logo" alt="Logo">
             <div class="header-company">
-                <div class="company-name">{{ $purchaseRequest->company }}</div>
+                <div class="company-name">{{ str_contains(strtolower($purchaseRequest->company ?? ''), 'meatplus') ? 'Meatplus Trading Corp' : $purchaseRequest->company }}</div>
             </div>
             <div class="header-right">
                 <div class="doc-title">Purchase Requisition</div>
@@ -238,25 +238,25 @@
                 </tr>
                 <tr style="height: 70px; border: 1px solid #000;">
                     <td style="border-right: 1px solid #000; padding: 4px; font-size: 9px; font-weight: bold; text-align: center; vertical-align: bottom;">
-    {{ $purchaseRequest->creator->name ?? '' }}
-    @if($purchaseRequest->creator && $purchaseRequest->created_at)
-        <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
-            Digitally Signed<br>
-            {{ $purchaseRequest->created_at->format('d M Y | H:i') }}
-            @if($purchaseRequest->created_latitude && $purchaseRequest->created_longitude)
-                <br>Coords: {{ $purchaseRequest->created_latitude }}, {{ $purchaseRequest->created_longitude }}
-                @if($purchaseRequest->created_location)
-                    ({{ $purchaseRequest->created_location }})
-                @endif
-            @endif
-        </div>
-    @endif
-</td>
+                    {{ $purchaseRequest->creator->name ?? '' }}
+                    @if($purchaseRequest->creator && $purchaseRequest->created_at)
+                        <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
+                            @include('partials.esignature', ['signer' => $purchaseRequest->creator])<br>
+                            {{ $purchaseRequest->created_at->format('d M Y | H:i') }}
+                            @if($purchaseRequest->created_latitude && $purchaseRequest->created_longitude)
+                                <br>Coords: {{ $purchaseRequest->created_latitude }}, {{ $purchaseRequest->created_longitude }}
+                                @if($purchaseRequest->created_location)
+                                    ({{ $purchaseRequest->created_location }})
+                                @endif
+                            @endif
+                        </div>
+                    @endif
+                </td>
                     <td style="border-right: 1px solid #000; padding: 4px; font-size: 9px; font-weight: bold; text-align: center; vertical-align: bottom;">
                         {{ $purchaseRequest->departmentHeadApprover->name ?? '' }}
                         @if($purchaseRequest->departmentHeadApprover && $purchaseRequest->department_head_approved_at)
                             <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
-                                Digitally Signed<br>
+                                @include('partials.esignature', ['signer' => $purchaseRequest->departmentHeadApprover])<br>
                                 {{ $purchaseRequest->department_head_approved_at->format('d M Y | H:i') }}
                                 @if($purchaseRequest->department_head_approved_latitude && $purchaseRequest->department_head_approved_longitude)
                                     <br>Coords: {{ $purchaseRequest->department_head_approved_latitude }}, {{ $purchaseRequest->department_head_approved_longitude }}
@@ -271,7 +271,7 @@
                         {{ $purchaseRequest->managementApprover->name ?? '' }}
                         @if($purchaseRequest->managementApprover && $purchaseRequest->management_approved_at)
                             <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
-                                Digitally Signed<br>
+                                @include('partials.esignature', ['signer' => $purchaseRequest->managementApprover])<br>
                                 {{ $purchaseRequest->management_approved_at->format('d M Y | H:i') }}
                                 @if($purchaseRequest->management_approved_latitude && $purchaseRequest->management_approved_longitude)
                                     <br>Coords: {{ $purchaseRequest->management_approved_latitude }}, {{ $purchaseRequest->management_approved_longitude }}
@@ -287,7 +287,7 @@
                         {{ $purchaseRequest->approver->name ?? '' }}
                         @if($purchaseRequest->approver && $purchaseRequest->approved_at)
                             <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
-                                Digitally Signed<br>
+                                @include('partials.esignature', ['signer' => $purchaseRequest->approver])<br>
                                 {{ $purchaseRequest->approved_at->format('d M Y | H:i') }}
                                 @if($purchaseRequest->approved_latitude && $purchaseRequest->approved_longitude)
                                     <br>Coords: {{ $purchaseRequest->approved_latitude }}, {{ $purchaseRequest->approved_longitude }}

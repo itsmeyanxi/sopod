@@ -125,15 +125,61 @@
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $rfp->bank ?? 'N/A' }}</p>
         </div>
 
+        <!-- PO Items Table -->
+        @if($rfp->purchaseOrder && $rfp->purchaseOrder->items->count())
+        <div class="mb-6">
+            <div class="bg-gray-900 border border-gray-700 rounded overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                    <h3 class="font-semibold text-white"><i class="fas fa-boxes mr-2"></i>Purchase Order Items ({{ $rfp->purchaseOrder->po_no }})</h3>
+                    <span class="text-sm text-gray-400">{{ $rfp->purchaseOrder->items->count() }} item(s)</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="bg-gray-700 text-gray-300">
+                                <th class="px-4 py-2 text-left">#</th>
+                                <th class="px-4 py-2 text-left">Item Code</th>
+                                <th class="px-4 py-2 text-left">Description</th>
+                                <th class="px-4 py-2 text-center">Qty</th>
+                                <th class="px-4 py-2 text-center">UOM</th>
+                                <th class="px-4 py-2 text-right">Unit Price</th>
+                                <th class="px-4 py-2 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($rfp->purchaseOrder->items as $idx => $item)
+                            <tr class="{{ $idx % 2 === 0 ? 'bg-gray-800' : '' }} border-b border-gray-700">
+                                <td class="px-4 py-2 text-gray-400">{{ $item->item_no }}</td>
+                                <td class="px-4 py-2 text-white font-medium">{{ $item->item_code }}</td>
+                                <td class="px-4 py-2 text-gray-200">{{ $item->description }}</td>
+                                <td class="px-4 py-2 text-center text-gray-200">{{ number_format($item->qty, 2) }}</td>
+                                <td class="px-4 py-2 text-center text-gray-200">{{ $item->uom }}</td>
+                                <td class="px-4 py-2 text-right text-gray-200">{{ number_format($item->unit_price, 2) }}</td>
+                                <td class="px-4 py-2 text-right text-white font-semibold">{{ number_format($item->total, 2) }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray-700 font-bold text-white">
+                                <td colspan="6" class="px-4 py-2 text-right">Grand Total:</td>
+                                <td class="px-4 py-2 text-right">₱{{ number_format($rfp->purchaseOrder->items->sum('total'), 2) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- APV and CV Numbers -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block font-semibold text-gray-300 mb-1">APV NO.:</label>
-                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $rfp->apv_no ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-500">{{ $rfp->apv_no ?? 'To be assigned' }}</p>
             </div>
             <div>
                 <label class="block font-semibold text-gray-300 mb-1">CV NO.:</label>
-                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $rfp->cv_no ?? 'N/A' }}</p>
+                <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-500">{{ $rfp->cv_no ?? 'To be assigned' }}</p>
             </div>
         </div>
 
@@ -181,7 +227,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $rfp->departmentHeadApprover->name ?? '' }}</span>
                                 @if($rfp->departmentHeadApprover && $rfp->department_head_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $rfp->departmentHeadApprover])<br>
                                         {{ $rfp->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($rfp->department_head_approved_latitude && $rfp->department_head_approved_longitude)
                                             <br>Coords: {{ $rfp->department_head_approved_latitude }}, {{ $rfp->department_head_approved_longitude }}
@@ -196,7 +242,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $rfp->accountingApprover->name ?? '' }}</span>
                                 @if($rfp->accountingApprover && $rfp->accounting_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $rfp->accountingApprover])<br>
                                         {{ $rfp->accounting_approved_at->format('d M Y | H:i') }}
                                         @if($rfp->accounting_approved_latitude && $rfp->accounting_approved_longitude)
                                             <br>Coords: {{ $rfp->accounting_approved_latitude }}, {{ $rfp->accounting_approved_longitude }}
@@ -211,7 +257,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $rfp->approver->name ?? '' }}</span>
                                 @if($rfp->approver && $rfp->approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $rfp->approver])<br>
                                         {{ $rfp->approved_at->format('d M Y | H:i') }}
                                         @if($rfp->approved_latitude && $rfp->approved_longitude)
                                             <br>Coords: {{ $rfp->approved_latitude }}, {{ $rfp->approved_longitude }}
@@ -394,9 +440,15 @@
 
         <!-- Form Actions -->
         <div class="flex justify-between items-center">
-            <a href="{{ route('request_for_payments.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-700 transition">
-                Back to List
-            </a>
+            @if(request('from_mapping'))
+                <a href="{{ route('mapping.index') }}" class="bg-purple-700 text-white px-6 py-2 rounded hover:bg-purple-800 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Mapping
+                </a>
+            @else
+                <a href="{{ route('request_for_payments.index') }}" class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-700 transition">
+                    Back to List
+                </a>
+            @endif
             <div class="flex gap-4">
                 <a href="{{ route('request_for_payments.edit', $rfp->id) }}" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     Edit

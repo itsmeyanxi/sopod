@@ -37,8 +37,13 @@
                    class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-blue-500" required>
         </div>
 
-        <div class="bg-yellow-100 border border-yellow-600/30 rounded-lg p-3 mb-4">
-            <p class="text-yellow-700 text-sm"><i class="fas fa-info-circle mr-1"></i> After creating the user, assign them to a sub-department via the <a href="{{ route('rbac.index') }}" class="underline">RBAC Management</a> page to grant module access.</p>
+        <div class="mb-4">
+            <label class="block text-sm mb-1">Role</label>
+            <select name="role" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-blue-500" required>
+                @foreach($availableRoles as $value => $label)
+                    <option value="{{ $value }}" {{ old('role', 'User') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
         </div>
 
         <div class="flex justify-end space-x-3 mt-6">

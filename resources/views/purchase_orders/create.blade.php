@@ -73,6 +73,22 @@
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
+                        <label class="block font-semibold text-gray-300 mb-1">SUPPLIER: <span class="text-red-700">*</span></label>
+                        <div class="relative">
+                            <input type="text" id="topSupplierSearch"
+                                   class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                                   placeholder="Search supplier by name or code..."
+                                   autocomplete="off"
+                                   value="{{ old('supplier', $selectedPR->supplier->supplier_name ?? '') }}">
+                            <span class="absolute right-3 top-2.5 text-gray-400"><i class="fas fa-search"></i></span>
+                            <div id="topSupplierDropdown" class="hidden absolute z-30 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-64 overflow-y-auto" style="top:100%"></div>
+                        </div>
+                        <p id="topSupplierInfo" class="text-xs text-gray-400 mt-1 {{ old('supplier') || (isset($selectedPR) && $selectedPR->supplier) ? '' : 'hidden' }}">
+                            <span class="text-green-400"><i class="fas fa-check-circle"></i></span>
+                            <span id="topSupplierCode">{{ old('supplier_id') ? '' : ($selectedPR->supplier->supplier_code ?? '') }}</span>
+                        </p>
+                    </div>
+                    <div>
                         <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE:</label>
                         <input type="text" name="consignee" id="consignee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('consignee', $selectedPR->contact_person ?? '') }}">
                     </div>
@@ -109,6 +125,10 @@
                         <input type="text" name="house" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('house') }}">
                     </div>
                     <div>
+                        <label class="block font-semibold text-gray-300 mb-1">BRAND:</label>
+                        <input type="text" name="brand" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('brand') }}" placeholder="e.g. Brand name">
+                    </div>
+                    <div>
                         <label class="block font-semibold text-gray-300 mb-1">PR#:</label>
                         <input type="text" name="pr_no" id="pr_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('pr_no', $selectedPR->pr_no ?? '') }}">
                     </div>
@@ -143,9 +163,57 @@
             <input type="hidden" name="supplier_id" id="supplier_id" value="">
             <input type="hidden" name="supplier" id="supplier_text" value="">
             <input type="hidden" name="supplier_address" id="supplier_address_hidden" value="">
+            <input type="hidden" name="po_type" id="poTypeInput" value="items">
+
+            <!-- PO Type Toggle -->
+            <div class="mb-4 flex items-center gap-3">
+                <span class="text-gray-300 font-semibold">PO TYPE:</span>
+                <button type="button" id="btnTypeItems" onclick="setPOType('items')"
+                    class="px-5 py-2 rounded font-semibold transition bg-purple-600 text-white">
+                    <i class="fas fa-boxes mr-1"></i> Items
+                </button>
+                <button type="button" id="btnTypeService" onclick="setPOType('service')"
+                    class="px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600">
+                    <i class="fas fa-tools mr-1"></i> Service
+                </button>
+            </div>
+
+            <!-- Service Description (shown only for service POs) -->
+            <div id="serviceDescSection" class="hidden mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+                <label class="block font-semibold text-white mb-2">SERVICE DESCRIPTION: <span class="text-red-500">*</span></label>
+                <textarea name="service_description" id="serviceDescription" rows="4"
+                    class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Describe the service to be rendered...">{{ old('service_description') }}</textarea>
+                <div class="grid grid-cols-3 gap-4 mt-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-1">QUANTITY</label>
+                        <input type="number" step="0.0001" name="service_qty" id="service_qty"
+                            class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="0" value="{{ old('service_qty') }}" oninput="calcServiceTotal()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-1">UNIT AMOUNT</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
+                            <input type="number" step="0.01" name="service_amount" id="service_amount"
+                                class="w-full bg-gray-800 border border-gray-700 rounded pl-7 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="0.00" value="{{ old('service_amount') }}" oninput="calcServiceTotal()">
+                        </div>
+                    </div>
+                    <div id="service_total_wrapper" class="hidden">
+                        <label class="block text-sm font-semibold text-gray-300 mb-1" id="service_total_label">TOTAL (PHP)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
+                            <input type="number" step="0.01" id="service_total_display"
+                                class="w-full bg-gray-700 border border-gray-600 rounded pl-7 pr-3 py-2 text-green-400 font-bold focus:outline-none"
+                                placeholder="0.00" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Items Table -->
-            <div class="mb-6">
+            <div class="mb-6" id="itemsTableSection">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-lg font-semibold text-white">Items</h3>
                     <button type="button" onclick="addRow()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -162,7 +230,7 @@
                                 <th class="border border-gray-700 px-2 py-2" style="width:70px">QTY</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:80px">UOM</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:280px">DESCRIPTION</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:200px">SUPPLIER</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:130px">BRAND</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:140px">DATE NEEDED</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:110px">UNIT PRICE</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:80px">TAX</th>
@@ -192,7 +260,7 @@
                                         <input type="hidden" name="items[{{ $index }}][purchase_request_item_id]" value="{{ $item->id }}">
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" value="{{ $item->remaining_qty }}" required>
+                                        <input type="number" step="0.01" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->remaining_qty }}" required>
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
                                         <input type="text" name="items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->uom }}">
@@ -204,25 +272,18 @@
                                         </div>
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
-                                        <div class="relative">
-                                            <input type="text"
-                                                   class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-search-input"
-                                                   placeholder="Search supplier..."
-                                                   autocomplete="off"
-                                                   value="{{ $item->supplier_name ?? $prSupplierName }}">
-                                            <input type="hidden" name="items[{{ $index }}][supplier_id]" class="supplier-id-input" value="{{ $item->supplier_id ?? $prSupplierId }}">
-                                            <input type="hidden" name="items[{{ $index }}][supplier_name]" class="supplier-name-input" value="{{ $item->supplier_name ?? $prSupplierName }}">
-                                            <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto"></div>
-                                        </div>
+                                        <input type="text" name="items[{{ $index }}][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" value="{{ old('items.'.$index.'.brand') }}" placeholder="Brand">
                                     </td>
+                                    <input type="hidden" name="items[{{ $index }}][supplier_id]" class="supplier-id-input" value="{{ $item->supplier_id ?? $prSupplierId }}">
+                                    <input type="hidden" name="items[{{ $index }}][supplier_name]" class="supplier-name-input" value="{{ $item->supplier_name ?? $prSupplierName }}">
                                     <td class="border border-gray-700 px-2 py-2">
                                         <input type="date" name="items[{{ $index }}][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->date_needed ? \Carbon\Carbon::parse($item->date_needed)->format('Y-m-d') : '' }}">
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" value="{{ $item->unit_price }}">
+                                        <input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->unit_price }}">
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="0">
+                                        <input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="0">
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
                                         <input type="number" step="0.01" name="items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly>
@@ -245,7 +306,7 @@
                                         <input type="hidden" name="items[0][purchase_request_item_id]" value="">
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[0][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required>
+                                        <input type="number" step="0.01" name="items[0][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" required>
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
                                         <input type="text" name="items[0][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
@@ -257,24 +318,18 @@
                                         </div>
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
-                                        <div class="relative">
-                                            <input type="text"
-                                                   class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-search-input"
-                                                   placeholder="Search supplier..."
-                                                   autocomplete="off">
-                                            <input type="hidden" name="items[0][supplier_id]" class="supplier-id-input" value="">
-                                            <input type="hidden" name="items[0][supplier_name]" class="supplier-name-input" value="">
-                                            <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto"></div>
-                                        </div>
+                                        <input type="text" name="items[0][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" placeholder="Brand">
                                     </td>
+                                    <input type="hidden" name="items[0][supplier_id]" class="supplier-id-input" value="">
+                                    <input type="hidden" name="items[0][supplier_name]" class="supplier-name-input" value="">
                                     <td class="border border-gray-700 px-2 py-2">
                                         <input type="date" name="items[0][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[0][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price">
+                                        <input type="number" step="0.01" name="items[0][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
-                                        <input type="number" step="0.01" name="items[0][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="0">
+                                        <input type="number" step="0.01" name="items[0][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="0">
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
                                         <input type="number" step="0.01" name="items[0][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly>
@@ -381,9 +436,10 @@ const selectedPRId      = document.getElementById('selectedPRId');
 
 // ── Route URLs ──────────────────────────────────────────────────────────────
 const SUPPLIER_SEARCH_URL    = '{{ route("purchase_orders.search_suppliers") }}';
-const SEARCH_URL             = '{{ route("non_trade_items.search") }}';
+const SEARCH_URL             = '{{ route("items.search") }}';
 const ITEM_CODE_SEARCH_URL   = '{{ route("purchase_orders.search_by_item_code") }}';
 const GENERATE_ITEM_CODE_URL = '{{ route("purchase_orders.generate_item_code") }}';
+const LAST_SUPPLIER_URL      = '{{ route("purchase_orders.last_supplier_for_item") }}';
 
 // ======================== PR SEARCH ========================
 prSearchInput.addEventListener('input', function () {
@@ -465,7 +521,7 @@ function addRow() {
             <input type="hidden" name="items[${rowCount}][purchase_request_item_id]" value="">
         </td>
         <td class="border border-gray-700 px-2 py-2">
-            <input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required>
+            <input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" required>
         </td>
         <td class="border border-gray-700 px-2 py-2">
             <input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
@@ -477,21 +533,18 @@ function addRow() {
             </div>
         </td>
         <td class="border border-gray-700 px-2 py-2">
-            <div class="relative">
-                <input type="text" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-search-input" placeholder="Search supplier..." autocomplete="off">
-                <input type="hidden" name="items[${rowCount}][supplier_id]" class="supplier-id-input" value="">
-                <input type="hidden" name="items[${rowCount}][supplier_name]" class="supplier-name-input" value="">
-                <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto"></div>
-            </div>
+            <input type="text" name="items[${rowCount}][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" placeholder="Brand">
         </td>
+        <input type="hidden" name="items[${rowCount}][supplier_id]" class="supplier-id-input" value="">
+        <input type="hidden" name="items[${rowCount}][supplier_name]" class="supplier-name-input" value="">
         <td class="border border-gray-700 px-2 py-2">
             <input type="date" name="items[${rowCount}][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
         </td>
         <td class="border border-gray-700 px-2 py-2">
-            <input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price">
+            <input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
         </td>
         <td class="border border-gray-700 px-2 py-2">
-            <input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="0">
+            <input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="0">
         </td>
         <td class="border border-gray-700 px-2 py-2">
             <input type="number" step="0.01" name="items[${rowCount}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly>
@@ -503,10 +556,8 @@ function addRow() {
     rowCount++;
     attachCalculationListeners();
     attachItemCodeListeners();
-    const newDesc     = newRow.querySelector('.desc-input');
-    const newSupplier = newRow.querySelector('.supplier-search-input');
-    if (newDesc)     attachDescAutocomplete(newDesc);
-    if (newSupplier) attachSupplierSearch(newSupplier);
+    const newDesc = newRow.querySelector('.desc-input');
+    if (newDesc) attachDescAutocomplete(newDesc);
 }
 
 function removeRow(btn) {
@@ -567,6 +618,27 @@ function onCurrencyChange() {
         document.getElementById('rate_label').textContent = `(1 ${code} = ? PHP)`;
     }
     updateCurrencySummary();
+    calcServiceTotal();
+}
+
+function calcServiceTotal() {
+    const qty     = parseFloat(document.getElementById('service_qty')?.value) || 0;
+    const amt     = parseFloat(document.getElementById('service_amount')?.value) || 0;
+    const code    = document.getElementById('currency_select').value;
+    const rate    = parseFloat(document.getElementById('exchange_rate').value) || 1;
+    const wrapper = document.getElementById('service_total_wrapper');
+    const label   = document.getElementById('service_total_label');
+    const disp    = document.getElementById('service_total_display');
+
+    if (code === 'PHP') {
+        wrapper?.classList.add('hidden');
+    } else {
+        const phpTotal = qty * amt * rate;
+        if (disp) disp.value = phpTotal.toFixed(2);
+        if (label) label.textContent = `TOTAL (PHP equiv. @ ${rate.toFixed(4)})`;
+        wrapper?.classList.remove('hidden');
+    }
+    updateCurrencySummary();
 }
 
 function updateCurrencySummary() {
@@ -574,8 +646,17 @@ function updateCurrencySummary() {
     const rate    = parseFloat(document.getElementById('exchange_rate').value) || 1;
     const summary = document.getElementById('currency_summary');
     if (code === 'PHP') { summary.classList.add('hidden'); return; }
+
+    const isService = document.getElementById('poTypeInput')?.value === 'service';
     let foreignTotal = 0;
-    document.querySelectorAll('.item-total').forEach(inp => foreignTotal += parseFloat(inp.value) || 0);
+    if (isService) {
+        const sQty = parseFloat(document.getElementById('service_qty')?.value) || 0;
+        const sAmt = parseFloat(document.getElementById('service_amount')?.value) || 0;
+        foreignTotal = sQty * sAmt;
+    } else {
+        document.querySelectorAll('.item-total').forEach(inp => foreignTotal += parseFloat(inp.value) || 0);
+    }
+
     summary.classList.remove('hidden');
     document.getElementById('summary_currency').textContent      = code;
     document.getElementById('summary_code').textContent          = code;
@@ -584,7 +665,7 @@ function updateCurrencySummary() {
     document.getElementById('summary_php_total').textContent     = (foreignTotal * rate).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-document.getElementById('exchange_rate').addEventListener('input', updateCurrencySummary);
+document.getElementById('exchange_rate').addEventListener('input', () => { updateCurrencySummary(); calcServiceTotal(); });
 
 // ======================== DROPDOWN POSITIONING ========================
 function positionFixedDropdown(inputEl, dropdownEl) {
@@ -729,6 +810,25 @@ function attachSupplierSearch(input) {
 // ======================== DESCRIPTION AUTOCOMPLETE ========================
 let descTimeout;
 
+// ======================== LAST SUPPLIER AUTO-FILL ========================
+async function autoFillLastSupplier(row, description) {
+    const si = row.querySelector('.supplier-id-input');
+    const sn = row.querySelector('.supplier-name-input');
+    const ss = row.querySelector('.supplier-search-input');
+    // Only auto-fill if supplier is not already chosen
+    if (si && si.value) return;
+    if (!description || description.length < 2) return;
+    try {
+        const res  = await fetch(`${LAST_SUPPLIER_URL}?description=${encodeURIComponent(description)}`);
+        const data = await res.json();
+        if (data && data.supplier_id) {
+            if (si) si.value = data.supplier_id;
+            if (sn) sn.value = data.supplier_name || '';
+            if (ss) ss.value = data.supplier_name || '';
+        }
+    } catch (e) { /* silent fail */ }
+}
+
 function attachDescAutocomplete(input) {
     const dropdown = input.nextElementSibling;
 
@@ -747,10 +847,12 @@ function attachDescAutocomplete(input) {
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(item =>
                     `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 desc-option"
-                          data-name="${(item.name || item).toString().replace(/"/g, '&quot;')}"
-                          data-item-code="${(item.item_code || '').toString().replace(/"/g, '&quot;')}"
-                          data-supplier-id="${item.supplier_id || ''}"
-                          data-supplier-name="${(item.supplier_name || '').toString().replace(/"/g, '&quot;')}">${typeof item === 'string' ? item : item.display_name}</div>`
+                          data-name="${(item.item_description || '').replace(/"/g, '&quot;')}"
+                          data-item-code="${(item.item_code || '').replace(/"/g, '&quot;')}"
+                          data-brand="${(item.brand || '').replace(/"/g, '&quot;')}">
+                        <div class="font-semibold">${item.item_description || ''}</div>
+                        <div class="text-xs text-gray-400">${item.item_code || ''} ${item.brand ? '· '+item.brand : ''} <span class="text-yellow-400">${item.type === 'non_trade' ? 'Non-Trade' : 'Trade'}</span></div>
+                    </div>`
                 ).join('');
                 positionFixedDropdown(input, dropdown);
                 dropdown.classList.remove('hidden');
@@ -768,6 +870,8 @@ function attachDescAutocomplete(input) {
                             itemCodeInput.value = '';
                             autoGenerateItemCode(row);
                         }
+                        const brandInput = row.querySelector('.brand-input');
+                        if (brandInput && this.dataset.brand) brandInput.value = this.dataset.brand;
                         if (this.dataset.supplierId) {
                             const ss = row.querySelector('.supplier-search-input');
                             const si = row.querySelector('.supplier-id-input');
@@ -775,6 +879,9 @@ function attachDescAutocomplete(input) {
                             if (ss) ss.value = this.dataset.supplierName || '';
                             if (si) si.value = this.dataset.supplierId;
                             if (sn) sn.value = this.dataset.supplierName || '';
+                        } else {
+                            // No supplier in item library — try last used supplier from PO history
+                            autoFillLastSupplier(row, input.value.trim());
                         }
                     });
                 });
@@ -802,6 +909,8 @@ function attachDescAutocomplete(input) {
         const row           = input.closest('tr');
         const itemCodeInput = row?.querySelector('.item-code-input');
         if (row && itemCodeInput && !itemCodeInput.value.trim()) autoGenerateItemCode(row);
+        // Auto-fill supplier from last PO if not already set
+        if (row && input.value.trim()) autoFillLastSupplier(row, input.value.trim());
     });
 }
 
@@ -873,13 +982,126 @@ async function autoGenerateItemCode(row) {
     } catch (e) { console.error('Error generating item code:', e); }
 }
 
+// ======================== TOP-LEVEL SUPPLIER SEARCH ========================
+let topSupplierTimeout;
+
+function initTopSupplierSearch() {
+    const input    = document.getElementById('topSupplierSearch');
+    const dropdown = document.getElementById('topSupplierDropdown');
+    const idHidden = document.getElementById('supplier_id');
+    const nameHidden = document.getElementById('supplier_text');
+    const addrHidden = document.getElementById('supplier_address_hidden');
+    const infoLine = document.getElementById('topSupplierInfo');
+    const codeLine = document.getElementById('topSupplierCode');
+
+    async function doSearch() {
+        const q = input.value.trim();
+        clearTimeout(topSupplierTimeout);
+        if (q.length < 1) { dropdown.classList.add('hidden'); return; }
+
+        topSupplierTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`${SUPPLIER_SEARCH_URL}?q=${encodeURIComponent(q)}`);
+                const suppliers = await res.json();
+                if (!suppliers.length) {
+                    dropdown.innerHTML = '<div class="px-3 py-2 text-gray-400 text-sm">No suppliers found</div>';
+                    dropdown.classList.remove('hidden');
+                    return;
+                }
+                dropdown.innerHTML = suppliers.map(s => `
+                    <div class="px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 top-supplier-option"
+                         data-id="${s.id}"
+                         data-name="${s.supplier_name}"
+                         data-code="${s.supplier_code || ''}"
+                         data-address="${(s.address || '').replace(/"/g, '&quot;')}"
+                         data-terms="${(s.terms || '').replace(/"/g, '&quot;')}"
+                         data-contact="${(s.contact_person || '').replace(/"/g, '&quot;')}">
+                        <div class="text-sm font-semibold text-white">${s.supplier_name}</div>
+                        <div class="text-xs text-gray-400">${s.supplier_code || ''}</div>
+                    </div>
+                `).join('');
+                dropdown.classList.remove('hidden');
+
+                dropdown.querySelectorAll('.top-supplier-option').forEach(opt => {
+                    opt.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        input.value      = this.dataset.name;
+                        idHidden.value   = this.dataset.id;
+                        nameHidden.value = this.dataset.name;
+                        addrHidden.value = this.dataset.address;
+                        codeLine.textContent = this.dataset.code;
+                        infoLine.classList.remove('hidden');
+                        dropdown.classList.add('hidden');
+                        const pt = document.getElementById('payment_terms');
+                        if (pt) pt.value = this.dataset.terms || '';
+                        const cn = document.getElementById('consignee');
+                        if (cn && !cn.value.trim()) cn.value = this.dataset.contact || '';
+                    });
+                });
+            } catch (err) {
+                console.error('Top supplier search error:', err);
+                dropdown.classList.add('hidden');
+            }
+        }, 250);
+    }
+
+    input.addEventListener('input', function() {
+        nameHidden.value = this.value;
+        idHidden.value   = '';
+        addrHidden.value = '';
+        infoLine.classList.add('hidden');
+        doSearch();
+    });
+    input.addEventListener('focus', doSearch);
+    input.addEventListener('blur', function() {
+        nameHidden.value = this.value;
+        setTimeout(() => dropdown.classList.add('hidden'), 200);
+    });
+}
+
+// On form submit, copy top-level supplier to all item rows
+function syncSupplierToItems() {
+    const supplierId   = document.getElementById('supplier_id').value;
+    const supplierName = document.getElementById('supplier_text').value;
+    document.querySelectorAll('.supplier-id-input').forEach(el => el.value = supplierId);
+    document.querySelectorAll('.supplier-name-input').forEach(el => el.value = supplierName);
+}
+
 // ======================== INIT ========================
 document.addEventListener('DOMContentLoaded', function () {
     attachCalculationListeners();
     attachItemCodeListeners();
     recalculateAllTotals();
     document.querySelectorAll('.desc-input').forEach(attachDescAutocomplete);
-    document.querySelectorAll('.supplier-search-input').forEach(attachSupplierSearch);
+    initTopSupplierSearch();
+
+    // Sync supplier to items before form submit
+    document.getElementById('poForm').addEventListener('submit', function() {
+        syncSupplierToItems();
+    });
 });
+
+function setPOType(type) {
+    document.getElementById('poTypeInput').value = type;
+    const itemsSection = document.getElementById('itemsTableSection');
+    const serviceSection = document.getElementById('serviceDescSection');
+    const serviceDesc = document.getElementById('serviceDescription');
+    const btnItems = document.getElementById('btnTypeItems');
+    const btnService = document.getElementById('btnTypeService');
+
+    if (type === 'service') {
+        itemsSection.classList.add('hidden');
+        serviceSection.classList.remove('hidden');
+        serviceDesc.required = true;
+        btnService.className = 'px-5 py-2 rounded font-semibold transition bg-purple-600 text-white';
+        btnItems.className = 'px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600';
+    } else {
+        itemsSection.classList.remove('hidden');
+        serviceSection.classList.add('hidden');
+        serviceDesc.required = false;
+        btnItems.className = 'px-5 py-2 rounded font-semibold transition bg-purple-600 text-white';
+        btnService.className = 'px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600';
+    }
+}
 </script>
 @endsection

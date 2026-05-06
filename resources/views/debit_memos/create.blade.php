@@ -36,16 +36,14 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
+                <div class="relative">
                     <label class="block text-gray-300 text-sm mb-1 font-medium">Supplier <span class="text-red-500">*</span></label>
-                    <select name="supplier_id" class="w-full border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
-                        <option value="">-- Select Supplier --</option>
-                        @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                {{ $supplier->supplier_name }} ({{ $supplier->supplier_code }})
-                            </option>
-                        @endforeach
-                    </select>
+                    <input type="hidden" name="supplier_id" id="supplier_id" value="{{ old('supplier_id') }}" required>
+                    <input type="text" id="supplier_search_input" autocomplete="off"
+                           placeholder="Type supplier name..."
+                           value="{{ old('supplier_id') ? ($suppliers->firstWhere('id', old('supplier_id'))?->supplier_name ?? '') : '' }}"
+                           class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <div id="supplier_search_dropdown" class="hidden absolute z-50 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-52 overflow-y-auto" style="top:100%;margin-top:2px;"></div>
                 </div>
                 <div>
                     <label class="block text-gray-300 text-sm mb-1 font-medium">Invoice (APV)</label>
@@ -83,4 +81,46 @@
         </form>
     </div>
 </div>
+<script>
+(function() {
+    const SUPPLIER_QUICK_URL = '{{ route("suppliers.search_quick") }}';
+    const searchInput  = document.getElementById('supplier_search_input');
+    const hiddenId     = document.getElementById('supplier_id');
+    const dropdown     = document.getElementById('supplier_search_dropdown');
+    let debounce;
+
+    searchInput.addEventListener('input', function() {
+        hiddenId.value = '';
+        clearTimeout(debounce);
+        const q = this.value.trim();
+        if (q.length < 1) { dropdown.classList.add('hidden'); return; }
+        debounce = setTimeout(async () => {
+            try {
+                const res   = await fetch(`${SUPPLIER_QUICK_URL}?q=${encodeURIComponent(q)}`);
+                const items = await res.json();
+                if (!items.length) { dropdown.innerHTML = '<div class="px-3 py-2 text-sm text-gray-500">No suppliers found</div>'; dropdown.classList.remove('hidden'); return; }
+                dropdown.innerHTML = items.map(s =>
+                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 supplier-opt"
+                          data-id="${s.id}"
+                          data-name="${s.supplier_name.replace(/"/g,'&quot;')}">
+                        <span class="font-semibold">${s.supplier_name}</span>
+                        <span class="text-gray-400 ml-2 text-xs">${s.supplier_code||''}</span>
+                    </div>`
+                ).join('');
+                dropdown.classList.remove('hidden');
+                dropdown.querySelectorAll('.supplier-opt').forEach(opt => {
+                    opt.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        hiddenId.value    = this.dataset.id;
+                        searchInput.value = this.dataset.name;
+                        dropdown.classList.add('hidden');
+                    });
+                });
+            } catch(e) { dropdown.classList.add('hidden'); }
+        }, 250);
+    });
+
+    searchInput.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 200));
+})();
+</script>
 @endsection

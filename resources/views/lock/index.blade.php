@@ -52,6 +52,40 @@
         <button type="submit" class="filter-button">Apply</button>
     </form>
 
+    {{-- Quick Search --}}
+    <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 mb-6">
+        <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            Quick Search Delivery
+        </h4>
+        <div class="flex items-center gap-3">
+            <input type="text" id="quickSearchInput" placeholder="Enter DR number, customer name, or SO number..."
+                class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <button onclick="quickSearchDelivery()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition">
+                Search
+            </button>
+        </div>
+        <div id="quickSearchResults" class="mt-4 hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
+                    <tr>
+                        <th class="px-4 py-2 text-left">DR No.</th>
+                        <th class="px-4 py-2 text-left">SO No.</th>
+                        <th class="px-4 py-2 text-left">Customer</th>
+                        <th class="px-4 py-2 text-center">Delivery Date</th>
+                        <th class="px-4 py-2 text-center">Status</th>
+                        <th class="px-4 py-2 text-center">Lock Status</th>
+                        <th class="px-4 py-2 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="quickSearchBody"></tbody>
+            </table>
+            <div id="quickSearchInfo" class="text-xs text-gray-400 mt-2"></div>
+        </div>
+    </div>
+
     {{-- Info Banner --}}
     <div class="bg-blue-100 border border-blue-700 rounded-lg p-4 mb-8">
         <div class="flex items-start gap-3">
@@ -200,21 +234,22 @@
                         View
                     </button>
 
-                    @if($isFullyLocked)
-                        <button onclick="unlockMonth({{ $monthData['year'] }}, {{ $monthData['month'] }}, '{{ $monthData['month_name'] }}')"
-                                class="flex-1 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
-                            </svg>
-                            Unlock
-                        </button>
-                    @else
+                    @if(!$isFullyLocked)
                         <button onclick="lockMonth({{ $monthData['year'] }}, {{ $monthData['month'] }}, '{{ $monthData['month_name'] }}', {{ $monthData['so_count'] }}, {{ $monthData['delivery_count'] }}, {{ $monthData['customer_count'] }}, {{ $monthData['item_count'] }})"
                                 class="flex-1 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                             </svg>
                             Lock
+                        </button>
+                    @endif
+                    @if($hasLockedItems)
+                        <button onclick="unlockMonth({{ $monthData['year'] }}, {{ $monthData['month'] }}, '{{ $monthData['month_name'] }}')"
+                                class="flex-1 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                            </svg>
+                            Unlock
                         </button>
                     @endif
                 </div>
@@ -283,6 +318,12 @@
 
             {{-- Deliveries Table --}}
             <div id="deliveryTable" class="overflow-x-auto hidden">
+                <div class="flex items-center gap-3 mb-3">
+                    <input type="text" id="deliverySearchInput" placeholder="Search DR number..."
+                        class="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:ring focus:ring-blue-500 w-64">
+                    <button onclick="searchDeliveryDR()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium">Search</button>
+                    <button onclick="clearDeliverySearch()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-2 rounded text-sm">Clear</button>
+                </div>
                 <table class="w-full text-sm">
                     <thead class="bg-gray-800 text-gray-300 uppercase text-xs">
                         <tr>
@@ -292,10 +333,11 @@
                             <th class="px-4 py-3 text-center">Status</th>
                             <th class="px-4 py-3 text-center">Lock Status</th>
                             <th class="px-4 py-3 text-center">Created</th>
+                            <th class="px-4 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="deliveryTableBody" class="divide-y divide-gray-700">
-                        <tr><td colspan="6" class="text-center py-8 text-gray-300">Loading...</td></tr>
+                        <tr><td colspan="7" class="text-center py-8 text-gray-300">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -343,58 +385,93 @@
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
+// Track current modal state
+let modalState = { year: null, month: null, activeTab: 'so', pages: {} };
+
 function viewDetails(year, month, monthName) {
     document.getElementById('modalTitle').textContent = monthName + ' - Details';
     document.getElementById('detailsModal').classList.remove('hidden');
     document.getElementById('detailsModal').classList.add('flex');
 
-    // Reset to SO tab
-    switchTab('so');
+    modalState.year = year;
+    modalState.month = month;
+    modalState.pages = { so: 1, delivery: 1, customer: 1, item: 1 };
 
-    // Fetch data
-    fetch(`{{ route('lock.details') }}?year=${year}&month=${month}`, {
-        headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-        }
+    // Load the default tab
+    switchTab('so');
+}
+
+function fetchTabData(tab, page = 1) {
+    const tbodyIds = { so: 'soTableBody', delivery: 'deliveryTableBody', customer: 'customerTableBody', item: 'itemTableBody' };
+    const colSpans = { so: 6, delivery: 7, customer: 5, item: 5 };
+    const tbody = document.getElementById(tbodyIds[tab]);
+
+    tbody.innerHTML = `<tr><td colspan="${colSpans[tab]}" class="text-center py-8 text-gray-400">Loading...</td></tr>`;
+
+    fetch(`{{ route('lock.details') }}?year=${modalState.year}&month=${modalState.month}&tab=${tab}&page=${page}`, {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
-        if (data.success) {
-            populateSOTable(data.sales_orders);
-            populateDeliveryTable(data.deliveries);
-            populateCustomerTable(data.customers);
-            populateItemTable(data.items);
-        }
+        if (!data.success) return;
+        modalState.pages[tab] = page;
+        const rows = data.data || [];
+        const populators = { so: populateSOTable, delivery: populateDeliveryTable, customer: populateCustomerTable, item: populateItemTable };
+        populators[tab](rows);
+        renderPagination(tab, page, data.total_pages, data.total);
     })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire('Error', 'Failed to load details', 'error');
+    .catch(err => {
+        console.error('Error:', err);
+        tbody.innerHTML = `<tr><td colspan="${colSpans[tab]}" class="text-center py-8 text-red-400">Failed to load data</td></tr>`;
     });
+}
+
+function renderPagination(tab, currentPage, totalPages, total) {
+    const containerId = tab + 'Pagination';
+    let container = document.getElementById(containerId);
+    if (!container) {
+        const tableDiv = document.getElementById(tab + 'Table');
+        container = document.createElement('div');
+        container.id = containerId;
+        container.className = 'flex items-center justify-between mt-3 px-1';
+        tableDiv.appendChild(container);
+    }
+
+    if (totalPages <= 1) {
+        container.innerHTML = `<span class="text-xs text-gray-400">${total} record${total !== 1 ? 's' : ''}</span><span></span>`;
+        return;
+    }
+
+    let buttons = '';
+    // Previous
+    buttons += `<button onclick="fetchTabData('${tab}', ${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''} class="px-3 py-1 rounded text-sm ${currentPage <= 1 ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-700 hover:bg-gray-600 text-white'}">Prev</button>`;
+
+    // Page numbers (show max 5 around current)
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    for (let i = startPage; i <= endPage; i++) {
+        buttons += `<button onclick="fetchTabData('${tab}', ${i})" class="px-3 py-1 rounded text-sm ${i === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}">${i}</button>`;
+    }
+
+    // Next
+    buttons += `<button onclick="fetchTabData('${tab}', ${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''} class="px-3 py-1 rounded text-sm ${currentPage >= totalPages ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-700 hover:bg-gray-600 text-white'}">Next</button>`;
+
+    container.innerHTML = `<span class="text-xs text-gray-400">${total} record${total !== 1 ? 's' : ''} &middot; Page ${currentPage} of ${totalPages}</span><div class="flex gap-1">${buttons}</div>`;
 }
 
 function populateSOTable(salesOrders) {
     const tbody = document.getElementById('soTableBody');
-
     if (salesOrders.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-300">No Sales Orders found</td></tr>';
         return;
     }
-
     tbody.innerHTML = salesOrders.map(so => `
         <tr class="hover:bg-gray-800/50">
             <td class="px-4 py-3 font-mono text-blue-700">${so.sales_order_number}</td>
             <td class="px-4 py-3">${so.customer?.customer_name || '—'}</td>
             <td class="px-4 py-3 text-right font-mono">₱${parseFloat(so.total_amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-            <td class="px-4 py-3 text-center">
-                <span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(so.status)}">${so.status || '—'}</span>
-            </td>
-            <td class="px-4 py-3 text-center">
-                ${so.is_locked
-                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-700 rounded text-xs font-medium border border-red-600">LOCKED</span>'
-                    : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
-                }
-            </td>
+            <td class="px-4 py-3 text-center"><span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(so.status)}">${so.status || '—'}</span></td>
+            <td class="px-4 py-3 text-center">${lockBadge(so.is_locked)}</td>
             <td class="px-4 py-3 text-center text-gray-400">${formatDate(so.created_at)}</td>
         </tr>
     `).join('');
@@ -402,52 +479,39 @@ function populateSOTable(salesOrders) {
 
 function populateDeliveryTable(deliveries) {
     const tbody = document.getElementById('deliveryTableBody');
-
     if (deliveries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-300">No Deliveries found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-300">No Deliveries found</td></tr>';
         return;
     }
-
     tbody.innerHTML = deliveries.map(d => `
-        <tr class="hover:bg-gray-800/50">
+        <tr class="hover:bg-gray-800/50" id="delivery-row-${d.id}">
             <td class="px-4 py-3 font-mono text-green-700">${d.dr_no || '—'}</td>
             <td class="px-4 py-3 font-mono text-blue-700">${d.sales_order_number || '—'}</td>
             <td class="px-4 py-3">${d.customer_name || '—'}</td>
-            <td class="px-4 py-3 text-center">
-                <span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(d.status)}">${d.status || '—'}</span>
-            </td>
+            <td class="px-4 py-3 text-center"><span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(d.status)}">${d.status || '—'}</span></td>
+            <td class="px-4 py-3 text-center" id="delivery-lock-${d.id}">${lockBadge(d.is_locked)}</td>
+            <td class="px-4 py-3 text-center text-gray-400">${formatDate(d.created_at)}</td>
             <td class="px-4 py-3 text-center">
                 ${d.is_locked
-                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-700 rounded text-xs font-medium border border-red-600">LOCKED</span>'
-                    : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
-                }
+                    ? `<button onclick="unlockSingleDelivery(${d.id}, '${d.dr_no}')" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs font-medium transition">Unlock</button>`
+                    : `<span class="text-xs text-gray-500">—</span>`}
             </td>
-            <td class="px-4 py-3 text-center text-gray-400">${formatDate(d.created_at)}</td>
         </tr>
     `).join('');
 }
 
 function populateCustomerTable(customers) {
     const tbody = document.getElementById('customerTableBody');
-
     if (customers.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-300">No Customers found</td></tr>';
         return;
     }
-
     tbody.innerHTML = customers.map(c => `
         <tr class="hover:bg-gray-800/50">
             <td class="px-4 py-3 font-mono text-purple-700">${c.customer_code || '—'}</td>
             <td class="px-4 py-3">${c.customer_name || '—'}</td>
-            <td class="px-4 py-3 text-center">
-                <span class="px-2 py-1 rounded text-xs font-medium ${c.status === 'enabled' ? 'bg-green-600/20 text-green-700 border border-green-600' : 'bg-gray-700 text-gray-300 border border-gray-600'}">${c.status || '—'}</span>
-            </td>
-            <td class="px-4 py-3 text-center">
-                ${c.is_locked
-                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-700 rounded text-xs font-medium border border-red-600">LOCKED</span>'
-                    : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
-                }
-            </td>
+            <td class="px-4 py-3 text-center"><span class="px-2 py-1 rounded text-xs font-medium ${c.status === 'enabled' ? 'bg-green-600/20 text-green-700 border border-green-600' : 'bg-gray-700 text-gray-300 border border-gray-600'}">${c.status || '—'}</span></td>
+            <td class="px-4 py-3 text-center">${lockBadge(c.is_locked)}</td>
             <td class="px-4 py-3 text-center text-gray-400">${formatDate(c.created_at)}</td>
         </tr>
     `).join('');
@@ -455,28 +519,25 @@ function populateCustomerTable(customers) {
 
 function populateItemTable(items) {
     const tbody = document.getElementById('itemTableBody');
-
     if (items.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-300">No Items found</td></tr>';
         return;
     }
-
     tbody.innerHTML = items.map(i => `
         <tr class="hover:bg-gray-800/50">
             <td class="px-4 py-3 font-mono text-orange-700">${i.item_code || '—'}</td>
             <td class="px-4 py-3">${i.item_description || '—'}</td>
-            <td class="px-4 py-3 text-center">
-                <span class="px-2 py-1 rounded text-xs font-medium ${getApprovalClass(i.approval_status)}">${i.approval_status || '—'}</span>
-            </td>
-            <td class="px-4 py-3 text-center">
-                ${i.is_locked
-                    ? '<span class="px-2 py-1 bg-red-600/20 text-red-700 rounded text-xs font-medium border border-red-600">LOCKED</span>'
-                    : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>'
-                }
-            </td>
+            <td class="px-4 py-3 text-center"><span class="px-2 py-1 rounded text-xs font-medium ${getApprovalClass(i.approval_status)}">${i.approval_status || '—'}</span></td>
+            <td class="px-4 py-3 text-center">${lockBadge(i.is_locked)}</td>
             <td class="px-4 py-3 text-center text-gray-400">${formatDate(i.created_at)}</td>
         </tr>
     `).join('');
+}
+
+function lockBadge(isLocked) {
+    return isLocked
+        ? '<span class="px-2 py-1 bg-red-600/20 text-red-700 rounded text-xs font-medium border border-red-600">LOCKED</span>'
+        : '<span class="px-2 py-1 bg-green-600/20 text-green-700 rounded text-xs font-medium border border-green-600">OPEN</span>';
 }
 
 function getStatusClass(status) {
@@ -519,6 +580,9 @@ function switchTab(tab) {
             table.classList.add('hidden');
         }
     });
+    modalState.activeTab = tab;
+    // Fetch data for the selected tab
+    fetchTabData(tab, modalState.pages[tab] || 1);
 }
 
 function closeModal() {
@@ -642,6 +706,174 @@ document.getElementById('detailsModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeModal();
     }
+});
+
+// Unlock a single delivery
+function unlockSingleDelivery(id, drNo) {
+    Swal.fire({
+        icon: 'question',
+        title: 'Unlock Delivery?',
+        html: `<p>Unlock DR <strong>${drNo}</strong>?</p><p class="text-sm text-gray-400 mt-2">This will allow it to appear in the collections module.</p>`,
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Unlock',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#16a34a',
+        background: '#1f2937',
+        color: '#f9fafb',
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        fetch(`/lock/unlock-delivery/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'Unlocked!', text: data.message, timer: 1500, showConfirmButton: false, background: '#1f2937', color: '#f9fafb' });
+                // Update the row in-place
+                const lockCell = document.getElementById('delivery-lock-' + id);
+                if (lockCell) lockCell.innerHTML = lockBadge(false);
+                const row = document.getElementById('delivery-row-' + id);
+                if (row) {
+                    const actionsCell = row.querySelector('td:last-child');
+                    if (actionsCell) actionsCell.innerHTML = '<span class="text-xs text-gray-500">—</span>';
+                }
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1f2937', color: '#f9fafb' });
+            }
+        })
+        .catch(() => Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to unlock delivery.', background: '#1f2937', color: '#f9fafb' }));
+    });
+}
+
+// Search delivery by DR number within the modal
+function searchDeliveryDR() {
+    const search = document.getElementById('deliverySearchInput').value.trim();
+    if (!search) return;
+
+    const tbody = document.getElementById('deliveryTableBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">Searching...</td></tr>';
+
+    fetch(`{{ route('lock.details') }}?year=${modalState.year}&month=${modalState.month}&tab=delivery&search=${encodeURIComponent(search)}&page=1`, {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            populateDeliveryTable(data.data || []);
+            renderPagination('delivery', 1, data.total_pages, data.total);
+        }
+    })
+    .catch(() => {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-400">Search failed</td></tr>';
+    });
+}
+
+function clearDeliverySearch() {
+    document.getElementById('deliverySearchInput').value = '';
+    fetchTabData('delivery', 1);
+}
+
+// Enter key on delivery search
+document.getElementById('deliverySearchInput')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); searchDeliveryDR(); }
+});
+
+// Quick search delivery from main page
+function quickSearchDelivery() {
+    const search = document.getElementById('quickSearchInput').value.trim();
+    if (!search) return;
+
+    const resultsDiv = document.getElementById('quickSearchResults');
+    const tbody = document.getElementById('quickSearchBody');
+    const info = document.getElementById('quickSearchInfo');
+
+    resultsDiv.classList.remove('hidden');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-400">Searching...</td></tr>';
+
+    fetch(`{{ route('lock.searchDeliveries') }}?search=${encodeURIComponent(search)}`, {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success || !data.data.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-400">No deliveries found.</td></tr>';
+            info.textContent = '';
+            return;
+        }
+
+        tbody.innerHTML = data.data.map(d => `
+            <tr class="border-b border-gray-700 hover:bg-gray-700/50" id="qs-row-${d.id}">
+                <td class="px-4 py-2.5 font-mono text-green-400">${d.dr_no || '—'}</td>
+                <td class="px-4 py-2.5 font-mono text-blue-400">${d.sales_order_number || '—'}</td>
+                <td class="px-4 py-2.5 text-white">${d.customer_name || '—'}</td>
+                <td class="px-4 py-2.5 text-center text-gray-300">${d.delivery_date ? new Date(d.delivery_date).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '—'}</td>
+                <td class="px-4 py-2.5 text-center"><span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(d.status)}">${d.status || '—'}</span></td>
+                <td class="px-4 py-2.5 text-center" id="qs-lock-${d.id}">${lockBadge(d.is_locked)}</td>
+                <td class="px-4 py-2.5 text-center" id="qs-action-${d.id}">
+                    ${d.is_locked
+                        ? `<button onclick="quickUnlock(${d.id}, '${d.dr_no}')" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs font-medium transition">Unlock</button>`
+                        : `<button onclick="quickLockOne(${d.id}, '${d.dr_no}')" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-xs font-medium transition">Lock</button>`}
+                </td>
+            </tr>
+        `).join('');
+
+        info.textContent = `Found ${data.total} result${data.total !== 1 ? 's' : ''}${data.total >= 50 ? ' (showing first 50)' : ''}`;
+    })
+    .catch(() => {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-400">Search failed.</td></tr>';
+    });
+}
+
+function quickUnlock(id, drNo) {
+    Swal.fire({
+        icon: 'question',
+        title: 'Unlock Delivery?',
+        html: `<p>Unlock DR <strong>${drNo}</strong>?</p><p class="text-sm text-gray-400 mt-2">This will allow it to appear in the collections module.</p>`,
+        showCancelButton: true, confirmButtonText: 'Yes, Unlock', confirmButtonColor: '#16a34a',
+        background: '#1f2937', color: '#f9fafb',
+    }).then(result => {
+        if (!result.isConfirmed) return;
+        fetch(`/lock/unlock-delivery/${id}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'Unlocked!', text: data.message, timer: 1500, showConfirmButton: false, background: '#1f2937', color: '#f9fafb' });
+                document.getElementById('qs-lock-' + id).innerHTML = lockBadge(false);
+                document.getElementById('qs-action-' + id).innerHTML = `<button onclick="quickLockOne(${id}, '${drNo}')" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-xs font-medium transition">Lock</button>`;
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1f2937', color: '#f9fafb' });
+            }
+        }).catch(() => Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to unlock.', background: '#1f2937', color: '#f9fafb' }));
+    });
+}
+
+function quickLockOne(id, drNo) {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Lock Delivery?',
+        html: `<p>Lock DR <strong>${drNo}</strong>?</p><p class="text-sm text-gray-400 mt-2">This will prevent it from appearing in the collections module.</p>`,
+        showCancelButton: true, confirmButtonText: 'Yes, Lock', confirmButtonColor: '#dc2626',
+        background: '#1f2937', color: '#f9fafb',
+    }).then(result => {
+        if (!result.isConfirmed) return;
+        fetch(`/lock/lock-delivery/${id}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'Locked!', text: data.message, timer: 1500, showConfirmButton: false, background: '#1f2937', color: '#f9fafb' });
+                document.getElementById('qs-lock-' + id).innerHTML = lockBadge(true);
+                document.getElementById('qs-action-' + id).innerHTML = `<button onclick="quickUnlock(${id}, '${drNo}')" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs font-medium transition">Unlock</button>`;
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.message, background: '#1f2937', color: '#f9fafb' });
+            }
+        }).catch(() => Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to lock.', background: '#1f2937', color: '#f9fafb' }));
+    });
+}
+
+document.getElementById('quickSearchInput')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); quickSearchDelivery(); }
 });
 
 </script>

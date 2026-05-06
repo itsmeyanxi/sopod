@@ -446,6 +446,41 @@
             </tbody>
         </table>
 
+        <!-- PO Items -->
+        @if($rfp->purchaseOrder && $rfp->purchaseOrder->items->count())
+        <div class="section-title">Purchase Order Items ({{ $rfp->purchaseOrder->po_no }})</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 15%;">Item Code</th>
+                    <th style="width: 35%;">Description</th>
+                    <th style="width: 10%; text-align: center;">Qty</th>
+                    <th style="width: 8%; text-align: center;">UOM</th>
+                    <th style="width: 13%; text-align: right;">Unit Price</th>
+                    <th style="width: 14%; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($rfp->purchaseOrder->items as $item)
+                <tr>
+                    <td>{{ $item->item_no }}</td>
+                    <td>{{ $item->item_code }}</td>
+                    <td>{{ $item->description }}</td>
+                    <td style="text-align: center;">{{ number_format($item->qty, 2) }}</td>
+                    <td style="text-align: center;">{{ $item->uom }}</td>
+                    <td class="amount">{{ number_format($item->unit_price, 2) }}</td>
+                    <td class="amount">{{ number_format($item->total, 2) }}</td>
+                </tr>
+                @endforeach
+                <tr>
+                    <td colspan="6" style="text-align: right; font-weight: bold;">Grand Total:</td>
+                    <td class="amount" style="font-weight: bold;">{{ number_format($rfp->purchaseOrder->items->sum('total'), 2) }}</td>
+                </tr>
+            </tbody>
+        </table>
+        @endif
+
         <!-- Info Fields -->
         <div class="info-grid">
             <div class="info-field">
@@ -473,7 +508,7 @@
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $rfp->creator->name ?? '' }}</div>
                 @if($rfp->creator && $rfp->created_at)
-                    <div class="e-signature">Digitally Signed</div>
+                    <div class="e-signature">@include('partials.esignature', ['signer' => $rfp->creator])</div>
                     <div class="e-signature-detail">Date/Time: {{ $rfp->created_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                 @endif
             </div>
@@ -482,7 +517,7 @@
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $rfp->departmentHeadApprover->name ?? '' }}</div>
                 @if($rfp->departmentHeadApprover && $rfp->department_head_approved_at)
-                    <div class="e-signature">Digitally Signed</div>
+                    <div class="e-signature">@include('partials.esignature', ['signer' => $rfp->departmentHeadApprover])</div>
                     <div class="e-signature-detail">Date/Time: {{ $rfp->department_head_approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                     @if($rfp->department_head_approved_latitude && $rfp->department_head_approved_longitude)
                         <div class="e-signature-detail">Coords: {{ $rfp->department_head_approved_latitude }}, {{ $rfp->department_head_approved_longitude }}@if($rfp->department_head_approved_location) ({{ $rfp->department_head_approved_location }})@endif</div>
@@ -494,7 +529,7 @@
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $rfp->accountingApprover->name ?? '' }}</div>
                 @if($rfp->accountingApprover && $rfp->accounting_approved_at)
-                    <div class="e-signature">Digitally Signed</div>
+                    <div class="e-signature">@include('partials.esignature', ['signer' => $rfp->accountingApprover])</div>
                     <div class="e-signature-detail">Date/Time: {{ $rfp->accounting_approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                     @if($rfp->accounting_approved_latitude && $rfp->accounting_approved_longitude)
                         <div class="e-signature-detail">Coords: {{ $rfp->accounting_approved_latitude }}, {{ $rfp->accounting_approved_longitude }}@if($rfp->accounting_approved_location) ({{ $rfp->accounting_approved_location }})@endif</div>
@@ -512,7 +547,7 @@
                     <div class="approval-line"></div>
                     <div class="approval-name">{{ $rfp->approver->name ?? '' }}</div>
                     @if($rfp->approver && $rfp->approved_at)
-                        <div class="approval-e-signature">Digitally Signed</div>
+                        <div class="approval-e-signature">@include('partials.esignature', ['signer' => $rfp->approver])</div>
                         <div class="approval-e-signature-detail">Date/Time: {{ $rfp->approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                         @if($rfp->approved_latitude && $rfp->approved_longitude)
                             <div class="approval-e-signature-detail">Coords: {{ $rfp->approved_latitude }}, {{ $rfp->approved_longitude }}@if($rfp->approved_location) ({{ $rfp->approved_location }})@endif</div>

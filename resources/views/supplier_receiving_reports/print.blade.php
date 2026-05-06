@@ -218,7 +218,7 @@
     <div class="page">
         <!-- Header -->
         <div class="header">
-            <div class="company-name">PACIFIC MAGALANG AGRIVENTURES INC</div>
+            <div class="company-name">MEATPLUS TRADING CORP</div>
             <div class="report-title">RECEIVING REPORT</div>
         </div>
 

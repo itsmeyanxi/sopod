@@ -11,21 +11,42 @@ use App\Helpers\RoleHelper;
 class ItemController extends Controller
 {
     // Show all items (only approved items for regular users)
-        public function index()
+        public function index(Request $request)
     {
         $user = Auth::user();
-        
+
         // Users who can manage items see all items (including disabled ones)
         if ($user->canManageItems()) {
-            $items = Item::all();
+            $query = Item::query();
         }
         // Regular users only see approved AND enabled items
         else {
-            $items = Item::approved()
-                        ->where('is_enabled', 1)
-                        ->get();
+            $query = Item::approved()->where('is_enabled', 1);
         }
-        
+
+        // Server-side search
+        if ($request->filled('search')) {
+            $keyword = $request->search;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('item_code', 'LIKE', "%{$keyword}%")
+                  ->orWhere('item_description', 'LIKE', "%{$keyword}%")
+                  ->orWhere('brand', 'LIKE', "%{$keyword}%")
+                  ->orWhere('item_category', 'LIKE', "%{$keyword}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('approval_status', $request->status);
+        }
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $query->orderBy('created_at', 'desc');
+
+        $perPage = in_array((int)$request->per_page, [25, 50, 100, 250, 500]) ? (int)$request->per_page : 25;
+        $items = $query->paginate($perPage)->withQueryString();
+
         return view('items.index', compact('items'));
     }
 

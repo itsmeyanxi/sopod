@@ -6,6 +6,7 @@ use App\Models\SupplierReceivingReport;
 use App\Models\SupplierReceivingReportItem;
 use App\Models\Supplier;
 use App\Models\PurchaseOrder;
+use App\Models\LiveChicken;
 use App\Models\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -301,14 +302,35 @@ class SupplierReceivingReportController extends Controller
         $query = PurchaseOrder::where('status', 'approved');
 
         if ($supplierId) {
-            $query->where('supplier_id', $supplierId);
+            $query->where(function ($q) use ($supplierId) {
+                $q->where('supplier_id', $supplierId)
+                  ->orWhereNull('supplier_id');
+            });
         }
 
         if ($search) {
-            $query->where('po_no', 'LIKE', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('po_no', 'LIKE', "%{$search}%")
+                  ->orWhere('supplier', 'LIKE', "%{$search}%");
+            });
         }
 
-        $pos = $query->select('id', 'po_no', 'supplier', 'order_date')
+        // Exclude POs blocked by Live Chicken (actual_qty < PO total qty)
+        $blockedPoNos = LiveChicken::whereNotNull('po_no')
+            ->whereRaw('actual_qty < (
+                SELECT COALESCE(SUM(poi.qty), 0)
+                FROM purchase_order_items poi
+                INNER JOIN purchase_orders po ON po.id = poi.purchase_order_id
+                WHERE po.po_no = live_chickens.po_no
+            )')
+            ->pluck('po_no')
+            ->toArray();
+
+        if (!empty($blockedPoNos)) {
+            $query->whereNotIn('po_no', $blockedPoNos);
+        }
+
+        $pos = $query->select('id', 'po_no', 'supplier', 'brand', 'order_date')
             ->limit(10)
             ->orderByDesc('created_at')
             ->get();
@@ -386,5 +408,41 @@ class SupplierReceivingReportController extends Controller
         }
 
         return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+    }
+
+    public function getPOItems(Request $request)
+    {
+        $poNo = $request->input('po_no');
+        if (!$poNo) return response()->json(['po_qty' => 0, 'items' => [], 'blocked' => false]);
+
+        $po = PurchaseOrder::with(['items', 'supplierModel'])->where('po_no', $poNo)->first();
+        if (!$po) return response()->json(['po_qty' => 0, 'items' => [], 'blocked' => false]);
+
+        $items = $po->items->map(fn($item) => [
+            'item_code'   => $item->item_code,
+            'description' => $item->description,
+            'brand'       => $item->brand,
+            'note'        => $item->note,
+            'qty'         => (float) $item->qty,
+        ]);
+
+        $poTotalQty = $items->sum('qty');
+
+        // Check if this PO is linked to a live chicken record
+        $liveChicken = LiveChicken::where('po_no', $poNo)->first();
+        $blocked = $liveChicken && (float) $liveChicken->actual_qty < (float) $poTotalQty;
+
+        return response()->json([
+            'po_qty'            => $poTotalQty,
+            'lc_actual_qty'     => $liveChicken ? (float) $liveChicken->actual_qty : null,
+            'supplier_id'       => $po->supplier_id,
+            'supplier_name'     => $po->supplierModel->supplier_name ?? $po->supplier,
+            'note'              => $po->remarks,
+            'items'             => $items->values(),
+            'blocked'           => $blocked,
+            'blocked_message'   => $blocked
+                ? "PO {$poNo} is blocked: Live Chicken actual qty ({$liveChicken->actual_qty}) is less than PO qty ({$poTotalQty}). Update the Live Chicken record or adjust the PO qty first."
+                : null,
+        ]);
     }
 }

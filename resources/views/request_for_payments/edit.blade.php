@@ -28,18 +28,8 @@
             @csrf
             @method('PUT')
 
-            <!-- Company Selection -->
-            <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-                <label class="block font-semibold text-gray-300 mb-3">SELECT COMPANY: <span class="text-red-700">*</span></label>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    @foreach($companies as $company)
-                        <label class="flex items-center p-3 bg-gray-800 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer transition">
-                            <input type="radio" name="company" value="{{ $company }}" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500" {{ old('company', $rfp->company) == $company ? 'checked' : '' }} required>
-                            <span class="ml-3 text-white">{{ $company }}</span>
-                        </label>
-                    @endforeach
-                </div>
-            </div>
+            <!-- Company (hardcoded as Meatplus) -->
+            <input type="hidden" name="company" value="MeatPlus">
 
             <!-- Payment Methods & Dates Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -123,17 +113,63 @@
                 <input type="text" name="bank" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('bank', $rfp->bank) }}" placeholder="Bank name and account details">
             </div>
 
-            <!-- APV and CV Numbers -->
+            <!-- APV and CV Numbers (For Finance Use — filled later) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">APV NO. (Account Payable Voucher):</label>
-                    <input type="text" name="apv_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('apv_no', $rfp->apv_no) }}">
+                    <label class="block font-semibold text-gray-500 mb-2">APV NO. (Account Payable Voucher):</label>
+                    <input type="text" name="apv_no" disabled class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-500 cursor-not-allowed" value="{{ old('apv_no', $rfp->apv_no) }}" placeholder="To be assigned by Finance">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">CV NO. (Check Voucher):</label>
-                    <input type="text" name="cv_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('cv_no', $rfp->cv_no) }}">
+                    <label class="block font-semibold text-gray-500 mb-2">CV NO. (Check Voucher):</label>
+                    <input type="text" name="cv_no" disabled class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-500 cursor-not-allowed" value="{{ old('cv_no', $rfp->cv_no) }}" placeholder="To be assigned by Finance">
                 </div>
             </div>
+
+            <!-- PO Items Table -->
+            @if($rfp->purchaseOrder && $rfp->purchaseOrder->items->count())
+            <div class="mb-6">
+                <div class="bg-gray-900 border border-gray-700 rounded overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                        <h3 class="font-semibold text-white"><i class="fas fa-boxes mr-2"></i>Purchase Order Items ({{ $rfp->purchaseOrder->po_no }})</h3>
+                        <span class="text-sm text-gray-400">{{ $rfp->purchaseOrder->items->count() }} item(s)</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-700 text-gray-300">
+                                    <th class="px-4 py-2 text-left">#</th>
+                                    <th class="px-4 py-2 text-left">Item Code</th>
+                                    <th class="px-4 py-2 text-left">Description</th>
+                                    <th class="px-4 py-2 text-center">Qty</th>
+                                    <th class="px-4 py-2 text-center">UOM</th>
+                                    <th class="px-4 py-2 text-right">Unit Price</th>
+                                    <th class="px-4 py-2 text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($rfp->purchaseOrder->items as $idx => $item)
+                                <tr class="{{ $idx % 2 === 0 ? 'bg-gray-800' : '' }} border-b border-gray-700">
+                                    <td class="px-4 py-2 text-gray-400">{{ $item->item_no }}</td>
+                                    <td class="px-4 py-2 text-white font-medium">{{ $item->item_code }}</td>
+                                    <td class="px-4 py-2 text-gray-200">{{ $item->description }}</td>
+                                    <td class="px-4 py-2 text-center text-gray-200">{{ number_format($item->qty, 2) }}</td>
+                                    <td class="px-4 py-2 text-center text-gray-200">{{ $item->uom }}</td>
+                                    <td class="px-4 py-2 text-right text-gray-200">{{ number_format($item->unit_price, 2) }}</td>
+                                    <td class="px-4 py-2 text-right text-white font-semibold">{{ number_format($item->total, 2) }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-gray-700 font-bold text-white">
+                                    <td colspan="6" class="px-4 py-2 text-right">Grand Total:</td>
+                                    <td class="px-4 py-2 text-right">₱{{ number_format($rfp->purchaseOrder->items->sum('total'), 2) }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Requestor and Checker -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

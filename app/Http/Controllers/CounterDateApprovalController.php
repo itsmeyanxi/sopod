@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class CounterDateApprovalController extends Controller
 {
@@ -54,9 +55,19 @@ class CounterDateApprovalController extends Controller
             ->whereNotNull('counter_date')
             ->where('counter_date_approved', true)->count();
 
+        // Get pending edit request counts per delivery for badge display
+        $deliveryIds = $deliveries->pluck('id')->toArray();
+        $pendingEditCounts = DB::table('counter_date_edit_requests')
+            ->whereIn('delivery_id', $deliveryIds)
+            ->where('status', 'pending')
+            ->select('delivery_id', DB::raw('COUNT(*) as cnt'))
+            ->groupBy('delivery_id')
+            ->pluck('cnt', 'delivery_id');
+
         return view('counter_date_approvals.index', compact(
             'deliveries', 'search', 'filter',
-            'totalWithCounter', 'pendingCount', 'approvedCount'
+            'totalWithCounter', 'pendingCount', 'approvedCount',
+            'pendingEditCounts'
         ));
     }
 
@@ -70,7 +81,174 @@ class CounterDateApprovalController extends Controller
         // Check if there's a linked ar_aging record
         $arAging = ArAging::where('dr_no', $delivery->dr_no)->first();
 
-        return view('counter_date_approvals.show', compact('delivery', 'arAging'));
+        // Pending edit requests for this delivery (IT can see and act on them)
+        $pendingEditRequests = DB::table('counter_date_edit_requests')
+            ->where('delivery_id', $id)
+            ->where('status', 'pending')
+            ->orderBy('requested_at', 'desc')
+            ->get();
+
+        return view('counter_date_approvals.show', compact('delivery', 'arAging', 'pendingEditRequests'));
+    }
+
+    /**
+     * Non-IT: Submit a request to edit the counter date (requires IT approval)
+     */
+    public function requestEdit(Request $request, $id)
+    {
+        $request->validate([
+            'new_counter_date' => 'required|date',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $delivery = Deliveries::findOrFail($id);
+
+        // Check if user already has a pending request for this delivery
+        $existing = DB::table('counter_date_edit_requests')
+            ->where('delivery_id', $id)
+            ->where('status', 'pending')
+            ->where('requested_by', Auth::user()->name)
+            ->first();
+
+        if ($existing) {
+            return response()->json(['success' => false, 'message' => 'You already have a pending edit request for this DR.'], 422);
+        }
+
+        DB::table('counter_date_edit_requests')->insert([
+            'delivery_id'      => $id,
+            'dr_no'            => $delivery->dr_no,
+            'requested_by'     => Auth::user()->name,
+            'requested_at'     => now(),
+            'old_counter_date' => $delivery->counter_date,
+            'new_counter_date' => $request->new_counter_date,
+            'reason'           => $request->reason,
+            'status'           => 'pending',
+            'created_at'       => now(),
+            'updated_at'       => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Edit request submitted. Awaiting IT approval.',
+        ]);
+    }
+
+    /**
+     * IT only: Directly edit the counter date without going through approval
+     */
+    public function directEdit(Request $request, $id)
+    {
+        if (!Auth::user()->isAdminUser()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $request->validate([
+            'new_counter_date' => 'required|date',
+        ]);
+
+        $delivery = Deliveries::findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            $delivery->update([
+                'counter_date'              => $request->new_counter_date,
+                'counter_date_approved'     => false,
+                'counter_date_approved_by'  => null,
+                'counter_date_approved_at'  => null,
+            ]);
+
+            // Also update ar_aging if linked
+            ArAging::where('dr_no', $delivery->dr_no)->update([
+                'counter_date' => $request->new_counter_date,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Counter date updated to {$request->new_counter_date}. Approval status reset.",
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * IT only: Approve a pending edit request
+     */
+    public function approveEditRequest(Request $request, $requestId)
+    {
+        if (!Auth::user()->isAdminUser()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $editRequest = DB::table('counter_date_edit_requests')->where('id', $requestId)->where('status', 'pending')->first();
+        if (!$editRequest) {
+            return response()->json(['success' => false, 'message' => 'Edit request not found or already reviewed.'], 404);
+        }
+
+        $delivery = Deliveries::findOrFail($editRequest->delivery_id);
+
+        DB::beginTransaction();
+        try {
+            // Apply the new counter date
+            $delivery->update([
+                'counter_date'              => $editRequest->new_counter_date,
+                'counter_date_approved'     => false,
+                'counter_date_approved_by'  => null,
+                'counter_date_approved_at'  => null,
+            ]);
+
+            // Also update ar_aging if linked
+            ArAging::where('dr_no', $delivery->dr_no)->update([
+                'counter_date' => $editRequest->new_counter_date,
+            ]);
+
+            // Mark request as approved
+            DB::table('counter_date_edit_requests')->where('id', $requestId)->update([
+                'status'       => 'approved',
+                'reviewed_by'  => Auth::user()->name,
+                'reviewed_at'  => now(),
+                'review_notes' => $request->input('review_notes'),
+                'updated_at'   => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Edit request approved. Counter date updated to {$editRequest->new_counter_date}.",
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * IT only: Reject a pending edit request
+     */
+    public function rejectEditRequest(Request $request, $requestId)
+    {
+        if (!Auth::user()->isAdminUser()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $editRequest = DB::table('counter_date_edit_requests')->where('id', $requestId)->where('status', 'pending')->first();
+        if (!$editRequest) {
+            return response()->json(['success' => false, 'message' => 'Edit request not found or already reviewed.'], 404);
+        }
+
+        DB::table('counter_date_edit_requests')->where('id', $requestId)->update([
+            'status'       => 'rejected',
+            'reviewed_by'  => Auth::user()->name,
+            'reviewed_at'  => now(),
+            'review_notes' => $request->input('review_notes'),
+            'updated_at'   => now(),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Edit request rejected.']);
     }
 
     /**

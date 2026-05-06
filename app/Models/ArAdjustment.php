@@ -22,6 +22,7 @@ class ARAdjustment extends Model
         'gl_account',
         'gl_account_id',
         'receiving_report_id',
+        'delivery_id',
         'signed_by',
         'remarks',
         'attachment_path',
@@ -125,6 +126,9 @@ class ARAdjustment extends Model
             'small_balance_adjustment' => 'Small balance adjustment',
             'atd' => 'ATD',
             'offset' => 'Offset',
+            'quantity_variants' => 'Quantity Variants',
+            'short_payment' => 'Short Payment',
+            'factoring' => 'Factoring',
             default => ucfirst(str_replace('_', ' ', $this->transaction_type))
         };
     }

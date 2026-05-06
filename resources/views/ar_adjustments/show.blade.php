@@ -62,7 +62,7 @@
                 <label class="block font-semibold text-gray-300 mb-1">DR Number:</label>
                 @if($adjustment->dr_no)
                     @if($adjustment->delivery)
-                        <a href="{{ route('deliveries.show', $adjustment->delivery->id) }}" class="px-4 py-2 bg-blue-100 border border-blue-700 rounded text-blue-700 hover:bg-blue-100/50 transition inline-block">
+                        <a href="{{ route('deliveries.show', $adjustment->delivery->id) }}" class="px-4 py-2 bg-blue-900/30 border border-blue-600 rounded text-blue-300 hover:bg-blue-900/50 transition inline-block">
                             <i class="fas fa-link mr-1"></i> {{ $adjustment->dr_no }}
                         </a>
                     @else
@@ -80,20 +80,20 @@
 
         <!-- Linked Delivery Information -->
         @if($adjustment->delivery)
-        <div class="mb-6 p-4 bg-blue-50 border border-blue-700 rounded">
-            <h3 class="font-semibold text-blue-700 mb-3">📦 Linked Delivery Information</h3>
+        <div class="mb-6 p-4 bg-blue-900/30 border border-blue-600 rounded">
+            <h3 class="font-semibold text-blue-300 mb-3">📦 Linked Delivery Information</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                 <div>
-                    <p class="text-gray-300">Delivery Batch</p>
-                    <p class="text-blue-700 font-semibold">{{ $adjustment->delivery->delivery_batch ?? 'N/A' }}</p>
+                    <p class="text-gray-400">Delivery Batch</p>
+                    <p class="text-blue-300 font-semibold">{{ $adjustment->delivery->delivery_batch ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-300">Delivery Status</p>
-                    <p class="text-blue-700 font-semibold">{{ ucfirst($adjustment->delivery->status ?? 'pending') }}</p>
+                    <p class="text-gray-400">Delivery Status</p>
+                    <p class="text-blue-300 font-semibold">{{ ucfirst($adjustment->delivery->status ?? 'pending') }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-300">Requested Date</p>
-                    <p class="text-blue-700 font-semibold">{{ $adjustment->delivery->request_delivery_date?->format('M d, Y') ?? 'N/A' }}</p>
+                    <p class="text-gray-400">Requested Date</p>
+                    <p class="text-blue-300 font-semibold">{{ $adjustment->delivery->request_delivery_date?->format('M d, Y') ?? 'N/A' }}</p>
                 </div>
             </div>
         </div>
@@ -105,31 +105,31 @@
             $rrTotal = $adjustment->receivingReport->items ? $adjustment->receivingReport->items->sum('total_amount') : 0;
             $amountMismatch = abs((float)$adjustment->amount) != (float)$rrTotal && $rrTotal > 0;
         @endphp
-        <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded">
-            <h3 class="font-semibold text-green-700 mb-3">
+        <div class="mb-6 p-4 bg-green-900/30 border border-green-600 rounded">
+            <h3 class="font-semibold text-green-300 mb-3">
                 <i class="fas fa-clipboard-check mr-1"></i> Linked Receiving Report
-                <a href="{{ route('receiving-reports.show', $adjustment->receivingReport->id) }}" class="text-xs text-blue-600 hover:underline ml-2">View RR</a>
+                <a href="{{ route('receiving-reports.show', $adjustment->receivingReport->id) }}" class="text-xs text-blue-400 hover:underline ml-2">View RR</a>
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
                 <div>
-                    <p class="text-gray-300">RR Number</p>
-                    <p class="text-green-700 font-semibold">{{ $adjustment->receivingReport->rr_number ?? 'N/A' }}</p>
+                    <p class="text-gray-400">RR Number</p>
+                    <p class="text-green-300 font-semibold">{{ $adjustment->receivingReport->rr_number ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-300">Received By</p>
-                    <p class="text-green-700 font-semibold">{{ $adjustment->receivingReport->received_by ?? 'N/A' }}</p>
+                    <p class="text-gray-400">Received By</p>
+                    <p class="text-green-300 font-semibold">{{ $adjustment->receivingReport->received_by ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-300">Received Date</p>
-                    <p class="text-green-700 font-semibold">{{ $adjustment->receivingReport->received_date?->format('M d, Y') ?? 'N/A' }}</p>
+                    <p class="text-gray-400">Received Date</p>
+                    <p class="text-green-300 font-semibold">{{ $adjustment->receivingReport->received_date?->format('M d, Y') ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-300">RR Total Amount</p>
-                    <p class="text-green-700 font-semibold">₱{{ number_format($rrTotal, 2) }}</p>
+                    <p class="text-gray-400">RR Total Amount</p>
+                    <p class="text-green-300 font-semibold">₱{{ number_format($rrTotal, 2) }}</p>
                 </div>
             </div>
             @if($amountMismatch)
-            <div class="mt-3 p-2 bg-yellow-100 border border-yellow-400 rounded text-yellow-800 text-xs flex items-center gap-2">
+            <div class="mt-3 p-2 bg-yellow-900/40 border border-yellow-600 rounded text-yellow-300 text-xs flex items-center gap-2">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span><strong>Amount mismatch:</strong> This adjustment is ₱{{ number_format(abs($adjustment->amount), 2) }} but the RR total is ₱{{ number_format($rrTotal, 2) }}. Update via the Receiving Report to sync.</span>
             </div>
@@ -153,24 +153,24 @@
 
         <!-- Linked GL Account Information -->
         @if($adjustment->glAccount)
-        <div class="mb-6 p-4 bg-amber-50 border border-amber-600 rounded">
-            <h3 class="font-semibold text-amber-700 mb-3">📊 GL Account Details</h3>
+        <div class="mb-6 p-4 bg-amber-900/30 border border-amber-600 rounded">
+            <h3 class="font-semibold text-amber-300 mb-3">📊 GL Account Details</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div>
-                    <p class="text-gray-300">Account Code</p>
-                    <p class="text-amber-700 font-semibold">{{ $adjustment->glAccount->account_code ?? 'N/A' }}</p>
+                    <p class="text-gray-400">Account Code</p>
+                    <p class="text-amber-300 font-semibold">{{ $adjustment->glAccount->account_code ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-300">Account Name</p>
-                    <p class="text-amber-700 font-semibold">{{ $adjustment->glAccount->account_name ?? 'N/A' }}</p>
+                    <p class="text-gray-400">Account Name</p>
+                    <p class="text-amber-300 font-semibold">{{ $adjustment->glAccount->account_name ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-300">FS Line Item</p>
-                    <p class="text-amber-700 font-semibold">{{ $adjustment->glAccount->fs_line_item ?? 'N/A' }}</p>
+                    <p class="text-gray-400">FS Line Item</p>
+                    <p class="text-amber-300 font-semibold">{{ $adjustment->glAccount->fs_line_item ?? 'N/A' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-300">FS Notes</p>
-                    <p class="text-amber-700 font-semibold">{{ $adjustment->glAccount->fs_notes ?? 'N/A' }}</p>
+                    <p class="text-gray-400">FS Notes</p>
+                    <p class="text-amber-300 font-semibold">{{ $adjustment->glAccount->fs_notes ?? 'N/A' }}</p>
                 </div>
             </div>
         </div>

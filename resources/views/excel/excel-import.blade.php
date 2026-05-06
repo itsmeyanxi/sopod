@@ -17,6 +17,7 @@
         $canImportARAdjustments = $user->canAccessModule('aging_reports');
         $canImportBomMaterials = $user->canAccessModule('inhouse_bom');
         $canImportAssetClasses = $user->canAccessModule('asset_classes');
+        $canImportFixedAssets = $user->canAccessModule('fixed_assets');
     @endphp
 
     <h1 class="text-3xl font-bold text-white mb-2">Import Data from Excel/CSV</h1>
@@ -45,6 +46,18 @@
                 <button onclick="switchTab('suppliers')" id="suppliers-tab"
                     class="tab-button px-6 py-3 font-medium text-gray-300 hover:text-gray-300">
                     Import Suppliers
+                </button>
+                <button onclick="switchTab('vendors_trade')" id="vendors_trade-tab"
+                    class="tab-button px-6 py-3 font-medium text-gray-300 hover:text-gray-300">
+                    Trade Vendors
+                </button>
+                <button onclick="switchTab('vendors_nontrade')" id="vendors_nontrade-tab"
+                    class="tab-button px-6 py-3 font-medium text-gray-300 hover:text-gray-300">
+                    Non-Trade Vendors
+                </button>
+                <button onclick="switchTab('vendors_employees')" id="vendors_employees-tab"
+                    class="tab-button px-6 py-3 font-medium text-gray-300 hover:text-gray-300">
+                    Employees
                 </button>
                 @endif
 
@@ -88,6 +101,13 @@
                 <button onclick="switchTab('asset_classes')" id="asset_classes-tab"
                     class="tab-button px-6 py-3 font-medium text-gray-300 hover:text-gray-300">
                     Asset Classes
+                </button>
+                @endif
+
+                @if($canImportFixedAssets)
+                <button onclick="switchTab('fixed_assets')" id="fixed_assets-tab"
+                    class="tab-button px-6 py-3 font-medium text-gray-300 hover:text-gray-300">
+                    FA Masterdata (Fixed Assets)
                 </button>
                 @endif
 
@@ -228,6 +248,89 @@
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         Upload & Import Suppliers
+                    </button>
+                </form>
+            </div>
+            @endif
+
+            {{-- TRADE VENDORS TAB --}}
+            @if($canImportSuppliers)
+            <div id="vendors_trade-content" class="tab-content hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">Trade Vendors Import</h3>
+                    <div class="bg-green-900/30 border border-green-700 rounded-lg p-4">
+                        <p class="text-sm text-green-400 font-semibold mb-2">✅ Category will be automatically set to <strong>TRADE</strong> for all rows.</p>
+                        <p class="text-sm text-gray-300 mb-2">All fields optional except <strong>Vendor Code</strong> or <strong>Vendor Name</strong>. Supported headers:</p>
+                        <p class="text-xs text-gray-400 font-mono">Vendor Code, Vendor Name, Group, GL Account, Status, Company, EE ID, Last Name, First Name, Middle Name, Position, Department, Location, Office Address, Date Hired</p>
+                    </div>
+                </div>
+                <form action="{{ route('excel.import.vendors') }}" method="POST" enctype="multipart/form-data" id="vendors_trade-form">
+                    @csrf
+                    <input type="hidden" name="forced_category" value="TRADE">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-green-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="vendors_trade-file" class="hidden" onchange="handleFileSelect(this, 'vendors_trade')" required>
+                        <label for="vendors_trade-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-300 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
+                            <p id="vendors_trade-filename" class="text-sm text-green-400 mt-2"></p>
+                        </label>
+                    </div>
+                    <button type="submit" class="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        <i class="fas fa-upload mr-2"></i> Upload & Import Trade Vendors
+                    </button>
+                </form>
+            </div>
+
+            {{-- NON-TRADE VENDORS TAB --}}
+            <div id="vendors_nontrade-content" class="tab-content hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">Non-Trade Vendors Import</h3>
+                    <div class="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
+                        <p class="text-sm text-yellow-400 font-semibold mb-2">✅ Category will be automatically set to <strong>NON TRADE</strong> for all rows.</p>
+                        <p class="text-sm text-gray-300 mb-2">All fields optional except <strong>Vendor Code</strong> or <strong>Vendor Name</strong>. Supported headers:</p>
+                        <p class="text-xs text-gray-400 font-mono">Vendor Code, Vendor Name, Group, GL Account, Status, Company, EE ID, Last Name, First Name, Middle Name, Position, Department, Location, Office Address, Date Hired</p>
+                    </div>
+                </div>
+                <form action="{{ route('excel.import.vendors') }}" method="POST" enctype="multipart/form-data" id="vendors_nontrade-form">
+                    @csrf
+                    <input type="hidden" name="forced_category" value="NON TRADE">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-yellow-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="vendors_nontrade-file" class="hidden" onchange="handleFileSelect(this, 'vendors_nontrade')" required>
+                        <label for="vendors_nontrade-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-300 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
+                            <p id="vendors_nontrade-filename" class="text-sm text-yellow-400 mt-2"></p>
+                        </label>
+                    </div>
+                    <button type="submit" class="mt-4 w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium">
+                        <i class="fas fa-upload mr-2"></i> Upload & Import Non-Trade Vendors
+                    </button>
+                </form>
+            </div>
+
+            {{-- EMPLOYEES TAB --}}
+            <div id="vendors_employees-content" class="tab-content hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">Employees Import</h3>
+                    <div class="bg-purple-900/30 border border-purple-700 rounded-lg p-4">
+                        <p class="text-sm text-purple-400 font-semibold mb-2">✅ Category will be automatically set to <strong>EMPLOYEES</strong> for all rows.</p>
+                        <p class="text-sm text-gray-300 mb-2">All fields optional except <strong>Vendor Code</strong> or <strong>Vendor Name</strong>. Supported headers:</p>
+                        <p class="text-xs text-gray-400 font-mono">Vendor Code, Vendor Name, Group, GL Account, Status, Company, EE ID, Last Name, First Name, Middle Name, Position, Department, Location, Office Address, Date Hired</p>
+                    </div>
+                </div>
+                <form action="{{ route('excel.import.vendors') }}" method="POST" enctype="multipart/form-data" id="vendors_employees-form">
+                    @csrf
+                    <input type="hidden" name="forced_category" value="EMPLOYEES">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-purple-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="vendors_employees-file" class="hidden" onchange="handleFileSelect(this, 'vendors_employees')" required>
+                        <label for="vendors_employees-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-300 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel or CSV file</p>
+                            <p id="vendors_employees-filename" class="text-sm text-purple-400 mt-2"></p>
+                        </label>
+                    </div>
+                    <button type="submit" class="mt-4 w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                        <i class="fas fa-upload mr-2"></i> Upload & Import Employees
                     </button>
                 </form>
             </div>
@@ -574,6 +677,41 @@
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         <i class="fas fa-upload mr-2"></i> Upload & Import Asset Classes
+                    </button>
+                </form>
+            </div>
+            @endif
+
+            {{-- FA MASTERDATA (FIXED ASSETS) TAB CONTENT --}}
+            @if($canImportFixedAssets)
+            <div id="fixed_assets-content" class="tab-content hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">FA Masterdata (Fixed Assets) Import</h3>
+                    <div class="bg-blue-100 bg-opacity-20 border border-blue-700 rounded-lg p-4">
+                        <p class="text-sm text-gray-300 mb-2"><strong>Upload your Fixed Asset Masterdata.xlsx</strong> file.</p>
+                        <ul class="text-sm text-gray-300 space-y-1 ml-4">
+                            <li>• Sheet name: <strong>FA Master Data</strong></li>
+                            <li>• Data starts from <strong>row 4</strong> (row 3 is the header)</li>
+                            <li>• Columns: <code>B</code> = Item Code, <code>C</code> = Item Name, <code>D</code> = Asset Class, <code>E</code> = Cost, <code>F</code> = Accum Dep, <code>G</code> = NBV</li>
+                            <li>• Asset Group, GL Accounts, and depreciation rates are filled automatically from the Asset Classes table</li>
+                        </ul>
+                        <p class="text-xs text-gray-400 mt-3">Only completely blank rows (no Item Code and no Item Name) are skipped.</p>
+                    </div>
+                </div>
+
+                <form action="{{ route('excel.import.fixed_assets') }}" method="POST" enctype="multipart/form-data" id="fixed_assets-form">
+                    @csrf
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls" id="fixed_assets-file" class="hidden" onchange="handleFileSelect(this, 'fixed_assets')" required>
+                        <label for="fixed_assets-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-300 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload Excel file</p>
+                            <p class="text-sm text-gray-400">Supports .xlsx and .xls only</p>
+                            <p id="fixed_assets-filename" class="text-sm text-blue-400 mt-2"></p>
+                        </label>
+                    </div>
+                    <button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        <i class="fas fa-upload mr-2"></i> Upload & Import Fixed Assets
                     </button>
                 </form>
             </div>

@@ -208,12 +208,15 @@ const attachmentContainer = document.getElementById("current_attachment_containe
 const attachmentLink = document.getElementById("current_attachment_link");
 const attachmentName = document.getElementById("current_attachment_name");
 
+// ✅ Proper rounding — fixes JS banker's rounding issue with toFixed()
+function roundHalfUp(value, decimals) {
+    return Number(Math.round(parseFloat(value + 'e' + decimals)) + 'e-' + decimals).toFixed(decimals);
+}
+
 // =====================================================
 // BACKLOAD STATUS HANDLING
 // =====================================================
 
-// Listen for status changes to update DR/RR field
-// ✅ UPDATED: Listen for status changes to update DR/RR field AND reload items
 document.getElementById("status").addEventListener("change", function() {
     const status = this.value;
     const drInput = document.getElementById("dr_no");
@@ -221,14 +224,12 @@ document.getElementById("status").addEventListener("change", function() {
     const drHint = document.getElementById("dr_rr_hint");
     
     if (status === "Backload") {
-        // Change to RR Number
         drLabel.textContent = "RR No (Auto-generated)";
         drInput.placeholder = "Will be auto-generated for Backload";
         drInput.readOnly = true;
         drInput.value = "";
         drHint.classList.remove("hidden");
         
-        // ✅ Re-render items if they exist to show checkboxes
         const container = document.getElementById('delivery-items-container');
         const hasItems = container.children.length > 0;
         
@@ -251,13 +252,11 @@ document.getElementById("status").addEventListener("change", function() {
             });
         }
     } else {
-        // Back to DR Number
         drLabel.textContent = "DR No";
         drInput.placeholder = "";
         drInput.readOnly = !canManageDeliveries;
         drHint.classList.add("hidden");
         
-        // ✅ Re-render items to remove checkboxes
         const container = document.getElementById('delivery-items-container');
         const hasItems = container.children.length > 0;
         
@@ -279,28 +278,23 @@ function calculateRemaining(card) {
 
     if (deliveredInput && remainingCell) {
         const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
-
-        // ✅ FIXED: Remaining = Original - Already Delivered (what still needs to be delivered)
         const remaining = originalQty - alreadyDelivered;
 
-        // Remove all status classes first
         card.classList.remove('bg-orange-100/10', 'bg-red-100/10');
         remainingCell.classList.remove('text-orange-700', 'text-green-700', 'text-red-700', 'font-semibold');
 
         if (remaining <= 0) {
-            // Fully delivered already
             remainingCell.textContent = '—';
             remainingCell.classList.add('text-green-700');
         } else {
-            // Has remaining to deliver
-            remainingCell.textContent = remaining.toFixed(2);
+            remainingCell.textContent = remaining.toFixed(3);
             remainingCell.classList.add('text-orange-700', 'font-semibold');
             card.classList.add('bg-orange-100/10');
         }
     }
 }
 
-// Calculate row amount
+// ✅ FIX 1: calculateRowAmount — uses roundHalfUp instead of toFixed
 function calculateRowAmount(card) {
     const qtyInput = card.querySelector('.delivered-qty-input');
     const priceCell = card.querySelector('.price-cell');
@@ -309,14 +303,13 @@ function calculateRowAmount(card) {
     if (qtyInput && priceCell && amountInput) {
         const qty = parseFloat(qtyInput.value) || 0;
         const price = parseFloat(priceCell.innerText) || 0;
-        amountInput.value = (qty * price).toFixed(2);
+        amountInput.value = roundHalfUp(qty * price, 2); // ✅ FIXED
     }
     
     calculateRemaining(card);
     checkPartialDelivery();
 }
 
-// ✅ UPDATED: Auto-set delivery type based on quantities
 function checkPartialDelivery() {
     const container = document.getElementById('delivery-items-container');
     const cards = container.querySelectorAll('.delivery-item-card');
@@ -334,7 +327,6 @@ function checkPartialDelivery() {
         const totalDelivered = alreadyDelivered + currentDeliveryQty;
         const remaining = originalQty - totalDelivered;
         
-        // Get item details from the card
         const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
         const itemDescDiv = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
         
@@ -342,7 +334,6 @@ function checkPartialDelivery() {
         const itemDesc = itemDescDiv?.textContent.trim() || '';
         
         if (remaining > 0) {
-            // Under-delivery (partial)
             hasUnderDelivery = true;
             partialItems.push({
                 code: itemCode,
@@ -352,7 +343,6 @@ function checkPartialDelivery() {
                 remaining: remaining
             });
         } else if (remaining < 0) {
-            // Over-delivery
             hasOverDelivery = true;
             overDeliveryItems.push({
                 code: itemCode,
@@ -376,7 +366,7 @@ function checkPartialDelivery() {
         if (hasOverDelivery) {
             summaryHTML += '<div class="bg-red-950/30 p-2 rounded mb-2"><strong class="text-red-700">⚠️ Over-Delivery:</strong><ul class="mt-1 space-y-1">';
             overDeliveryItems.forEach(item => {
-                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Total Delivered <span class="text-red-700">${item.delivered.toFixed(2)}</span> vs SO <span class="text-blue-700">${item.original}</span> (Excess: <span class="text-red-700">+${item.excess.toFixed(2)}</span>)</li>`;
+                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Total Delivered <span class="text-red-700">${item.delivered.toFixed(3)}</span> vs SO <span class="text-blue-700">${item.original}</span> (Excess: <span class="text-red-700">+${item.excess.toFixed(3)}</span>)</li>`;
             });
             summaryHTML += '</ul></div>';
         }
@@ -384,14 +374,13 @@ function checkPartialDelivery() {
         if (hasUnderDelivery) {
             summaryHTML += '<div class="bg-orange-950/30 p-2 rounded"><strong class="text-orange-700">📦 Partial Delivery:</strong><ul class="mt-1 space-y-1">';
             partialItems.forEach(item => {
-                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Total Delivered <span class="text-orange-700">${item.delivered.toFixed(2)}</span> of <span class="text-blue-700">${item.original}</span> (Remaining: <span class="text-orange-700">${item.remaining.toFixed(2)}</span>)</li>`;
+                summaryHTML += `<li>• <strong>${item.code}</strong> - ${item.description}: Total Delivered <span class="text-orange-700">${item.delivered.toFixed(3)}</span> of <span class="text-blue-700">${item.original}</span> (Remaining: <span class="text-orange-700">${item.remaining.toFixed(3)}</span>)</li>`;
             });
             summaryHTML += '</ul></div>';
         }
         
         summaryDiv.innerHTML = summaryHTML;
         
-        // ✅ Auto-set delivery type to Partial if under-delivered
         if (hasUnderDelivery && deliveryTypeSelect && canManageDeliveries) {
             deliveryTypeSelect.value = 'Partial';
         }
@@ -399,21 +388,17 @@ function checkPartialDelivery() {
         warningDiv.classList.add('hidden');
         summaryDiv.innerHTML = '';
         
-        // ✅ Reset to Full if all quantities match perfectly
         if (deliveryTypeSelect && canManageDeliveries) {
             deliveryTypeSelect.value = 'Full';
         }
     }
 }
 
-
-// ✅ Handle quantity change
 function handleQuantityChange(e) {
     const input = e.target;
     const card = input.closest('.delivery-item-card');
     const currentQty = parseFloat(input.value) || 0;
 
-    // ✅ DEBUG: Log which item is being changed
     const soItemId = input.getAttribute('data-sales-order-item-id');
     const itemIndex = input.getAttribute('data-item-index');
     const itemCode = card.querySelector('.data-item-code')?.value;
@@ -426,19 +411,17 @@ function handleQuantityChange(e) {
     calculateRowAmount(card);
 }
 
-// Attach quantity listeners to all inputs
 function attachQuantityListeners() {
     document.querySelectorAll('.delivered-qty-input').forEach(input => {
-        input.removeEventListener('input', handleQuantityChange); // Remove old listeners
+        input.removeEventListener('input', handleQuantityChange);
         input.addEventListener('input', handleQuantityChange);
     });
 }
 
 function populateItemsTable(items, isViewOnly = false) {
     const container = document.getElementById('delivery-items-container');
-    container.innerHTML = ''; // Clear existing items
+    container.innerHTML = '';
     
-    // ✅ Get current status to determine if we should show backload checkboxes
     const status = document.getElementById('status')?.value || 'Delivered';
     const isBackloadMode = status === 'Backload';
     
@@ -451,10 +434,6 @@ function populateItemsTable(items, isViewOnly = false) {
             const alreadyDelivered = item.already_delivered || 0;
             const remaining = item.remaining_quantity || 0;
             const isHidden = item.is_hidden || false;
-            
-            // ✅ Calculate if this item is short-delivered
-            const isShortDelivered = deliveredQty < originalQty;
-            const shortage = originalQty - deliveredQty;
             
             const itemCard = document.createElement('div');
             itemCard.className = 'delivery-item-card border border-gray-700 rounded-lg p-4 bg-gray-800/50 hover:bg-gray-800/70 transition-colors';
@@ -469,18 +448,17 @@ function populateItemsTable(items, isViewOnly = false) {
                 itemCard.style.display = 'none';
             }
             
-            // Determine remaining color and status
             let remainingClass = 'text-green-700';
             let remainingDisplay = '—';
             let rowBgClass = '';
             
             if (remaining > 0) {
                 remainingClass = 'text-orange-700 font-semibold';
-                remainingDisplay = remaining.toFixed(2);
+                remainingDisplay = remaining.toFixed(3);
                 rowBgClass = 'bg-orange-100/10';
             } else if (remaining < 0) {
                 remainingClass = 'text-red-700 font-semibold';
-                remainingDisplay = 'OVER: +' + Math.abs(remaining).toFixed(2);
+                remainingDisplay = 'OVER: +' + Math.abs(remaining).toFixed(3);
                 rowBgClass = 'bg-red-100/10';
             }
             
@@ -489,7 +467,9 @@ function populateItemsTable(items, isViewOnly = false) {
             }
             
             const inputReadonly = (isViewOnly || !canManageDeliveries) ? 'readonly' : '';
-            const inputDisabled = (isViewOnly || !canManageDeliveries) ? 'disabled' : '';
+
+            // ✅ FIX 2: Initial amount render — uses roundHalfUp instead of toFixed
+            const initialAmount = roundHalfUp((deliveredQty || 0) * (item.unit_price || 0), 2); // ✅ FIXED
             
             itemCard.innerHTML = `
     <div class="flex justify-between items-start mb-4">
@@ -513,14 +493,12 @@ function populateItemsTable(items, isViewOnly = false) {
         </div>
     </div>
 
-    <!-- ✅ ADD THESE HIDDEN INPUTS -->
     <input type="hidden" class="data-sales-order-item-id" value="${item.sales_order_item_id || ''}">
     <input type="hidden" class="data-item-code" value="${item.item_code || ''}">
     <input type="hidden" class="data-item-description" value="${item.item_description || ''}">
     <input type="hidden" class="data-brand" value="${item.brand || ''}">
     <input type="hidden" class="data-item-category" value="${item.item_category || ''}">
 
-                <!-- Item Details Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-xs text-gray-300 mb-1">Item Code</label>
@@ -592,7 +570,7 @@ function populateItemsTable(items, isViewOnly = false) {
                     <div>
                         <label class="block text-xs text-gray-300 mb-1">Unit Price</label>
                         <div class="price-cell bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-sm text-right font-mono">
-                            ${item.unit_price || 0}
+                            ${parseFloat(item.unit_price || 0).toFixed(2)}
                         </div>
                     </div>
                     
@@ -600,7 +578,7 @@ function populateItemsTable(items, isViewOnly = false) {
                         <label class="block text-xs text-gray-300 mb-1">Amount</label>
                         <input type="number" 
                             class="amount-input w-full bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-right font-mono text-green-700" 
-                            value="${((deliveredQty || 0) * (item.unit_price || 0)).toFixed(2)}" 
+                            value="${initialAmount}"
                             readonly>
                     </div>
                 </div>
@@ -620,12 +598,9 @@ function populateItemsTable(items, isViewOnly = false) {
 
         if (!isViewOnly) {
             attachQuantityListeners();
-
-            // ✅ FIXED: Recalculate remaining for all items on initial load
             document.querySelectorAll('.delivery-item-card').forEach(card => {
                 calculateRemaining(card);
             });
-
             checkPartialDelivery();
         }
     } else {
@@ -641,7 +616,6 @@ function populateItemsTable(items, isViewOnly = false) {
     }
 }
 
-// Add new delivery item 
 function addDeliveryItem() {
     const container = document.getElementById('delivery-items-container');
     const hiddenItems = container.querySelectorAll('.delivery-item-card[data-hidden="true"]');
@@ -651,14 +625,12 @@ function addDeliveryItem() {
         return;
     }
     
-    // Build options for dropdown
     let optionsHTML = '<option value="">-- Select Item to Restore --</option>';
     hiddenItems.forEach((card, index) => {
         const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
         const itemDescDiv = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
         const itemCode = itemCodeDiv?.textContent.trim() || 'Unknown';
         const itemDesc = itemDescDiv?.textContent.trim() || 'No description';
-        
         optionsHTML += `<option value="${index}">${itemCode} - ${itemDesc}</option>`;
     });
     
@@ -688,19 +660,13 @@ function addDeliveryItem() {
         if (result.isConfirmed) {
             const selectedIndex = parseInt(result.value);
             const cardToRestore = hiddenItems[selectedIndex];
-            
             if (cardToRestore) {
-                // Remove hidden status
                 cardToRestore.removeAttribute('data-hidden');
                 cardToRestore.style.display = '';
-                
                 renumberDeliveryItems();
                 checkPartialDelivery();
-                
-                // Get item details for confirmation
                 const itemCodeDiv = cardToRestore.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
                 const itemCode = itemCodeDiv?.textContent.trim() || 'Item';
-                
                 Swal.fire({
                     icon: 'success',
                     title: 'Item Restored',
@@ -713,7 +679,6 @@ function addDeliveryItem() {
     });
 }
 
-// ✅ UPDATED: Temporarily hide item instead of removing
 function removeDeliveryItem(button) {
     const card = button.closest('.delivery-item-card');
     const container = document.getElementById('delivery-items-container');
@@ -724,7 +689,6 @@ function removeDeliveryItem(button) {
         return;
     }
     
-    // Get item details for confirmation
     const itemCodeDiv = card.querySelector('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.font-mono');
     const itemDescDiv = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm')[0];
     const itemCode = itemCodeDiv?.textContent.trim() || 'this item';
@@ -747,19 +711,12 @@ function removeDeliveryItem(button) {
         confirmButtonColor: '#dc2626'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Mark as hidden instead of removing from DOM
             card.setAttribute('data-hidden', 'true');
             card.style.display = 'none';
-            
-            // Set quantity to 0 when hidden
             const qtyInput = card.querySelector('.delivered-qty-input');
-            if (qtyInput) {
-                qtyInput.value = 0;
-            }
-            
+            if (qtyInput) qtyInput.value = 0;
             renumberDeliveryItems();
             checkPartialDelivery();
-            
             Swal.fire({
                 icon: 'success',
                 title: 'Item Removed',
@@ -778,9 +735,6 @@ function renumberDeliveryItems() {
         item.setAttribute('data-index', index);
     });
 }
-
-// ✅ FIND THIS SECTION IN YOUR CODE (around line 710-950)
-// Replace the ENTIRE search button event listener with this fixed version:
 
 document.getElementById("search_btn").addEventListener("click", async () => {
     const soNumber = document.getElementById("so_search").value.trim();
@@ -810,7 +764,6 @@ document.getElementById("search_btn").addEventListener("click", async () => {
 
         lastSearchResult = data;
 
-        // ✅ Handle errors with specific messages for rejected/cancelled/delivered
         if (!response.ok) {
             let alertConfig = {
                 icon: "error",
@@ -819,7 +772,6 @@ document.getElementById("search_btn").addEventListener("click", async () => {
                 confirmButtonText: 'OK'
             };
 
-            // ✅ Customize alert based on error type
             if (data.error_type === 'rejected') {
                 alertConfig = {
                     icon: "warning",
@@ -867,16 +819,12 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             }
 
             const result = await Swal.fire(alertConfig);
-            
-            // ✅ Redirect to deliveries list if user clicks "Go to Deliveries" for delivered orders
             if (data.error_type === 'delivered' && result.isConfirmed) {
                 window.location.href = deliveriesIndexUrl;
             }
-            
             return;
         }
 
-        // ✅✅✅ AUTO-APPROVE NOTIFICATION (MOVED HERE FROM SAVE BUTTON)
         if (data.will_auto_approve && !data.is_edit_mode && !data.is_view_only) {
             await Swal.fire({
                 icon: 'info',
@@ -892,14 +840,10 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             });
         }
 
-        // ✅ Show status/info alert if present
         if (data.show_partial_alert === true && data.info_message) {
-            console.log('📋 Showing status alert:', data.info_message);
-            
             let iconType = 'info';
             let titleText = 'Sales Order Information';
             
-            // Determine alert type based on SO status
             if (data.so_status === 'Declined' || data.so_status === 'Cancelled') {
                 iconType = 'warning';
                 titleText = `Sales Order ${data.so_status}`;
@@ -929,10 +873,8 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             });
         }
 
-        // ✅ Store delivery ID ONLY if in edit mode
         deliveryId = data.is_edit_mode ? (data.id || null) : null;
 
-        // Populate Sales Order Information
         document.getElementById("sales_order_number").value = data.sales_order_number || '';
         document.getElementById("customer_code").value = data.customer_code || '';
         document.getElementById("customer_name").value = data.customer_name || '';
@@ -944,16 +886,13 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         document.getElementById("request_delivery_date").value = data.request_delivery_date || '';
         document.getElementById("additional_instructions").value = data.additional_instructions || '';
 
-        // ✅ Show batch name prominently with status indicators
         const batchValue = data.delivery_batch || 'Not Set';
         document.getElementById("delivery_batch").value = batchValue;
         
-        // ✅ Display batch info with improved styling and status indicators
         const batchDisplay = document.createElement('div');
         batchDisplay.id = 'batch_info_display';
         batchDisplay.className = 'mb-4 p-3 rounded-lg';
         
-        // Determine badge and styling based on status
         let badgeHtml = '';
         let bgClass = 'bg-blue-50 border-blue-700';
         let iconColor = 'text-blue-700';
@@ -984,7 +923,6 @@ document.getElementById("search_btn").addEventListener("click", async () => {
         }
         
         batchDisplay.className += ' border ' + bgClass;
-        
         batchDisplay.innerHTML = `
             <div class="flex items-center gap-2">
                 <svg class="w-5 h-5 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -999,22 +937,17 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             ${data.so_status ? `<p class="text-xs text-gray-300 mt-2">SO Status: <span class="font-semibold">${data.so_status}</span></p>` : ''}
         `;
         
-        // Remove old batch display if exists
         const oldBatchDisplay = document.getElementById('batch_info_display');
         if (oldBatchDisplay) oldBatchDisplay.remove();
-        
-        // Insert after search box
         const searchBox = document.getElementById("so_search").closest('.mb-6');
         searchBox.after(batchDisplay);
 
-        // Populate Delivery Details
         document.getElementById("plate_no").value = data.plate_no || '';
         document.getElementById("sales_invoice_no").value = data.sales_invoice_no || '';
         document.getElementById("dr_no").value = data.is_edit_mode ? (data.dr_no || '') : '';
         document.getElementById("status").value = data.status || 'Delivered';
         document.getElementById("delivery_type").value = data.delivery_type || 'Full';
 
-        // ✅ Disable inputs if view-only mode
         if (data.is_view_only) {
             document.getElementById("plate_no").readOnly = true;
             document.getElementById("sales_invoice_no").readOnly = true;
@@ -1022,28 +955,19 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             document.getElementById("status").disabled = true;
             document.getElementById("delivery_type").disabled = true;
             document.getElementById("attachment").disabled = true;
-            
-            // Hide save button
             const saveBtn = document.getElementById("save_btn");
-            if (saveBtn) {
-                saveBtn.style.display = 'none';
-            }
+            if (saveBtn) saveBtn.style.display = 'none';
         } else if (canManageDeliveries) {
-            // Re-enable if user has permissions
             document.getElementById("plate_no").readOnly = false;
             document.getElementById("sales_invoice_no").readOnly = false;
             document.getElementById("dr_no").readOnly = false;
             document.getElementById("status").disabled = false;
             document.getElementById("delivery_type").disabled = false;
             document.getElementById("attachment").disabled = false;
-            
             const saveBtn = document.getElementById("save_btn");
-            if (saveBtn) {
-                saveBtn.style.display = 'inline-block';
-            }
+            if (saveBtn) saveBtn.style.display = 'inline-block';
         }
 
-        // Attachment
         if (data.attachment_url && data.is_edit_mode) {
             attachmentContainer.classList.remove('hidden');
             attachmentLink.href = data.attachment_url;
@@ -1052,13 +976,9 @@ document.getElementById("search_btn").addEventListener("click", async () => {
             attachmentContainer.classList.add('hidden');
         }
 
-        // Hide batch selector (not needed with auto-batch system)
         document.getElementById("batch_selector_container").classList.add('hidden');
-
-        // Populate items table
         populateItemsTable(data.items, data.is_view_only);
 
-        // ✅ Show appropriate success message
         let successMessage = '';
         if (data.is_view_only) {
             successMessage = `Viewing ${data.so_status} Sales Order (Read-Only)`;
@@ -1093,21 +1013,19 @@ document.getElementById("search_btn").addEventListener("click", async () => {
 if (canManageDeliveries) {
     document.getElementById("save_btn").addEventListener("click", async () => {
         const soNumber = document.getElementById("sales_order_number").value;
-        if(!soNumber){ 
-            Swal.fire("Hold on!","Please search for a Sales Order first.","info"); 
-            return; 
+        if (!soNumber) {
+            Swal.fire("Hold on!", "Please search for a Sales Order first.", "info");
+            return;
         }
 
         const status = document.getElementById("status").value;
         const drNo = document.getElementById("dr_no").value.trim();
-        
-        // ✅ Different validation for Backload vs regular delivery
+
         if (!deliveryId && status !== "Backload" && !drNo) {
             Swal.fire("Required Field", "Please enter a DR Number before saving.", "warning");
             return;
         }
 
-        // ✅ UPDATED: Check for backload items selection
         if (status === "Backload") {
             const container = document.getElementById("delivery-items-container");
             const cards = container.querySelectorAll('.delivery-item-card:not([data-hidden="true"])');
@@ -1125,7 +1043,6 @@ if (canManageDeliveries) {
                 return;
             }
 
-            // ✅ Show selected items in confirmation
             let itemsList = '<ul class="text-sm text-left mt-2 space-y-1">';
             checkedBackloadItems.forEach(card => {
                 const itemCode = card.querySelector('.data-item-code')?.value || 'Unknown';
@@ -1133,8 +1050,7 @@ if (canManageDeliveries) {
                 const qty = parseFloat(qtyInput?.value) || 0;
                 const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
                 const shortage = originalQty - qty;
-                
-                itemsList += `<li class="text-orange-700">• <strong>${itemCode}</strong>: Shortage of <span class="text-red-700">${shortage.toFixed(2)}</span> (Delivered: ${qty.toFixed(2)} / Required: ${originalQty})</li>`;
+                itemsList += `<li class="text-orange-700">• <strong>${itemCode}</strong>: Shortage of <span class="text-red-700">${shortage.toFixed(3)}</span> (Delivered: ${qty.toFixed(3)} / Required: ${originalQty})</li>`;
             });
             itemsList += '</ul>';
 
@@ -1163,32 +1079,26 @@ if (canManageDeliveries) {
                 confirmButtonColor: '#2563eb',
                 width: '600px'
             });
-            
+
             if (!result.isConfirmed) return;
         }
-        
-        // ... rest of variance checks (skip for Backload)
-        
+
         const container = document.getElementById("delivery-items-container");
         const cards = container.querySelectorAll('.delivery-item-card');
         let hasUnderDelivery = false;
         let hasOverDelivery = false;
-        
+
         cards.forEach(card => {
             if (card.getAttribute('data-hidden') === 'true') return;
-            
             const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
             const qtyInput = card.querySelector('.delivered-qty-input');
             if (!qtyInput) return;
-            
             const currentQty = parseFloat(qtyInput.value) || 0;
             const variance = currentQty - originalQty;
-            
             if (variance < 0) hasUnderDelivery = true;
             if (variance > 0) hasOverDelivery = true;
         });
-        
-        // Skip variance confirmations for Backload
+
         if (hasOverDelivery && status !== "Backload") {
             const result = await Swal.fire({
                 icon: 'warning',
@@ -1203,10 +1113,9 @@ if (canManageDeliveries) {
                 cancelButtonText: 'Cancel',
                 confirmButtonColor: '#dc2626',
             });
-            
             if (!result.isConfirmed) return;
         }
-        
+
         if (hasUnderDelivery && status !== "Backload") {
             const result = await Swal.fire({
                 icon: 'warning',
@@ -1221,11 +1130,9 @@ if (canManageDeliveries) {
                 cancelButtonText: 'Cancel',
                 confirmButtonColor: '#f97316',
             });
-            
             if (!result.isConfirmed) return;
         }
 
-        // Build payload
         const payload = {
             sales_order_number: document.getElementById("sales_order_number").value.trim(),
             delivery_batch: document.getElementById("delivery_batch").value.trim() || null,
@@ -1247,17 +1154,14 @@ if (canManageDeliveries) {
             items: []
         };
 
-        // ✅ UPDATED: Only include checked items for Backload
         cards.forEach(card => {
-            // Skip hidden items
             if (card.getAttribute('data-hidden') === 'true') return;
-            
-            // ✅ For Backload: only include checked items
+
             if (status === 'Backload') {
                 const checkbox = card.querySelector('.backload-checkbox');
-                if (!checkbox || !checkbox.checked) return; // Skip unchecked items
+                if (!checkbox || !checkbox.checked) return;
             }
-            
+
             const salesOrderItemId = card.querySelector('.data-sales-order-item-id')?.value || '';
             const itemCode = card.querySelector('.data-item-code')?.value || '';
             const itemDesc = card.querySelector('.data-item-description')?.value || '';
@@ -1268,19 +1172,21 @@ if (canManageDeliveries) {
             const amountInput = card.querySelector('.amount-input');
             const notesInput = card.querySelector('.notes-input');
             const priceCell = card.querySelector('.price-cell');
-
             const uomDivs = card.querySelectorAll('.bg-gray-900.border.border-gray-700.text-gray-200.rounded-md.px-3.py-2.text-sm.text-center');
 
             const originalQty = parseFloat(card.getAttribute('data-original-qty')) || 0;
             const deliveredQty = parseFloat(deliveredQtyInput?.value) || 0;
             const alreadyDelivered = parseFloat(card.getAttribute('data-already-delivered')) || 0;
-
             const totalDelivered = alreadyDelivered + deliveredQty;
             const calculatedRemaining = originalQty - totalDelivered;
             const remainingQty = calculatedRemaining < 0 ? 0 : calculatedRemaining;
-
-            // ✅ For backload: calculate shortage quantity
             const shortageQty = status === 'Backload' ? (originalQty - deliveredQty) : 0;
+            const unitPrice = parseFloat(priceCell?.textContent.trim()) || 0;
+
+            // ✅ FIX 3: Round total_amount properly using roundHalfUp
+            const totalAmount = status === 'Backload'
+                ? parseFloat(roundHalfUp(shortageQty * unitPrice, 2))                    // ✅ FIXED
+                : parseFloat(roundHalfUp(parseFloat(amountInput?.value || 0), 2));       // ✅ FIXED
 
             payload.items.push({
                 sales_order_item_id: salesOrderItemId,
@@ -1288,12 +1194,12 @@ if (canManageDeliveries) {
                 item_description: itemDesc,
                 brand: brand,
                 item_category: itemCategory,
-                quantity: status === 'Backload' ? shortageQty : deliveredQty, // ✅ Use shortage for backload
+                quantity: status === 'Backload' ? shortageQty : deliveredQty,
                 original_quantity: originalQty,
                 remaining_quantity: remainingQty,
                 uom: uomDivs[0]?.textContent.trim() || 'Kgs',
-                unit_price: parseFloat(priceCell?.textContent.trim()) || 0,
-                total_amount: status === 'Backload' ? (shortageQty * (parseFloat(priceCell?.textContent.trim()) || 0)) : parseFloat(amountInput?.value) || 0,
+                unit_price: unitPrice,
+                total_amount: totalAmount,
                 notes: notesInput?.value || ''
             });
         });
@@ -1315,11 +1221,11 @@ if (canManageDeliveries) {
             });
 
             const attachmentInput = document.getElementById("attachment");
-            if(attachmentInput && attachmentInput.files.length > 0){
+            if (attachmentInput && attachmentInput.files.length > 0) {
                 formData.append('attachment', attachmentInput.files[0]);
             }
 
-            if(deliveryId) formData.append('_method', 'PUT');
+            if (deliveryId) formData.append('_method', 'PUT');
 
             const response = await fetch(deliveryId ? `${baseUpdateUrl}/${deliveryId}` : storeUrl, {
                 method: "POST",
@@ -1333,10 +1239,10 @@ if (canManageDeliveries) {
             const data = await response.json();
             Swal.close();
 
-            if(response.ok && data.success){
+            if (response.ok && data.success) {
                 let successTitle = deliveryId ? 'Updated!' : 'Created!';
                 let successMessage = data.message || 'Delivery saved successfully!';
-                
+
                 if (status === "Backload" && data.rr_number) {
                     successTitle = '🔄 Backload Created!';
                     successMessage = `
@@ -1349,7 +1255,7 @@ if (canManageDeliveries) {
                         </div>
                     `;
                 }
-                
+
                 Swal.fire({
                     icon: 'success',
                     title: successTitle,
@@ -1366,17 +1272,17 @@ if (canManageDeliveries) {
                 });
             } else {
                 let errorText = data.message || "Something went wrong.";
-                if(data.errors) {
+                if (data.errors) {
                     errorText += "\n\nDetails:\n" + Object.entries(data.errors)
                         .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
                         .join('\n');
                 }
                 Swal.fire("Validation Error", errorText, "error");
             }
-        } catch(err){
+        } catch (err) {
             console.error('💥 SAVE ERROR:', err);
             Swal.close();
-            Swal.fire("Error","Network or server error while saving.","error");
+            Swal.fire("Error", "Network or server error while saving.", "error");
         }
     });
 }

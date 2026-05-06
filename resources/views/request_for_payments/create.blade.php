@@ -125,10 +125,21 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-300 mb-2">PAYEE (Vendor/Supplier): <span class="text-red-700">*</span></label>
-                    <input type="text" name="payee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee', $selectedPO ? (
-    $selectedPO->items->map(fn($item) => $item->supplierModel->supplier_name ?? $item->supplier_name ?? null)->filter()->unique()->implode(' / ')
-    ?: ($selectedPO->supplierModel->supplier_name ?? $selectedPO->supplier ?? '')
-) : '') }}" required>
+                    <div class="relative">
+                        <input type="text" id="payeeSearch" autocomplete="off"
+                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Search vendor or supplier..."
+                            value="{{ old('payee', $selectedPO ? (
+                                $selectedPO->items->map(fn($item) => $item->supplierModel->supplier_name ?? $item->supplier_name ?? null)->filter()->unique()->implode(' / ')
+                                ?: ($selectedPO->supplierModel->supplier_name ?? $selectedPO->supplier ?? '')
+                            ) : '') }}">
+                        <input type="hidden" name="payee" id="payeeHidden"
+                            value="{{ old('payee', $selectedPO ? (
+                                $selectedPO->items->map(fn($item) => $item->supplierModel->supplier_name ?? $item->supplier_name ?? null)->filter()->unique()->implode(' / ')
+                                ?: ($selectedPO->supplierModel->supplier_name ?? $selectedPO->supplier ?? '')
+                            ) : '') }}">
+                        <div id="payeeDropdown" class="hidden absolute z-20 left-0 right-0 bg-gray-700 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto" style="top:100%"></div>
+                    </div>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-300 mb-2">AMOUNT: <span class="text-red-700">*</span></label>
@@ -151,15 +162,81 @@
                 <input type="text" name="bank" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('bank') }}" placeholder="Bank name and account details">
             </div>
 
-            <!-- APV and CV Numbers -->
+            <!-- APV and CV Numbers (For Finance Use — filled later) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">APV NO. (Account Payable Voucher):</label>
-                    <input type="text" name="apv_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('apv_no') }}">
+                    <label class="block font-semibold text-gray-500 mb-2">APV NO. (Account Payable Voucher):</label>
+                    <input type="text" name="apv_no" disabled class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-500 cursor-not-allowed" value="" placeholder="To be assigned by Finance">
                 </div>
                 <div>
-                    <label class="block font-semibold text-gray-300 mb-2">CV NO. (Check Voucher):</label>
-                    <input type="text" name="cv_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('cv_no') }}">
+                    <label class="block font-semibold text-gray-500 mb-2">CV NO. (Check Voucher):</label>
+                    <input type="text" name="cv_no" disabled class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-500 cursor-not-allowed" value="" placeholder="To be assigned by Finance">
+                </div>
+            </div>
+
+            <!-- PO Items / Service Description (shown when a PO is linked) -->
+            @php $poIsService = $selectedPO && ($selectedPO->po_type ?? 'items') === 'service'; @endphp
+            <div id="poItemsSection" class="{{ ($selectedPO && ($poIsService || $selectedPO->items->count())) ? '' : 'hidden' }} mb-6">
+                <div class="bg-gray-900 border border-gray-700 rounded overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                        <h3 class="font-semibold text-white" id="poSectionTitle">
+                            @if($poIsService)
+                                <i class="fas fa-tools mr-2"></i>Service Description
+                            @else
+                                <i class="fas fa-boxes mr-2"></i>Purchase Order Items
+                            @endif
+                        </h3>
+                        <span id="poItemsCount" class="text-sm text-gray-400">
+                            @if($selectedPO && !$poIsService)
+                                {{ $selectedPO->items->count() }} item(s)
+                            @endif
+                        </span>
+                    </div>
+                    <!-- Service description panel -->
+                    <div id="poServiceDesc" class="{{ $poIsService ? '' : 'hidden' }} px-4 py-3 text-gray-200 whitespace-pre-line">
+                        @if($poIsService) {{ $selectedPO->service_description }} @endif
+                    </div>
+                    <!-- Items table panel -->
+                    <div id="poItemsTableWrap" class="{{ $poIsService ? 'hidden' : '' }} overflow-x-auto">
+                        <table class="min-w-full text-sm" id="poItemsTable">
+                            <thead>
+                                <tr class="bg-gray-700 text-gray-300">
+                                    <th class="px-4 py-2 text-left">#</th>
+                                    <th class="px-4 py-2 text-left">Item Code</th>
+                                    <th class="px-4 py-2 text-left">Description</th>
+                                    <th class="px-4 py-2 text-center">Qty</th>
+                                    <th class="px-4 py-2 text-center">UOM</th>
+                                    <th class="px-4 py-2 text-right">Unit Price</th>
+                                    <th class="px-4 py-2 text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="poItemsBody">
+                                @if($selectedPO && !$poIsService)
+                                    @foreach($selectedPO->items as $idx => $item)
+                                    <tr class="{{ $idx % 2 === 0 ? 'bg-gray-800' : '' }} border-b border-gray-700">
+                                        <td class="px-4 py-2 text-gray-400">{{ $item->item_no }}</td>
+                                        <td class="px-4 py-2 text-white font-medium">{{ $item->item_code }}</td>
+                                        <td class="px-4 py-2 text-gray-200">{{ $item->description }}</td>
+                                        <td class="px-4 py-2 text-center text-gray-200">{{ number_format($item->qty, 2) }}</td>
+                                        <td class="px-4 py-2 text-center text-gray-200">{{ $item->uom }}</td>
+                                        <td class="px-4 py-2 text-right text-gray-200">{{ number_format($item->unit_price, 2) }}</td>
+                                        <td class="px-4 py-2 text-right text-white font-semibold">{{ number_format($item->total, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                @endif
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-gray-700 font-bold text-white">
+                                    <td colspan="6" class="px-4 py-2 text-right">Grand Total:</td>
+                                    <td class="px-4 py-2 text-right" id="poItemsGrandTotal">
+                                        @if($selectedPO && !$poIsService)
+                                            ₱{{ number_format($selectedPO->items->sum('total'), 2) }}
+                                        @endif
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -293,8 +370,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 attachUnlinkHandler();
 
                                 // Fill payee from supplier
-                                const payeeInput = document.querySelector('input[name="payee"]');
-                                if (payeeInput) payeeInput.value = supplier;
+                                const payeeSearchEl = document.getElementById('payeeSearch');
+                                const payeeHiddenEl = document.getElementById('payeeHidden');
+                                if (payeeSearchEl) payeeSearchEl.value = supplier;
+                                if (payeeHiddenEl) payeeHiddenEl.value = supplier;
 
                                 // Fill amount and set max limit
                                 const amountInput = document.querySelector('input[name="amount"]');
@@ -318,6 +397,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     particularsInput.value = 'Payment for ' + poNo + ' - ' + supplier;
                                 }
 
+                                // Fetch and display PO items
+                                loadPOItems(poId);
+
                                 // Hide search
                                 poSearchResults.classList.add('hidden');
                                 poSearchInput.value = poNo;
@@ -339,6 +421,60 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Load PO items via AJAX
+    function loadPOItems(poId) {
+        const section    = document.getElementById('poItemsSection');
+        const tbody      = document.getElementById('poItemsBody');
+        const countEl    = document.getElementById('poItemsCount');
+        const totalEl    = document.getElementById('poItemsGrandTotal');
+        const titleEl    = document.getElementById('poSectionTitle');
+        const serviceDiv = document.getElementById('poServiceDesc');
+        const tableWrap  = document.getElementById('poItemsTableWrap');
+
+        fetch(`/request_for_payments/po-items/${poId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.po_type === 'service') {
+                    titleEl.innerHTML  = '<i class="fas fa-tools mr-2"></i>Service Description';
+                    serviceDiv.textContent = data.service_description || '';
+                    serviceDiv.classList.remove('hidden');
+                    tableWrap.classList.add('hidden');
+                    countEl.textContent = '';
+                    section.classList.remove('hidden');
+                    return;
+                }
+                // items PO
+                const items = data.items || [];
+                if (!items.length) { section.classList.add('hidden'); return; }
+                titleEl.innerHTML = '<i class="fas fa-boxes mr-2"></i>Purchase Order Items';
+                serviceDiv.classList.add('hidden');
+                tableWrap.classList.remove('hidden');
+                let html = '';
+                let grandTotal = 0;
+                items.forEach((item, idx) => {
+                    const total = parseFloat(item.total || 0);
+                    grandTotal += total;
+                    html += `<tr class="${idx % 2 === 0 ? 'bg-gray-800' : ''} border-b border-gray-700">
+                        <td class="px-4 py-2 text-gray-400">${item.item_no}</td>
+                        <td class="px-4 py-2 text-white font-medium">${item.item_code || ''}</td>
+                        <td class="px-4 py-2 text-gray-200">${item.description || ''}</td>
+                        <td class="px-4 py-2 text-center text-gray-200">${parseFloat(item.qty || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                        <td class="px-4 py-2 text-center text-gray-200">${item.uom || ''}</td>
+                        <td class="px-4 py-2 text-right text-gray-200">${parseFloat(item.unit_price || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                        <td class="px-4 py-2 text-right text-white font-semibold">${total.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+                countEl.textContent = items.length + ' item(s)';
+                totalEl.textContent = '₱' + grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+                section.classList.remove('hidden');
+            })
+            .catch(err => {
+                console.error('Error loading PO items:', err);
+                section.classList.add('hidden');
+            });
+    }
+
     // Unlink PO handler
     function attachUnlinkHandler() {
         const unlinkBtn = document.getElementById('unlinkPO');
@@ -353,6 +489,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 const searchInput = document.getElementById('poSearchInput');
                 if (searchInput) searchInput.value = '';
+                // Hide PO items
+                document.getElementById('poItemsSection').classList.add('hidden');
                 // Remove max and warning from amount input
                 const amountInput = document.querySelector('input[name="amount"]');
                 if (amountInput) {
@@ -402,7 +540,42 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             alert('Amount cannot exceed the linked PO total. Please correct the amount.');
         }
+        // Sync payee hidden from visible input
+        const ph = document.getElementById('payeeHidden');
+        const ps = document.getElementById('payeeSearch');
+        if (ph && ps && !ph.value) ph.value = ps.value;
     });
+
+    // Payee searchable dropdown
+    const payeeOptions = @json($payeeOptions);
+    const payeeSearch   = document.getElementById('payeeSearch');
+    const payeeHidden   = document.getElementById('payeeHidden');
+    const payeeDrop     = document.getElementById('payeeDropdown');
+
+    payeeSearch.addEventListener('input', function() {
+        const q = this.value.toLowerCase().trim();
+        payeeHidden.value = this.value;
+        if (!q) { payeeDrop.classList.add('hidden'); return; }
+        const hits = payeeOptions.filter(o => o.label.toLowerCase().includes(q)).slice(0, 15);
+        if (!hits.length) { payeeDrop.classList.add('hidden'); return; }
+        payeeDrop.innerHTML = hits.map(o =>
+            `<div class="px-3 py-2 hover:bg-gray-600 cursor-pointer text-sm text-gray-200 flex justify-between" data-label="${o.label.replace(/"/g,'&quot;')}">
+                <span>${o.label}</span><span class="text-xs text-gray-400 ml-2">${o.type}</span>
+            </div>`
+        ).join('');
+        payeeDrop.classList.remove('hidden');
+        payeeDrop.querySelectorAll('[data-label]').forEach(opt => {
+            opt.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                payeeSearch.value = this.dataset.label;
+                payeeHidden.value = this.dataset.label;
+                payeeDrop.classList.add('hidden');
+            });
+        });
+    });
+    payeeSearch.addEventListener('blur', () => setTimeout(() => payeeDrop.classList.add('hidden'), 150));
+    // Also sync hidden when payee is auto-filled by PO selection
+    const origPayeeObserver = new MutationObserver(() => {});
 });
 </script>
 @endsection

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ArAging;
 use App\Models\Payment;
+use App\Models\Deliveries;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -19,89 +19,355 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 class StatementOfAccountController extends Controller
 {
     /**
-     * List all customers with outstanding balances
+     * Calculate total paid for a delivery, handling EWT recalculation and missing EWT detection
+     */
+    private function calculatePaid(float $invoiceAmount, ?object $paidData): float
+    {
+        if (!$paidData) return 0;
+
+        $sumAmount = (float) $paidData->sum_amount;
+        $sumDiscount = (float) $paidData->sum_discount;
+        $sumEwt = (float) $paidData->sum_ewt;
+
+        // Recalculate EWT based on invoice amount (gross) instead of payment amount
+        if ($sumEwt > 0 && $sumAmount > 0) {
+            $ewtRate = $sumEwt / $sumAmount;
+            $correctEwt = $invoiceAmount * $ewtRate;
+            $paid = $sumAmount + $sumDiscount + $correctEwt;
+        } else {
+            $paid = $sumAmount + $sumDiscount + $sumEwt;
+        }
+
+        // Detect missing/unrecorded EWT and EWT recalculation residuals
+        if ($sumAmount > 0 && $invoiceAmount > 0) {
+            $gap = $invoiceAmount - $paid;
+            if ($gap > 0) {
+                $gapPercent = ($gap / $invoiceAmount) * 100;
+
+                if ($sumEwt == 0) {
+                    // EWT not recorded: gap matches standard EWT rate (1% or 2%)
+                    if (($gapPercent >= 0.9 && $gapPercent <= 1.2) || ($gapPercent >= 1.9 && $gapPercent <= 2.6)) {
+                        $paid = $invoiceAmount;
+                    }
+                } else {
+                    // EWT was recorded but recalculation leaves a small residual (under 1%)
+                    if ($gapPercent <= 1.0) {
+                        $paid = $invoiceAmount;
+                    }
+                }
+            }
+        }
+
+        return $paid;
+    }
+
+    /**
+     * List all customers with outstanding balances (deliveries + ar_aging)
      */
     public function index(Request $request)
     {
         $search = $request->input('search', '');
+        $perPage = 25;
+        $page = (int) $request->input('page', 1);
 
-        $query = ArAging::select(
-                'customer_code',
-                DB::raw('MAX(client_name) as client_name'),
-                DB::raw('MAX(branch) as branch'),
-                DB::raw('MAX(sales_executive) as sales_executive'),
-                DB::raw('MAX(terms) as terms'),
-                DB::raw('SUM(CAST(invoice_amount AS DECIMAL(15,2))) as total_invoice'),
-                DB::raw('SUM(CAST(settled_invoice_amount AS DECIMAL(15,2))) as total_settled'),
-                DB::raw('SUM(CASE WHEN CAST(net_ar_balance AS DECIMAL(15,2)) > 0 THEN CAST(net_ar_balance AS DECIMAL(15,2)) ELSE CAST(invoice_amount AS DECIMAL(15,2)) - CAST(COALESCE(cwt,0) AS DECIMAL(15,2)) - CAST(settled_invoice_amount AS DECIMAL(15,2)) + CAST(COALESCE(ewt,0) AS DECIMAL(15,2)) END) as outstanding_balance'),
-                DB::raw('COUNT(*) as invoice_count')
+        // ── Source 1: customers from delivered deliveries ──────────────────
+        $deliveryQuery = DB::table('deliveries')
+            ->select(
+                DB::raw('TRIM(deliveries.customer_name) as client_name'),
+                DB::raw('GROUP_CONCAT(DISTINCT cust.branch SEPARATOR \', \') as branch'),
+                DB::raw('MAX(deliveries.sales_executive) as sales_executive'),
+                DB::raw('MAX(cust.billing_address) as billing_address'),
+                DB::raw('MAX(so.collection_terms) as terms'),
+                DB::raw('COUNT(DISTINCT deliveries.id) as invoice_count'),
+                DB::raw('COUNT(DISTINCT deliveries.customer_code) as branch_count'),
+                DB::raw('SUM(
+                    CASE WHEN (
+                        COALESCE(NULLIF(CAST(deliveries.total_amount AS DECIMAL(15,2)), 0), COALESCE(di.items_total, 0))
+                        - COALESCE(paid.sum_amount + paid.sum_discount + CASE WHEN paid.sum_ewt > 0 AND paid.sum_amount > 0 THEN COALESCE(NULLIF(CAST(deliveries.total_amount AS DECIMAL(15,2)), 0), COALESCE(di.items_total, 0)) * (paid.sum_ewt / paid.sum_amount) ELSE paid.sum_ewt END, 0)
+                        + COALESCE(adj.net_adjustment, 0)
+                    ) > COALESCE(NULLIF(CAST(deliveries.total_amount AS DECIMAL(15,2)), 0), COALESCE(di.items_total, 0)) * 0.03 THEN (
+                        COALESCE(NULLIF(CAST(deliveries.total_amount AS DECIMAL(15,2)), 0), COALESCE(di.items_total, 0))
+                        - COALESCE(paid.sum_amount + paid.sum_discount + CASE WHEN paid.sum_ewt > 0 AND paid.sum_amount > 0 THEN COALESCE(NULLIF(CAST(deliveries.total_amount AS DECIMAL(15,2)), 0), COALESCE(di.items_total, 0)) * (paid.sum_ewt / paid.sum_amount) ELSE paid.sum_ewt END, 0)
+                        + COALESCE(adj.net_adjustment, 0)
+                    ) ELSE 0 END
+                ) as outstanding_balance')
             )
-            ->whereRaw('CASE WHEN CAST(net_ar_balance AS DECIMAL(15,2)) > 0 THEN CAST(net_ar_balance AS DECIMAL(15,2)) ELSE CAST(invoice_amount AS DECIMAL(15,2)) - CAST(COALESCE(cwt,0) AS DECIMAL(15,2)) - CAST(settled_invoice_amount AS DECIMAL(15,2)) + CAST(COALESCE(ewt,0) AS DECIMAL(15,2)) END > 0')
-            ->groupBy('customer_code');
+            ->leftJoin('sales_orders as so', DB::raw('deliveries.sales_order_number COLLATE utf8mb4_unicode_ci'), '=', DB::raw('so.sales_order_number COLLATE utf8mb4_unicode_ci'))
+            ->leftJoin('customers as cust', DB::raw('CAST(deliveries.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci'), '=', DB::raw('CAST(cust.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci'))
+            ->leftJoin(DB::raw('(SELECT delivery_id, SUM(total_amount) as items_total FROM delivery_items GROUP BY delivery_id) as di'), 'di.delivery_id', '=', 'deliveries.id')
+            ->leftJoin(DB::raw('(SELECT TRIM(dr_no) as dr_no, SUM(amount) as sum_amount, SUM(COALESCE(discount_amount, 0)) as sum_discount, SUM(COALESCE(ewt, 0)) as sum_ewt FROM payments WHERE (status IS NULL OR (status != \'Voided\' AND status != \'Bounced\')) GROUP BY TRIM(dr_no)) as paid'), function ($join) {
+                $join->on(DB::raw('TRIM(deliveries.dr_no) COLLATE utf8mb4_unicode_ci'), '=', DB::raw('paid.dr_no COLLATE utf8mb4_unicode_ci'));
+            })
+            ->leftJoin(DB::raw('(SELECT dr_no, SUM(CASE WHEN is_decrease = 1 THEN -ABS(amount) ELSE ABS(amount) END) as net_adjustment FROM ar_adjustments WHERE dr_no IS NOT NULL AND dr_no != \'\' GROUP BY dr_no) as adj'), function ($join) {
+                $join->on(DB::raw('TRIM(deliveries.dr_no) COLLATE utf8mb4_unicode_ci'), '=', DB::raw('TRIM(adj.dr_no) COLLATE utf8mb4_unicode_ci'));
+            })
+            ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.is_locked', '!=', 1)
+            ->where('deliveries.is_pulled_out', '!=', 1)
+            ->whereNotNull('deliveries.customer_code')
+            ->where('deliveries.customer_code', '!=', '')
+            ->groupBy('deliveries.customer_name')
+            ->havingRaw('outstanding_balance > 0');
 
         if (!empty($search)) {
-            $query->where(function($q) use ($search) {
-                $q->where('client_name', 'LIKE', "%{$search}%")
-                  ->orWhere('customer_code', 'LIKE', "%{$search}%");
-            });
+            $deliveryQuery->where('deliveries.customer_name', 'LIKE', "%{$search}%");
         }
 
-        $customers = $query->orderBy('outstanding_balance', 'desc')->paginate(25);
+        $deliveryCustomers = $deliveryQuery->get();
+
+        // Names already covered by deliveries (for exclusion below)
+        $coveredNames = $deliveryCustomers->map(fn($c) => strtolower(trim($c->client_name)))->toArray();
+
+        // ── Source 2: customers ONLY in ar_aging (delivery not Delivered / missing) ─
+        //
+        // The outstanding_balance uses the same logic as show()/calculatePaid():
+        //   base  = GREATEST(net_ar_balance, invoice_amount - settled_invoice_amount)
+        //   paid  = SUM of payments from the payments table (amount + discount + ewt)
+        //   gap % = (base - paid) / base
+        //   If gap <= 3% of base (standard EWT rates are 1–2%), treat as fully paid.
+        //   Otherwise outstanding = base - paid.
+        //
+        // This ensures the index never shows a customer as having outstanding balance
+        // when show() would calculate 0 (preventing "empty detail view" confusion).
+        $arAgingQuery = DB::table('ar_aging')
+            ->select(
+                DB::raw('TRIM(ar_aging.client_name) as client_name'),
+                DB::raw('MAX(ar_aging.branch) as branch'),
+                DB::raw('MAX(ar_aging.sales_executive) as sales_executive'),
+                DB::raw('NULL as billing_address'),
+                DB::raw('MAX(ar_aging.collection_terms) as terms'),
+                DB::raw('COUNT(*) as invoice_count'),
+                DB::raw('1 as branch_count'),
+                DB::raw('SUM(
+                    CASE
+                        WHEN COALESCE(ar_aging.invoice_amount, 0) <= 0 THEN 0
+                        ELSE GREATEST(0,
+                            -- base remaining balance (respects pre-import partial settlements)
+                            CASE
+                                WHEN COALESCE(pmts.total_paid, 0) = 0
+                                    THEN GREATEST(
+                                            COALESCE(ar_aging.net_ar_balance, 0),
+                                            COALESCE(ar_aging.invoice_amount, 0) - COALESCE(ar_aging.settled_invoice_amount, 0)
+                                         )
+                                -- gap <= 3% of base → EWT withholding, treat as fully paid
+                                WHEN (GREATEST(
+                                            COALESCE(ar_aging.net_ar_balance, 0),
+                                            COALESCE(ar_aging.invoice_amount, 0) - COALESCE(ar_aging.settled_invoice_amount, 0)
+                                        ) - COALESCE(pmts.total_paid, 0))
+                                     / NULLIF(GREATEST(
+                                            COALESCE(ar_aging.net_ar_balance, 0),
+                                            COALESCE(ar_aging.invoice_amount, 0) - COALESCE(ar_aging.settled_invoice_amount, 0)
+                                        ), 0) <= 0.03
+                                    THEN 0
+                                ELSE GREATEST(
+                                        COALESCE(ar_aging.net_ar_balance, 0),
+                                        COALESCE(ar_aging.invoice_amount, 0) - COALESCE(ar_aging.settled_invoice_amount, 0)
+                                     ) - COALESCE(pmts.total_paid, 0)
+                            END
+                        )
+                    END
+                ) as outstanding_balance')
+            )
+            ->leftJoin(
+                DB::raw('(SELECT TRIM(dr_no) AS dr_no,
+                              SUM(amount + COALESCE(discount_amount, 0) + COALESCE(ewt, 0)) AS total_paid
+                          FROM payments
+                          WHERE dr_no IS NOT NULL AND dr_no != \'\'
+                            AND (status IS NULL OR (status != \'Voided\' AND status != \'Bounced\'))
+                          GROUP BY TRIM(dr_no)) AS pmts'),
+                DB::raw('TRIM(ar_aging.dr_no)'), '=', 'pmts.dr_no'
+            )
+            ->where(function($q) {
+                $q->whereNull('ar_aging.status')->orWhere('ar_aging.status', '')->orWhere('ar_aging.status', '!=', 'Paid');
+            })
+            ->where('ar_aging.invoice_amount', '>', 0)
+            ->whereNotNull('ar_aging.client_name')
+            ->where('ar_aging.client_name', '!=', '')
+            // Exclude DRs that already have a matching delivered delivery
+            ->whereNotIn(DB::raw('TRIM(ar_aging.dr_no) COLLATE utf8mb4_unicode_ci'), function($sub) {
+                $sub->select(DB::raw('TRIM(dr_no) COLLATE utf8mb4_unicode_ci'))
+                    ->from('deliveries')
+                    ->where('status', 'Delivered')
+                    ->where('is_pulled_out', '!=', 1);
+            })
+            // Exclude locked DRs (cross-check deliveries table)
+            ->whereNotIn(DB::raw('TRIM(ar_aging.dr_no) COLLATE utf8mb4_unicode_ci'), function($sub) {
+                $sub->select(DB::raw('TRIM(dr_no) COLLATE utf8mb4_unicode_ci'))
+                    ->from('deliveries')
+                    ->where('is_locked', 1);
+            })
+            ->groupBy('ar_aging.client_name')
+            ->havingRaw('outstanding_balance > 10');
+
+        if (!empty($search)) {
+            $arAgingQuery->where('client_name', 'LIKE', "%{$search}%");
+        }
+
+        $arAgingCustomers = $arAgingQuery->get()
+            ->filter(fn($c) => !in_array(strtolower(trim($c->client_name)), $coveredNames));
+
+        // ── Merge both sources, sort by outstanding balance descending ────
+        $all = $deliveryCustomers->concat($arAgingCustomers)
+            ->sortByDesc('outstanding_balance')
+            ->values();
+
+        $total = $all->count();
+        $items = $all->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $customers = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items, $total, $perPage, $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return view('soa.index', compact('customers', 'search'));
     }
 
     /**
-     * Show SOA detail for a specific customer
+     * Show SOA detail for a specific customer (from deliveries)
      */
     public function show($customerCode)
     {
         $today = Carbon::now();
+        $customerCode = urldecode($customerCode);
 
-        $records = ArAging::where('customer_code', $customerCode)
-            ->whereRaw('CASE WHEN CAST(net_ar_balance AS DECIMAL(15,2)) > 0 THEN CAST(net_ar_balance AS DECIMAL(15,2)) ELSE CAST(invoice_amount AS DECIMAL(15,2)) - CAST(COALESCE(cwt,0) AS DECIMAL(15,2)) - CAST(settled_invoice_amount AS DECIMAL(15,2)) + CAST(COALESCE(ewt,0) AS DECIMAL(15,2)) END > 0')
-            ->orderBy('invoice_date', 'asc')
-            ->get();
+        // Resolve all customer codes by customer name — from deliveries first, then ar_aging
+        $relatedCodes = DB::table('deliveries')
+            ->whereRaw('TRIM(customer_name) = TRIM(?)', [$customerCode])
+            ->distinct()
+            ->pluck('customer_code')
+            ->toArray();
 
-        if ($records->isEmpty()) {
-            return redirect()->route('soa.index')->with('error', 'No outstanding records found for this customer.');
+        if (empty($relatedCodes)) {
+            // Fallback: try ar_aging client_name
+            $relatedCodes = DB::table('ar_aging')
+                ->whereRaw('TRIM(client_name) = TRIM(?)', [$customerCode])
+                ->distinct()
+                ->pluck('customer_code')
+                ->filter()
+                ->toArray();
         }
 
-        $firstRecord = $records->first();
-        $customerName = $firstRecord->client_name;
-        $branch = $firstRecord->branch;
-        $terms = $firstRecord->terms;
-        $salesExec = $firstRecord->sales_executive;
+        if (empty($relatedCodes)) {
+            $relatedCodes = [$customerCode];
+        }
 
-        // Calculate each record's details
+        // Get all delivered deliveries for this customer and all its branches
+        $deliveries = DB::table('deliveries')
+            ->leftJoin('sales_orders as so', DB::raw('deliveries.sales_order_number COLLATE utf8mb4_unicode_ci'), '=', DB::raw('so.sales_order_number COLLATE utf8mb4_unicode_ci'))
+            ->leftJoin('customers as cust', DB::raw('CAST(deliveries.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci'), '=', DB::raw('CAST(cust.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci'))
+            ->whereIn('deliveries.customer_code', $relatedCodes)
+            ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.is_locked', '!=', 1)
+            ->where('deliveries.is_pulled_out', '!=', 1)
+            ->select(
+                'deliveries.id',
+                'deliveries.dr_no',
+                'deliveries.sales_invoice_no',
+                'deliveries.customer_code',
+                'deliveries.customer_name',
+                DB::raw('COALESCE(cust.branch, deliveries.branch) as branch'),
+                'deliveries.sales_executive',
+                'deliveries.total_amount',
+                'deliveries.request_delivery_date',
+                'deliveries.counter_date',
+                DB::raw('COALESCE(so.collection_terms, 30) as terms')
+            )
+            ->orderBy('deliveries.request_delivery_date', 'asc')
+            ->get();
+
+        // Try ar_aging if no delivered deliveries found — might be ar_aging-only customer
+        $arAgingFallback = null;
+        if ($deliveries->isEmpty()) {
+            $arAgingFallback = DB::table('ar_aging')
+                ->whereIn('customer_code', $relatedCodes)
+                ->where('invoice_amount', '>', 0)
+                ->orderBy('invoice_date', 'desc')
+                ->first();
+
+            if (!$arAgingFallback) {
+                return redirect()->route('soa.index')->with('error', 'No records found for this customer.');
+            }
+        }
+
+        $firstRecord   = $deliveries->first();
+        $customerName  = $firstRecord?->customer_name  ?? $arAgingFallback?->client_name;
+        $branch        = $firstRecord?->branch         ?? $arAgingFallback?->branch;
+        $terms         = $firstRecord?->terms          ?? $arAgingFallback?->collection_terms ?? 30;
+        $salesExec     = $firstRecord?->sales_executive ?? $arAgingFallback?->sales_executive;
+
+        // Get billing address from customers table for display
+        $customerRecord = DB::table('customers')
+            ->where('customer_code', $customerCode)
+            ->select('billing_address')
+            ->first();
+        $billingAddress = $customerRecord->billing_address ?? null;
+
+        // Get payment breakdown per DR (amount, discount, ewt separately) — across all branch codes
+        $paidPerDr = Payment::select(
+                DB::raw('TRIM(dr_no) as dr_no'),
+                DB::raw('SUM(amount) as sum_amount'),
+                DB::raw('SUM(COALESCE(discount_amount, 0)) as sum_discount'),
+                DB::raw('SUM(COALESCE(ewt, 0)) as sum_ewt')
+            )
+            ->where(function ($q) use ($relatedCodes, $customerName) {
+                $q->whereIn('customer_code', $relatedCodes)
+                  ->orWhere('customer_name', 'LIKE', '%' . $customerName . '%');
+            })
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhere(function ($q2) { $q2->where('status', '!=', 'Voided')->where('status', '!=', 'Bounced'); });
+            })
+            ->groupBy(DB::raw('TRIM(dr_no)'))
+            ->get()
+            ->keyBy('dr_no');
+
+        // Get AR adjustments per DR for this customer — across all branch codes
+        $adjustmentsPerDr = DB::table('ar_adjustments')
+            ->whereIn('customer_code', $relatedCodes)
+            ->whereNotNull('dr_no')
+            ->where('dr_no', '!=', '')
+            ->select('dr_no', DB::raw('SUM(CASE WHEN is_decrease = 1 THEN -ABS(amount) ELSE ABS(amount) END) as net_adjustment'))
+            ->groupBy('dr_no')
+            ->get()
+            ->keyBy(function($a) { return trim($a->dr_no); });
+
+        // Build detail rows
         $totalCurrent = 0;
         $totalPastDue = 0;
         $detailRows = [];
 
-        foreach ($records as $record) {
-            // Match AR Profile formula: invoice - cwt - settled + ewt
-            $netAr = (float)($record->net_ar_balance ?? 0);
-            if ($netAr > 0) {
-                $outstanding = $netAr;
-            } else {
-                $outstanding = (float)($record->invoice_amount ?? 0)
-                             - (float)($record->cwt ?? 0)
-                             - (float)($record->settled_invoice_amount ?? 0)
-                             + (float)($record->ewt ?? 0);
+        foreach ($deliveries as $delivery) {
+            $invoiceAmount = (float) $delivery->total_amount;
+            if ($invoiceAmount <= 0) {
+                $invoiceAmount = (float) DB::table('delivery_items')
+                    ->where('delivery_id', $delivery->id)
+                    ->sum('total_amount');
             }
+            $drNo = trim($delivery->dr_no);
 
-            if ($outstanding <= 0) continue;
+            $paidData = $paidPerDr[$drNo] ?? null;
 
-            $dueDate = $record->due_date ? Carbon::parse($record->due_date) : null;
-            $invoiceDate = $record->invoice_date ? Carbon::parse($record->invoice_date) : null;
+            $paid = $this->calculatePaid($invoiceAmount, $paidData);
 
-            // Days outstanding from due date
+            // Apply AR adjustments for this DR (negative = decrease AR, positive = increase AR)
+            $outstanding = $invoiceAmount - $paid;
+            if (isset($adjustmentsPerDr[$drNo])) {
+                $outstanding += (float) $adjustmentsPerDr[$drNo]->net_adjustment;
+            }
+            $outstanding = max(0, $outstanding);
+            if ($outstanding <= 10) continue; // ₱10 leeway — treat small balances as fully paid
+
+            // Use counter_date for aging if available, otherwise fall back to delivery date
+            $baseDate = $delivery->counter_date
+                ? Carbon::parse($delivery->counter_date)
+                : ($delivery->request_delivery_date ? Carbon::parse($delivery->request_delivery_date) : null);
+            $termsDays = (int) ($delivery->terms ?? 30);
+            $dueDate = $baseDate ? $baseDate->copy()->addDays($termsDays) : null;
+
             $daysOutstanding = 0;
             if ($dueDate) {
-                $daysOutstanding = $dueDate->diffInDays($today, false);
+                $daysOutstanding = (int) $dueDate->diffInDays($today, false);
             }
 
-            // Current vs Past Due: negative days = not yet due (current), positive = past due
             $current = 0;
             $pastDue = 0;
             if ($daysOutstanding <= 0) {
@@ -113,40 +379,104 @@ class StatementOfAccountController extends Controller
             $totalCurrent += $current;
             $totalPastDue += $pastDue;
 
-            $detailRows[] = (object)[
-                'invoice_date' => $record->invoice_date,
-                'due_date' => $record->due_date,
+            $deliveryDate = $delivery->request_delivery_date;
+            $counterDate = $delivery->counter_date ?? $deliveryDate; // fallback to delivery date if no counter date
+
+            $detailRows[] = (object) [
+                'invoice_date' => $deliveryDate,
+                'counter_date' => $counterDate,
+                'due_date' => $dueDate ? $dueDate->format('Y-m-d') : null,
                 'soa_date' => $today->format('Y-m-d'),
-                'dr_no' => $record->dr_no,
-                'invoice_no' => $record->invoice_no,
-                'days_outstanding' => (int)$daysOutstanding,
+                'dr_no' => $delivery->dr_no,
+                'invoice_no' => $delivery->sales_invoice_no,
+                'branch' => $delivery->branch,
+                'customer_code' => $delivery->customer_code,
+                'days_outstanding' => $daysOutstanding,
                 'current' => $current,
                 'past_due' => $pastDue,
                 'outstanding' => $outstanding,
             ];
         }
 
-        // Deduct actual collections (payments) not yet reflected in ar_aging settled amounts
-        $actualCollections = Payment::where(function ($q) use ($customerCode, $customerName) {
-                $q->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
-                  ->orWhere('customer_name', 'LIKE', '%' . $customerName . '%');
+        // ── Supplement with ar_aging rows not already covered by deliveries ──
+        $coveredDrNos = collect($detailRows)->map(fn($r) => trim($r->dr_no))->filter()->toArray();
+
+        $lockedDrNos = DB::table('deliveries')->where('is_locked', 1)
+            ->pluck('dr_no')->map(fn($d) => trim($d))->filter()->toArray();
+
+        $arAgingExtra = DB::table('ar_aging')
+            ->whereIn('customer_code', $relatedCodes)
+            ->where(function($q) {
+                $q->whereNull('status')->orWhere('status', '')->orWhere('status', '!=', 'Paid');
             })
-            ->sum('gross_amount');
+            ->where('invoice_amount', '>', 0)
+            ->when(!empty($coveredDrNos), fn($q) => $q->whereNotIn(DB::raw('TRIM(dr_no) COLLATE utf8mb4_unicode_ci'), $coveredDrNos))
+            ->when(!empty($lockedDrNos), fn($q) => $q->whereNotIn(DB::raw('TRIM(dr_no) COLLATE utf8mb4_unicode_ci'), $lockedDrNos))
+            ->get();
 
-        $derivedCollections = ($records->sum('invoice_amount') - ($totalCurrent + $totalPastDue));
-        $collectionsToDeduct = max(0, $actualCollections - $derivedCollections);
+        foreach ($arAgingExtra as $arRow) {
+            $drNo = trim($arRow->dr_no ?? '');
+            $invoiceAmount = (float) ($arRow->invoice_amount ?? 0);
+            if ($invoiceAmount <= 0) continue;
 
-        // Adjustments
+            $paidData = $paidPerDr[$drNo] ?? null;
+
+            $paid = $this->calculatePaid($invoiceAmount, $paidData);
+
+            $outstanding = $invoiceAmount - $paid;
+            if (isset($adjustmentsPerDr[$drNo])) {
+                $outstanding += (float) $adjustmentsPerDr[$drNo]->net_adjustment;
+            }
+            $outstanding = max(0, $outstanding);
+            if ($outstanding <= 10) continue;
+
+            $deliveryDate = $arRow->invoice_date;
+            $counterDate  = $arRow->counter_date ?? $deliveryDate;
+            $baseDate     = $counterDate ? Carbon::parse($counterDate) : ($deliveryDate ? Carbon::parse($deliveryDate) : null);
+            $termsDays    = (int) ($arRow->collection_terms ?? $arRow->terms ?? 30);
+            $dueDate      = $baseDate ? $baseDate->copy()->addDays($termsDays) : null;
+            $daysOutstanding = $dueDate ? (int) $dueDate->diffInDays($today, false) : 0;
+
+            $current = $daysOutstanding <= 0 ? $outstanding : 0;
+            $pastDue = $daysOutstanding >  0 ? $outstanding : 0;
+
+            $totalCurrent  += $current;
+            $totalPastDue  += $pastDue;
+
+            $detailRows[] = (object) [
+                'invoice_date'    => $deliveryDate,
+                'counter_date'    => $counterDate,
+                'due_date'        => $dueDate ? $dueDate->format('Y-m-d') : null,
+                'soa_date'        => $today->format('Y-m-d'),
+                'dr_no'           => $arRow->dr_no,
+                'invoice_no'      => $arRow->invoice_no,
+                'branch'          => $arRow->branch,
+                'customer_code'   => $arRow->customer_code,
+                'days_outstanding'=> $daysOutstanding,
+                'current'         => $current,
+                'past_due'        => $pastDue,
+                'outstanding'     => $outstanding,
+            ];
+        }
+
+        // Re-sort all rows by delivery date ascending
+        usort($detailRows, fn($a, $b) => strcmp($a->invoice_date ?? '', $b->invoice_date ?? ''));
+
+        // AR Adjustments (only those NOT linked to a specific DR — per-DR ones already applied above)
         $netAdjustments = (float) DB::table('ar_adjustments')
-            ->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
-            ->sum('amount');
+            ->whereIn('customer_code', $relatedCodes)
+            ->where(function($q) {
+                $q->whereNull('dr_no')->orWhere('dr_no', '');
+            })
+            ->select(DB::raw('SUM(CASE WHEN is_decrease = 1 THEN -ABS(amount) ELSE ABS(amount) END) as total'))
+            ->value('total') ?? 0;
 
-        $totalBalance = $totalCurrent + $totalPastDue - $collectionsToDeduct + $netAdjustments;
+        $totalBalance = $totalCurrent + $totalPastDue + $netAdjustments;
 
         // Credit balance (overpayments minus credits already applied)
         $overpayments = Payment::where('overpayment', '>', 0)
-            ->where(function ($q) use ($customerCode, $customerName) {
-                $q->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
+            ->where(function ($q) use ($relatedCodes, $customerName) {
+                $q->whereIn('customer_code', $relatedCodes)
                   ->orWhere('customer_name', 'LIKE', '%' . $customerName . '%');
             })
             ->get();
@@ -165,51 +495,133 @@ class StatementOfAccountController extends Controller
             }
         }
 
+        // No longer need collectionsToDeduct since we subtract per-DR
+        $collectionsToDeduct = 0;
+
         return view('soa.show', compact(
             'customerCode', 'customerName', 'branch', 'terms', 'salesExec',
-            'detailRows', 'totalCurrent', 'totalPastDue', 'totalBalance', 'today',
+            'billingAddress', 'detailRows', 'totalCurrent', 'totalPastDue', 'totalBalance', 'today',
             'collectionsToDeduct', 'netAdjustments', 'creditBalance'
         ));
     }
 
     /**
-     * Export SOA as Excel matching the Statement of Account format
+     * Export SOA as Excel
      */
     public function export($customerCode)
     {
         $today = Carbon::now();
+        $customerCode = urldecode($customerCode);
 
-        $records = ArAging::where('customer_code', $customerCode)
-            ->whereRaw('CASE WHEN CAST(net_ar_balance AS DECIMAL(15,2)) > 0 THEN CAST(net_ar_balance AS DECIMAL(15,2)) ELSE CAST(invoice_amount AS DECIMAL(15,2)) - CAST(COALESCE(cwt,0) AS DECIMAL(15,2)) - CAST(settled_invoice_amount AS DECIMAL(15,2)) + CAST(COALESCE(ewt,0) AS DECIMAL(15,2)) END > 0')
-            ->orderBy('invoice_date', 'asc')
-            ->get();
-
-        if ($records->isEmpty()) {
-            return back()->with('error', 'No outstanding records found.');
+        // Resolve customer codes by name — deliveries first, ar_aging fallback
+        $relatedCodes = DB::table('deliveries')
+            ->whereRaw('TRIM(customer_name) = TRIM(?)', [$customerCode])
+            ->distinct()->pluck('customer_code')->toArray();
+        if (empty($relatedCodes)) {
+            $relatedCodes = DB::table('ar_aging')
+                ->whereRaw('TRIM(client_name) = TRIM(?)', [$customerCode])
+                ->distinct()->pluck('customer_code')->filter()->toArray();
+        }
+        if (empty($relatedCodes)) {
+            $relatedCodes = [$customerCode];
         }
 
-        $firstRecord = $records->first();
-        $customerName = $firstRecord->client_name;
+        // Get all delivered deliveries for this customer and all its branches
+        $deliveries = DB::table('deliveries')
+            ->leftJoin('sales_orders as so', DB::raw('deliveries.sales_order_number COLLATE utf8mb4_unicode_ci'), '=', DB::raw('so.sales_order_number COLLATE utf8mb4_unicode_ci'))
+            ->leftJoin('customers as cust', DB::raw('CAST(deliveries.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci'), '=', DB::raw('CAST(cust.customer_code AS CHAR) COLLATE utf8mb4_unicode_ci'))
+            ->whereIn('deliveries.customer_code', $relatedCodes)
+            ->where('deliveries.status', 'Delivered')
+            ->where('deliveries.is_locked', '!=', 1)
+            ->where('deliveries.is_pulled_out', '!=', 1)
+            ->select(
+                'deliveries.id',
+                'deliveries.dr_no',
+                'deliveries.sales_invoice_no',
+                'deliveries.customer_name',
+                DB::raw('COALESCE(cust.branch, deliveries.branch) as branch'),
+                'deliveries.total_amount',
+                'deliveries.request_delivery_date',
+                'deliveries.counter_date',
+                DB::raw('COALESCE(so.collection_terms, 30) as terms')
+            )
+            ->orderBy('deliveries.request_delivery_date', 'asc')
+            ->get();
+
+        // Determine customer name — deliveries first, ar_aging fallback
+        $customerName = $deliveries->isNotEmpty()
+            ? $deliveries->first()->customer_name
+            : (DB::table('ar_aging')->whereIn('customer_code', $relatedCodes)->value('client_name') ?? $customerCode);
+
+        if ($deliveries->isEmpty()) {
+            // Check ar_aging has records before proceeding
+            $hasArAging = DB::table('ar_aging')->whereIn('customer_code', $relatedCodes)->where('invoice_amount', '>', 0)->exists();
+            if (!$hasArAging) {
+                return back()->with('error', 'No outstanding records found.');
+            }
+        }
+
+        // Get payment breakdown per DR — across all branch codes
+        $paidPerDr = Payment::select(
+                DB::raw('TRIM(dr_no) as dr_no'),
+                DB::raw('SUM(amount) as sum_amount'),
+                DB::raw('SUM(COALESCE(discount_amount, 0)) as sum_discount'),
+                DB::raw('SUM(COALESCE(ewt, 0)) as sum_ewt')
+            )
+            ->where(function ($q) use ($relatedCodes, $customerName) {
+                $q->whereIn('customer_code', $relatedCodes)
+                  ->orWhere('customer_name', 'LIKE', '%' . $customerName . '%');
+            })
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhere(function ($q2) { $q2->where('status', '!=', 'Voided')->where('status', '!=', 'Bounced'); });
+            })
+            ->groupBy(DB::raw('TRIM(dr_no)'))
+            ->get()
+            ->keyBy('dr_no');
+
+        // Get AR adjustments per DR — across all branch codes
+        $adjustmentsPerDr = DB::table('ar_adjustments')
+            ->whereIn('customer_code', $relatedCodes)
+            ->whereNotNull('dr_no')
+            ->where('dr_no', '!=', '')
+            ->select('dr_no', DB::raw('SUM(CASE WHEN is_decrease = 1 THEN -ABS(amount) ELSE ABS(amount) END) as net_adjustment'))
+            ->groupBy('dr_no')
+            ->get()
+            ->keyBy(function($a) { return trim($a->dr_no); });
 
         // Build detail rows
         $detailRows = [];
         $totalCurrent = 0;
         $totalPastDue = 0;
 
-        foreach ($records as $record) {
-            $netAr = (float)($record->net_ar_balance ?? 0);
-            if ($netAr > 0) {
-                $outstanding = $netAr;
-            } else {
-                $outstanding = (float)($record->invoice_amount ?? 0)
-                             - (float)($record->cwt ?? 0)
-                             - (float)($record->settled_invoice_amount ?? 0)
-                             + (float)($record->ewt ?? 0);
+        foreach ($deliveries as $delivery) {
+            $invoiceAmount = (float) $delivery->total_amount;
+            if ($invoiceAmount <= 0) {
+                $invoiceAmount = (float) DB::table('delivery_items')
+                    ->where('delivery_id', $delivery->id)
+                    ->sum('total_amount');
             }
-            if ($outstanding <= 0) continue;
+            $drNo = trim($delivery->dr_no);
 
-            $dueDate = $record->due_date ? Carbon::parse($record->due_date) : null;
-            $daysOutstanding = $dueDate ? (int)$dueDate->diffInDays($today, false) : 0;
+            $paidData = $paidPerDr[$drNo] ?? null;
+
+            $paid = $this->calculatePaid($invoiceAmount, $paidData);
+
+            // Apply AR adjustments for this DR (negative = decrease AR, positive = increase AR)
+            $outstanding = $invoiceAmount - $paid;
+            if (isset($adjustmentsPerDr[$drNo])) {
+                $outstanding += (float) $adjustmentsPerDr[$drNo]->net_adjustment;
+            }
+            $outstanding = max(0, $outstanding);
+            if ($outstanding <= 10) continue; // ₱10 leeway — treat small balances as fully paid
+
+            // Use counter_date for aging if available, otherwise fall back to delivery date
+            $baseDate = $delivery->counter_date
+                ? Carbon::parse($delivery->counter_date)
+                : ($delivery->request_delivery_date ? Carbon::parse($delivery->request_delivery_date) : null);
+            $termsDays = (int) ($delivery->terms ?? 30);
+            $dueDate = $baseDate ? $baseDate->copy()->addDays($termsDays) : null;
+            $daysOutstanding = $dueDate ? (int) $dueDate->diffInDays($today, false) : 0;
 
             $current = 0;
             $pastDue = 0;
@@ -223,20 +635,88 @@ class StatementOfAccountController extends Controller
             $totalPastDue += $pastDue;
 
             $detailRows[] = [
-                'invoice_date' => $record->invoice_date,
-                'due_date' => $record->due_date,
-                'soa_date' => $today->format('m/d/Y'),
-                'dr_no' => $record->dr_no,
-                'invoice_no' => $record->invoice_no,
+                'delivery_date' => $delivery->request_delivery_date,
+                'counter_date' => $delivery->counter_date ?? $delivery->request_delivery_date,
+                'due_date' => $dueDate ? $dueDate->format('n/j/Y') : '',
+                'dr_no' => $delivery->dr_no,
+                'invoice_no' => $delivery->sales_invoice_no,
                 'days_outstanding' => $daysOutstanding,
                 'current' => $current,
                 'past_due' => $pastDue,
             ];
         }
 
-        $totalBalance = $totalCurrent + $totalPastDue;
+        // ── Supplement with ar_aging rows not already covered by deliveries ──
+        $coveredExportDrNos = array_column($detailRows, 'dr_no');
+        $coveredExportDrNos = array_map('trim', array_filter($coveredExportDrNos));
 
-        // Credit balance (overpayments minus credits applied)
+        $lockedExportDrNos = DB::table('deliveries')->where('is_locked', 1)
+            ->pluck('dr_no')->map(fn($d) => trim($d))->filter()->toArray();
+
+        $arAgingExport = DB::table('ar_aging')
+            ->whereIn('customer_code', $relatedCodes)
+            ->where(function($q) {
+                $q->whereNull('status')->orWhere('status', '')->orWhere('status', '!=', 'Paid');
+            })
+            ->where('invoice_amount', '>', 0)
+            ->when(!empty($coveredExportDrNos), fn($q) => $q->whereNotIn(DB::raw('TRIM(dr_no) COLLATE utf8mb4_unicode_ci'), $coveredExportDrNos))
+            ->when(!empty($lockedExportDrNos), fn($q) => $q->whereNotIn(DB::raw('TRIM(dr_no) COLLATE utf8mb4_unicode_ci'), $lockedExportDrNos))
+            ->get();
+
+        foreach ($arAgingExport as $arRow) {
+            $drNo = trim($arRow->dr_no ?? '');
+            $invoiceAmount = (float) ($arRow->invoice_amount ?? 0);
+            if ($invoiceAmount <= 0) continue;
+
+            $paidData = $paidPerDr[$drNo] ?? null;
+            $paid = $this->calculatePaid($invoiceAmount, $paidData);
+
+            $outstanding = $invoiceAmount - $paid;
+            if (isset($adjustmentsPerDr[$drNo])) {
+                $outstanding += (float) $adjustmentsPerDr[$drNo]->net_adjustment;
+            }
+            $outstanding = max(0, $outstanding);
+            if ($outstanding <= 10) continue;
+
+            $deliveryDate = $arRow->invoice_date;
+            $counterDate  = $arRow->counter_date ?? $deliveryDate;
+            $baseDate     = $counterDate ? Carbon::parse($counterDate) : ($deliveryDate ? Carbon::parse($deliveryDate) : null);
+            $termsDays    = (int) ($arRow->collection_terms ?? $arRow->terms ?? 30);
+            $dueDate      = $baseDate ? $baseDate->copy()->addDays($termsDays) : null;
+            $daysOutstanding = $dueDate ? (int) $dueDate->diffInDays($today, false) : 0;
+
+            $current = $daysOutstanding <= 0 ? $outstanding : 0;
+            $pastDue = $daysOutstanding >  0 ? $outstanding : 0;
+            $totalCurrent += $current;
+            $totalPastDue += $pastDue;
+
+            $detailRows[] = [
+                'delivery_date'    => $deliveryDate,
+                'counter_date'     => $counterDate,
+                'due_date'         => $dueDate ? $dueDate->format('n/j/Y') : '',
+                'dr_no'            => $arRow->dr_no,
+                'invoice_no'       => $arRow->invoice_no,
+                'days_outstanding' => $daysOutstanding,
+                'current'          => $current,
+                'past_due'         => $pastDue,
+            ];
+        }
+
+        // Sort by delivery date ascending
+        usort($detailRows, fn($a, $b) => strcmp($a['delivery_date'] ?? '', $b['delivery_date'] ?? ''));
+
+        // AR Adjustments (only those NOT linked to a specific DR — per-DR ones already applied above)
+        $netAdjustments = (float) DB::table('ar_adjustments')
+            ->whereRaw('TRIM(customer_code) = ?', [trim($customerCode)])
+            ->where(function($q) {
+                $q->whereNull('dr_no')->orWhere('dr_no', '');
+            })
+            ->select(DB::raw('SUM(CASE WHEN is_decrease = 1 THEN -ABS(amount) ELSE ABS(amount) END) as total'))
+            ->value('total') ?? 0;
+
+        $totalBalance = $totalCurrent + $totalPastDue + $netAdjustments;
+
+        // Credit balance
         $creditBalance = 0;
         $exportOverpayments = Payment::where('overpayment', '>', 0)
             ->where(function ($q) use ($customerCode, $customerName) {
@@ -259,7 +739,6 @@ class StatementOfAccountController extends Controller
         // Colors
         $darkRed = '8B0000';
         $white = 'FFFFFF';
-        $lightGray = 'F5F5F5';
 
         // Column widths
         $sheet->getColumnDimension('A')->setWidth(14);
@@ -271,16 +750,29 @@ class StatementOfAccountController extends Controller
         $sheet->getColumnDimension('G')->setWidth(16);
         $sheet->getColumnDimension('H')->setWidth(16);
 
+        // ====== LOGO ======
+        $logoPath = public_path('images/meatplus-logo.png');
+        if (file_exists($logoPath)) {
+            $drawing = new Drawing();
+            $drawing->setName('Logo');
+            $drawing->setDescription('Meatplus Logo');
+            $drawing->setPath($logoPath);
+            $drawing->setHeight(50);
+            $drawing->setCoordinates('A1');
+            $drawing->setWorksheet($sheet);
+            $sheet->getRowDimension(1)->setRowHeight(40);
+        }
+
         // ====== HEADER SECTION ======
-        // Row 1: Logo area + Title
-        $sheet->setCellValue('A1', 'MEATPLUS');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14)->setColor(new Color($darkRed));
+        $sheet->setCellValue('C1', 'MEATPLUS TRADING CORPORATION');
+        $sheet->mergeCells('C1:E1');
+        $sheet->getStyle('C1')->getFont()->setBold(true)->setSize(14)->setColor(new Color($darkRed));
+        $sheet->getStyle('C1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
         $sheet->setCellValue('G1', 'Statement of Account');
         $sheet->mergeCells('G1:H1');
         $sheet->getStyle('G1:H1')->getFont()->setBold(true)->setSize(14)->setColor(new Color($darkRed))->setItalic(true);
-        $sheet->getStyle('G1:H1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle('G1:H1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT)->setVertical(Alignment::VERTICAL_CENTER);
 
-        // Row 2: Bill To + Receivable
         $sheet->setCellValue('A3', 'Bill to');
         $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(9);
         $sheet->setCellValue('B3', $customerName);
@@ -293,7 +785,6 @@ class StatementOfAccountController extends Controller
         $sheet->getStyle('H3')->getFont()->setSize(9);
         $sheet->getStyle('H3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
-        // Row 3: Receivable amount + Statement Period
         $sheet->setCellValue('A4', 'Receivable as of ' . $today->format('M d, Y'));
         $sheet->mergeCells('A4:B4');
         $sheet->getStyle('A4')->getFont()->setBold(true)->setSize(8);
@@ -309,7 +800,7 @@ class StatementOfAccountController extends Controller
 
         // ====== TABLE HEADER ======
         $headerRow = 6;
-        $headers = ['Invoice Date', 'Due Date', 'SOA Date', 'DR No.', 'SI No.', 'Number of Days Outstanding', 'Current', 'Past Due'];
+        $headers = ['Delivery Date', 'Counter Date', 'Due Date', 'DR No.', 'SI No.', 'No. Of Days Outstanding', 'Current Due', 'Past Due'];
 
         foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as $i => $col) {
             $sheet->setCellValue("{$col}{$headerRow}", $headers[$i]);
@@ -326,9 +817,9 @@ class StatementOfAccountController extends Controller
         $dataRow = $headerRow + 1;
         foreach ($detailRows as $idx => $row) {
             $r = $dataRow + $idx;
-            $sheet->setCellValue("A{$r}", $row['invoice_date'] ? Carbon::parse($row['invoice_date'])->format('n/j/Y') : '');
-            $sheet->setCellValue("B{$r}", $row['due_date'] ? Carbon::parse($row['due_date'])->format('n/j/Y') : '');
-            $sheet->setCellValue("C{$r}", $row['soa_date']);
+            $sheet->setCellValue("A{$r}", $row['delivery_date'] ? Carbon::parse($row['delivery_date'])->format('n/j/Y') : '');
+            $sheet->setCellValue("B{$r}", $row['counter_date'] ? Carbon::parse($row['counter_date'])->format('n/j/Y') : '');
+            $sheet->setCellValue("C{$r}", $row['due_date']);
             $sheet->setCellValue("D{$r}", $row['dr_no']);
             $sheet->setCellValue("E{$r}", $row['invoice_no']);
             $sheet->setCellValue("F{$r}", $row['days_outstanding']);
@@ -339,7 +830,6 @@ class StatementOfAccountController extends Controller
             $sheet->getStyle("G{$r}:H{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
             $sheet->getStyle("G{$r}:H{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
-            // Alternate row color
             if ($idx % 2 === 1) {
                 $sheet->getStyle("A{$r}:H{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFF5F5');
             }
@@ -363,31 +853,12 @@ class StatementOfAccountController extends Controller
         $sheet->setCellValue("G{$totRow}", $totalCurrent);
         $sheet->setCellValue("H{$totRow}", $totalPastDue);
         $sheet->getStyle("G{$totRow}:H{$totRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-        $sheet->getStyle("G{$totRow}:H{$totRow}")->getFont()->setBold(true)->setSize(10)->setColor(new Color($darkRed));
         $sheet->getStyle("A{$totRow}:H{$totRow}")->applyFromArray([
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $darkRed]],
             'font' => ['bold' => true, 'color' => ['rgb' => $white]],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => $darkRed]]],
         ]);
         $sheet->getStyle("G{$totRow}:H{$totRow}")->getFont()->setColor(new Color($white));
-
-        // ====== CREDIT BALANCE ROW ======
-        if ($creditBalance > 0) {
-            $creditRow = $totRow + 1;
-            $sheet->setCellValue("A{$creditRow}", 'Credit Balance / Overpayment:');
-            $sheet->mergeCells("A{$creditRow}:F{$creditRow}");
-            $sheet->getStyle("A{$creditRow}")->getFont()->setBold(true)->setSize(10);
-            $sheet->getStyle("A{$creditRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-            $sheet->setCellValue("G{$creditRow}", $creditBalance);
-            $sheet->mergeCells("G{$creditRow}:H{$creditRow}");
-            $sheet->getStyle("G{$creditRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-            $sheet->getStyle("A{$creditRow}:H{$creditRow}")->applyFromArray([
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'DCFCE7']],
-                'font' => ['bold' => true, 'color' => ['rgb' => '15803D']],
-                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '86EFAC']]],
-            ]);
-            $totRow = $creditRow;
-        }
 
         // ====== FOOTER ======
         $footRow = $totRow + 2;
@@ -440,7 +911,6 @@ class StatementOfAccountController extends Controller
         $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
         $sheet->getPageSetup()->setFitToWidth(1);
 
-        // Write to temp and stream download
         $safeCode = preg_replace('/[^a-zA-Z0-9_-]/', '_', $customerCode);
         $filename = 'SOA_' . $safeCode . '_' . $today->format('Y-m-d') . '.xlsx';
         $tempPath = storage_path('app/' . $filename);

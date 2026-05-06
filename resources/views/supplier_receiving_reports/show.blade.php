@@ -177,9 +177,15 @@
 
         <!-- Action Buttons -->
         <div class="flex justify-between items-center border-t border-gray-700 pt-4">
-            <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
-                <i class="fas fa-arrow-left mr-1"></i> Back to List
-            </a>
+            @if(request('from_mapping'))
+                <a href="{{ route('mapping.index') }}" class="bg-purple-700 text-white px-6 py-2 rounded hover:bg-purple-800 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Mapping
+                </a>
+            @else
+                <a href="{{ route('supplier_receiving_reports.index') }}" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to List
+                </a>
+            @endif
             <div class="flex gap-3">
                 <a href="{{ route('supplier_receiving_reports.print', $report->id) }}" target="_blank" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     <i class="fas fa-print mr-1"></i> Print

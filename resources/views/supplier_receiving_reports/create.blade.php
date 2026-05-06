@@ -38,15 +38,12 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">SUPPLY:</label>
-                        <select name="supplier_id" id="supplier_id"
-                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
-                            <option value="">-- Select Supply --</option>
-                            @foreach($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                    {{ $supplier->supplier_name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="relative">
+                            <input type="text" id="supplier_search" placeholder="Search supplier..."
+                                class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" autocomplete="off">
+                            <input type="hidden" name="supplier_id" id="supplier_id" value="{{ old('supplier_id') }}">
+                            <div id="supplierDropdown" class="hidden absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded max-h-48 overflow-y-auto shadow-lg"></div>
+                        </div>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">CV NO:</label>
@@ -77,6 +74,22 @@
                                 class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" autocomplete="off">
                             <div id="poSearchResults" class="hidden absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded max-h-48 overflow-y-auto shadow-lg">
                             </div>
+                        </div>
+                        <!-- PO qty info strip -->
+                        <div id="poQtyInfo" class="hidden mt-2 p-2 bg-gray-900 border border-gray-600 rounded text-sm text-gray-300">
+                            PO qty: <span id="poQtyValue" class="font-bold text-white">0</span>
+                            <span id="lcQtyContainer" class="hidden">&nbsp;|&nbsp; Live Chicken qty: <span id="lcQtyValue" class="font-bold text-yellow-300">0</span></span>
+                            &nbsp;|&nbsp; SRR total qty: <span id="srrQtyValue" class="font-bold text-white">0</span>
+                        </div>
+                        <!-- Qty exceeded warning -->
+                        <div id="qtyExceededWarning" class="hidden mt-2 p-3 bg-red-900 border border-red-600 rounded text-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="text-red-300 font-semibold"><i class="fas fa-exclamation-triangle mr-1"></i>SRR qty exceeds PO ordered qty.</span>
+                                <button type="button" onclick="reduceToPoQty()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-xs font-semibold ml-3">
+                                    <i class="fas fa-arrow-down mr-1"></i> Reduce to PO Qty
+                                </button>
+                            </div>
+                            <div class="text-red-400 text-xs mt-1">You must reduce the quantities or clear the PO link before submitting.</div>
                         </div>
                     </div>
                     <div>
@@ -233,6 +246,7 @@
 </div>
 
 <script>
+function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 let rowCount = 1;
 
 function addRow() {
@@ -321,6 +335,7 @@ function calculateTotals() {
     });
     document.getElementById('totalBoxes').textContent = totalBoxes;
     document.getElementById('totalWeight').textContent = totalWeight.toFixed(2);
+    validateSrrQty();
 }
 
 // PO Search
@@ -369,9 +384,110 @@ poInput.addEventListener('input', function() {
     }, 300);
 });
 
-function selectPO(poNo) {
+const GET_PO_ITEMS_URL = '{{ route("supplier_receiving_reports.getPOItems") }}';
+let poTotalQty = 0;
+
+async function selectPO(poNo) {
     document.getElementById('po_no').value = poNo;
     document.getElementById('poSearchResults').classList.add('hidden');
+
+    try {
+        const res = await fetch(`${GET_PO_ITEMS_URL}?po_no=${encodeURIComponent(poNo)}`);
+        const data = await res.json();
+
+        const poQty = data.po_qty || 0;
+        const hasLcQty = data.lc_actual_qty !== null && data.lc_actual_qty !== undefined;
+        poTotalQty = hasLcQty ? data.lc_actual_qty : poQty;
+
+        if (poQty > 0 || hasLcQty) {
+            document.getElementById('poQtyInfo').classList.remove('hidden');
+            document.getElementById('poQtyValue').textContent = poQty;
+            const lcContainer = document.getElementById('lcQtyContainer');
+            if (hasLcQty) {
+                document.getElementById('lcQtyValue').textContent = data.lc_actual_qty;
+                lcContainer.classList.remove('hidden');
+            } else {
+                lcContainer.classList.add('hidden');
+            }
+        } else {
+            document.getElementById('poQtyInfo').classList.add('hidden');
+        }
+
+        // Auto-fill supplier
+        if (data.supplier_id || data.supplier_name) {
+            const supHidden = document.getElementById('supplier_id');
+            const supSearch = document.getElementById('supplier_search');
+            if (supHidden && data.supplier_id) supHidden.value = data.supplier_id;
+            if (supSearch && data.supplier_name) supSearch.value = data.supplier_name;
+        }
+
+        // Auto-fill first item row
+        if (data.items && data.items.length > 0) {
+            const firstRow = document.querySelector('#itemsBody .item-row');
+            if (firstRow) {
+                const fi = data.items[0];
+                const codeInput    = firstRow.querySelector('[name$="[item_code]"]');
+                const descInput    = firstRow.querySelector('.srr-desc-input');
+                const brandInput   = firstRow.querySelector('[name$="[brand]"]');
+                const remarksInput = firstRow.querySelector('[name$="[remarks]"]');
+                if (codeInput)    codeInput.value    = fi.item_code   || '';
+                if (descInput)    descInput.value    = fi.description || '';
+                if (brandInput)   brandInput.value   = fi.brand       || '';
+                if (remarksInput && fi.note) remarksInput.value = fi.note;
+            }
+        }
+
+        // Auto-fill note from PO remarks
+        if (data.note) {
+            const noteTA = document.querySelector('[name="note"]');
+            if (noteTA) noteTA.value = data.note;
+        }
+
+        validateSrrQty();
+    } catch (e) {
+        console.error('Failed to load PO items:', e);
+    }
+}
+
+function getSrrTotalQty() {
+    let total = 0;
+    document.querySelectorAll('.boxes-input').forEach(input => {
+        total += parseFloat(input.value) || 0;
+    });
+    return total;
+}
+
+function validateSrrQty() {
+    if (poTotalQty <= 0) {
+        document.getElementById('qtyExceededWarning').classList.add('hidden');
+        return true;
+    }
+    const srrTotal = getSrrTotalQty();
+    document.getElementById('srrQtyValue').textContent = srrTotal;
+    const exceeded = srrTotal > poTotalQty;
+    document.getElementById('qtyExceededWarning').classList.toggle('hidden', !exceeded);
+    return !exceeded;
+}
+
+function reduceToPoQty() {
+    const inputs = document.querySelectorAll('.boxes-input');
+    const srrTotal = getSrrTotalQty();
+    if (srrTotal <= 0 || poTotalQty <= 0) return;
+
+    const ratio = poTotalQty / srrTotal;
+    let remaining = poTotalQty;
+    inputs.forEach((input, idx) => {
+        const val = parseFloat(input.value) || 0;
+        if (idx < inputs.length - 1) {
+            const reduced = Math.floor(val * ratio * 100) / 100;
+            input.value = reduced;
+            remaining -= reduced;
+        } else {
+            input.value = Math.max(0, Math.round(remaining * 100) / 100);
+        }
+    });
+    inputs.forEach(input => input.dispatchEvent(new Event('change')));
+    validateSrrQty();
 }
 
 document.addEventListener('click', function(e) {
@@ -434,6 +550,71 @@ function attachSrrDescAutocomplete(input) {
 
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.srr-desc-input').forEach(attachSrrDescAutocomplete);
+
+    // Validate qty on any boxes-input change (also covers dynamically added rows)
+    document.getElementById('srrForm').addEventListener('input', function(e) {
+        if (e.target.classList.contains('boxes-input')) {
+            validateSrrQty();
+        }
+    });
+    document.getElementById('srrForm').addEventListener('change', function(e) {
+        if (e.target.classList.contains('boxes-input')) {
+            validateSrrQty();
+        }
+    });
+
+    // Block submit if qty exceeded
+    document.getElementById('srrForm').addEventListener('submit', function(e) {
+        if (!validateSrrQty()) {
+            e.preventDefault();
+            alert('SRR total qty exceeds the PO ordered qty. Please reduce the quantities or remove the PO link.');
+        }
+    });
+
+    // Also clear PO qty info if po_no is manually cleared
+    document.getElementById('po_no').addEventListener('input', function() {
+        if (!this.value.trim()) {
+            poTotalQty = 0;
+            document.getElementById('poQtyInfo').classList.add('hidden');
+            document.getElementById('qtyExceededWarning').classList.add('hidden');
+        }
+    });
+
+    // Supplier searchable dropdown
+    const suppliersData = @json($suppliers->map(fn($s) => ['id' => $s->id, 'name' => $s->supplier_name]));
+    const supplierSearch = document.getElementById('supplier_search');
+    const supplierHidden = document.getElementById('supplier_id');
+    const supplierDrop   = document.getElementById('supplierDropdown');
+
+    if (supplierHidden.value) {
+        const found = suppliersData.find(s => s.id == supplierHidden.value);
+        if (found) supplierSearch.value = found.name;
+    }
+
+    supplierSearch.addEventListener('input', function() {
+        const q = this.value.toLowerCase().trim();
+        if (!q) { supplierDrop.classList.add('hidden'); return; }
+        const filtered = suppliersData.filter(s => s.name.toLowerCase().includes(q));
+        if (!filtered.length) { supplierDrop.classList.add('hidden'); return; }
+        supplierDrop.innerHTML = filtered.slice(0, 15).map(s =>
+            `<div class="p-2 hover:bg-gray-700 cursor-pointer text-sm text-white" data-id="${s.id}" data-name="${escapeHtml(s.name)}">${escapeHtml(s.name)}</div>`
+        ).join('');
+        supplierDrop.classList.remove('hidden');
+        supplierDrop.querySelectorAll('[data-id]').forEach(opt => {
+            opt.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                supplierSearch.value = this.dataset.name;
+                supplierHidden.value = this.dataset.id;
+                supplierDrop.classList.add('hidden');
+            });
+        });
+    });
+    supplierSearch.addEventListener('blur', () => setTimeout(() => supplierDrop.classList.add('hidden'), 150));
+    document.addEventListener('click', function(e) {
+        if (!supplierSearch.contains(e.target) && !supplierDrop.contains(e.target)) {
+            supplierDrop.classList.add('hidden');
+        }
+    });
 });
 </script>
 @endsection

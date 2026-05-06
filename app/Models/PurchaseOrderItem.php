@@ -20,17 +20,21 @@ class PurchaseOrderItem extends Model
         'qty',
         'uom',
         'description',
+        'brand',
         'unit_price',
+        'vat',
+        'tax_code',
         'tax',
         'total',
         'note',
     ];
 
     protected $casts = [
-        'qty' => 'decimal:2',
+        'qty'        => 'decimal:2',
         'unit_price' => 'decimal:2',
-        'tax' => 'decimal:2',
-        'total' => 'decimal:2',
+        'vat'        => 'boolean',
+        'tax'        => 'decimal:2',
+        'total'      => 'decimal:2',
     ];
 
     /**

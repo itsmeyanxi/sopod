@@ -276,49 +276,50 @@ class UserController extends Controller
     {
         try {
             $user = Auth::user();
-            $oldData = [
-                'name' => $user->name,
-                'email' => $user->email,
-            ];
-
             $request->validate([
-                'name' => 'required|string|max:255',
+                'name'  => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $user->id,
-                'password' => 'nullable|min:6|confirmed',
             ]);
-
-            $user->name = $request->name;
+            $user->name  = $request->name;
             $user->email = $request->email;
-
-            $passwordChanged = false;
-            if ($request->filled('password')) {
-                $user->password = Hash::make($request->password);
-                $passwordChanged = true;
-            }
-
             $user->save();
-
-            $this->logInfo('Profile updated', [
-                'action' => 'update_profile',
-                'old_data' => $oldData,
-                'new_data' => [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ],
-                'password_changed' => $passwordChanged,
-            ]);
-
-            return redirect()->route('profile')
-                ->with('success', 'Profile updated successfully!');
-
+            return redirect()->route('profile')->with('success', 'Profile info updated!');
         } catch (\Exception $e) {
-            $this->logError('Profile update failed', $e, [
-                'action' => 'update_profile',
+            return redirect()->back()->withInput()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    public function updatePassword(Request $request)
+    {
+        try {
+            $request->validate([
+                'password' => 'required|min:6|confirmed',
             ]);
-            
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error updating profile: ' . $e->getMessage());
+            $user = Auth::user();
+            $user->password = Hash::make($request->password);
+            $user->save();
+            return redirect()->route('profile')->with('success', 'Password updated!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    public function updateSignature(Request $request)
+    {
+        try {
+            $request->validate([
+                'esignature' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+            ]);
+            $user = Auth::user();
+            if ($user->esignature) {
+                \Storage::disk('public')->delete($user->esignature);
+            }
+            $path = $request->file('esignature')->store('esignatures', 'public');
+            $user->esignature = $path;
+            $user->save();
+            return redirect()->route('profile')->with('success', 'E-Signature updated!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
 

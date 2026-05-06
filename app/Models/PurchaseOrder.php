@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\RequestForPayment;
+use App\Models\SupplierReceivingReport;
 
 class PurchaseOrder extends Model
 {
@@ -24,11 +26,16 @@ class PurchaseOrder extends Model
         'payment_terms',
         'location',
         'house',
+        'brand',
         'pr_no',
         'lc_price',
         'currency',
         'exchange_rate',
         'remarks',
+        'po_type',
+        'service_description',
+        'service_qty',
+        'service_amount',
         'quotation',
         'status',
         'approval_stage',
@@ -104,6 +111,16 @@ class PurchaseOrder extends Model
     public function managementApprover()
     {
         return $this->belongsTo(User::class, 'management_approved_by');
+    }
+
+    public function rfps()
+    {
+        return $this->hasMany(RequestForPayment::class, 'purchase_order_id');
+    }
+
+    public function srrs()
+    {
+        return $this->hasMany(SupplierReceivingReport::class, 'po_no', 'po_no');
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

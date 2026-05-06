@@ -46,6 +46,20 @@
                         @enderror
                     </div>
 
+                    <!-- Parent Customer Code -->
+                    <div>
+                        <label for="parent_customer_code" class="block text-sm font-semibold text-gray-300 mb-2">
+                            Parent Customer Code
+                        </label>
+                        <input type="text"
+                               name="parent_customer_code"
+                               id="parent_customer_code"
+                               value="{{ old('parent_customer_code', $customer->parent_customer_code) }}"
+                               class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                               placeholder="e.g., C0000000193-000">
+                        <p class="text-xs text-gray-400 mt-1">Used for SOA grouping. Auto-filled from customer code. Override manually for outlier branches.</p>
+                    </div>
+
                     <!-- Customer Name -->
                     <div>
                         <label for="customer_name" class="block text-sm font-semibold text-gray-300 mb-2">

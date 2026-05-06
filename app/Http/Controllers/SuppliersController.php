@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use App\Models\SupplierDocument;
+use App\Models\Vendor;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,13 +16,36 @@ class SuppliersController extends Controller
     /**
      * Display a listing of suppliers
      */
-    public function index()
+    public function index(Request $request)
     {
+        $tab = $request->get('tab', 'suppliers');
+        $search = $request->get('search', '');
+        $category = $request->get('category', '');
+
         $suppliers = Supplier::with('creator')
             ->orderByDesc('created_at')
-            ->paginate(20);
+            ->paginate(20)
+            ->appends($request->query());
 
-        return view('suppliers.index', compact('suppliers'));
+        $vendorsQuery = Vendor::query()->orderBy('vendor_name');
+
+        if ($category) {
+            $vendorsQuery->where('category', $category);
+        }
+        if ($search) {
+            $vendorsQuery->where(function ($q) use ($search) {
+                $q->where('vendor_code', 'like', "%{$search}%")
+                  ->orWhere('vendor_name', 'like', "%{$search}%");
+            });
+        }
+
+        $vendors = $vendorsQuery->paginate(30)->appends($request->query());
+
+        $vendorCategoryCounts = Vendor::selectRaw('category, COUNT(*) as cnt')
+            ->groupBy('category')
+            ->pluck('cnt', 'category');
+
+        return view('suppliers.index', compact('suppliers', 'vendors', 'tab', 'search', 'category', 'vendorCategoryCounts'));
     }
 
     /**
@@ -263,6 +287,44 @@ class SuppliersController extends Controller
             return back()
                 ->with('error', 'Error deleting supplier: ' . $e->getMessage());
         }
+    }
+
+    public function editVendor($id)
+    {
+        $vendor = Vendor::findOrFail($id);
+        return view('suppliers.vendor_edit', compact('vendor'));
+    }
+
+    public function updateVendor(Request $request, $id)
+    {
+        $request->validate([
+            'vendor_code' => 'required|string|unique:vendors,vendor_code,' . $id,
+            'vendor_name' => 'required|string',
+            'category'    => 'nullable|string',
+            'group'       => 'nullable|string',
+            'gl_account'  => 'nullable|string',
+            'status'      => 'required|in:active,inactive',
+            'date_hired'  => 'nullable|date',
+        ]);
+
+        $vendor = Vendor::findOrFail($id);
+        $vendor->update($request->only([
+            'vendor_code','vendor_name','category','group','gl_account','status',
+            'company','ee_id','last_name','first_name','middle_name',
+            'position','department','location','office_address','date_hired',
+        ]));
+
+        return redirect()->route('suppliers.index', ['tab' => 'vendors'])
+            ->with('success', 'Vendor updated successfully!');
+    }
+
+    public function destroyVendor($id)
+    {
+        $vendor = Vendor::findOrFail($id);
+        $vendor->delete();
+
+        return redirect()->route('suppliers.index', ['tab' => 'vendors'])
+            ->with('success', 'Vendor deleted successfully!');
     }
 
     /**

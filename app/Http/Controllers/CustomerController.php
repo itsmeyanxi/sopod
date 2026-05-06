@@ -228,6 +228,7 @@ class CustomerController extends Controller
 
         $validated = $request->validate([
             'customer_code' => 'required|string|max:50|unique:customers,customer_code,' . $id,
+            'parent_customer_code' => 'nullable|string|max:50',
             'customer_name' => 'required|string|max:255',
             'business_style' => 'nullable|string|max:255',
             'branch' => 'nullable|string|max:255',

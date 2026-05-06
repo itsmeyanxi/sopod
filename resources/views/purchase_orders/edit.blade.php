@@ -40,6 +40,7 @@
             <!-- Read-only PO Info -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="space-y-2">
+                    <p class="text-gray-300"><span class="font-semibold text-gray-300">Supplier:</span> {{ $purchaseOrder->supplier ?? ($purchaseOrder->items->first()->supplier_name ?? 'N/A') }}</p>
                     <p class="text-gray-300"><span class="font-semibold text-gray-300">Company:</span> {{ $purchaseOrder->company }}</p>
                     <p class="text-gray-300"><span class="font-semibold text-gray-300">Order Date:</span> {{ $purchaseOrder->order_date->format('M d, Y') }}</p>
                     <p class="text-gray-300"><span class="font-semibold text-gray-300">PR#:</span> {{ $purchaseOrder->pr_no ?? 'N/A' }}</p>
@@ -62,7 +63,7 @@
                                 <th class="border border-gray-700 px-2 py-2" style="width:70px">QTY</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:80px">UOM</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:280px">DESCRIPTION</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:200px">SUPPLIER</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:130px">BRAND</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:110px">UNIT PRICE</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:100px">TOTAL</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:220px">NOTE</th>
@@ -76,7 +77,7 @@
                                 <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->qty }}</td>
                                 <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->uom }}</td>
                                 <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->description }}</td>
-                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? 'N/A' }}</td>
+                                <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ $item->brand ?? '—' }}</td>
                                 <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ number_format($item->unit_price, 2) }}</td>
                                 <td class="border border-gray-700 px-2 py-2 text-gray-300">{{ number_format($item->total, 2) }}</td>
                                 <td class="border border-gray-700 px-2 py-2">
@@ -137,6 +138,25 @@
                 <!-- Left Column -->
                 <div class="space-y-4">
                     <div>
+                        <label class="block font-semibold text-gray-300 mb-1">SUPPLIER: <span class="text-red-700">*</span></label>
+                        <div class="relative">
+                            <input type="text" id="topSupplierSearch"
+                                   class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                                   placeholder="Search supplier by name or code..."
+                                   autocomplete="off"
+                                   value="{{ old('supplier', $purchaseOrder->supplier ?? ($purchaseOrder->items->first()->supplier_name ?? '')) }}">
+                            <span class="absolute right-3 top-2.5 text-gray-400"><i class="fas fa-search"></i></span>
+                            <div id="topSupplierDropdown" class="hidden absolute z-30 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-64 overflow-y-auto" style="top:100%"></div>
+                        </div>
+                        <input type="hidden" name="supplier_id" id="supplier_id" value="{{ old('supplier_id', $purchaseOrder->supplier_id) }}">
+                        <input type="hidden" name="supplier" id="supplier_text" value="{{ old('supplier', $purchaseOrder->supplier ?? ($purchaseOrder->items->first()->supplier_name ?? '')) }}">
+                        <input type="hidden" name="supplier_address" id="supplier_address_hidden" value="{{ old('supplier_address', $purchaseOrder->supplier_address) }}">
+                        <p id="topSupplierInfo" class="text-xs text-gray-400 mt-1 {{ $purchaseOrder->supplier_id ? '' : 'hidden' }}">
+                            <span class="text-green-400"><i class="fas fa-check-circle"></i></span>
+                            <span id="topSupplierCode">{{ optional(\App\Models\Supplier::find($purchaseOrder->supplier_id))->supplier_code }}</span>
+                        </p>
+                    </div>
+                    <div>
                         <label class="block font-semibold text-gray-300 mb-1">CONSIGNEE:</label>
                         <input type="text" name="consignee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('consignee', $purchaseOrder->consignee) }}">
                     </div>
@@ -171,6 +191,10 @@
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">HOUSE:</label>
                         <input type="text" name="house" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('house', $purchaseOrder->house) }}">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-300 mb-1">BRAND:</label>
+                        <input type="text" name="brand" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('brand', $purchaseOrder->brand) }}" placeholder="e.g. Brand name">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">PR#:</label>
@@ -209,9 +233,57 @@
             <input type="hidden" name="supplier_id" value="{{ $purchaseOrder->supplier_id }}">
             <input type="hidden" name="supplier" value="{{ $purchaseOrder->supplier }}">
             <input type="hidden" name="supplier_address" value="{{ $purchaseOrder->supplier_address }}">
+            <input type="hidden" name="po_type" id="poTypeInput" value="{{ old('po_type', $purchaseOrder->po_type ?? 'items') }}">
+
+            <!-- PO Type Toggle -->
+            <div class="mb-4 flex items-center gap-3">
+                <span class="text-gray-300 font-semibold">PO TYPE:</span>
+                <button type="button" id="btnTypeItems" onclick="setPOType('items')"
+                    class="px-5 py-2 rounded font-semibold transition {{ ($purchaseOrder->po_type ?? 'items') === 'items' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
+                    <i class="fas fa-boxes mr-1"></i> Items
+                </button>
+                <button type="button" id="btnTypeService" onclick="setPOType('service')"
+                    class="px-5 py-2 rounded font-semibold transition {{ ($purchaseOrder->po_type ?? 'items') === 'service' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
+                    <i class="fas fa-tools mr-1"></i> Service
+                </button>
+            </div>
+
+            <!-- Service Description -->
+            <div id="serviceDescSection" class="{{ ($purchaseOrder->po_type ?? 'items') === 'service' ? '' : 'hidden' }} mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+                <label class="block font-semibold text-white mb-2">SERVICE DESCRIPTION: <span class="text-red-500">*</span></label>
+                <textarea name="service_description" id="serviceDescription" rows="4"
+                    class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Describe the service to be rendered...">{{ old('service_description', $purchaseOrder->service_description) }}</textarea>
+                <div class="grid grid-cols-3 gap-4 mt-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-1">QUANTITY</label>
+                        <input type="number" step="0.0001" name="service_qty" id="service_qty"
+                            class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="0" value="{{ old('service_qty', $purchaseOrder->service_qty) }}" oninput="calcServiceTotal()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-1">UNIT AMOUNT</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
+                            <input type="number" step="0.01" name="service_amount" id="service_amount"
+                                class="w-full bg-gray-800 border border-gray-700 rounded pl-7 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="0.00" value="{{ old('service_amount', $purchaseOrder->service_amount) }}" oninput="calcServiceTotal()">
+                        </div>
+                    </div>
+                    <div id="service_total_wrapper" class="hidden">
+                        <label class="block text-sm font-semibold text-gray-300 mb-1" id="service_total_label">TOTAL (PHP)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
+                            <input type="number" step="0.01" id="service_total_display"
+                                class="w-full bg-gray-700 border border-gray-600 rounded pl-7 pr-3 py-2 text-green-400 font-bold focus:outline-none"
+                                placeholder="0.00" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Items Table -->
-            <div class="mb-6">
+            <div class="mb-6" id="itemsTableSection" {{ ($purchaseOrder->po_type ?? 'items') === 'service' ? 'style=display:none' : '' }}>
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-lg font-semibold text-white">Items</h3>
                     <button type="button" onclick="addRow()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -228,7 +300,7 @@
                                 <th class="border border-gray-700 px-2 py-2" style="width:70px">QTY</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:80px">UOM</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:280px">DESCRIPTION</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:200px">SUPPLIER</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:130px">BRAND</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:110px">UNIT PRICE</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:80px">TAX</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:100px">TOTAL</th>
@@ -248,7 +320,7 @@
                                     <input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" value="{{ $item->item_code }}" autocomplete="off">
                                     <input type="hidden" name="items[{{ $index }}][purchase_request_item_id]" value="{{ $item->purchase_request_item_id }}">
                                 </td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" value="{{ $item->qty }}" required></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->qty }}" required></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->uom }}" required></td>
                                 <td class="border border-gray-700 px-2 py-2">
                                     <div class="relative">
@@ -257,14 +329,12 @@
                                     </div>
                                 </td>
                                 <td class="border border-gray-700 px-2 py-2">
-                                    <div class="relative">
-                                        <input type="text" name="items[{{ $index }}][supplier_name]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-input" value="{{ $item->supplier_name ?? $purchaseOrder->supplier }}" autocomplete="off" placeholder="Search supplier...">
-                                        <input type="hidden" name="items[{{ $index }}][supplier_id]" class="supplier-id-input" value="{{ $item->supplier_id ?? $purchaseOrder->supplier_id }}">
-                                        <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto"></div>
-                                    </div>
+                                    <input type="text" name="items[{{ $index }}][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" value="{{ $item->brand }}" placeholder="Brand">
                                 </td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" value="{{ $item->unit_price }}"></td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="{{ $item->tax }}"></td>
+                                <input type="hidden" name="items[{{ $index }}][supplier_id]" class="supplier-id-input" value="{{ $item->supplier_id ?? $purchaseOrder->supplier_id }}">
+                                <input type="hidden" name="items[{{ $index }}][supplier_name]" class="supplier-name-input" value="{{ $item->supplier_name ?? $purchaseOrder->supplier }}">
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->unit_price }}"></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->tax }}"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" value="{{ $item->total }}" readonly></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->note }}" placeholder="Note..."></td>
                             </tr>
@@ -379,7 +449,7 @@ function addRow() {
             <input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off">
             <input type="hidden" name="items[${rowCount}][purchase_request_item_id]" value="">
         </td>
-        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" required></td>
         <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
         <td class="border border-gray-700 px-2 py-2">
             <div class="relative">
@@ -388,14 +458,12 @@ function addRow() {
             </div>
         </td>
         <td class="border border-gray-700 px-2 py-2">
-            <div class="relative">
-                <input type="text" name="items[${rowCount}][supplier_name]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white supplier-input" autocomplete="off" placeholder="Search supplier...">
-                <input type="hidden" name="items[${rowCount}][supplier_id]" class="supplier-id-input" value="">
-                <div class="supplier-dropdown hidden bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto"></div>
-            </div>
+            <input type="text" name="items[${rowCount}][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" placeholder="Brand">
         </td>
-        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price"></td>
-        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" value="0"></td>
+        <input type="hidden" name="items[${rowCount}][supplier_id]" class="supplier-id-input" value="">
+        <input type="hidden" name="items[${rowCount}][supplier_name]" class="supplier-name-input" value="">
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();"></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="0"></td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly></td>
         <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="Note..."></td>
     `;
@@ -404,8 +472,6 @@ function addRow() {
     attachItemCodeListeners();
     const newDesc = newRow.querySelector('.desc-input');
     if (newDesc) attachDescAutocomplete(newDesc);
-    const newSupplier = newRow.querySelector('.supplier-input');
-    if (newSupplier) attachSupplierAutocomplete(newSupplier);
 }
 
 function removeRow(btn) {
@@ -436,11 +502,11 @@ function attachCalculationListeners() {
 }
 
 function calculateRowTotal(row) {
-    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-    const price = parseFloat(row.querySelector('.item-price').value) || 0;
-    const tax = parseFloat(row.querySelector('.item-tax').value) || 0;
-    const total = tax > 0 ? (qty * price) + tax : qty * price;
-    row.querySelector('.item-total').value = total.toFixed(2);
+    const qty   = parseFloat(row.querySelector('.item-qty')?.value)   || 0;
+    const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
+    const tax   = parseFloat(row.querySelector('.item-tax')?.value)   || 0;
+    const total = row.querySelector('.item-total');
+    if (total) total.value = (tax > 0 ? (qty * price) + tax : qty * price).toFixed(2);
 }
 
 function calculateTotal(e) {
@@ -449,9 +515,7 @@ function calculateTotal(e) {
 }
 
 function recalculateAllTotals() {
-    document.querySelectorAll('#itemsBody tr').forEach(row => {
-        calculateRowTotal(row);
-    });
+    document.querySelectorAll('#itemsBody tr').forEach(row => calculateRowTotal(row));
     updateCurrencySummary();
 }
 
@@ -472,20 +536,45 @@ function onCurrencyChange() {
         rateLabel.textContent = `(1 ${code} = ? PHP)`;
     }
     updateCurrencySummary();
+    calcServiceTotal();
+}
+
+function calcServiceTotal() {
+    const qty     = parseFloat(document.getElementById('service_qty')?.value) || 0;
+    const amt     = parseFloat(document.getElementById('service_amount')?.value) || 0;
+    const code    = document.getElementById('currency_select').value;
+    const rate    = parseFloat(document.getElementById('exchange_rate').value) || 1;
+    const wrapper = document.getElementById('service_total_wrapper');
+    const label   = document.getElementById('service_total_label');
+    const disp    = document.getElementById('service_total_display');
+
+    if (code === 'PHP') {
+        wrapper?.classList.add('hidden');
+    } else {
+        const phpTotal = qty * amt * rate;
+        if (disp) disp.value = phpTotal.toFixed(2);
+        if (label) label.textContent = `TOTAL (PHP equiv. @ ${rate.toFixed(4)})`;
+        wrapper?.classList.remove('hidden');
+    }
+    updateCurrencySummary();
 }
 
 function updateCurrencySummary() {
     const code = document.getElementById('currency_select').value;
     const rate = parseFloat(document.getElementById('exchange_rate').value) || 1;
     const summary = document.getElementById('currency_summary');
-    if (code === 'PHP') {
-        summary.classList.add('hidden');
-        return;
-    }
+    if (code === 'PHP') { summary.classList.add('hidden'); return; }
+
+    const isService = document.getElementById('poTypeInput')?.value === 'service';
     let foreignTotal = 0;
-    document.querySelectorAll('.item-total').forEach(inp => {
-        foreignTotal += parseFloat(inp.value) || 0;
-    });
+    if (isService) {
+        const sQty = parseFloat(document.getElementById('service_qty')?.value) || 0;
+        const sAmt = parseFloat(document.getElementById('service_amount')?.value) || 0;
+        foreignTotal = sQty * sAmt;
+    } else {
+        document.querySelectorAll('.item-total').forEach(inp => foreignTotal += parseFloat(inp.value) || 0);
+    }
+
     summary.classList.remove('hidden');
     document.getElementById('summary_currency').textContent = code;
     document.getElementById('summary_code').textContent = code;
@@ -494,11 +583,12 @@ function updateCurrencySummary() {
     document.getElementById('summary_php_total').textContent = (foreignTotal * rate).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
-document.getElementById('exchange_rate').addEventListener('input', updateCurrencySummary);
+document.getElementById('exchange_rate').addEventListener('input', () => { updateCurrencySummary(); calcServiceTotal(); });
 
 // ==================== FIXED-POSITION DROPDOWN HELPER ====================
 const SUPPLIER_SEARCH_URL = '{{ route("purchase_orders.search_suppliers") }}';
-const SEARCH_URL = '{{ route("non_trade_items.search") }}';
+const SEARCH_URL = '{{ route("items.search") }}';
+const LAST_SUPPLIER_URL   = '{{ route("purchase_orders.last_supplier_for_item") }}';
 const ITEM_CODE_SEARCH_URL = '{{ route("purchase_orders.search_by_item_code") }}';
 const GENERATE_ITEM_CODE_URL = '{{ route("purchase_orders.generate_item_code") }}';
 
@@ -571,6 +661,22 @@ function attachSupplierAutocomplete(input) {
     input.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 200));
 }
 
+// ==================== LAST SUPPLIER AUTO-FILL ====================
+async function autoFillLastSupplier(row, description) {
+    const si = row.querySelector('.supplier-id-input');
+    const ss = row.querySelector('.supplier-input');
+    if (si && si.value) return; // Already has a supplier
+    if (!description || description.length < 2) return;
+    try {
+        const res  = await fetch(`${LAST_SUPPLIER_URL}?description=${encodeURIComponent(description)}`);
+        const data = await res.json();
+        if (data && data.supplier_id) {
+            if (si) si.value = data.supplier_id;
+            if (ss) ss.value = data.supplier_name || '';
+        }
+    } catch (e) { /* silent fail */ }
+}
+
 // ==================== DESCRIPTION AUTOCOMPLETE ====================
 let descTimeout;
 
@@ -592,10 +698,12 @@ function attachDescAutocomplete(input) {
                 if (!items.length) { dropdown.classList.add('hidden'); return; }
                 dropdown.innerHTML = items.map(item =>
                     `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 desc-option"
-                          data-name="${(item.name || item).toString().replace(/"/g, '&quot;')}"
-                          data-item-code="${(item.item_code || '').toString().replace(/"/g, '&quot;')}"
-                          data-supplier-id="${item.supplier_id || ''}"
-                          data-supplier-name="${(item.supplier_name || '').toString().replace(/"/g, '&quot;')}">${typeof item === 'string' ? item : item.display_name}</div>`
+                          data-name="${(item.item_description || '').replace(/"/g, '&quot;')}"
+                          data-item-code="${(item.item_code || '').replace(/"/g, '&quot;')}"
+                          data-brand="${(item.brand || '').replace(/"/g, '&quot;')}">
+                        <div class="font-semibold">${item.item_description || ''}</div>
+                        <div class="text-xs text-gray-400">${item.item_code || ''} ${item.brand ? '· '+item.brand : ''} <span class="text-yellow-400">${item.type === 'non_trade' ? 'Non-Trade' : 'Trade'}</span></div>
+                    </div>`
                 ).join('');
                 positionFixedDropdown(input, dropdown);
                 dropdown.classList.remove('hidden');
@@ -613,11 +721,15 @@ function attachDescAutocomplete(input) {
                             itemCodeInput.value = '';
                             autoGenerateItemCode(row);
                         }
+                        const brandInput = row.querySelector('.brand-input');
+                        if (brandInput && this.dataset.brand) brandInput.value = this.dataset.brand;
                         if (this.dataset.supplierId) {
                             const ss = row.querySelector('.supplier-input');
                             const si = row.querySelector('.supplier-id-input');
                             if (ss) ss.value = this.dataset.supplierName || '';
                             if (si) si.value = this.dataset.supplierId;
+                        } else {
+                            autoFillLastSupplier(row, input.value.trim());
                         }
                     });
                 });
@@ -644,6 +756,7 @@ function attachDescAutocomplete(input) {
         if (row) {
             const itemCodeInput = row.querySelector('.item-code-input');
             if (itemCodeInput && !itemCodeInput.value.trim()) autoGenerateItemCode(row);
+            if (input.value.trim()) autoFillLastSupplier(row, input.value.trim());
         }
     });
 }
@@ -693,13 +806,127 @@ async function autoGenerateItemCode(row) {
     } catch (e) { console.error('Error generating item code:', e); }
 }
 
+// ======================== TOP-LEVEL SUPPLIER SEARCH ========================
+let topSupplierTimeout;
+
+function initTopSupplierSearch() {
+    const input      = document.getElementById('topSupplierSearch');
+    const dropdown   = document.getElementById('topSupplierDropdown');
+    const idHidden   = document.getElementById('supplier_id');
+    const nameHidden = document.getElementById('supplier_text');
+    const addrHidden = document.getElementById('supplier_address_hidden');
+    const infoLine   = document.getElementById('topSupplierInfo');
+    const codeLine   = document.getElementById('topSupplierCode');
+
+    if (!input) return;
+
+    async function doSearch() {
+        const q = input.value.trim();
+        clearTimeout(topSupplierTimeout);
+        if (q.length < 1) { dropdown.classList.add('hidden'); return; }
+
+        topSupplierTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`${SUPPLIER_SEARCH_URL}?q=${encodeURIComponent(q)}`);
+                const suppliers = await res.json();
+                if (!suppliers.length) {
+                    dropdown.innerHTML = '<div class="px-3 py-2 text-gray-400 text-sm">No suppliers found</div>';
+                    dropdown.classList.remove('hidden');
+                    return;
+                }
+                dropdown.innerHTML = suppliers.map(s => `
+                    <div class="px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 top-supplier-option"
+                         data-id="${s.id}"
+                         data-name="${s.supplier_name}"
+                         data-code="${s.supplier_code || ''}"
+                         data-address="${(s.address || '').replace(/"/g, '&quot;')}"
+                         data-terms="${(s.terms || '').replace(/"/g, '&quot;')}"
+                         data-contact="${(s.contact_person || '').replace(/"/g, '&quot;')}">
+                        <div class="text-sm font-semibold text-white">${s.supplier_name}</div>
+                        <div class="text-xs text-gray-400">${s.supplier_code || ''}</div>
+                    </div>
+                `).join('');
+                dropdown.classList.remove('hidden');
+
+                dropdown.querySelectorAll('.top-supplier-option').forEach(opt => {
+                    opt.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        input.value      = this.dataset.name;
+                        idHidden.value   = this.dataset.id;
+                        nameHidden.value = this.dataset.name;
+                        addrHidden.value = this.dataset.address;
+                        codeLine.textContent = this.dataset.code;
+                        infoLine.classList.remove('hidden');
+                        dropdown.classList.add('hidden');
+                        const pt = document.getElementById('payment_terms');
+                        if (pt) pt.value = this.dataset.terms || '';
+                        const cn = document.getElementById('consignee');
+                        if (cn && !cn.value.trim()) cn.value = this.dataset.contact || '';
+                    });
+                });
+            } catch (err) {
+                console.error('Top supplier search error:', err);
+                dropdown.classList.add('hidden');
+            }
+        }, 250);
+    }
+
+    input.addEventListener('input', function() {
+        nameHidden.value = this.value;
+        idHidden.value   = '';
+        addrHidden.value = '';
+        infoLine.classList.add('hidden');
+        doSearch();
+    });
+    input.addEventListener('focus', doSearch);
+    input.addEventListener('blur', function() {
+        nameHidden.value = this.value;
+        setTimeout(() => dropdown.classList.add('hidden'), 200);
+    });
+}
+
+function syncSupplierToItems() {
+    const supplierId   = document.getElementById('supplier_id').value;
+    const supplierName = document.getElementById('supplier_text').value;
+    document.querySelectorAll('.supplier-id-input').forEach(el => el.value = supplierId);
+    document.querySelectorAll('.supplier-name-input').forEach(el => el.value = supplierName);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     attachCalculationListeners();
     attachItemCodeListeners();
     recalculateAllTotals();
+    calcServiceTotal();
     document.querySelectorAll('.desc-input').forEach(attachDescAutocomplete);
-    document.querySelectorAll('.supplier-input').forEach(attachSupplierAutocomplete);
+    initTopSupplierSearch();
+
+    document.getElementById('poForm').addEventListener('submit', function() {
+        syncSupplierToItems();
+    });
 });
+
+function setPOType(type) {
+    document.getElementById('poTypeInput').value = type;
+    const itemsSection = document.getElementById('itemsTableSection');
+    const serviceSection = document.getElementById('serviceDescSection');
+    const serviceDesc = document.getElementById('serviceDescription');
+    const btnItems = document.getElementById('btnTypeItems');
+    const btnService = document.getElementById('btnTypeService');
+
+    if (type === 'service') {
+        itemsSection.classList.add('hidden');
+        serviceSection.classList.remove('hidden');
+        serviceDesc.required = true;
+        btnService.className = 'px-5 py-2 rounded font-semibold transition bg-purple-600 text-white';
+        btnItems.className = 'px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600';
+    } else {
+        itemsSection.classList.remove('hidden');
+        serviceSection.classList.add('hidden');
+        serviceDesc.required = false;
+        btnItems.className = 'px-5 py-2 rounded font-semibold transition bg-purple-600 text-white';
+        btnService.className = 'px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600';
+    }
+}
 </script>
 @endif
 @endsection

@@ -192,8 +192,9 @@
                             <th class="px-3 py-2 border border-gray-700">Item Code</th>
                             <th class="px-3 py-2 border border-gray-700">Item Category</th>
                             <th class="px-3 py-2 border border-gray-700">Brand</th>
+                            <th class="px-3 py-2 border border-gray-700">PCS?</th>
                             <th class="px-3 py-2 border border-gray-700">Quantity</th>
-                            <th class="px-3 py-2 border border-gray-700">UOM (kgs)</th>
+                            <th class="px-3 py-2 border border-gray-700">UOM</th>
                             <th class="px-3 py-2 border border-gray-700">Unit Selling Price</th>
                             <th class="px-3 py-2 border border-gray-700">Amount</th>
                             <th class="px-3 py-2 border border-gray-700">Note</th>
@@ -254,6 +255,9 @@
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
                                 <input type="text" name="items[0][brand_display]" class="item-brand w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300" readonly>
+                            </td>
+                            <td class="px-2 py-2 border border-gray-700 text-center">
+                                <input type="checkbox" class="pcs-toggle w-5 h-5 rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500" onchange="togglePcs(this)">
                             </td>
                             <td class="px-2 py-2 border border-gray-700">
                                 <input type="number" name="items[0][quantity]" class="item-quantity w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-white" min="0.01" step="0.01" required>
@@ -873,6 +877,9 @@ window.validateForm = function() {
                 <td class="border border-gray-700 px-2 py-1">
                     <input type="text" name="items[${rowCount}][brand_display]" class="item-brand w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-gray-300" readonly>
                 </td>
+                <td class="border border-gray-700 px-2 py-1 text-center">
+                    <input type="checkbox" class="pcs-toggle w-5 h-5 rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500" onchange="togglePcs(this)">
+                </td>
                 <td class="border border-gray-700 px-2 py-1">
                     <input type="number" name="items[${rowCount}][quantity]" class="item-quantity w-full bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-white" min="0.01" step="0.01" required>
                 </td>
@@ -916,7 +923,16 @@ window.validateForm = function() {
             }
         });
 
-        // ================= CALCULATION ================= 
+        // ================= PCS TOGGLE =================
+        window.togglePcs = function(checkbox) {
+            const row = checkbox.closest('tr');
+            const unitInput = row.querySelector('.item-unit');
+            if (unitInput) {
+                unitInput.value = checkbox.checked ? 'Pcs' : 'Kgs';
+            }
+        };
+
+        // ================= CALCULATION =================
         const table = document.getElementById('itemsTable');
 
         table.addEventListener('input', function(e) {

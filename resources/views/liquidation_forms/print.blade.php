@@ -297,7 +297,7 @@
                 </div>
                 <div class="sig-subtitle">Signature Over Printed Name</div>
                 @if($liquidation->creator && $liquidation->created_at)
-                <div class="sig-detail">Digitally Signed &middot; {{ $liquidation->created_at->format('d M Y | H:i') }}</div>
+                <div class="sig-detail">@include('partials.esignature', ['signer' => $liquidation->creator]) &middot; {{ $liquidation->created_at->format('d M Y | H:i') }}</div>
                 @endif
             </div>
             <div class="sig-block">
@@ -308,7 +308,7 @@
                 <div class="sig-subtitle">Immediate Superior</div>
                 @if($liquidation->dhApprover && $liquidation->dh_approved_at)
                 <div class="sig-detail">
-                    Digitally Signed &middot; {{ $liquidation->dh_approved_at->format('d M Y | H:i') }}
+                    @include('partials.esignature', ['signer' => $liquidation->dhApprover]) &middot; {{ $liquidation->dh_approved_at->format('d M Y | H:i') }}
                     @if($liquidation->dh_approved_location) &middot; {{ $liquidation->dh_approved_location }} @endif
                 </div>
                 @endif
@@ -323,7 +323,7 @@
             </div>
             @if($liquidation->executiveApprover && $liquidation->executive_approved_at)
             <div style="font-size: 7px; color: #888; margin-top: 2px;">
-                Digitally Signed &middot; {{ $liquidation->executive_approved_at->format('d M Y | H:i') }}
+                @include('partials.esignature', ['signer' => $liquidation->executiveApprover]) &middot; {{ $liquidation->executive_approved_at->format('d M Y | H:i') }}
                 @if($liquidation->executive_approved_location) &middot; {{ $liquidation->executive_approved_location }} @endif
             </div>
             @endif

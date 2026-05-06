@@ -167,13 +167,14 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 12%;">SO Number</th>
-                <th style="width: 20%;">Customer</th>
+                <th style="width: 11%;">SO Number</th>
+                <th style="width: 18%;">Customer</th>
+                <th style="width: 10%;">Requested Date</th>
                 <th style="width: 10%;">Date Created</th>
-                <th style="width: 15%;">Total Amount</th>
-                <th style="width: 10%;">Status</th>
-                <th style="width: 15%;">Prepared By</th>
-                <th style="width: 15%;">Approved By</th>
+                <th style="width: 13%;">Total Amount</th>
+                <th style="width: 9%;">Status</th>
+                <th style="width: 14%;">Prepared By</th>
+                <th style="width: 14%;">Approved By</th>
             </tr>
         </thead>
         <tbody>
@@ -187,6 +188,7 @@
                 <tr>
                     <td class="text-center">{{ $order->sales_order_number }}</td>
                     <td>{{ $order->customer->customer_name ?? 'N/A' }}</td>
+                    <td class="text-center">{{ $order->request_delivery_date ? \Carbon\Carbon::parse($order->request_delivery_date)->format('m/d/Y') : '—' }}</td>
                     <td class="text-center">{{ $order->created_at->format('m/d/Y') }}</td>
                     <td class="text-right">₱{{ number_format($order->total_amount, 2) }}</td>
                     <td class="text-center">
@@ -209,7 +211,7 @@
             
             @if($salesOrders->isEmpty())
                 <tr>
-                    <td colspan="7" class="text-center" style="padding: 20px;">
+                    <td colspan="8" class="text-center" style="padding: 20px;">
                         No sales orders found for the selected period.
                     </td>
                 </tr>

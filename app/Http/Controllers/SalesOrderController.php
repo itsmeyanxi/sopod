@@ -28,7 +28,7 @@ class SalesOrderController extends Controller
    public function index(Request $request)
 {
     $query = SalesOrder::with(['customer', 'preparer', 'approver', 'deliveries'])
-        ->orderByDesc('created_at');
+        ->orderByDesc('sales_orders.created_at');
 
     // This allows filtering even for SOs without deliveries yet
     if ($request->filled('date_from')) {
@@ -70,7 +70,8 @@ class SalesOrderController extends Controller
     // Filter by DR status using SQL via LEFT JOIN on deliveries
     if ($request->filled('dr_status')) {
         $drStatus = $request->dr_status;
-        $query->leftJoin('deliveries as d_filter', 'd_filter.sales_order_id', '=', 'sales_orders.id')
+        $query->select('sales_orders.*')
+              ->leftJoin('deliveries as d_filter', 'd_filter.sales_order_number', '=', 'sales_orders.sales_order_number')
               ->where(function($q) use ($drStatus) {
                   match($drStatus) {
                       'Awaiting Delivery' => $q->whereNull('d_filter.id')->where('sales_orders.status', 'Approved'),
@@ -348,7 +349,8 @@ public function bulkDecline(Request $request)
         'sales_rep' => 'nullable|string',
         'items' => 'required|array|min:1',
         'items.*.item_id' => 'required',
-        'items.*.quantity' => 'required|numeric|min:0.01',
+        'items.*.quantity' => 'nullable|numeric|min:0',
+        'items.*.pcs' => 'nullable|integer|min:1',
         'items.*.price' => 'required|numeric|min:0',
         'items.*.amount' => 'nullable|numeric|min:0', // ✅ Made nullable
         'additional_instructions' => 'nullable|string',
@@ -361,6 +363,15 @@ public function bulkDecline(Request $request)
         return back()->withInput()->with('error', 'Please provide either a PO Number or upload proof of customer order.');
     }
 
+    // Validate each item has either quantity or pcs
+    foreach ($request->items as $index => $item) {
+        $hasQty = !empty($item['quantity']) && (float)$item['quantity'] > 0;
+        $hasPcs = !empty($item['pcs']) && (int)$item['pcs'] > 0;
+        if (!$hasQty && !$hasPcs) {
+            return back()->withInput()->with('error', "Item #" . ($index + 1) . ": Please provide either Quantity (Kgs) or PCS.");
+        }
+    }
+
     DB::beginTransaction();
 
     try {
@@ -368,7 +379,7 @@ public function bulkDecline(Request $request)
         $salesOrderNumber = $this->generateSalesOrderNumber();
 
         $items = $request->items;
-        
+
         // ✅ CRITICAL: ALWAYS calculate server-side, ignore client values
         $totalAmount = 0;
         foreach ($items as $item) {
@@ -452,6 +463,7 @@ public function bulkDecline(Request $request)
                 'brand' => $itemData['brand'] ?? $item->brand ?? null,
                 'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
                 'quantity' => $quantity,
+                'pcs' => !empty($itemData['pcs']) ? (int)$itemData['pcs'] : null,
                 'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
                 'unit_price' => $unitPrice,
                 'total_amount' => $itemTotal, // ✅ Use calculated value ONLY
@@ -653,6 +665,15 @@ private function syncDeliveryPrices(SalesOrder $salesOrder)
 
 public function update(Request $request, $id)
 {
+    \Log::info('SO Update called', [
+        'id' => $id,
+        'items_count' => count($request->input('items', [])),
+        'customer_id' => $request->customer_id,
+        'request_method' => $request->method(),
+        'has_items' => $request->has('items'),
+        'first_item_price' => $request->input('items.0.unit_price'),
+    ]);
+
     $salesOrder = SalesOrder::with('deliveries')->findOrFail($id);
 
     if ($salesOrder->is_locked) {
@@ -697,13 +718,25 @@ public function update(Request $request, $id)
         'po_image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
         'items' => 'required|array|min:1',
         'items.*.item_id' => 'required|exists:items,id',
-        'items.*.quantity' => 'required|numeric|min:0.01',
+        'items.*.quantity' => 'nullable|numeric|min:0',
+        'items.*.pcs' => 'nullable|integer|min:1',
         'items.*.unit_price' => 'required|numeric|min:0',
         'items.*.total_amount' => 'nullable|numeric|min:0', // ✅ Made nullable
     ], [
         'po_image.mimes' => 'PO proof must be a JPG, PNG, or PDF file.',
         'po_image.max' => 'PO proof file size must not exceed 4MB.',
     ]);
+
+    \Log::info('SO Update: validation passed', ['id' => $id]);
+
+    // Validate each item has either quantity or pcs
+    foreach ($request->items as $index => $item) {
+        $hasQty = !empty($item['quantity']) && (float)$item['quantity'] > 0;
+        $hasPcs = !empty($item['pcs']) && (int)$item['pcs'] > 0;
+        if (!$hasQty && !$hasPcs) {
+            return back()->withInput()->with('error', "Item #" . ($index + 1) . ": Please provide either Quantity (Kgs) or PCS.");
+        }
+    }
 
     // ✅ NEW LOGIC: Allow switching between PO number and PO image
     $hasPoNumber = $request->filled('po_number');
@@ -733,6 +766,14 @@ public function update(Request $request, $id)
     // Final check: Must have at least one after update
     if (!$willHaveNumber && !$willHaveImage) {
         return back()->withInput()->with('error', 'You must provide either a PO Number OR PO Image.');
+    }
+
+    // Block customer change if not approved by IT
+    if ((int)$request->customer_id !== (int)$salesOrder->customer_id) {
+        if (!$salesOrder->isCustomerChangeApproved() && !$user->canApproveCustomerChange()) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Customer change requires IT approval. Please request approval first.');
+        }
     }
 
     DB::beginTransaction();
@@ -809,15 +850,17 @@ public function update(Request $request, $id)
         }
 
         // Update SO header
+        $newCustomerModel = Customer::find($request->customer_id);
         $salesOrder->update([
             'customer_id' => $request->customer_id,
+            'customer_name' => $newCustomerModel->customer_name ?? $salesOrder->customer_name,
             'request_delivery_date' => $request->request_delivery_date,
             'po_number' => $request->po_number,
             'po_image' => $poImageFilename,
             'sales_rep' => $request->sales_rep ?? $salesOrder->sales_rep,
             'shipping_address' => $request->shipping_address ?? $salesOrder->shipping_address,
             'additional_instructions' => $request->additional_instructions,
-            'sales_executive' => optional(Customer::find($request->customer_id))->sales_executive ?? $salesOrder->sales_executive,
+            'sales_executive' => $newCustomerModel->sales_executive ?? $salesOrder->sales_executive,
         ]);
 
         // Delete existing items
@@ -849,9 +892,11 @@ public function update(Request $request, $id)
                 'brand' => $itemData['brand'] ?? $item->brand ?? null,
                 'item_category' => $itemData['item_category'] ?? $item->item_category ?? null,
                 'quantity' => $quantity,
+                'pcs' => !empty($itemData['pcs']) ? (int)$itemData['pcs'] : null,
                 'unit' => $itemData['unit'] ?? $item->unit ?? 'Kgs',
                 'unit_price' => $unitPrice,
                 'total_amount' => $itemTotal, // ✅ Use ONLY calculated value
+                'batch_status' => 'Active',
                 'note' => $itemData['note'] ?? null,
             ]);
 
@@ -878,16 +923,40 @@ public function update(Request $request, $id)
         if ($request->filled('request_delivery_date')) {
             $updatedDeliveriesCount = Deliveries::where('sales_order_number', $salesOrder->sales_order_number)
                 ->update(['request_delivery_date' => $request->request_delivery_date]);
-            
+
             SalesOrderItem::where('sales_order_id', $salesOrder->id)
                 ->update(['request_delivery_date' => $request->request_delivery_date]);
-            
+
             \Log::info('✅ Synced delivery dates', [
                 'so_number' => $salesOrder->sales_order_number,
                 'new_date' => $request->request_delivery_date,
                 'deliveries_updated' => $updatedDeliveriesCount,
                 'so_items_updated' => SalesOrderItem::where('sales_order_id', $salesOrder->id)->count()
             ]);
+        }
+
+        // Sync customer change to deliveries
+        if ((int)$request->customer_id !== (int)$originalData['customer_id']) {
+            $newCustomer = Customer::find($request->customer_id);
+            if ($newCustomer) {
+                $customerUpdated = Deliveries::where('sales_order_number', $salesOrder->sales_order_number)
+                    ->update([
+                        'customer_code' => $newCustomer->customer_code,
+                        'customer_name' => $newCustomer->customer_name,
+                        'sales_executive' => $newCustomer->sales_executive,
+                    ]);
+
+                \Log::info('✅ Synced customer change to deliveries', [
+                    'so_number' => $salesOrder->sales_order_number,
+                    'old_customer_id' => $originalData['customer_id'],
+                    'new_customer_id' => $request->customer_id,
+                    'new_customer_name' => $newCustomer->customer_name,
+                    'deliveries_updated' => $customerUpdated,
+                ]);
+            }
+
+            // Reset approval after use (one-time approval per change)
+            $salesOrder->resetCustomerChangeApproval();
         }
 
         // Track changes (existing code...)
@@ -929,6 +998,11 @@ public function update(Request $request, $id)
         ]);
 
         DB::commit();
+        \Log::info('SO Update: committed successfully', [
+            'id' => $salesOrder->id,
+            'new_total' => $salesOrder->total_amount,
+            'items_count' => $salesOrder->items()->count(),
+        ]);
         return redirect()->route('sales_orders.show', $salesOrder->id)
             ->with('success', 'Sales Order updated successfully!');
 
@@ -1205,7 +1279,46 @@ private function formatChangeValue($field, $value)
         
         return redirect()->back()->with('success', 'Sales Order approved for editing by CSR team.');
     }
-    
+
+    public function approveCustomerChange($id)
+    {
+        $salesOrder = SalesOrder::findOrFail($id);
+
+        if (!auth()->user()->canApproveCustomerChange()) {
+            return redirect()->back()->with('error', 'Only IT can approve customer changes.');
+        }
+
+        if ($salesOrder->isCustomerChangeApproved()) {
+            return redirect()->back()->with('info', 'Customer change is already approved for this Sales Order.');
+        }
+
+        $salesOrder->approveCustomerChange(auth()->user()->name);
+
+        \App\Models\Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Approved Customer Change',
+            'item' => $salesOrder->sales_order_number,
+            'target' => optional($salesOrder->customer)->customer_name ?? 'N/A',
+            'type' => 'Sales Order',
+            'message' => 'Approved customer change on Sales Order',
+        ]);
+
+        return redirect()->back()->with('success', 'Customer change approved. The customer field can now be edited.');
+    }
+
+    public function revokeCustomerChange($id)
+    {
+        $salesOrder = SalesOrder::findOrFail($id);
+
+        if (!auth()->user()->canApproveCustomerChange()) {
+            return redirect()->back()->with('error', 'Only IT can revoke customer change approval.');
+        }
+
+        $salesOrder->resetCustomerChangeApproval();
+
+        return redirect()->back()->with('success', 'Customer change approval revoked.');
+    }
+
     public function destroy($id)
     {
         try {
@@ -1460,11 +1573,11 @@ public function updateStatus(Request $request, $id)
         $query = SalesOrder::with(['customer', 'preparer', 'approver', 'deliveries']);
 
         if ($dateFrom) {
-            $query->whereDate('created_at', '>=', $dateFrom);
+            $query->whereDate('request_delivery_date', '>=', $dateFrom);
         }
 
         if ($dateTo) {
-            $query->whereDate('created_at', '<=', $dateTo);
+            $query->whereDate('request_delivery_date', '<=', $dateTo);
         }
 
         if ($search) {
@@ -1555,11 +1668,11 @@ public function updateStatus(Request $request, $id)
         $query = SalesOrder::with(['customer', 'preparer', 'approver', 'deliveries']);
 
         if ($dateFrom) {
-            $query->whereDate('created_at', '>=', $dateFrom);
+            $query->whereDate('request_delivery_date', '>=', $dateFrom);
         }
 
         if ($dateTo) {
-            $query->whereDate('created_at', '<=', $dateTo);
+            $query->whereDate('request_delivery_date', '<=', $dateTo);
         }
 
         if ($search) {

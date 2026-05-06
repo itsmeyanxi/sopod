@@ -9,7 +9,7 @@ class TreasuryBankAccount extends Model
     protected $fillable = [
         'account_number', 'bank_name', 'short_name', 'currency',
         'account_type', 'cash_balance', 'balance_as_of',
-        'gl_account_id', 'is_active', 'created_by',
+        'gl_account_id', 'is_active', 'created_by', 'icon_color',
     ];
 
     protected $casts = [
@@ -42,4 +42,5 @@ class TreasuryBankAccount extends Model
     {
         return $query->where('is_active', true);
     }
+
 }

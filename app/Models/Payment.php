@@ -21,7 +21,7 @@ class Payment extends Model
             $builder->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('deliveries')
-                    ->whereRaw('deliveries.dr_no COLLATE utf8mb4_unicode_ci = payments.dr_no COLLATE utf8mb4_unicode_ci')
+                    ->whereRaw('deliveries.dr_no COLLATE utf8mb4_general_ci = payments.dr_no COLLATE utf8mb4_general_ci')
                     ->where('deliveries.is_hidden', true);
             });
         });
@@ -44,5 +44,6 @@ class Payment extends Model
         'net' => 'decimal:2',
         'confirmed' => 'boolean',
         'confirmed_at' => 'datetime',
+        'bounced_at' => 'datetime',
     ];
 }

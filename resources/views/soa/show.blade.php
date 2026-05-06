@@ -32,16 +32,13 @@
                     <div>
                         <p class="text-xs text-gray-300 font-semibold mb-1">Bill to</p>
                         <p class="text-lg font-bold text-white">{{ $customerName }}</p>
+                        @if(!empty($billingAddress))
+                        <p class="text-xs text-gray-400 mt-0.5">{{ $billingAddress }}</p>
+                        @endif
                         <div class="mt-2 space-y-0.5">
                             <p class="text-xs text-gray-300"><strong>Receivable as of {{ $today->format('M d, Y') }}</strong></p>
                             <p class="text-xl font-bold text-red-800">₱{{ number_format($totalBalance, 2) }}</p>
                         </div>
-                        @if($creditBalance > 0 && auth()->user()->isAdminUser())
-                        <div class="mt-2 bg-green-50 border border-green-200 rounded px-3 py-2 inline-block">
-                            <p class="text-xs text-green-700 font-semibold">Credit Balance / Overpayment</p>
-                            <p class="text-lg font-bold text-green-700">₱{{ number_format($creditBalance, 2) }}</p>
-                        </div>
-                        @endif
                     </div>
                     <div class="text-right space-y-1">
                         <div class="flex justify-end gap-4">
@@ -74,49 +71,41 @@
                     <table class="min-w-full text-sm border-collapse">
                         <thead>
                             <tr class="bg-red-800 text-white">
-                                <th class="px-3 py-2.5 text-center text-xs font-semibold">Invoice Date</th>
+                                <th class="px-3 py-2.5 text-center text-xs font-semibold">Delivery Date</th>
+                                <th class="px-3 py-2.5 text-center text-xs font-semibold">Counter Date</th>
                                 <th class="px-3 py-2.5 text-center text-xs font-semibold">Due Date</th>
-                                <th class="px-3 py-2.5 text-center text-xs font-semibold">SOA Date</th>
                                 <th class="px-3 py-2.5 text-center text-xs font-semibold">DR No.</th>
                                 <th class="px-3 py-2.5 text-center text-xs font-semibold">SI No.</th>
-                                <th class="px-3 py-2.5 text-center text-xs font-semibold">Number of Days Outstanding</th>
-                                <th class="px-3 py-2.5 text-right text-xs font-semibold">Current</th>
+                                <th class="px-3 py-2.5 text-center text-xs font-semibold">Branch</th>
+                                <th class="px-3 py-2.5 text-center text-xs font-semibold">No. Of Days Outstanding</th>
+                                <th class="px-3 py-2.5 text-right text-xs font-semibold">Current Due</th>
                                 <th class="px-3 py-2.5 text-right text-xs font-semibold">Past Due</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($detailRows as $idx => $row)
-                            <tr class="{{ $idx % 2 === 1 ? 'bg-red-50' : 'bg-gray-800' }} border-b border-gray-100">
+                            <tr class="{{ $idx % 2 === 1 ? 'bg-gray-700' : 'bg-gray-800' }} border-b border-gray-600">
                                 <td class="px-3 py-2 text-center text-gray-200">{{ $row->invoice_date ? \Carbon\Carbon::parse($row->invoice_date)->format('n/j/Y') : '—' }}</td>
+                                <td class="px-3 py-2 text-center text-gray-200">{{ $row->counter_date ? \Carbon\Carbon::parse($row->counter_date)->format('n/j/Y') : '—' }}</td>
                                 <td class="px-3 py-2 text-center text-gray-200">{{ $row->due_date ? \Carbon\Carbon::parse($row->due_date)->format('n/j/Y') : '—' }}</td>
-                                <td class="px-3 py-2 text-center text-gray-200">{{ $today->format('n/j/Y') }}</td>
                                 <td class="px-3 py-2 text-center text-white font-medium">{{ $row->dr_no ?? '—' }}</td>
                                 <td class="px-3 py-2 text-center text-white font-medium">{{ $row->invoice_no ?? '—' }}</td>
-                                <td class="px-3 py-2 text-center {{ $row->days_outstanding > 0 ? 'text-red-600 font-semibold' : 'text-green-700' }}">{{ $row->days_outstanding }}</td>
+                                <td class="px-3 py-2 text-center text-gray-200">{{ $row->branch ?? '—' }}</td>
+                                <td class="px-3 py-2 text-center {{ $row->days_outstanding > 0 ? 'text-red-400 font-semibold' : 'text-green-400' }}">{{ $row->days_outstanding }}</td>
                                 <td class="px-3 py-2 text-right text-white">{{ $row->current > 0 ? number_format($row->current, 2) : '' }}</td>
-                                <td class="px-3 py-2 text-right text-red-700 font-semibold">{{ $row->past_due > 0 ? number_format($row->past_due, 2) : '' }}</td>
+                                <td class="px-3 py-2 text-right text-red-400 font-semibold">{{ $row->past_due > 0 ? number_format($row->past_due, 2) : '' }}</td>
                             </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
                             <tr class="bg-gray-900">
-                                <td colspan="8" class="px-3 py-2 text-center text-gray-400 italic text-xs">—Nothing Follows—</td>
+                                <td colspan="9" class="px-3 py-2 text-center text-gray-400 italic text-xs">—Nothing Follows—</td>
                             </tr>
                             <tr class="bg-red-800 text-white font-bold">
-                                <td colspan="6" class="px-3 py-2.5 text-right text-sm">Current Balance:</td>
+                                <td colspan="7" class="px-3 py-2.5 text-right text-sm">Current Balance:</td>
                                 <td class="px-3 py-2.5 text-right text-sm">{{ number_format($totalCurrent, 2) }}</td>
                                 <td class="px-3 py-2.5 text-right text-sm">{{ number_format($totalPastDue, 2) }}</td>
                             </tr>
-                            @if($creditBalance > 0 && auth()->user()->isAdminUser())
-                            <tr class="bg-green-50 border-t-2 border-green-300">
-                                <td colspan="6" class="px-3 py-2.5 text-right text-sm font-bold text-green-800">
-                                    <i class="fas fa-wallet mr-1"></i> Credit Balance / Overpayment:
-                                </td>
-                                <td colspan="2" class="px-3 py-2.5 text-right text-sm font-bold text-green-700">
-                                    ₱{{ number_format($creditBalance, 2) }}
-                                </td>
-                            </tr>
-                            @endif
                         </tfoot>
                     </table>
                 </div>

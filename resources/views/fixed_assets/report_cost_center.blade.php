@@ -35,17 +35,18 @@
                             $totalMonthly += $cc->total_monthly_dep;
                             $totalCount   += $cc->asset_count;
                         @endphp
-                        <tr class="hover:bg-gray-900 {{ $selectedCenter == $cc->cost_center_name ? 'bg-blue-50' : '' }}">
-                            <td class="px-4 py-2 font-medium">{{ $cc->cost_center_name ?: '(Unassigned)' }}</td>
-                            <td class="px-4 py-2 text-right font-mono">{{ number_format($cc->asset_count) }}</td>
-                            <td class="px-4 py-2 text-right font-mono">{{ number_format($cc->total_cost, 2) }}</td>
-                            <td class="px-4 py-2 text-right font-mono">{{ number_format($cc->total_accum_dep, 2) }}</td>
-                            <td class="px-4 py-2 text-right font-mono font-semibold">{{ number_format($cc->total_nbv, 2) }}</td>
-                            <td class="px-4 py-2 text-right font-mono">{{ number_format($cc->total_monthly_dep, 2) }}</td>
-                            <td class="px-4 py-2 text-center">
-                                <a href="{{ route('fixed_assets.report_cost_center', ['cost_center' => $cc->cost_center_name]) }}"
-                                   class="text-blue-600 hover:underline text-xs">View Assets</a>
-                            </td>
+                        <tr class="hover:bg-gray-700 {{ $selectedCenter == $cc->cost_center_name ? 'bg-blue-900/30' : '' }}">
+    <td class="px-4 py-2 font-medium text-white">{{ $cc->cost_center_name ?: '(Unassigned)' }}</td>
+    <td class="px-4 py-2 text-right font-mono text-gray-300">{{ number_format($cc->asset_count) }}</td>
+    <td class="px-4 py-2 text-right font-mono text-gray-300">{{ number_format($cc->total_cost, 2) }}</td>
+    <td class="px-4 py-2 text-right font-mono text-gray-300">{{ number_format($cc->total_accum_dep, 2) }}</td>
+    <td class="px-4 py-2 text-right font-mono font-semibold text-white">{{ number_format($cc->total_nbv, 2) }}</td>
+    <td class="px-4 py-2 text-right font-mono text-gray-300">{{ number_format($cc->total_monthly_dep, 2) }}</td>
+    <td class="px-4 py-2 text-center">
+        <a href="{{ route('fixed_assets.report_cost_center', ['cost_center' => $cc->cost_center_name]) }}"
+           class="text-blue-400 hover:text-blue-300 text-xs">View Assets</a>
+    </td>
+</tr>
                         </tr>
                     @empty
                         <tr>
@@ -56,14 +57,15 @@
                 @if($costCenters->count() > 0)
                 <tfoot>
                     <tr class="bg-gray-900 font-semibold border-t-2 border-gray-600 text-sm">
-                        <td class="px-4 py-2">TOTAL</td>
-                        <td class="px-4 py-2 text-right font-mono">{{ number_format($totalCount) }}</td>
-                        <td class="px-4 py-2 text-right font-mono">{{ number_format($totalCost, 2) }}</td>
-                        <td class="px-4 py-2 text-right font-mono">{{ number_format($totalDep, 2) }}</td>
-                        <td class="px-4 py-2 text-right font-mono text-blue-700">{{ number_format($totalNbv, 2) }}</td>
-                        <td class="px-4 py-2 text-right font-mono">{{ number_format($totalMonthly, 2) }}</td>
-                        <td></td>
-                    </tr>
+    <td class="px-4 py-2 text-white">TOTAL</td>
+    <td class="px-4 py-2 text-right font-mono text-gray-300">{{ number_format($totalCount) }}</td>
+    <td class="px-4 py-2 text-right font-mono text-gray-300">{{ number_format($totalCost, 2) }}</td>
+    <td class="px-4 py-2 text-right font-mono text-gray-300">{{ number_format($totalDep, 2) }}</td>
+    <td class="px-4 py-2 text-right font-mono text-blue-400">{{ number_format($totalNbv, 2) }}</td>
+    <td class="px-4 py-2 text-right font-mono text-gray-300">{{ number_format($totalMonthly, 2) }}</td>
+    <td></td>
+</tr>
+
                 </tfoot>
                 @endif
             </table>
@@ -73,9 +75,9 @@
         @if($selectedCenter && $assets)
             <div class="border-t-2 border-blue-200 pt-6">
                 <h2 class="text-lg font-semibold text-gray-200 mb-4">
-                    Assets in: <span class="text-blue-700">{{ $selectedCenter ?: '(Unassigned)' }}</span>
-                    <span class="text-sm text-gray-300 font-normal ml-2">({{ $assets->count() }} assets)</span>
-                </h2>
+    Assets in: <span class="text-blue-400">{{ $selectedCenter ?: '(Unassigned)' }}</span>
+    <span class="text-sm text-gray-400 font-normal ml-2">({{ $assets->count() }} assets)</span>
+</h2>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border-collapse">

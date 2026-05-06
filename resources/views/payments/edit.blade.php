@@ -11,7 +11,7 @@
     </div>
 
     @if ($errors->any())
-        <div class="bg-red-100 border border-red-300 text-red-700 p-3 rounded mb-4">
+        <div class="bg-red-900/40 border border-red-600 text-red-300 p-3 rounded mb-4">
             <ul class="list-disc ml-5 text-sm">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -156,7 +156,7 @@
                 <label class="block text-sm font-medium text-gray-400 mb-1">Attachment (optional)</label>
                 <input type="file" name="attachment"
                     accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
-                    class="w-full bg-gray-900 border border-gray-700 rounded-md p-2 text-gray-200 text-sm file:mr-3 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    class="w-full bg-gray-900 border border-gray-700 rounded-md p-2 text-gray-200 text-sm file:mr-3 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-900 file:text-blue-300 hover:file:bg-blue-800">
                 <p class="text-xs text-gray-400 mt-1">Supported: JPG, PNG, PDF, DOC, DOCX, XLS, XLSX (max 5MB)</p>
             </div>
             @endif

@@ -21,41 +21,41 @@
         </div>
 
         @if(session('success'))
-            <div class="bg-green-100 text-green-800 px-4 py-3 rounded mb-4">{{ session('success') }}</div>
+            <div class="bg-green-900/40 border border-green-600 text-green-300 px-4 py-3 rounded mb-4">{{ session('success') }}</div>
         @endif
         @if(session('error'))
-            <div class="bg-red-100 text-red-800 px-4 py-3 rounded mb-4">{{ session('error') }}</div>
+            <div class="bg-red-900/40 border border-red-600 text-red-300 px-4 py-3 rounded mb-4">{{ session('error') }}</div>
         @endif
 
         <!-- Summary Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                <p class="text-xs text-blue-600 font-semibold">Total Assets</p>
-                <p class="text-lg font-bold text-blue-800">{{ number_format($summary['total_assets']) }}</p>
+            <div class="bg-blue-900/40 border border-blue-700 rounded-lg p-3 text-center">
+                <p class="text-xs text-blue-300 font-semibold">Total Assets</p>
+                <p class="text-lg font-bold text-blue-200">{{ number_format($summary['total_assets']) }}</p>
             </div>
-            <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                <p class="text-xs text-green-600 font-semibold">Active</p>
-                <p class="text-lg font-bold text-green-800">{{ number_format($summary['active_count']) }}</p>
+            <div class="bg-green-900/40 border border-green-700 rounded-lg p-3 text-center">
+                <p class="text-xs text-green-300 font-semibold">Active</p>
+                <p class="text-lg font-bold text-green-200">{{ number_format($summary['active_count']) }}</p>
             </div>
-            <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-                <p class="text-xs text-red-600 font-semibold">Disposed</p>
-                <p class="text-lg font-bold text-red-800">{{ number_format($summary['disposed_count']) }}</p>
+            <div class="bg-red-900/40 border border-red-700 rounded-lg p-3 text-center">
+                <p class="text-xs text-red-300 font-semibold">Disposed</p>
+                <p class="text-lg font-bold text-red-200">{{ number_format($summary['disposed_count']) }}</p>
             </div>
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                <p class="text-xs text-yellow-600 font-semibold">Fully Depreciated</p>
-                <p class="text-lg font-bold text-yellow-800">{{ number_format($summary['fully_dep_count']) }}</p>
+            <div class="bg-yellow-900/40 border border-yellow-700 rounded-lg p-3 text-center">
+                <p class="text-xs text-yellow-300 font-semibold">Fully Depreciated</p>
+                <p class="text-lg font-bold text-yellow-200">{{ number_format($summary['fully_dep_count']) }}</p>
             </div>
-            <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 text-center">
-                <p class="text-xs text-purple-600 font-semibold">Total Cost</p>
-                <p class="text-sm font-bold text-purple-800">{{ number_format($summary['total_cost'], 2) }}</p>
+            <div class="bg-purple-900/40 border border-purple-700 rounded-lg p-3 text-center">
+                <p class="text-xs text-purple-300 font-semibold">Total Cost</p>
+                <p class="text-sm font-bold text-purple-200">{{ number_format($summary['total_cost'], 2) }}</p>
             </div>
-            <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                <p class="text-xs text-orange-600 font-semibold">Accum. Dep.</p>
-                <p class="text-sm font-bold text-orange-800">{{ number_format($summary['total_accum_dep'], 2) }}</p>
+            <div class="bg-orange-900/40 border border-orange-700 rounded-lg p-3 text-center">
+                <p class="text-xs text-orange-300 font-semibold">Accum. Dep.</p>
+                <p class="text-sm font-bold text-orange-200">{{ number_format($summary['total_accum_dep'], 2) }}</p>
             </div>
-            <div class="bg-teal-50 border border-teal-200 rounded-lg p-3 text-center">
-                <p class="text-xs text-teal-600 font-semibold">Net Book Value</p>
-                <p class="text-sm font-bold text-teal-800">{{ number_format($summary['total_nbv'], 2) }}</p>
+            <div class="bg-teal-900/40 border border-teal-700 rounded-lg p-3 text-center">
+                <p class="text-xs text-teal-300 font-semibold">Net Book Value</p>
+                <p class="text-sm font-bold text-teal-200">{{ number_format($summary['total_nbv'], 2) }}</p>
             </div>
         </div>
 
@@ -120,9 +120,9 @@
                 </thead>
                 <tbody>
                     @forelse($assets as $asset)
-                    <tr class="hover:bg-gray-900 border-b border-gray-100">
-                        <td class="border border-gray-700 px-3 py-2 font-mono text-xs text-blue-700">
-                            <a href="{{ route('fixed_assets.show', $asset->id) }}" class="hover:underline">{{ $asset->asset_code ?: '—' }}</a>
+                    <tr class="hover:bg-gray-900 border-b border-gray-700">
+                        <td class="border border-gray-700 px-3 py-2 font-mono text-xs">
+                            <a href="{{ route('fixed_assets.show', $asset->id) }}" class="text-white hover:underline">{{ $asset->asset_code ?: '—' }}</a>
                         </td>
                         <td class="border border-gray-700 px-3 py-2 text-white max-w-xs truncate" title="{{ $asset->asset_description }}">
                             {{ Str::limit($asset->asset_description, 40) }}
@@ -131,22 +131,22 @@
                         <td class="border border-gray-700 px-3 py-2 text-gray-300 text-xs">{{ $asset->asset_class ?: '—' }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-center text-gray-200 text-xs">{{ $asset->acquisition_date?->format('M d, Y') ?? '—' }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-right font-semibold text-white">{{ number_format($asset->cost, 2) }}</td>
-                        <td class="border border-gray-700 px-3 py-2 text-right text-orange-700">{{ number_format($asset->accumulated_depreciation, 2) }}</td>
-                        <td class="border border-gray-700 px-3 py-2 text-right font-semibold {{ $asset->net_book_value > 0 ? 'text-green-700' : 'text-gray-400' }}">{{ number_format($asset->net_book_value, 2) }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-right text-orange-400">{{ number_format($asset->accumulated_depreciation, 2) }}</td>
+                        <td class="border border-gray-700 px-3 py-2 text-right font-semibold {{ $asset->net_book_value > 0 ? 'text-green-400' : 'text-gray-400' }}">{{ number_format($asset->net_book_value, 2) }}</td>
                         <td class="border border-gray-700 px-3 py-2 text-center">
                             @if($asset->remaining_life_months > 0)
-                                <span class="text-blue-700 font-semibold">{{ $asset->remaining_life_months }}</span>
+                                <span class="text-blue-400 font-semibold">{{ $asset->remaining_life_months }}</span>
                             @else
                                 <span class="text-gray-400">0</span>
                             @endif
                         </td>
                         <td class="border border-gray-700 px-3 py-2 text-center">
                             @if($asset->disposal_date)
-                                <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold">Disposed</span>
+                                <span class="bg-red-900/40 text-red-300 px-2 py-1 rounded text-xs font-semibold">Disposed</span>
                             @elseif($asset->remaining_life_months <= 0)
-                                <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-semibold">Fully Dep.</span>
+                                <span class="bg-yellow-900/40 text-yellow-300 px-2 py-1 rounded text-xs font-semibold">Fully Dep.</span>
                             @else
-                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Active</span>
+                                <span class="bg-green-900/40 text-green-300 px-2 py-1 rounded text-xs font-semibold">Active</span>
                             @endif
                         </td>
                         <td class="border border-gray-700 px-3 py-2 text-center">

@@ -193,6 +193,54 @@
         </form>
     </div>
 
+    {{-- 📊 Delivery Summary (shown when both dates are set) --}}
+    @if($deliverySummary)
+    @php
+        $statusConfig = [
+            'Pending'   => ['color' => 'yellow', 'icon' => '⏳'],
+            'Delivered' => ['color' => 'green',  'icon' => '✓'],
+            'Cancelled' => ['color' => 'red',    'icon' => '✗'],
+        ];
+    @endphp
+    <div class="bg-gray-800/80 border border-gray-700/50 rounded-2xl p-5 mb-6 shadow-lg">
+        <div class="flex items-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-blue-400 uppercase tracking-wide">Delivery Summary</span>
+            <span class="text-xs text-gray-400">
+                {{ request('delivery_date_from') }} — {{ request('delivery_date_to') }}
+                @if(request('approval_status')) · Approval: {{ request('approval_status') }} @endif
+            </span>
+        </div>
+
+        {{-- Per-status breakdown --}}
+        <div class="grid grid-cols-3 gap-3 mb-4">
+            @foreach($statusConfig as $status => $cfg)
+            @php $row = $deliverySummary['breakdown'][$status]; @endphp
+            <div class="bg-gray-900/50 rounded-xl p-4
+                {{ $deliverySummary['filtered_status'] === $status ? 'ring-2 ring-' . $cfg['color'] . '-500' : '' }}">
+                <p class="text-xs text-gray-400 mb-1">{{ $cfg['icon'] }} {{ $status }}</p>
+                <p class="text-2xl font-bold
+                    {{ $status === 'Delivered' ? 'text-green-400' : ($status === 'Cancelled' ? 'text-red-400' : 'text-yellow-400') }}">
+                    ₱{{ number_format($row['total_amount'], 2) }}
+                </p>
+                <p class="text-sm text-gray-400 mt-1">{{ number_format($row['count']) }} DR{{ $row['count'] != 1 ? 's' : '' }}</p>
+            </div>
+            @endforeach
+        </div>
+
+        {{-- Grand total --}}
+        <div class="border-t border-gray-700/50 pt-3 flex items-center justify-between">
+            <span class="text-sm text-gray-400">Grand Total (all statuses)</span>
+            <div class="flex items-center gap-6">
+                <span class="text-sm text-gray-300"><span class="font-bold text-white">{{ number_format($deliverySummary['total_count']) }}</span> deliveries</span>
+                <span class="text-2xl font-bold text-blue-400">₱{{ number_format($deliverySummary['total_amount'], 2) }}</span>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- ✅ BATCH ACTION BAR (Only for approvers) --}}
     @if(\App\Helpers\RoleHelper::canApproveDeliveries())
         <div id="batchActionBar" class="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-xl shadow-lg p-4 mb-4 border border-purple-200 hidden">
@@ -259,6 +307,7 @@
                             </th>
                         @endif
                         <th class="px-4 py-3 text-left">DR No</th>
+                        <th class="px-4 py-3 text-left">Invoice No</th>
                         <th class="px-4 py-3 text-left">Sales Order</th>
                         <th class="px-4 py-3 text-left">Batch</th>
                         <th class="px-4 py-3 text-left">Customer</th>
@@ -297,6 +346,13 @@
                                 <span class="ml-2 text-xs text-orange-700">🔒</span>
                             @endif
                         </td>
+                        <td class="px-4 py-3">
+                            @if($delivery->sales_invoice_no)
+                                <span class="text-gray-200">{{ $delivery->sales_invoice_no }}</span>
+                            @else
+                                <span class="text-gray-500 text-xs">—</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3">{{ $delivery->sales_order_number }}</td>
                         <td class="px-4 py-3">
                             @if($delivery->delivery_batch)
@@ -331,7 +387,7 @@
                                 <span class="text-gray-300 text-xs">—</span>
                             @endif
                         </td>
-                        <td class="px-4 py-3">{{ number_format($delivery->quantity ?? 0, 2) }}</td>
+                        <td class="px-4 py-3">{{ number_format($delivery->quantity ?? 0, 3) }}</td>
                         <td class="px-4 py-3">₱{{ number_format($delivery->total_amount ?? 0, 2) }}</td>  
                         
                         <td class="px-4 py-3">
@@ -1200,13 +1256,13 @@ function populateEditModal(data) {
         row.innerHTML = `
             <td class="px-3 py-2">${item.item_code || '—'}</td>
             <td class="px-3 py-2">${item.item_description || '—'}</td>
-            <td class="px-3 py-2">${parseFloat(item.original_quantity || 0).toFixed(2)}</td>
-            <td class="px-3 py-2 text-gray-300">${parseFloat(item.already_delivered || 0).toFixed(2)}</td>
+            <td class="px-3 py-2">${parseFloat(item.original_quantity || 0).toFixed(3)}</td>
+            <td class="px-3 py-2 text-gray-300">${parseFloat(item.already_delivered || 0).toFixed(3)}</td>
             <td class="px-3 py-2">
                 <input type="number"
-                       step="0.01"
+                       step="0.001"
                        min="0"
-                       value="${parseFloat(item.quantity || 0).toFixed(2)}"
+                       value="${parseFloat(item.quantity || 0).toFixed(3)}"
                        data-index="${index}"
                        data-delivery-item-id="${item.delivery_item_id || ''}"
                        data-sales-order-item-id="${item.sales_order_item_id || ''}"
@@ -1217,7 +1273,7 @@ function populateEditModal(data) {
                        onchange="updateItemTotal(this)"
                        class="edit-item-qty w-24 px-2 py-1 bg-gray-700 border border-green-600 rounded text-white focus:ring-2 focus:ring-green-500">
             </td>
-            <td class="px-3 py-2 remaining-qty-${index}">${remaining.toFixed(2)}</td>
+            <td class="px-3 py-2 remaining-qty-${index}">${remaining.toFixed(3)}</td>
             <td class="px-3 py-2 text-right item-total-${index}">₱${(parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0)).toFixed(2)}</td>
         `;
         
@@ -1237,8 +1293,8 @@ function updateItemTotal(input) {
     
     const remainingCell = document.querySelector(`.remaining-qty-${index}`);
     if (remainingCell) {
-        remainingCell.textContent = remaining.toFixed(2);
-        
+        remainingCell.textContent = remaining.toFixed(3);
+
         // ✅ Optional: Show warning for over-delivery (but don't block it)
         if (remaining < 0) {
             remainingCell.classList.add('text-orange-700');

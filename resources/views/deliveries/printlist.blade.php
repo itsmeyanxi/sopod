@@ -204,7 +204,7 @@
                                 ? \Carbon\Carbon::parse($delivery->salesOrder->request_delivery_date)->format('m/d/Y') 
                                 : '—') }}
                     </td>
-                    <td class="text-right">{{ number_format($delivery->quantity ?? 0, 2) }}</td>
+                    <td class="text-right">{{ number_format($delivery->quantity ?? 0, 3) }}</td>
                     <td class="text-right">₱{{ number_format($delivery->total_amount ?? 0, 2) }}</td>
                     <td class="text-center">
                         {{-- ✅ Fixed: Corrected status condition and class name --}}

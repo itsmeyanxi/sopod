@@ -293,10 +293,11 @@
     <thead>
         <tr>
             <th style="width: 10%;">Item Code</th>
-            <th style="width: 12%;">Category</th>
-            <th style="width: 12%;">Brand</th>
-            <th style="width: 20%;">Description</th>
-            <th style="width: 8%;">UOM</th>
+            <th style="width: 11%;">Category</th>
+            <th style="width: 11%;">Brand</th>
+            <th style="width: 18%;">Description</th>
+            <th style="width: 5%;">PCS</th>
+            <th style="width: 7%;">UOM</th>
             <th style="width: 8%;">SO Qty</th>
             <th style="width: 8%;">DR Qty</th>
             <th style="width: 7%;">Variance</th>
@@ -339,21 +340,22 @@
                             </div>
                         @endif
                     </td>
+                    <td class="text-center">{{ $soItem?->pcs ?? '—' }}</td>
                     <td class="text-center">{{ $item->uom ?? 'Kgs' }}</td>
-                    <td class="text-right">{{ number_format($soQty, 2) }}</td>
-                    <td class="text-right">{{ number_format($drQty, 2) }}</td>
+                    <td class="text-right">{{ number_format($soQty, 3) }}</td>
+                    <td class="text-right">{{ number_format($drQty, 3) }}</td>
                     <td class="text-right" style="{{ $varianceColor }}">
-                        {{ $variance > 0 ? '+' : '' }}{{ number_format($variance, 2) }}
+                        {{ $variance > 0 ? '+' : '' }}{{ number_format($variance, 3) }}
                     </td>
                 </tr>
             @endforeach
         @else
             {{-- Fallback: Show single item from deliveries table (legacy) --}}
             @php
-                $unitPrice = ($delivery->unit_price) 
+                $unitPrice = ($delivery->unit_price)
                     ?? (($delivery->quantity > 0) ? ($delivery->total_amount / $delivery->quantity) : 0);
                 $totalAmount = $delivery->total_amount ?? 0;
-                
+
                 $soItem = $delivery->salesOrder?->items->where('item_code', $delivery->item_code)->first();
                 $soQty = $soItem ? $soItem->quantity : 0;
                 $drQty = $delivery->quantity ?? 0;
@@ -365,11 +367,12 @@
                 <td>{{ $delivery->item_category ?? '—' }}</td>
                 <td>{{ $delivery->brand ?? '—' }}</td>
                 <td>{{ $delivery->item_description ?? '—' }}</td>
+                <td class="text-center">{{ $soItem?->pcs ?? '—' }}</td>
                 <td class="text-center">{{ $delivery->uom ?? 'Kgs' }}</td>
-                <td class="text-right">{{ number_format($soQty, 2) }}</td>
-                <td class="text-right">{{ number_format($drQty, 2) }}</td>
+                <td class="text-right">{{ number_format($soQty, 3) }}</td>
+                <td class="text-right">{{ number_format($drQty, 3) }}</td>
                 <td class="text-right" style="{{ $varianceColor }}">
-                    {{ $variance > 0 ? '+' : '' }}{{ number_format($variance, 2) }}
+                    {{ $variance > 0 ? '+' : '' }}{{ number_format($variance, 3) }}
                 </td>
             </tr>
         @endif

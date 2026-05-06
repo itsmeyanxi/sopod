@@ -45,36 +45,56 @@ class CashAdvanceRequestController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $hasFile = $request->hasFile('attachment');
+        $required = $hasFile ? 'nullable' : 'required';
+
         $request->validate([
-            'payee' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
-            'purpose' => 'required|string',
-            'date_requested' => 'required|date',
-            'date_needed' => 'required|date',
-            'amount_advanced' => 'required|numeric|min:0',
+            'payee'            => "$required|string|max:255",
+            'department'       => "$required|string|max:255",
+            'purpose'          => "$required|string",
+            'date_requested'   => "$required|date",
+            'date_needed'      => "$required|date",
+            'amount_advanced'  => "$required|numeric|min:0",
+            'attachment'       => 'nullable|file|mimes:pdf,jpg,jpeg,png,xlsx,xls,doc,docx|max:10240',
+            'car_no'           => 'nullable|string|max:100',
         ]);
 
         DB::beginTransaction();
         try {
-            do {
-                $carNo = 'CAR-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-            } while (CashAdvanceRequest::where('car_no', $carNo)->exists());
+            $submittedCarNo = trim($request->car_no ?? '');
+            if ($submittedCarNo && !CashAdvanceRequest::where('car_no', $submittedCarNo)->exists()) {
+                $carNo = $submittedCarNo;
+            } else {
+                do {
+                    $carNo = 'CAR-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                } while (CashAdvanceRequest::where('car_no', $carNo)->exists());
+            }
+
+            $attachmentPath = null;
+            $attachmentName = null;
+            if ($hasFile) {
+                $file = $request->file('attachment');
+                $attachmentName = $file->getClientOriginalName();
+                $attachmentPath = $file->store('car-attachments', 'public');
+            }
 
             $car = CashAdvanceRequest::create([
-                'car_no' => $carNo,
-                'payee' => $request->payee,
-                'department' => $request->department,
-                'purpose' => $request->purpose,
-                'date_requested' => $request->date_requested,
-                'date_needed' => $request->date_needed,
+                'car_no'          => $carNo,
+                'payee'           => $request->payee,
+                'department'      => $request->department,
+                'purpose'         => $request->purpose,
+                'date_requested'  => $request->date_requested,
+                'date_needed'     => $request->date_needed,
                 'amount_advanced' => $request->amount_advanced,
-                'requested_by' => $request->requested_by,
-                'checked_by' => $request->checked_by,
-                'approved_by_name' => $request->approved_by_name,
-                'remarks' => $request->remarks,
-                'status' => 'pending',
-                'approval_stage' => 'pending_dh',
-                'created_by' => Auth::id(),
+                'requested_by'    => $request->requested_by,
+                'checked_by'      => $request->checked_by,
+                'approved_by_name'=> $request->approved_by_name,
+                'remarks'         => $request->remarks,
+                'attachment_path' => $attachmentPath,
+                'attachment_name' => $attachmentName,
+                'status'          => 'pending',
+                'approval_stage'  => 'pending_dh',
+                'created_by'      => Auth::id(),
             ]);
 
             DB::commit();
@@ -132,30 +152,51 @@ class CashAdvanceRequestController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $car = CashAdvanceRequest::findOrFail($id);
+        $hasFile = $request->hasFile('attachment');
+        $hasExisting = !empty($car->attachment_path);
+        $required = ($hasFile || $hasExisting) ? 'nullable' : 'required';
+
         $request->validate([
-            'payee' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
-            'purpose' => 'required|string',
-            'date_requested' => 'required|date',
-            'date_needed' => 'required|date',
-            'amount_advanced' => 'required|numeric|min:0',
+            'payee'           => "$required|string|max:255",
+            'department'      => "$required|string|max:255",
+            'purpose'         => "$required|string",
+            'date_requested'  => "$required|date",
+            'date_needed'     => "$required|date",
+            'amount_advanced' => "$required|numeric|min:0",
+            'attachment'      => 'nullable|file|mimes:pdf,jpg,jpeg,png,xlsx,xls,doc,docx|max:10240',
+            'car_no'          => 'nullable|string|max:100',
         ]);
 
         DB::beginTransaction();
         try {
-            $car = CashAdvanceRequest::findOrFail($id);
+            $attachmentPath = $car->attachment_path;
+            $attachmentName = $car->attachment_name;
+            if ($hasFile) {
+                $file = $request->file('attachment');
+                $attachmentName = $file->getClientOriginalName();
+                $attachmentPath = $file->store('car-attachments', 'public');
+            }
+
+            $submittedCarNo = trim($request->car_no ?? '');
+            $newCarNo = ($submittedCarNo && $submittedCarNo !== $car->car_no && !CashAdvanceRequest::where('car_no', $submittedCarNo)->exists())
+                ? $submittedCarNo
+                : $car->car_no;
 
             $car->update([
-                'payee' => $request->payee,
-                'department' => $request->department,
-                'purpose' => $request->purpose,
-                'date_requested' => $request->date_requested,
-                'date_needed' => $request->date_needed,
+                'car_no'          => $newCarNo,
+                'payee'           => $request->payee,
+                'department'      => $request->department,
+                'purpose'         => $request->purpose,
+                'date_requested'  => $request->date_requested,
+                'date_needed'     => $request->date_needed,
                 'amount_advanced' => $request->amount_advanced,
-                'requested_by' => $request->requested_by,
-                'checked_by' => $request->checked_by,
-                'approved_by_name' => $request->approved_by_name,
-                'remarks' => $request->remarks,
+                'requested_by'    => $request->requested_by,
+                'checked_by'      => $request->checked_by,
+                'approved_by_name'=> $request->approved_by_name,
+                'remarks'         => $request->remarks,
+                'attachment_path' => $attachmentPath,
+                'attachment_name' => $attachmentName,
             ]);
 
             DB::commit();

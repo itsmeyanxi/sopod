@@ -19,15 +19,28 @@
                     <p class="text-blue-100 text-sm mt-0.5">CR #{{ $payment->collection_receipt_number ?? 'N/A' }}</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    @if(($payment->status ?? 'Posted') === 'Posted' && (auth()->user()->canEditPayments() || auth()->user()->canRequestPaymentEdit()))
+                    @if(($payment->status ?? 'Clearing') === 'Clearing' && (auth()->user()->canEditPayments() || auth()->user()->canRequestPaymentEdit()))
                     <a href="{{ route('payments.edit', $payment->id) }}" class="px-3 py-1 rounded-full text-xs font-bold bg-gray-800 text-blue-700 hover:bg-blue-50 transition">
                         <i class="fas fa-edit mr-1"></i>{{ auth()->user()->canEditPayments() ? 'Edit' : 'Request Edit' }}
                     </a>
                     @endif
+                    @if(auth()->user()->isAdminUser())
+                    <button onclick="showDeleteModal()" class="px-3 py-1 rounded-full text-xs font-bold bg-red-800 text-white hover:bg-red-700 transition">
+                        <i class="fas fa-trash mr-1"></i>Delete
+                    </button>
+                    @endif
                     <span class="px-3 py-1 rounded-full text-xs font-bold
-                        {{ ($payment->status ?? 'Posted') === 'Posted' ? 'bg-green-100 text-green-800' : 'bg-gray-700 text-white' }}">
-                        {{ $payment->status ?? 'Posted' }}
+                        @if(($payment->status ?? 'Clearing') === 'Clearing') bg-yellow-100 text-yellow-800
+                        @elseif($payment->status === 'Posted') bg-green-100 text-green-800
+                        @elseif($payment->status === 'Bounced') bg-red-100 text-red-800
+                        @else bg-gray-700 text-white @endif">
+                        {{ $payment->status ?? 'Clearing' }}
                     </span>
+                    @if($payment->is_short_payment)
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-300">
+                        Short Payment
+                    </span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -45,10 +58,12 @@
                         <span class="text-sm text-gray-300">Customer Code</span>
                         <span class="text-sm text-white">{{ $payment->customer_code ?? '—' }}</span>
                     </div>
+                    @if(auth()->user()->isAdminUser())
                     <div class="flex justify-between">
                         <span class="text-sm text-gray-300">Branch</span>
                         <span class="text-sm text-white">{{ $payment->branch ?? '—' }}</span>
                     </div>
+                    @endif
                 </div>
             </div>
             <div>
@@ -142,6 +157,63 @@
             </div>
         </div>
 
+        <!-- AR Adjustments for this DR -->
+        @if($arAdjustments->isNotEmpty())
+        <div class="p-6 border-b border-gray-100">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">
+                AR Adjustments Applied to DR {{ $payment->dr_no }}
+            </h3>
+            <div class="bg-gray-900 rounded-lg overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-700 text-xs text-gray-400 uppercase">
+                            <th class="px-4 py-2 text-left">Date</th>
+                            <th class="px-4 py-2 text-left">Type</th>
+                            <th class="px-4 py-2 text-left">Reference</th>
+                            <th class="px-4 py-2 text-right">Amount</th>
+                            <th class="px-4 py-2 text-left">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php $netAdj = 0; @endphp
+                        @foreach($arAdjustments as $adj)
+                        @php
+                            $adjAmt = (float)$adj->amount;
+                            $isDecrease = (bool)$adj->is_decrease;
+                            $signed = $isDecrease ? -$adjAmt : $adjAmt;
+                            $netAdj += $signed;
+                        @endphp
+                        <tr class="border-b border-gray-800 hover:bg-gray-800">
+                            <td class="px-4 py-2 text-gray-400 whitespace-nowrap">
+                                {{ $adj->transaction_date ? \Carbon\Carbon::parse($adj->transaction_date)->format('M d, Y') : '—' }}
+                            </td>
+                            <td class="px-4 py-2 text-gray-300 whitespace-nowrap capitalize">
+                                {{ str_replace('_', ' ', $adj->transaction_type ?? '—') }}
+                            </td>
+                            <td class="px-4 py-2 text-gray-400 whitespace-nowrap">
+                                {{ $adj->reference_number ?? '—' }}
+                            </td>
+                            <td class="px-4 py-2 text-right font-semibold whitespace-nowrap {{ $isDecrease ? 'text-green-400' : 'text-red-400' }}">
+                                {{ $isDecrease ? '-' : '+' }}₱{{ number_format($adjAmt, 2) }}
+                            </td>
+                            <td class="px-4 py-2 text-gray-400 text-xs">{{ $adj->remarks ?? '—' }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr class="border-t border-gray-600 bg-gray-800">
+                            <td colspan="3" class="px-4 py-2 text-xs font-bold text-gray-300 uppercase">Net Adjustment</td>
+                            <td class="px-4 py-2 text-right font-bold {{ $netAdj < 0 ? 'text-green-400' : 'text-red-400' }}">
+                                {{ $netAdj < 0 ? '' : '+' }}₱{{ number_format($netAdj, 2) }}
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        @endif
+
         <!-- Overpayment / Credit -->
         @if((float)($payment->overpayment ?? 0) > 0)
         <div class="p-6 border-b border-gray-100">
@@ -190,7 +262,7 @@
                     $checkNumber = $paymentMeans['check_number'] ?? $payment->reference_no ?? null;
                     $reference = $paymentMeans['reference'] ?? $payment->reference_no ?? null;
                     $dueDate = $paymentMeans['due_date'] ?? null;
-                    $glAccount = $paymentMeans['gl_account'] ?? null;
+                    $glAccount = $paymentMeans['gl_account_name'] ?? $paymentMeans['gl_account'] ?? null;
                     $meansAmount = $paymentMeans['amount'] ?? null;
                 @endphp
                 <div class="flex items-center gap-3 mb-3">
@@ -251,4 +323,45 @@
         </div>
     </div>
 </div>
+
+@if(auth()->user()->isAdminUser())
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        <h3 class="text-lg font-bold text-red-400 mb-4">
+            <i class="fas fa-exclamation-triangle mr-2"></i>Permanently Delete Payment
+        </h3>
+        <div class="text-sm text-gray-300 mb-4">
+            <p>You are about to <strong class="text-red-400">permanently delete</strong> this payment:</p>
+            <ul class="mt-2 space-y-1 text-xs text-gray-400">
+                <li>CR#: <strong class="text-white">{{ $payment->collection_receipt_number ?? 'N/A' }}</strong></li>
+                <li>DR#: <strong class="text-white">{{ $payment->dr_no ?? 'N/A' }}</strong></li>
+                <li>Amount: <strong class="text-white">₱{{ number_format((float)($payment->amount ?? 0), 2) }}</strong></li>
+            </ul>
+            <div class="mt-3 p-2 bg-yellow-900 bg-opacity-40 rounded text-yellow-300 text-xs">
+                <i class="fas fa-info-circle mr-1"></i>
+                This will reverse the AR Aging balance and permanently remove this record.
+            </div>
+        </div>
+        <form action="{{ route('payments.destroy', $payment->id) }}" method="POST">
+            @csrf
+            @method('DELETE')
+            <label class="block text-sm text-gray-400 mb-1">Reason for deletion <span class="text-red-400">*</span></label>
+            <textarea name="delete_reason" required rows="3" class="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm border border-gray-600 focus:border-red-500 focus:ring-1 focus:ring-red-500" placeholder="Enter reason for deleting this payment..."></textarea>
+            <div class="flex justify-end gap-3 mt-4">
+                <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-500">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-red-700 text-white rounded text-sm hover:bg-red-600 font-bold">
+                    <i class="fas fa-trash mr-1"></i>Delete Permanently
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showDeleteModal() { document.getElementById('deleteModal').classList.remove('hidden'); }
+function closeDeleteModal() { document.getElementById('deleteModal').classList.add('hidden'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDeleteModal(); });
+</script>
+@endif
 @endsection

@@ -22,6 +22,7 @@ class User extends Authenticatable
         'locked_at',
         'locked_by',
         'full_aging_access',
+        'esignature',
     ];
 
     protected $hidden = [
@@ -357,6 +358,13 @@ class User extends Authenticatable
         return $this->canAccessModule('issue_slips');
     }
 
+    // ==================== LIVE CHICKEN ====================
+
+    public function canManageLiveChicken()
+    {
+        return $this->canAccessModule('live_chicken');
+    }
+
     public function canDeleteIssueSlips()
     {
         return $this->canPerformInModule('can_delete', 'issue_slips');
@@ -532,6 +540,12 @@ class User extends Authenticatable
         return $this->canPerformInModule('can_edit', 'sales_orders');
     }
 
+    public function canApproveCustomerChange()
+    {
+        return $this->hasRole(['IT', 'Admin', 'Information System'])
+            || in_array($this->role, ['IT', 'Admin', 'Information System']);
+    }
+
     // ==================== RELATIONSHIPS ====================
 
     public function userRoles()
@@ -608,6 +622,7 @@ class User extends Authenticatable
         'disposals'          => [26, 5, 12],                              // Accounting, General Administration, IT Operations
         'depreciation_runs'  => [26, 5, 12],                              // Accounting, General Administration, IT Operations
         'loans'              => [26, 24, 5, 12],                          // Accounting, Treasury, General Administration, IT Operations
+        'live_chicken'       => [1, 2, 3, 4, 6, 5, 12],                  // Supply Chain, Purchasing, General Administration, IT Operations
     ];
 
     const MODULE_ACTION_DEPARTMENTS = [

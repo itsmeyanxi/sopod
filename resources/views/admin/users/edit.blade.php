@@ -52,8 +52,13 @@
             <small class="text-gray-300 text-xs">Minimum 6 characters</small>
         </div>
 
-        <div class="bg-yellow-100 border border-yellow-600/30 rounded-lg p-3 mb-4">
-            <p class="text-yellow-700 text-sm"><i class="fas fa-info-circle mr-1"></i> To manage this user's module access and permissions, use the <a href="{{ route('rbac.index') }}" class="underline">RBAC Management</a> page.</p>
+        <div class="mb-4">
+            <label class="block text-sm mb-1">Role</label>
+            <select name="role" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-blue-500" required>
+                @foreach($availableRoles as $value => $label)
+                    <option value="{{ $value }}" {{ old('role', $user->role ?? 'User') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
         </div>
 
         <div class="flex justify-end space-x-3 mt-6">
@@ -73,6 +78,7 @@ $navStructure = [
     'Dashboard' => [
         'po_dashboard' => 'PO Dashboard',
         'po_summary'   => 'PO Summary',
+        'ap_dashboard' => 'AP Dashboard',
     ],
     'Sales Orders' => [
         'sales_orders'          => '📂 Section Access',
@@ -135,7 +141,10 @@ $navStructure = [
         'currency_rates'    => 'Currency Rates',
     ],
     'Treasury' => [
-        'treasury' => '📂 Section Access',
+        'payments'  => 'Cash Receipts',
+        'cv'        => 'Cash Disbursements',
+        'loans'     => 'Loans',
+        'treasury'  => 'Payment Confirmation / Bank / Accounts',
     ],
     'In-House BOM' => [
         'inhouse_bom'      => 'BOM List',
@@ -152,10 +161,16 @@ $navStructure = [
         'counter_date_approvals' => 'Counter Date Approval',
     ],
     'Accounting' => [
-        'gl_accounts'      => 'Chart of Accounts',
-        'fixed_assets'     => 'Fixed Asset Capitalization',
-        'disposals'        => 'Disposal Module',
-        'journal_vouchers' => 'Journal Vouchers',
+        'gl_accounts'       => 'Chart of Accounts',
+        'asset_classes'     => 'Asset Classes',
+        'fixed_assets'      => 'Fixed Asset Capitalization',
+        'disposals'         => 'Disposal Module',
+        'depreciation_runs' => 'Depreciation Run',
+        'journal_vouchers'  => 'Journal Vouchers',
+        'debit_memos'       => 'Debit Memos',
+        'payment_terms'     => 'Payment Terms',
+        'ap_ledger'         => 'AP Ledger',
+        'ap_reports'        => 'AP Reports',
     ],
     'Other' => [
         'change_log'     => 'Change Log',

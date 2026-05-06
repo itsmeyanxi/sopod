@@ -12,6 +12,14 @@
         </a>
     </div>
 
+@if(session('success'))
+    <div class="bg-green-600 text-white p-3 rounded mb-4">{{ session('success') }}</div>
+@endif
+
+@if(session('error'))
+    <div class="bg-red-600 text-white p-3 rounded mb-4">{{ session('error') }}</div>
+@endif
+
 @if($salesOrder->is_closed)
     <div class="bg-green-100/40 border-2 border-green-300 text-green-700 p-4 rounded-lg mb-6 flex items-center gap-3">
         <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,6 +107,30 @@
                 @csrf
                 @method('PATCH')
             </form>
+        @endif
+
+        {{-- IT: Approve/Revoke Customer Change --}}
+        @if(auth()->user()->canApproveCustomerChange())
+            @if(!$salesOrder->customer_change_approved)
+                <form action="{{ route('sales_orders.approveCustomerChange', $salesOrder->id) }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded inline-flex items-center gap-2 transition"
+                        onclick="return confirm('Allow customer change on this Sales Order?')">
+                        <i class="fas fa-user-edit"></i> Approve Customer Change
+                    </button>
+                </form>
+            @else
+                <form action="{{ route('sales_orders.revokeCustomerChange', $salesOrder->id) }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded inline-flex items-center gap-2 transition"
+                        onclick="return confirm('Revoke customer change approval?')">
+                        <i class="fas fa-user-lock"></i> Revoke Customer Change
+                    </button>
+                </form>
+                <span class="text-green-400 text-xs self-center">
+                    <i class="fas fa-check-circle mr-1"></i>Approved by {{ $salesOrder->customer_change_approved_by }}
+                </span>
+            @endif
         @endif
 
         {{-- Show View Delivery Batches button if there are multiple deliveries --}}
@@ -344,6 +376,7 @@
                         <th class="px-3 py-2 text-left">Code</th>
                         <th class="px-3 py-2 text-left">Category</th>
                         <th class="px-3 py-2 text-left">Brand</th>
+                        <th class="px-3 py-2 text-center">PCS</th>
                         <th class="px-3 py-2 text-right">Quantity</th>
                         <th class="px-3 py-2 text-right">Unit Price</th>
                         <th class="px-3 py-2 text-right">Amount</th>
@@ -361,6 +394,13 @@
                                 {{ $item->item_category ?: ($item->item->item_category ?? '') }}
                             </td>
                             <td class="px-3 py-2">{{ $item->brand ?? '—' }}</td>
+                            <td class="px-3 py-2 text-center">
+                                @if($item->pcs)
+                                    <span class="font-semibold text-yellow-400">{{ $item->pcs }}</span>
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td class="px-3 py-2 text-right">{{ $item->quantity }}</td>
                             <td class="px-3 py-2 text-right">₱{{ number_format($item->unit_price, 2) }}</td>
                             <td class="px-3 py-2 text-right">

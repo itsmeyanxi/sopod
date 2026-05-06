@@ -94,7 +94,12 @@
                     <tr class="hover:bg-gray-700/40 transition">
                         <td class="px-4 py-3">{{ $customer->id }}</td>
                         <td class="px-4 py-3">{{ $customer->customer_code }}</td>
-                        <td class="px-4 py-3">{{ $customer->customer_name }}</td>
+                        <td class="px-4 py-3">
+                            {{ $customer->customer_name }}
+                            @if(!empty($customer->branch))
+                            <br><span class="text-xs text-gray-400">{{ $customer->branch }}</span>
+                            @endif
+                        </td>
                         <!-- <td class="px-4 py-3">{{ $customer->business_style ?? 'N/A' }}</td> -->
                         <td class="px-4 py-3">{{ Str::limit($customer->billing_address ?? 'N/A', 30) }}</td>
                         <!-- <td class="px-4 py-3">{{ $customer->tin_no ?? '000-000-000-00000' }}</td> -->

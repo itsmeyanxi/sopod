@@ -9,6 +9,7 @@ use App\Models\ARLedger;
 use App\Models\Deliveries;
 use App\Models\ArAging;
 use App\Models\Payment;
+use App\Models\Activity;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -156,6 +157,8 @@ class AgingReportController extends Controller
                     'so_dr_po' => $this->formatImportedSoDrPo($record),
                     'invoice_amount' => $record->invoice_amount ?? 0,
                     'settled_amount' => $record->settled_invoice_amount ?? 0,
+                    'settled_invoice_amount' => $record->settled_invoice_amount ?? 0,
+                    'net_ar_balance' => $record->net_ar_balance ?? 0,
                     'net_ar' => ((float)($record->net_ar_balance ?? 0)) != 0 ? $record->net_ar_balance : ($record->net_of_cwt ?? $record->invoice_amount ?? 0),
                     'age' => $age, // ✅ Dynamically calculated age
                     'age_category' => $ageCategory, // ✅ Dynamically calculated category
@@ -317,6 +320,10 @@ class AgingReportController extends Controller
                     'so_dr_po' => $this->formatImportedSoDrPo($record),
                     'invoice_amount' => $record->invoice_amount ?? 0,
                     'settled_amount' => $record->settled_invoice_amount ?? 0,
+                    'settled_invoice_amount' => $record->settled_invoice_amount ?? 0,
+                    'gross_ar_balance' => $record->gross_ar_balance ?? 0,
+                    'net_of_cwt' => $record->net_of_cwt ?? 0,
+                    'net_ar_balance' => $record->net_ar_balance ?? 0,
                     'net_ar' => ((float)($record->net_ar_balance ?? 0)) != 0 ? $record->net_ar_balance : ($record->net_of_cwt ?? $record->invoice_amount ?? 0),
                     'age' => $age,
                     'age_category' => $ageCategory,
@@ -1391,6 +1398,53 @@ public function adjustments()
     return view('ar_adjustments.index');
 }
 
+   /**
+     * Update AR Aging record invoice amounts (IT only)
+     */
+    public function updateArAging(Request $request, $id)
+    {
+        if (!auth()->user()->isAdminUser()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $record = ArAging::findOrFail($id);
+
+        $validated = $request->validate([
+            'invoice_amount' => 'nullable|numeric|min:0',
+            'settled_invoice_amount' => 'nullable|numeric|min:0',
+            'net_ar_balance' => 'nullable|numeric|min:0',
+            'net_of_cwt' => 'nullable|numeric|min:0',
+            'check_amount' => 'nullable|numeric|min:0',
+            'gross_ar_balance' => 'nullable|numeric|min:0',
+        ]);
+
+        $oldValues = [
+            'invoice_amount' => $record->invoice_amount,
+            'settled_invoice_amount' => $record->settled_invoice_amount,
+            'net_ar_balance' => $record->net_ar_balance,
+            'net_of_cwt' => $record->net_of_cwt,
+            'check_amount' => $record->check_amount,
+            'gross_ar_balance' => $record->gross_ar_balance,
+        ];
+
+        $record->update($validated);
+
+        \App\Models\Activity::create([
+            'user_name' => auth()->user()->name ?? 'System',
+            'action' => 'Updated',
+            'item' => 'AR Aging #' . $record->id . ' (DR: ' . ($record->dr_no ?? 'N/A') . ')',
+            'target' => $record->client_name ?? $record->customer_code ?? 'N/A',
+            'type' => 'AR Aging',
+            'message' => 'Updated invoice amounts. Old: ' . json_encode($oldValues) . ' New: ' . json_encode($validated),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'AR Aging record updated successfully.',
+            'record' => $record->fresh(),
+        ]);
+    }
+
    private function logARTransaction($arAgingId, $type, $amount, $date, $reference)
 {
     DB::table('ar_transactions')->insert([
@@ -2000,7 +2054,177 @@ public function fixAdjustmentCustomerCodes()
     }
 }
 
-public function fixAllCustomerCodes()
+/**
+     * IT only: Update an ar_aging row (only if no delivery exists for that DR)
+     * Cascades DR number change to payments and ar_adjustments.
+     */
+    /**
+     * IT only: Create a new ar_aging row manually. The customer will automatically appear in SOA.
+     */
+    public function storeArAgingRow(Request $request)
+    {
+        if (!auth()->user()->isAdminUser()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized. IT access only.'], 403);
+        }
+
+        $validated = $request->validate([
+            'customer_code'  => 'nullable|string|max:50',
+            'client_name'    => 'required|string|max:255',
+            'dr_no'          => 'nullable|string|max:50',
+            'invoice_no'     => 'nullable|string|max:100',
+            'invoice_date'   => 'nullable|date',
+            'invoice_amount' => 'required|numeric|min:0.01',
+            'po_no'          => 'nullable|string|max:100',
+            'branch'         => 'nullable|string|max:255',
+            'sales_executive'=> 'nullable|string|max:255',
+            'terms'          => 'nullable|string|max:50',
+        ]);
+
+        // Prevent duplicate DR if one already exists in ar_aging
+        $drNo = trim($validated['dr_no'] ?? '');
+        if ($drNo) {
+            $exists = DB::table('ar_aging')->whereRaw('TRIM(dr_no) = ?', [$drNo])->exists();
+            if ($exists) {
+                return response()->json(['success' => false, 'message' => "DR number {$drNo} already exists in AR aging."], 422);
+            }
+            $inDeliveries = DB::table('deliveries')->whereRaw('TRIM(dr_no) = ?', [$drNo])->exists();
+            if ($inDeliveries) {
+                return response()->json(['success' => false, 'message' => "DR number {$drNo} already exists in deliveries. Use the delivery record instead."], 422);
+            }
+        }
+
+        $invoiceAmount = (float)$validated['invoice_amount'];
+
+        DB::table('ar_aging')->insert([
+            'customer_code'  => $validated['customer_code'] ?? null,
+            'client_name'    => $validated['client_name'],
+            'dr_no'          => $drNo ?: null,
+            'invoice_no'     => $validated['invoice_no'] ?? null,
+            'invoice_date'   => $validated['invoice_date'] ?? null,
+            'invoice_amount' => $invoiceAmount,
+            'net_ar_balance' => $invoiceAmount,
+            'po_no'          => $validated['po_no'] ?? null,
+            'branch'         => $validated['branch'] ?? null,
+            'sales_executive'=> $validated['sales_executive'] ?? null,
+            'terms'          => $validated['terms'] ?? null,
+            'status'         => '',
+            'include_flag'   => 1,
+            'record_date'    => now()->toDateString(),
+            'aging_date'     => now()->toDateString(),
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+
+        Activity::create([
+            'user_name' => auth()->user()->name ?? 'IT',
+            'action'    => 'Created',
+            'item'      => 'AR Aging Row',
+            'target'    => $drNo ?: $validated['client_name'],
+            'type'      => 'AR Aging',
+            'message'   => "IT created new AR aging row for {$validated['client_name']}" . ($drNo ? " (DR: {$drNo})" : ''),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'AR aging record created. The customer will now appear in SOA automatically.']);
+    }
+
+    public function updateArAgingRow(Request $request, $id)
+    {
+        if (!auth()->user()->isAdminUser()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized. IT access only.'], 403);
+        }
+
+        $row = ArAging::findOrFail($id);
+
+        // Block edit if ANY delivery exists for this DR
+        $oldDrNo = trim($row->dr_no ?? '');
+        if ($oldDrNo) {
+            $hasDelivery = DB::table('deliveries')->whereRaw('TRIM(dr_no) = ?', [$oldDrNo])->exists();
+            if ($hasDelivery) {
+                return response()->json(['success' => false, 'message' => 'Cannot edit: this DR has a linked delivery record.'], 403);
+            }
+        }
+
+        $validated = $request->validate([
+            'dr_no'            => 'nullable|string|max:50',
+            'invoice_no'       => 'nullable|string|max:100',
+            'invoice_date'     => 'nullable|date',
+            'invoice_amount'   => 'nullable|numeric|min:0',
+            'net_ar_balance'   => 'nullable|numeric|min:0',
+            'status'           => 'nullable|string|max:50',
+            'po_no'            => 'nullable|string|max:100',
+            'client_name'      => 'nullable|string|max:255',
+            'branch'           => 'nullable|string|max:255',
+            'sales_executive'  => 'nullable|string|max:255',
+            'terms'            => 'nullable|string|max:50',
+            'others_particulars' => 'nullable|string|max:500',
+        ]);
+
+        $newDrNo = trim($validated['dr_no'] ?? $oldDrNo);
+
+        $row->update($validated);
+
+        // Cascade DR number change to payments and ar_adjustments
+        if ($oldDrNo && $newDrNo && $oldDrNo !== $newDrNo) {
+            DB::table('payments')
+                ->whereRaw('TRIM(dr_no) = ?', [$oldDrNo])
+                ->update(['dr_no' => $newDrNo]);
+            DB::table('ar_adjustments')
+                ->whereRaw('TRIM(dr_no) = ?', [$oldDrNo])
+                ->update(['dr_no' => $newDrNo]);
+        }
+
+        Activity::create([
+            'user_name' => auth()->user()->name ?? 'IT',
+            'action'    => 'Edited',
+            'item'      => 'AR Aging Row ID ' . $id,
+            'target'    => $oldDrNo ?: 'N/A',
+            'type'      => 'AR Aging',
+            'message'   => "IT edited AR aging row ID {$id} (DR: {$oldDrNo}" . ($newDrNo !== $oldDrNo ? " → {$newDrNo}" : '') . ')',
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'AR aging record updated successfully.']);
+    }
+
+    /**
+     * IT only: Delete an ar_aging row + all linked payments (only if no delivery exists for that DR)
+     */
+    public function deleteArAgingRow(Request $request, $id)
+    {
+        if (!auth()->user()->isAdminUser()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized. IT access only.'], 403);
+        }
+
+        $row = ArAging::findOrFail($id);
+        $drNo = trim($row->dr_no ?? '');
+
+        // Block delete if ANY delivery exists for this DR
+        if ($drNo) {
+            $hasDelivery = DB::table('deliveries')->whereRaw('TRIM(dr_no) = ?', [$drNo])->exists();
+            if ($hasDelivery) {
+                return response()->json(['success' => false, 'message' => 'Cannot delete: this DR has a linked delivery record.'], 403);
+            }
+        }
+
+        $deletedPayments = 0;
+        if ($drNo) {
+            $deletedPayments = DB::table('payments')->whereRaw('TRIM(dr_no) = ?', [$drNo])->delete();
+        }
+
+        $row->delete();
+
+        Activity::create([
+            'user_name' => auth()->user()->name ?? 'IT',
+            'action'    => 'Deleted',
+            'item'      => 'AR Aging Row ID ' . $id,
+            'target'    => $drNo ?: 'N/A',
+            'type'      => 'AR Aging',
+            'message'   => "IT deleted AR aging row ID {$id} (DR: {$drNo}) and {$deletedPayments} linked payment(s).",
+        ]);
+
+        return response()->json(['success' => true, 'message' => "AR aging record and {$deletedPayments} linked payment(s) deleted."]);
+    }
+
+    public function fixAllCustomerCodes()
 {
     $paymentsResult = $this->fixPaymentCustomerCodes();
     $adjustmentsResult = $this->fixAdjustmentCustomerCodes();
@@ -2088,6 +2312,34 @@ public function debugAdjustments($customerCode)
             })
             ->orderBy('invoice_date', 'desc')
             ->get();
+
+            // ── Split: outstanding-only for Invoices tab, all records for history ──
+            // Exclude Paid and Closed rows from the Invoices tab — they are settled
+            $allArRecords = $arRecords; // keep full set for Complete History
+            $arRecords = $arRecords->filter(fn($r) => !in_array($r->status, ['Paid', 'Closed']));
+
+            // ── Dynamic NET AR BALANCE: subtract payments per DR ──────────────
+            $drNos = $allArRecords->pluck('dr_no')->filter()->map(fn($d) => trim($d))->toArray();
+
+            $paymentsPerDr = collect();
+            if (!empty($drNos)) {
+                $paymentsPerDr = DB::table('payments')
+                    ->selectRaw('TRIM(dr_no) as dr_no, SUM(amount + COALESCE(discount_amount,0) + COALESCE(ewt,0)) as total_paid')
+                    ->whereRaw('TRIM(dr_no) IN (' . implode(',', array_fill(0, count($drNos), '?')) . ')', $drNos)
+                    ->groupByRaw('TRIM(dr_no)')
+                    ->get()
+                    ->keyBy('dr_no');
+            }
+
+            // DRs that have ANY delivery record (any status) — these rows cannot be edited/deleted
+            $drNosWithDelivery = collect();
+            if (!empty($drNos)) {
+                $drNosWithDelivery = DB::table('deliveries')
+                    ->whereRaw('TRIM(dr_no) IN (' . implode(',', array_fill(0, count($drNos), '?')) . ')', $drNos)
+                    ->pluck('dr_no')
+                    ->map(fn($d) => trim($d))
+                    ->unique();
+            }
 
             Log::info('AR Profile: Fetched AR records', [
                 'count' => $arRecords->count(),
@@ -2186,12 +2438,96 @@ public function debugAdjustments($customerCode)
                 'terms' => $record->terms ?? 'N/A',
             ];
 
-            // Calculate financial summary
+            // ── Filter collections to only DRs present in ar_aging ──────────────
+            // Prevents negative balance caused by payments on delivery DRs not in ar_aging
+            $arDrNos = $arRecords->pluck('dr_no')->map(fn($d) => trim($d ?? ''))->filter()->toArray();
+            $collectionsForSummary = $collections->filter(function($coll) use ($arDrNos) {
+                $collDr = trim($coll['dr_no'] ?? '');
+                // Keep: no DR (synthetic/import), DR matches ar_aging, or is an AR-IMPORT synthetic
+                return empty($collDr)
+                    || $collDr === '-'
+                    || in_array($collDr, $arDrNos)
+                    || str_starts_with($coll['collection_receipt_number'] ?? '', 'AR-IMPORT-');
+            });
+
+            // Calculate financial summary (using filtered collections)
             $financialSummary = $this->calculateFinancialSummary(
-                $arRecords, 
-                $collections, 
+                $arRecords,
+                $collectionsForSummary,
                 $adjustments
             );
+
+            // ── SOA-style balance: deliveries - payments (matches SOA module) ─
+            $customerCode = $record->customer_code;
+            $soaBalance = 0;
+            if (!empty($customerCode) && $customerCode !== '#N/A') {
+                $deliveriesForSOA = DB::table('deliveries')
+                    ->where('customer_code', $customerCode)
+                    ->where('status', 'Delivered')
+                    ->where('is_locked', '!=', 1)
+                    ->where('is_pulled_out', '!=', 1)
+                    ->where('total_amount', '>', 0)
+                    ->select('dr_no', 'total_amount')
+                    ->get();
+
+                if ($deliveriesForSOA->isNotEmpty()) {
+                    $soaDrNos = $deliveriesForSOA->pluck('dr_no')->map(fn($d) => trim($d))->toArray();
+                    $soaPaid = DB::table('payments')
+                        ->selectRaw('TRIM(dr_no) as dr_no, SUM(amount + COALESCE(discount_amount,0) + COALESCE(ewt,0)) as total_paid')
+                        ->whereRaw('TRIM(dr_no) IN (' . implode(',', array_fill(0, count($soaDrNos), '?')) . ')', $soaDrNos)
+                        ->groupByRaw('TRIM(dr_no)')
+                        ->get()->keyBy('dr_no');
+
+                    // AR adjustments per DR — same logic as SOA index
+                    $soaAdj = DB::table('ar_adjustments')
+                        ->where('customer_code', $customerCode)
+                        ->whereNotNull('dr_no')->where('dr_no', '!=', '')
+                        ->selectRaw('TRIM(dr_no) as dr_no, SUM(CASE WHEN is_decrease = 1 THEN -ABS(amount) ELSE ABS(amount) END) as net_adj')
+                        ->groupByRaw('TRIM(dr_no)')
+                        ->get()->keyBy('dr_no');
+
+                    foreach ($deliveriesForSOA as $d) {
+                        $drTrimmed = trim($d->dr_no);
+                        $paid = (float)($soaPaid[$drTrimmed]->total_paid ?? 0);
+                        $adj  = (float)($soaAdj[$drTrimmed]->net_adj ?? 0);
+                        $bal  = max(0, $d->total_amount - $paid + $adj);
+                        if ($d->total_amount > 0 && $paid > 0) {
+                            $gap = ($d->total_amount - $paid) / $d->total_amount;
+                            if ($gap <= 0.03) $bal = 0;
+                        }
+                        if ($bal > 10) $soaBalance += $bal;
+                    }
+
+                    // ── Also add ar_aging-only rows not covered by deliveries ──
+                    // (matches the SOA supplement section logic)
+                    $lockedDrNos = DB::table('deliveries')->where('is_locked', 1)
+                        ->pluck('dr_no')->map(fn($d) => trim($d))->filter()->toArray();
+
+                    $arAgingOnlyRows = DB::table('ar_aging')
+                        ->where('customer_code', $customerCode)
+                        ->where(function($q) {
+                            $q->whereNull('status')->orWhere('status', '')->orWhere('status', '!=', 'Paid');
+                        })
+                        ->where('invoice_amount', '>', 0)
+                        ->whereNotIn(DB::raw('TRIM(dr_no) COLLATE utf8mb4_unicode_ci'), $soaDrNos)
+                        ->when(!empty($lockedDrNos), fn($q) => $q->whereNotIn(DB::raw('TRIM(dr_no) COLLATE utf8mb4_unicode_ci'), $lockedDrNos))
+                        ->get();
+
+                    foreach ($arAgingOnlyRows as $arRow) {
+                        $drTrimmed = trim($arRow->dr_no ?? '');
+                        $invoiceAmt = (float)($arRow->invoice_amount ?? 0);
+                        if ($invoiceAmt <= 0) continue;
+                        $paid = (float)($soaPaid[$drTrimmed]->total_paid ?? 0);
+                        $adj  = (float)($soaAdj[$drTrimmed]->net_adj ?? 0);
+                        $bal  = max(0, $invoiceAmt - $paid + $adj);
+                        if ($invoiceAmt > 0 && $paid > 0) {
+                            $gap = ($invoiceAmt - $paid) / $invoiceAmt;
+                            if ($gap <= 0.03) $bal = 0;
+                        }
+                        if ($bal > 10) $soaBalance += $bal;
+                    }
+                }
+            }
 
             // Calculate aging summary
             $agingSummary = $this->calculateAgingSummary($arRecords);
@@ -2206,14 +2542,17 @@ public function debugAdjustments($customerCode)
 
             return view('aging_reports.ar_profile', [
                 'customerInfo' => $customerInfo,
-                'arRecords' => $arRecords,
+                'arRecords' => $arRecords,           // outstanding only (Invoices tab)
+                'allArRecords' => $allArRecords,    // all records (Complete History)
                 'collections' => $collections,
                 'adjustments' => $adjustments,
                 'transactionHistory' => $transactionHistory,
-                'totalAR' => $financialSummary['net_ar_balance'],
+                'totalAR' => $soaBalance > 0 ? $soaBalance : $financialSummary['net_ar_balance'],
                 'recordCount' => $arRecords->count(),
                 'agingSummary' => $agingSummary,
                 'financialSummary' => $financialSummary,
+                'paymentsPerDr' => $paymentsPerDr,
+                'drNosWithDelivery' => $drNosWithDelivery,
             ]);
 
         } catch (\Exception $e) {
@@ -2616,7 +2955,7 @@ public function debugAdjustments($customerCode)
                 'ar_class' => $validated['ar_class'] ?? null,
                 'remarks' => $validated['remarks'] ?? null,
                 'data_check' => $validated['data_check'] ?? null,
-                'status' => $validated['status'] ?? 'Posted',
+                'status' => $validated['status'] ?? 'Clearing',
                 'signed_by' => $validated['signed_by'] ?? auth()->user()->name ?? 'System',
                 'payment_date' => $validated['deposit_date'],
                 'payment_posting_date' => $validated['deposit_date'],

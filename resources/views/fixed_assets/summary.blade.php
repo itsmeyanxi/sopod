@@ -29,7 +29,7 @@
                             <th class="border border-gray-700 px-3 py-2 text-right">Disposals</th>
                             <th class="border border-gray-700 px-3 py-2 text-right">Accum. Dep.</th>
                             <th class="border border-gray-700 px-3 py-2 text-right">Monthly Dep.</th>
-                            <th class="border border-gray-700 px-3 py-2 text-right bg-green-50">Net Book Value</th>
+                            <th class="border border-gray-700 px-3 py-2 text-right bg-green-900/40 text-green-300">Net Book Value</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -41,11 +41,11 @@
                             </td>
                             <td class="border border-gray-700 px-3 py-2 text-center font-semibold">{{ number_format($data['asset_count']) }}</td>
                             <td class="border border-gray-700 px-3 py-2 text-right">{{ number_format($data['cost'], 2) }}</td>
-                            <td class="border border-gray-700 px-3 py-2 text-right {{ $data['additions'] > 0 ? 'text-green-700 font-semibold' : '' }}">{{ number_format($data['additions'], 2) }}</td>
-                            <td class="border border-gray-700 px-3 py-2 text-right {{ $data['disposals'] > 0 ? 'text-red-700 font-semibold' : '' }}">{{ number_format($data['disposals'], 2) }}</td>
-                            <td class="border border-gray-700 px-3 py-2 text-right text-orange-700">{{ number_format($data['accumulated_depreciation'], 2) }}</td>
+                            <td class="border border-gray-700 px-3 py-2 text-right {{ $data['additions'] > 0 ? 'text-green-400 font-semibold' : '' }}">{{ number_format($data['additions'], 2) }}</td>
+                            <td class="border border-gray-700 px-3 py-2 text-right {{ $data['disposals'] > 0 ? 'text-red-400 font-semibold' : '' }}">{{ number_format($data['disposals'], 2) }}</td>
+                            <td class="border border-gray-700 px-3 py-2 text-right text-orange-400">{{ number_format($data['accumulated_depreciation'], 2) }}</td>
                             <td class="border border-gray-700 px-3 py-2 text-right">{{ number_format($data['monthly_depreciation'], 2) }}</td>
-                            <td class="border border-gray-700 px-3 py-2 text-right font-bold bg-green-50 {{ $data['net_book_value'] > 0 ? 'text-green-700' : 'text-gray-400' }}">{{ number_format($data['net_book_value'], 2) }}</td>
+                            <td class="border border-gray-700 px-3 py-2 text-right font-bold bg-green-900/30 {{ $data['net_book_value'] > 0 ? 'text-green-400' : 'text-gray-400' }}">{{ number_format($data['net_book_value'], 2) }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -103,18 +103,18 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-300">Total NBV</span>
-                        <span class="font-bold text-green-700">{{ number_format($totals['net_book_value'], 2) }}</span>
+                        <span class="font-bold text-green-400">{{ number_format($totals['net_book_value'], 2) }}</span>
                     </div>
                     @php
                         $depRatio = $totals['cost'] > 0 ? ($totals['accumulated_depreciation'] / $totals['cost']) * 100 : 0;
                     @endphp
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-300">Depreciation Ratio</span>
-                        <span class="font-bold text-orange-700">{{ number_format($depRatio, 1) }}%</span>
+                        <span class="font-bold text-orange-400">{{ number_format($depRatio, 1) }}%</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-300">Monthly Dep. Expense</span>
-                        <span class="font-bold text-red-700">{{ number_format($totals['monthly_depreciation'], 2) }}</span>
+                        <span class="font-bold text-red-400">{{ number_format($totals['monthly_depreciation'], 2) }}</span>
                     </div>
                 </div>
             </div>
@@ -131,7 +131,7 @@
                 <div class="space-y-3">
                     <div>
                         <div class="flex justify-between text-sm mb-1">
-                            <span class="text-green-700 font-semibold">Active</span>
+                            <span class="text-green-400 font-semibold">Active</span>
                             <span>{{ $activeCount }} ({{ number_format(($activeCount / $total) * 100, 1) }}%)</span>
                         </div>
                         <div class="w-full bg-gray-600 rounded h-3">
@@ -140,7 +140,7 @@
                     </div>
                     <div>
                         <div class="flex justify-between text-sm mb-1">
-                            <span class="text-yellow-700 font-semibold">Fully Depreciated</span>
+                            <span class="text-yellow-400 font-semibold">Fully Depreciated</span>
                             <span>{{ $fullyDepCount }} ({{ number_format(($fullyDepCount / $total) * 100, 1) }}%)</span>
                         </div>
                         <div class="w-full bg-gray-600 rounded h-3">
@@ -149,7 +149,7 @@
                     </div>
                     <div>
                         <div class="flex justify-between text-sm mb-1">
-                            <span class="text-red-700 font-semibold">Disposed</span>
+                            <span class="text-red-400 font-semibold">Disposed</span>
                             <span>{{ $disposedCount }} ({{ number_format(($disposedCount / $total) * 100, 1) }}%)</span>
                         </div>
                         <div class="w-full bg-gray-600 rounded h-3">

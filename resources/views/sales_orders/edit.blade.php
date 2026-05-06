@@ -52,6 +52,17 @@
         </div>
     @endif
 
+    @if($errors->any())
+        <div class="bg-red-900/60 border border-red-500 text-red-300 p-3 rounded mb-4">
+            <p class="font-semibold mb-1">Please fix the following errors:</p>
+            <ul class="list-disc ml-5 text-sm">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     @if(session('error'))
         <div class="bg-red-600 text-white p-3 rounded mb-4">{{ session('error') }}</div>
     @endif
@@ -67,11 +78,54 @@
         <!-- General Info -->
         <div class="grid md:grid-cols-2 gap-6 mb-8">
             <div>
-                <label class="block text-sm mb-1 text-gray-300">Customer</label>
-                <input type="text" 
-                    value="{{ $salesOrder->customer->customer_name }}" 
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300" readonly>
-                <input type="hidden" name="customer_id" value="{{ $salesOrder->customer_id }}">
+                <label class="block text-sm mb-1 text-gray-300">Customer <span class="text-red-400">*</span></label>
+                @php
+                    $canChangeCustomer = $salesOrder->isCustomerChangeApproved() || auth()->user()->canApproveCustomerChange();
+                @endphp
+
+                @if($canChangeCustomer)
+                    {{-- Editable: IT user or IT-approved --}}
+                    <div class="relative">
+                        <input type="text" id="customer_search"
+                            value="{{ $salesOrder->customer->customer_name }}"
+                            class="w-full bg-gray-800 border border-green-600 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Search customer..." autocomplete="off">
+                        <input type="hidden" name="customer_id" id="customer_id" value="{{ $salesOrder->customer_id }}">
+                        <div id="customer_dropdown" class="hidden absolute z-50 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg max-h-60 overflow-y-auto shadow-xl"></div>
+                    </div>
+                    @if($salesOrder->isCustomerChangeApproved())
+                        <p class="text-xs text-green-400 mt-1">
+                            <i class="fas fa-check-circle mr-1"></i>Customer change approved by {{ $salesOrder->customer_change_approved_by }}
+                            ({{ \Carbon\Carbon::parse($salesOrder->customer_change_approved_at)->format('M d, Y h:i A') }})
+                        </p>
+                    @endif
+                    <p class="text-xs text-gray-400 mt-1" id="customer_change_note" style="display:none;">
+                        <i class="fas fa-info-circle text-yellow-400 mr-1"></i>Changing the customer will also update the linked delivery record.
+                    </p>
+                @else
+                    {{-- Locked: needs IT approval --}}
+                    <input type="text"
+                        value="{{ $salesOrder->customer->customer_name }}"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 cursor-not-allowed" readonly>
+                    <input type="hidden" name="customer_id" value="{{ $salesOrder->customer_id }}">
+                    <p class="text-xs text-yellow-400 mt-1">
+                        <i class="fas fa-lock mr-1"></i>Customer change requires IT approval.
+                    </p>
+                @endif
+
+                @if(auth()->user()->canApproveCustomerChange())
+                    <div class="mt-2">
+                        @if(!$salesOrder->isCustomerChangeApproved())
+                            <button type="button" onclick="submitCustomerChangeAction('{{ route('sales_orders.approveCustomerChange', $salesOrder->id) }}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition">
+                                <i class="fas fa-unlock mr-1"></i>Approve Customer Change
+                            </button>
+                        @else
+                            <button type="button" onclick="submitCustomerChangeAction('{{ route('sales_orders.revokeCustomerChange', $salesOrder->id) }}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition">
+                                <i class="fas fa-lock mr-1"></i>Revoke Approval
+                            </button>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             <div>
@@ -289,27 +343,36 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm mb-1 text-gray-300">
+                                <input type="checkbox" class="pcs-toggle w-4 h-4 rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500 mr-1"
+                                       onchange="togglePcsEdit(this)"
+                                       {{ ($item->unit === 'Pcs') ? 'checked' : '' }}>
+                                PCS?
+                            </label>
+                        </div>
+
                         <div>
                             <label class="block text-sm mb-1 text-gray-300">Quantity *</label>
-                            <input type="number" name="items[{{ $loop->index }}][quantity]" 
-                                   value="{{ old('items.' . $loop->index . '.quantity', $item->quantity) }}" 
-                                   step="any" 
-                                   class="item-quantity w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" 
+                            <input type="number" name="items[{{ $loop->index }}][quantity]"
+                                   value="{{ old('items.' . $loop->index . '.quantity', $item->quantity) }}"
+                                   step="any"
+                                   class="item-quantity w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
                                    oninput="calculateTotal(this)" required>
                         </div>
 
                         <div>
                             <label class="block text-sm mb-1 text-gray-300">Unit</label>
                             <input type="text" name="items[{{ $loop->index }}][unit]"
-                                   value="{{ old('items.' . $loop->index . '.unit', $item->unit) }}" 
+                                   value="{{ old('items.' . $loop->index . '.unit', $item->unit) }}"
                                    class="item-unit w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
                         </div>
 
                         <div>
                             <label class="block text-sm mb-1 text-gray-300">Unit Price *</label>
-                            <input type="number" name="items[{{ $loop->index }}][unit_price]" 
-                                   value="{{ old('items.' . $loop->index . '.unit_price', $item->unit_price) }}" 
+                            <input type="number" name="items[{{ $loop->index }}][unit_price]"
+                                   value="{{ old('items.' . $loop->index . '.unit_price', $item->unit_price) }}"
                                    step="any"
                                    class="item-price w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
                                    oninput="calculateTotal(this)" required>
@@ -317,8 +380,8 @@
 
                         <div>
                             <label class="block text-sm mb-1 text-gray-300">Total Amount</label>
-                            <input type="text" name="items[{{ $loop->index }}][total_amount]" 
-                                   value="{{ old('items.' . $loop->index . '.total_amount', $item->total_amount) }}" 
+                            <input type="text" name="items[{{ $loop->index }}][total_amount]"
+                                   value="{{ old('items.' . $loop->index . '.total_amount', $item->total_amount) }}"
                                    class="item-total w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-300" readonly>
                         </div>
                     </div>
@@ -425,6 +488,79 @@
 <script>
 let itemIndex = {{ count($salesOrder->items) }};
 const availableItems = @json($items);
+const allCustomers = @json($customers->map(fn($c) => ['id' => $c->id, 'customer_name' => $c->customer_name, 'customer_code' => $c->customer_code]));
+const originalCustomerId = {{ $salesOrder->customer_id }};
+
+// ─── Customer Search ─────────────────────────────────────────────────────────
+(function() {
+    const searchInput = document.getElementById('customer_search');
+    const dropdown = document.getElementById('customer_dropdown');
+    const hiddenInput = document.getElementById('customer_id');
+    const changeNote = document.getElementById('customer_change_note');
+    if (!searchInput || !dropdown || !hiddenInput) return;
+    let debounceTimer;
+
+    function renderDropdown(query) {
+        const filtered = query
+            ? allCustomers.filter(c =>
+                c.customer_name.toLowerCase().includes(query.toLowerCase()) ||
+                (c.customer_code && c.customer_code.toLowerCase().includes(query.toLowerCase()))
+            ).slice(0, 30)
+            : allCustomers.slice(0, 30);
+
+        if (filtered.length === 0) {
+            dropdown.innerHTML = '<div class="px-3 py-2 text-gray-400 text-sm">No customers found</div>';
+        } else {
+            dropdown.innerHTML = filtered.map(c => `
+                <div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm border-b border-gray-700"
+                     data-id="${c.id}" data-name="${c.customer_name}" data-code="${c.customer_code || ''}">
+                    <span class="text-white font-medium">${c.customer_name}</span>
+                    ${c.customer_code ? `<span class="text-gray-400 text-xs ml-2">(${c.customer_code})</span>` : ''}
+                </div>
+            `).join('');
+        }
+        dropdown.classList.remove('hidden');
+    }
+
+    searchInput.addEventListener('focus', function() {
+        renderDropdown(this.value);
+    });
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => renderDropdown(this.value), 150);
+    });
+
+    dropdown.addEventListener('click', function(e) {
+        const item = e.target.closest('[data-id]');
+        if (!item) return;
+        hiddenInput.value = item.dataset.id;
+        searchInput.value = item.dataset.name;
+        dropdown.classList.add('hidden');
+        changeNote.style.display = parseInt(item.dataset.id) !== originalCustomerId ? 'block' : 'none';
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+})();
+
+// Submit approve/revoke customer change via a temporary form (avoids nested form issue)
+function submitCustomerChangeAction(actionUrl) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = actionUrl;
+    form.style.display = 'none';
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = '_token';
+    csrf.value = document.querySelector('meta[name="csrf-token"]').content;
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+}
 
 // Initialize Select2 when document is ready
 $(document).ready(function() {
@@ -595,27 +731,34 @@ function addNewItem() {
             </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
+            <div>
+                <label class="block text-sm mb-1 text-gray-300">
+                    <input type="checkbox" class="pcs-toggle w-4 h-4 rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500 mr-1"
+                           onchange="togglePcsEdit(this)">
+                    PCS?
+                </label>
+            </div>
             <div>
                 <label class="block text-sm mb-1 text-gray-300">Quantity *</label>
-                <input type="number" name="items[${itemIndex}][quantity]" step="any" 
-                    class="item-quantity w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" 
+                <input type="number" name="items[${itemIndex}][quantity]" step="any"
+                    class="item-quantity w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
                     oninput="calculateTotal(this)" required>
             </div>
             <div>
                 <label class="block text-sm mb-1 text-gray-300">Unit</label>
-                <input type="text" name="items[${itemIndex}][unit]" 
+                <input type="text" name="items[${itemIndex}][unit]" value="Kgs"
                     class="item-unit w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" readonly>
             </div>
             <div>
                 <label class="block text-sm mb-1 text-gray-300">Unit Price *</label>
-                <input type="number" name="items[${itemIndex}][unit_price]" step="any" 
+                <input type="number" name="items[${itemIndex}][unit_price]" step="any"
                     class="item-price w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2"
                     oninput="calculateTotal(this)" required>
             </div>
             <div>
                 <label class="block text-sm mb-1 text-gray-300">Total Amount</label>
-                <input type="text" name="items[${itemIndex}][total_amount]" 
+                <input type="text" name="items[${itemIndex}][total_amount]"
                     class="item-total w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-300" readonly>
             </div>
         </div>
@@ -691,6 +834,15 @@ function calculateTotal(input) {
     const qty = parseFloat(row.querySelector('.item-quantity').value) || 0;
     const price = parseFloat(row.querySelector('.item-price').value) || 0;
     row.querySelector('.item-total').value = (qty * price).toFixed(2);
+}
+
+// Toggle PCS field visibility
+function togglePcsEdit(checkbox) {
+    const row = checkbox.closest('.item-row');
+    const unitInput = row.querySelector('.item-unit');
+    if (unitInput) {
+        unitInput.value = checkbox.checked ? 'Pcs' : 'Kgs';
+    }
 }
 </script>
 

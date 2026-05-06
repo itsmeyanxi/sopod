@@ -24,6 +24,13 @@
                     🚫 Hide DR
                 </button>
             @endif
+            @if(auth()->user()->isAdminUser())
+                <button type="button"
+                        onclick="showDeleteModal()"
+                        class="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded transition">
+                    🗑️ Delete DR
+                </button>
+            @endif
             <a href="{{ route('deliveries.index') }}"
                class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded transition">
                ← Back
@@ -511,6 +518,7 @@
                         <th class="px-4 py-2 text-left">Description</th>
                         <th class="px-4 py-2 text-left">Brand</th>
                         <th class="px-4 py-2 text-left">Category</th>
+                        <th class="px-4 py-2 text-center">PCS</th>
                         <th class="px-4 py-2 text-right">Original Qty<br><span class="text-xs text-gray-300">(SO Qty)</span></th>
                         <th class="px-4 py-2 text-right">This Batch Qty<br><span class="text-xs text-gray-300">(DR Qty)</span></th>
                         <th class="px-4 py-2 text-right">Total Delivered<br><span class="text-xs text-gray-300">(All Batches)</span></th>
@@ -555,17 +563,29 @@
                             <td class="px-4 py-2">{{ $item->brand ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $item->item_category ?? '—' }}</td>
 
+                            <!-- PCS -->
+                            <td class="px-4 py-2 text-center">
+                                @php
+                                    $itemPcs = $soItemsMap->get($item->sales_order_item_id)?->pcs;
+                                @endphp
+                                @if($itemPcs)
+                                    <span class="font-semibold text-yellow-400">{{ $itemPcs }}</span>
+                                @else
+                                    <span class="text-gray-500">—</span>
+                                @endif
+                            </td>
+
                             <!-- Original Qty (SO Qty) -->
                             <td class="px-4 py-2 text-right">
                                 <span class="font-semibold text-blue-700">
-                                    {{ number_format($originalQty, 2) }}
+                                    {{ number_format($originalQty, 3) }}
                                 </span>
                             </td>
 
                             <!-- This Batch Qty (DR Qty) -->
                             <td class="px-4 py-2 text-right">
                                 <span class="font-semibold text-green-700">
-                                    {{ number_format($thisBatchQty, 2) }}
+                                    {{ number_format($thisBatchQty, 3) }}
                                 </span>
                             </td>
 
@@ -573,7 +593,7 @@
                            <td class="px-4 py-2 text-right">
                                 <div class="flex flex-col items-end">
                                     <span class="font-semibold text-purple-700">
-                                        {{ number_format($totalDelivered, 2) }}
+                                        {{ number_format($totalDelivered, 3) }}
                                     </span>
                                     @if($totalDelivered > $thisBatchQty)
                                         <span class="text-xs text-gray-300">
@@ -587,11 +607,11 @@
                             <td class="px-4 py-2 text-right">
                                 @if($remaining > 0)
                                     <span class="font-semibold text-orange-700">
-                                        {{ number_format($remaining, 2) }}
+                                        {{ number_format($remaining, 3) }}
                                     </span>
                                 @elseif($remaining < 0)
                                     <span class="font-semibold text-red-700">
-                                        OVER: {{ number_format(abs($remaining), 2) }}
+                                        OVER: {{ number_format(abs($remaining), 3) }}
                                     </span>
                                 @else
                                     <span class="text-green-700 font-semibold">✓ Complete</span>
@@ -616,7 +636,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="12" class="px-4 py-8 text-center text-gray-400">
+                            <td colspan="13" class="px-4 py-8 text-center text-gray-400">
                                 No items found for this delivery
                             </td>
                         </tr>
@@ -625,7 +645,7 @@
                     @if($items->count() > 0)
                         <!-- Grand Total Row -->
                         <tr class="bg-gray-800 font-semibold">
-                            <td colspan="10" class="px-4 py-3 text-right">Grand Total:</td>
+                            <td colspan="11" class="px-4 py-3 text-right">Grand Total:</td>
                             <td class="px-4 py-3 text-right text-green-700">₱{{ number_format($grandTotal, 2) }}</td>
                             <td></td>
                         </tr>
@@ -721,6 +741,47 @@
 </div>
 @endif
 
+<!-- 🗑️ Delete DR Modal (IT only) -->
+@if(auth()->user()->isAdminUser())
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold text-white mb-2">🗑️ Permanently Delete Delivery</h3>
+        <p class="text-sm text-red-400 mb-2">
+            <strong>WARNING:</strong> This action is <strong>permanent and cannot be undone</strong>.
+        </p>
+        <p class="text-sm text-gray-300 mb-4">
+            Deleting <strong>DR {{ $delivery->dr_no }}</strong> will:
+        </p>
+        <ul class="text-sm text-gray-300 mb-4 list-disc ml-5 space-y-1">
+            <li>Permanently remove this delivery and all its items</li>
+            <li>Free up the DR number for reuse</li>
+            <li>Reset linked Sales Order items so they can be reassigned</li>
+            <li>Reopen the Sales Order if it was closed</li>
+        </ul>
+        <form action="{{ route('deliveries.destroy', $delivery->id) }}" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Reason for Deletion <span class="text-red-600">*</span></label>
+                <textarea name="delete_reason" rows="3" required
+                          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          placeholder="Please provide a reason for permanently deleting this delivery..."></textarea>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeDeleteModal()"
+                        class="bg-gray-600 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded-lg transition font-semibold">
+                    Permanently Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
 <!-- 🖼️ Image Modal -->
 <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 hidden items-center justify-center z-50" onclick="closeImageModal()">
     <div class="relative max-w-7xl max-h-screen p-4">
@@ -801,12 +862,29 @@ function closeHideModal() {
     }
 }
 
+function showDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
 // Close modals with Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeImageModal();
         closeApprovalModal();
         closeHideModal();
+        closeDeleteModal();
     }
 });
 </script>

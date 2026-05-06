@@ -11,6 +11,22 @@ use App\Helpers\RoleHelper;
 
 class UserManagementController extends Controller
 {
+    const AVAILABLE_ROLES = [
+        'User'               => 'User (Default)',
+        'Admin'              => 'Admin',
+        'IT'                 => 'IT / Information System',
+        'SCM'                => 'Supply Chain Management (SCM)',
+        'Finance'            => 'Finance',
+        'Accounting'         => 'Accounting',
+        'Sales'              => 'Sales',
+        'Credit & Collection'=> 'Credit & Collection',
+        'Treasury'           => 'Treasury',
+        'Delivery'           => 'Delivery',
+        'Purchasing'         => 'Purchasing',
+        'President'          => 'President',
+        'Vice President'     => 'Vice President',
+    ];
+
     /**
      * Display list of all users.
      */
@@ -33,7 +49,8 @@ class UserManagementController extends Controller
             return RoleHelper::unauthorized();
         }
 
-        return view('admin.users.create');
+        $availableRoles = self::AVAILABLE_ROLES;
+        return view('admin.users.create', compact('availableRoles'));
     }
 
     /**
@@ -50,14 +67,16 @@ class UserManagementController extends Controller
                 'name'     => 'required|string|max:255',
                 'email'    => 'required|email|unique:users',
                 'password' => 'required|min:6',
+                'role'     => 'required|string|in:' . implode(',', array_keys(self::AVAILABLE_ROLES)),
             ]);
 
+            $selectedRole = $request->role;
             $user = User::create([
                 'name'           => $request->name,
                 'email'          => $request->email,
                 'password'       => $request->password,
-                'roles'          => ['User'],
-                'role'           => 'User',
+                'roles'          => [$selectedRole],
+                'role'           => $selectedRole,
                 'login_attempts' => 0,
             ]);
 
@@ -91,10 +110,11 @@ class UserManagementController extends Controller
             return RoleHelper::unauthorized();
         }
 
-        $user      = User::with(['lockedBy', 'moduleOverrides'])->findOrFail($id);
-        $overrides = $user->moduleOverrides->keyBy('module');
+        $user           = User::with(['lockedBy', 'moduleOverrides'])->findOrFail($id);
+        $overrides      = $user->moduleOverrides->keyBy('module');
+        $availableRoles = self::AVAILABLE_ROLES;
 
-        return view('admin.users.edit', compact('user', 'overrides'));
+        return view('admin.users.edit', compact('user', 'overrides', 'availableRoles'));
     }
 
     /**
@@ -137,10 +157,14 @@ class UserManagementController extends Controller
                 'name'     => 'required|string|max:255',
                 'email'    => 'required|email|unique:users,email,' . $id,
                 'password' => 'nullable|min:6',
+                'role'     => 'required|string|in:' . implode(',', array_keys(self::AVAILABLE_ROLES)),
             ]);
 
-            $user->name  = $request->name;
-            $user->email = $request->email;
+            $selectedRole     = $request->role;
+            $user->name       = $request->name;
+            $user->email      = $request->email;
+            $user->role       = $selectedRole;
+            $user->roles      = [$selectedRole];
 
             if ($request->filled('password')) {
                 $user->password       = $request->password;
@@ -227,7 +251,7 @@ class UserManagementController extends Controller
 
         $request->validate([
             'module'   => 'required|string',
-            'override' => 'required|in:default,grant',
+            'override' => 'required|in:default,grant,deny',
         ]);
 
         $user   = User::findOrFail($id);
@@ -237,6 +261,13 @@ class UserManagementController extends Controller
             // Remove any existing override — sub-dept rules take over
             $user->moduleOverrides()->where('module', $module)->delete();
             $action = 'removed';
+        } elseif ($request->override === 'deny') {
+            // Explicitly deny access regardless of sub-dept assignment
+            $user->moduleOverrides()->updateOrCreate(
+                ['module' => $module],
+                ['allowed' => false]
+            );
+            $action = 'denied';
         } else {
             // Grant extra access on top of sub-dept assignment
             $user->moduleOverrides()->updateOrCreate(

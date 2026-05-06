@@ -27,16 +27,42 @@
         </div>
     @endif
 
-<!-- Search + Add Button -->
-<div class="flex items-center justify-between gap-4 mb-4">
-    <input id="itemSearchInput" 
-        type="text" 
-        placeholder="Search item code / description / brand / category"
-        class="w-80 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring focus:ring-purple-500">
+<!-- Search + Filters + Add Button -->
+<form method="GET" action="{{ route('items.index') }}" class="flex flex-wrap items-end gap-3 mb-4">
+    <div class="flex-1 min-w-[250px]">
+        <label class="block text-xs text-gray-400 font-semibold mb-1">Search</label>
+        <input type="text" name="search" value="{{ request('search') }}"
+            placeholder="Item code, description, brand, category..."
+            class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring focus:ring-purple-500">
+    </div>
+    @if(auth()->user()->canManageItems())
+    <div>
+        <label class="block text-xs text-gray-400 font-semibold mb-1">Status</label>
+        <select name="status" class="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white">
+            <option value="">All Statuses</option>
+            <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
+            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+            <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+        </select>
+    </div>
+    @endif
+    <div>
+        <label class="block text-xs text-gray-400 font-semibold mb-1">Per Page</label>
+        <select name="per_page" class="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white">
+            @foreach([25, 50, 100, 250, 500] as $pp)
+                <option value="{{ $pp }}" {{ (int)request('per_page', 25) === $pp ? 'selected' : '' }}>{{ $pp }}</option>
+            @endforeach
+        </select>
+    </div>
+    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition font-medium">
+        <i class="fas fa-search mr-1"></i> Search
+    </button>
+    @if(request('search') || request('status') || request('per_page'))
+        <a href="{{ route('items.index') }}" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded transition">Clear</a>
+    @endif
 
-    <div class="flex gap-3">
-        {{-- ✅ Export Button --}}
-        <a href="{{ route('items.export') }}" 
+    <div class="ml-auto flex gap-3">
+        <a href="{{ route('items.export') }}"
            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -45,13 +71,13 @@
         </a>
 
         @if(auth()->user()->canManageItems())
-            <a href="{{ route('items.create') }}" 
+            <a href="{{ route('items.create') }}"
                class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded transition">
                 Add New Item
             </a>
         @endif
     </div>
-</div>
+</form>
     <!-- Bulk Actions Bar (only shown when items are selected) -->
     @if(auth()->user()->canApproveItems())
     <div id="bulkActionsBar" class="hidden bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-4 mb-4 shadow-lg">
@@ -179,8 +205,21 @@
         </table>
     </div>
 
-    <!-- Item Count at the Bottom -->
-    <div class="mt-4 text-sm text-gray-300 text-left" id="itemCount"></div>
+    <!-- Pagination -->
+    @if($items->hasPages())
+    <div class="mt-4 flex items-center justify-between">
+        <div class="text-sm text-gray-400">
+            Showing {{ $items->firstItem() }}–{{ $items->lastItem() }} of {{ number_format($items->total()) }} items
+        </div>
+        <div>
+            {{ $items->links() }}
+        </div>
+    </div>
+    @else
+    <div class="mt-4 text-sm text-gray-400">
+        Showing {{ number_format($items->total()) }} item{{ $items->total() !== 1 ? 's' : '' }}
+    </div>
+    @endif
 </div>
 
 <!-- Individual Reject Modal -->
@@ -243,24 +282,15 @@
 <!-- Scripts -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('itemSearchInput');
-    const rows = document.querySelectorAll('#itemsTable tbody tr.item-row');
-    const countDisplay = document.getElementById('itemCount');
     const selectAllCheckbox = document.getElementById('selectAll');
     const itemCheckboxes = document.querySelectorAll('.item-checkbox');
     const bulkActionsBar = document.getElementById('bulkActionsBar');
     const selectedCountSpan = document.getElementById('selectedCount');
 
-    function updateVisibleCount() {
-        const visible = Array.from(rows).filter(r => r.style.display !== 'none');
-        const pending = visible.filter(r => r.dataset.status === 'pending').length;
-        countDisplay.innerHTML = `Showing ${visible.length} item${visible.length !== 1 ? 's' : ''} ${pending > 0 ? `<span class="text-yellow-700">(${pending} pending)</span>` : ''}`;
-    }
-
     function updateBulkActionsBar() {
         const selectedCheckboxes = Array.from(itemCheckboxes).filter(cb => cb.checked);
         const count = selectedCheckboxes.length;
-        
+
         if (count > 0) {
             bulkActionsBar.classList.remove('hidden');
             selectedCountSpan.textContent = `${count} item${count !== 1 ? 's' : ''} selected`;
@@ -268,35 +298,18 @@ document.addEventListener('DOMContentLoaded', function () {
             bulkActionsBar.classList.add('hidden');
         }
 
-        // Update "Select All" checkbox state
         if (selectAllCheckbox) {
-            const visibleCheckboxes = Array.from(itemCheckboxes).filter(cb => cb.offsetParent !== null);
-            const allChecked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(cb => cb.checked);
-            const someChecked = visibleCheckboxes.some(cb => cb.checked);
-            
+            const allChecked = itemCheckboxes.length > 0 && Array.from(itemCheckboxes).every(cb => cb.checked);
+            const someChecked = Array.from(itemCheckboxes).some(cb => cb.checked);
             selectAllCheckbox.checked = allChecked;
             selectAllCheckbox.indeterminate = someChecked && !allChecked;
         }
     }
 
-    // Search functionality
-    searchInput.addEventListener('input', function () {
-        const q = this.value.toLowerCase().trim();
-        rows.forEach(row => {
-            const txt = row.innerText.toLowerCase();
-            row.style.display = txt.includes(q) ? '' : 'none';
-        });
-        updateVisibleCount();
-        updateBulkActionsBar();
-    });
-
     // Select All functionality
     if (selectAllCheckbox) {
         selectAllCheckbox.addEventListener('change', function () {
-            const visibleCheckboxes = Array.from(itemCheckboxes).filter(cb => cb.offsetParent !== null);
-            visibleCheckboxes.forEach(cb => {
-                cb.checked = this.checked;
-            });
+            itemCheckboxes.forEach(cb => cb.checked = this.checked);
             updateBulkActionsBar();
         });
     }
@@ -305,8 +318,6 @@ document.addEventListener('DOMContentLoaded', function () {
     itemCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', updateBulkActionsBar);
     });
-
-    updateVisibleCount();
 });
 
 // Clear selection

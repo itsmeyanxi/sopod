@@ -38,7 +38,6 @@
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="bg-red-800 text-white">
-                            <th class="px-4 py-3 text-left font-semibold">Customer Code</th>
                             <th class="px-4 py-3 text-left font-semibold">Customer Name</th>
                             <th class="px-4 py-3 text-left font-semibold">Branch</th>
                             <th class="px-4 py-3 text-left font-semibold">Sales Executive</th>
@@ -50,24 +49,33 @@
                     </thead>
                     <tbody>
                         @forelse($customers as $customer)
-                        <tr class="border-b border-gray-100 hover:bg-red-50 transition">
-                            <td class="px-4 py-3 text-gray-300 font-mono text-xs">{{ $customer->customer_code }}</td>
-                            <td class="px-4 py-3 font-semibold text-white">{{ $customer->client_name }}</td>
-                            <td class="px-4 py-3 text-gray-300">{{ $customer->branch ?? '—' }}</td>
+                        <tr class="border-b border-gray-700 hover:bg-gray-700 transition">
+                            <td class="px-4 py-3">
+                                <span class="font-semibold text-white">{{ $customer->client_name }}</span>
+                                @if(!empty($customer->billing_address))
+                                <br><span class="text-xs text-gray-400">{{ Str::limit($customer->billing_address, 50) }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-gray-300">
+                                {{ $customer->branch ?? '—' }}
+                                @if(($customer->branch_count ?? 1) > 1)
+                                <span class="ml-1 px-1.5 py-0.5 bg-purple-900/40 text-purple-300 rounded text-xs font-semibold">{{ $customer->branch_count }} branches</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-gray-300">{{ $customer->sales_executive ?? '—' }}</td>
                             <td class="px-4 py-3 text-center text-gray-300">{{ $customer->terms ?? '—' }}</td>
                             <td class="px-4 py-3 text-center">
-                                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">{{ $customer->invoice_count }}</span>
+                                <span class="px-2 py-0.5 bg-blue-900/40 text-blue-300 rounded text-xs font-semibold">{{ $customer->invoice_count }}</span>
                             </td>
-                            <td class="px-4 py-3 text-right font-bold text-red-700">
+                            <td class="px-4 py-3 text-right font-bold text-red-400">
                                 ₱{{ number_format((float)$customer->outstanding_balance, 2) }}
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('soa.show', $customer->customer_code) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition">
+                                    <a href="{{ route('soa.show', urlencode($customer->client_name)) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition">
                                         <i class="fas fa-eye mr-1"></i>View
                                     </a>
-                                    <a href="{{ route('soa.export', $customer->customer_code) }}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition">
+                                    <a href="{{ route('soa.export', urlencode($customer->client_name)) }}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition">
                                         <i class="fas fa-file-excel mr-1"></i>Export
                                     </a>
                                 </div>
@@ -75,7 +83,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-400">
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-400">
                                 <i class="fas fa-file-invoice text-4xl mb-2"></i>
                                 <p>No customers with outstanding balances found.</p>
                             </td>

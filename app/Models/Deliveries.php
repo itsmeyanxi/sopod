@@ -81,6 +81,10 @@ class Deliveries extends Model
         'hidden_by',
         'hidden_at',
         'hidden_reason',
+        'quantity',
+        'total_amount',
+        'item_code',
+        'item_description',
     ];
 
     protected $casts = [

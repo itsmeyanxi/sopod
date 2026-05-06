@@ -303,16 +303,21 @@ class PurchaseOrderController extends Controller
         }
 
         // ── Validate ────────────────────────────────────────────────────────
-        $validated = $request->validate([
-            'company'               => 'required|string',
-            'order_date'            => 'required|date',
+        $poType = $request->input('po_type', 'items');
+        $itemsRules = $poType === 'service' ? [] : [
             'items'                 => 'required|array|min:1',
             'items.*.qty'           => 'required|numeric|min:0',
             'items.*.description'   => 'required|string',
             'items.*.supplier_id'   => 'nullable',
             'items.*.supplier_name' => 'nullable|string',
             'items.*.note'          => 'nullable|string',
-        ]);
+        ];
+        $validated = $request->validate(array_merge([
+            'company'               => 'required|string',
+            'order_date'            => 'required|date',
+            'po_type'               => 'required|in:items,service',
+            'service_description'   => $poType === 'service' ? 'required|string' : 'nullable|string',
+        ], $itemsRules));
 
         DB::beginTransaction();
         try {
@@ -340,9 +345,14 @@ class PurchaseOrderController extends Controller
                 'payment_terms'          => $request->payment_terms ?: null,
                 'location'               => $request->location ?: null,
                 'house'                  => $request->house ?: null,
+                'brand'                  => $request->brand ?: null,
                 'pr_no'                  => $request->pr_no ?: null,
                 'lc_price'               => $request->lc_price ?: null,
                 'remarks'                => $request->remarks ?: null,
+                'po_type'                => $request->po_type ?? 'items',
+                'service_description'    => $request->po_type === 'service' ? $request->service_description : null,
+                'service_qty'            => $request->po_type === 'service' ? $request->service_qty : null,
+                'service_amount'         => $request->po_type === 'service' ? $request->service_amount : null,
                 'quotation'              => $quotationPath,
                 'currency'               => $request->currency ?? 'PHP',
                 'exchange_rate'          => $request->exchange_rate ?? 1,
@@ -351,27 +361,32 @@ class PurchaseOrderController extends Controller
                 'created_by'             => Auth::id(),
             ]);
 
-            foreach ($request->items as $index => $item) {
-                $supplierId = isset($item['supplier_id']) && is_numeric($item['supplier_id']) && $item['supplier_id'] > 0
-                    ? (int) $item['supplier_id']
-                    : null;
+            if ($request->po_type !== 'service') {
+                foreach ($request->items as $index => $item) {
+                    $supplierId = isset($item['supplier_id']) && is_numeric($item['supplier_id']) && $item['supplier_id'] > 0
+                        ? (int) $item['supplier_id']
+                        : null;
 
-                PurchaseOrderItem::create([
-                    'purchase_order_id'        => $purchaseOrder->id,
-                    'purchase_request_item_id' => !empty($item['purchase_request_item_id']) ? $item['purchase_request_item_id'] : null,
-                    'supplier_id'              => $supplierId,
-                    'supplier_name'            => !empty($item['supplier_name']) ? $item['supplier_name'] : null,
-                    'item_no'                  => $index + 1,
-                    'item_code'                => !empty($item['item_code']) ? $item['item_code'] : null,
-                    'date_needed'              => !empty($item['date_needed']) ? $item['date_needed'] : null,
-                    'qty'                      => $item['qty'],
-                    'uom'                      => !empty($item['uom']) ? $item['uom'] : null,
-                    'description'              => $item['description'],
-                    'unit_price'               => !empty($item['unit_price']) ? $item['unit_price'] : null,
-                    'tax'                      => isset($item['tax']) && is_numeric($item['tax']) ? $item['tax'] : 0,
-                    'total'                    => !empty($item['total']) ? $item['total'] : null,
-                    'note'                     => !empty($item['note']) ? $item['note'] : null,
-                ]);
+                    PurchaseOrderItem::create([
+                        'purchase_order_id'        => $purchaseOrder->id,
+                        'purchase_request_item_id' => !empty($item['purchase_request_item_id']) ? $item['purchase_request_item_id'] : null,
+                        'supplier_id'              => $supplierId,
+                        'supplier_name'            => !empty($item['supplier_name']) ? $item['supplier_name'] : null,
+                        'item_no'                  => $index + 1,
+                        'item_code'                => !empty($item['item_code']) ? $item['item_code'] : null,
+                        'date_needed'              => !empty($item['date_needed']) ? $item['date_needed'] : null,
+                        'qty'                      => $item['qty'],
+                        'uom'                      => !empty($item['uom']) ? $item['uom'] : null,
+                        'description'              => $item['description'],
+                        'brand'                    => !empty($item['brand']) ? $item['brand'] : null,
+                        'unit_price'               => !empty($item['unit_price']) ? $item['unit_price'] : null,
+                        'vat'                      => !empty($item['vat']) ? 1 : 0,
+                        'tax_code'                 => !empty($item['tax_code']) ? $item['tax_code'] : null,
+                        'tax'                      => isset($item['tax']) && is_numeric($item['tax']) ? $item['tax'] : 0,
+                        'total'                    => !empty($item['total']) ? $item['total'] : null,
+                        'note'                     => !empty($item['note']) ? $item['note'] : null,
+                    ]);
+                }
             }
 
             DB::commit();
@@ -466,16 +481,21 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $request->validate([
-            'company'                  => 'required|string',
-            'order_date'               => 'required|date',
+        $poType = $request->input('po_type', 'items');
+        $itemsRulesUpdate = $poType === 'service' ? [] : [
             'items'                    => 'required|array|min:1',
             'items.*.qty'              => 'required|numeric|min:0',
             'items.*.description'      => 'required|string',
             'items.*.supplier_id'      => 'nullable|exists:suppliers,id',
             'items.*.supplier_name'    => 'nullable|string',
             'items.*.note'             => 'nullable|string',
-        ]);
+        ];
+        $request->validate(array_merge([
+            'company'                  => 'required|string',
+            'order_date'               => 'required|date',
+            'po_type'                  => 'required|in:items,service',
+            'service_description'      => $poType === 'service' ? 'required|string' : 'nullable|string',
+        ], $itemsRulesUpdate));
 
         DB::beginTransaction();
         try {
@@ -495,9 +515,14 @@ class PurchaseOrderController extends Controller
                 'payment_terms'          => $request->payment_terms ?: null,
                 'location'               => $request->location ?: null,
                 'house'                  => $request->house ?: null,
+                'brand'                  => $request->brand ?: null,
                 'pr_no'                  => $request->pr_no ?: null,
                 'lc_price'               => $request->lc_price ?: null,
                 'remarks'                => $request->remarks ?: null,
+                'po_type'                => $request->po_type ?? 'items',
+                'service_description'    => $request->po_type === 'service' ? $request->service_description : null,
+                'service_qty'            => $request->po_type === 'service' ? $request->service_qty : null,
+                'service_amount'         => $request->po_type === 'service' ? $request->service_amount : null,
                 'currency'               => $request->currency ?? 'PHP',
                 'exchange_rate'          => $request->exchange_rate ?? 1,
             ];
@@ -512,6 +537,7 @@ class PurchaseOrderController extends Controller
             $purchaseOrder->update($updateData);
             $purchaseOrder->items()->delete();
 
+            if ($request->po_type !== 'service') {
             foreach ($request->items as $index => $item) {
                 $supplierId = isset($item['supplier_id']) && is_numeric($item['supplier_id']) && $item['supplier_id'] > 0
                     ? (int) $item['supplier_id']
@@ -528,12 +554,16 @@ class PurchaseOrderController extends Controller
                     'qty'                      => $item['qty'],
                     'uom'                      => $item['uom'] ?? null,
                     'description'              => $item['description'],
+                    'brand'                    => !empty($item['brand']) ? $item['brand'] : null,
                     'unit_price'               => $item['unit_price'] ?: null,
+                    'vat'                      => !empty($item['vat']) ? 1 : 0,
+                    'tax_code'                 => !empty($item['tax_code']) ? $item['tax_code'] : null,
                     'tax'                      => $item['tax'] ?? 0,
                     'total'                    => $item['total'] ?: null,
                     'note'                     => $item['note'] ?: null,
                 ]);
             }
+            } // end if not service
 
             DB::commit();
 
@@ -919,6 +949,31 @@ class PurchaseOrderController extends Controller
         }
 
         return response()->json([]);
+    }
+
+    /**
+     * Get the most recent supplier used for a given item description across all POs.
+     */
+    public function getLastSupplierForItem(Request $request)
+    {
+        $description = trim($request->input('description', ''));
+        if (empty($description)) {
+            return response()->json(null);
+        }
+
+        $poItem = PurchaseOrderItem::where('description', $description)
+            ->whereNotNull('supplier_id')
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$poItem) {
+            return response()->json(null);
+        }
+
+        return response()->json([
+            'supplier_id'   => $poItem->supplier_id,
+            'supplier_name' => $poItem->supplier_name,
+        ]);
     }
 
     /**

@@ -14,6 +14,9 @@ use App\Models\ArAdjustment;
 use App\Models\User;
 use App\Models\BomMaterial;
 use App\Models\AssetClass;
+use App\Models\Vendor;
+use App\Models\CostCenter;
+use App\Models\GlAccount;
 use Illuminate\Support\Facades\Mail;
 
 class ExcelImportController extends Controller
@@ -380,19 +383,36 @@ private $arAdjustmentColumnMap = [
         ]);
 
         try {
-            $file = $request->file('file');
-            $worksheet = $this->loadSpreadsheet($file->getRealPath());
-            $rows = $worksheet->toArray();
+            $file        = $request->file('file');
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
 
-            if (empty($rows)) {
-                return redirect()->back()->with('error', 'The file is empty.');
+            // Search every sheet for the first one containing "ItemCode" / "Item Code" / "item_code" in rows 1-10
+            $rows           = null;
+            $headerRowIndex = null;
+
+            foreach ($spreadsheet->getSheetNames() as $sheetName) {
+                $sheet     = $spreadsheet->getSheetByName($sheetName);
+                $candidate = $sheet->toArray();
+
+                foreach ($candidate as $i => $row) {
+                    $cleaned = array_map(fn($c) => strtolower(trim(str_replace([' ', '_', '-'], '', (string)$c))), $row);
+                    foreach ($cleaned as $cell) {
+                        if ($cell === 'itemcode') {
+                            $rows           = $candidate;
+                            $headerRowIndex = $i;
+                            break 3;
+                        }
+                    }
+                    if ($i >= 9) break;
+                }
             }
 
-            // Skip first row if it's merged/empty (formatting row)
-            $firstRow = $rows[0];
-            if (empty(array_filter($firstRow)) || count(array_filter($firstRow)) < 3) {
-                array_shift($rows);
+            if ($rows === null || $headerRowIndex === null) {
+                return redirect()->back()->with('error', 'Could not find a column named "ItemCode" in any sheet. Make sure the header is exactly "ItemCode".');
             }
+
+            // Discard rows before the header
+            $rows = array_slice($rows, $headerRowIndex);
 
             // Get headers from first row and normalize them
             $headers = array_shift($rows);
@@ -406,20 +426,14 @@ private $arAdjustmentColumnMap = [
                 if (isset($this->itemColumnMap[$header])) {
                     $mappedHeaders[] = $this->itemColumnMap[$header];
                 } else {
-                    $mappedHeaders[] = $header;
+                    // Also try stripping spaces, underscores, dashes (e.g. "ItemCode" -> "itemcode")
+                    $stripped = str_replace([' ', '_', '-'], '', $header);
+                    if (isset($this->itemColumnMap[$stripped])) {
+                        $mappedHeaders[] = $this->itemColumnMap[$stripped];
+                    } else {
+                        $mappedHeaders[] = $header;
+                    }
                 }
-            }
-
-            // Check for required columns
-            $requiredColumns = ['item_code', 'item_category', 'item_description', 'brand'];
-            $missingColumns = array_diff($requiredColumns, $mappedHeaders);
-            
-            if (!empty($missingColumns)) {
-                return redirect()->back()->with('error', 
-                    'Missing required columns in file: ' . implode(', ', $missingColumns) . 
-                    "\n\nFound columns: " . implode(', ', $cleanHeaders) . 
-                    "\n\nRequired columns: item_code (or Item Code), item_category (or Item Category), item_description (or Item Description), brand (or Brand)"
-                );
             }
 
             $imported = 0;
@@ -429,7 +443,7 @@ private $arAdjustmentColumnMap = [
 
             foreach ($rows as $index => $row) {
                 $rowNum = $index + 2; // +2 because we removed header and Excel is 1-indexed
-                
+
                 // Skip empty rows
                 if (empty(array_filter($row))) {
                     continue;
@@ -440,7 +454,8 @@ private $arAdjustmentColumnMap = [
                     return $this->fixEncoding($cell);
                 }, $row);
 
-                // Combine headers with row data
+                // Combine headers with row data (pad/trim row to match header count)
+                $row  = array_slice(array_pad($row, count($mappedHeaders), null), 0, count($mappedHeaders));
                 $data = array_combine($mappedHeaders, $row);
 
                 // Clean and validate data
@@ -450,21 +465,9 @@ private $arAdjustmentColumnMap = [
                 $brand = trim($data['brand'] ?? '');
                 $unit = isset($data['unit']) && !empty($data['unit']) ? trim($data['unit']) : null;
 
-                // Validate required fields
+                // Only item_code is required (used as unique identifier)
                 if (empty($itemCode)) {
                     $errors[] = "Row $rowNum: item_code is required";
-                    continue;
-                }
-                if (empty($itemCategory)) {
-                    $errors[] = "Row $rowNum: item_category is required";
-                    continue;
-                }
-                if (empty($itemDescription)) {
-                    $errors[] = "Row $rowNum: item_description is required";
-                    continue;
-                }
-                if (empty($brand)) {
-                    $errors[] = "Row $rowNum: brand is required";
                     continue;
                 }
 
@@ -2081,4 +2084,545 @@ private $arAdjustmentColumnMap = [
             return redirect()->back()->with('error', 'Error importing asset classes: ' . $e->getMessage());
         }
     }
+
+    public function importFixedAssets(Request $request)
+    {
+        $request->validate(['file' => 'required|mimes:xlsx,xls|max:20480']);
+
+        try {
+            $file        = $request->file('file');
+            $reader      = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+            $spreadsheet = $reader->load($file->getPathname());
+
+            // The actual sheet is "FA Master Data"
+            $sheet = $spreadsheet->getSheetByName('FA Master Data')
+                  ?? $spreadsheet->getSheetByName('Monthly Depreciation Sched')
+                  ?? $spreadsheet->getActiveSheet();
+
+            set_time_limit(300);
+            ini_set('memory_limit', '512M');
+
+            $highestRow = $sheet->getHighestRow();
+            $imported   = 0;
+            $skipped    = 0;
+            $errors     = [];
+
+            // Pre-load asset classes keyed by asset_class name (uppercase) for fast lookup
+            $assetClasses = \App\Models\AssetClass::all()->keyBy(fn($a) => strtoupper(trim($a->asset_class)));
+
+            // FA Master Data layout (data starts at row 4, row 3 is header):
+            // B = ItemCode       (asset_code)
+            // C = Acquisition Date
+            // D = Date Posted
+            // E = Depreciation Start
+            // F = ItemName       (asset_description)
+            // G = Asset Class    (asset_class)
+            // H = Cost
+            // I = Accum Dep      (accumulated_depreciation)
+            // J = NBV            (net_book_value)
+            for ($row = 4; $row <= $highestRow; $row++) {
+                $assetCode = trim((string)($sheet->getCell('B' . $row)->getCalculatedValue() ?? ''));
+                $assetDesc = trim((string)($sheet->getCell('F' . $row)->getCalculatedValue() ?? ''));
+
+                // Skip completely empty rows
+                if (empty($assetCode) && empty($assetDesc)) {
+                    $skipped++;
+                    continue;
+                }
+
+                try {
+                    $assetClassName  = trim((string)($sheet->getCell('G' . $row)->getCalculatedValue() ?? ''));
+                    $cost            = (float)($sheet->getCell('H' . $row)->getCalculatedValue() ?? 0);
+                    $accumDep        = (float)($sheet->getCell('I' . $row)->getCalculatedValue() ?? 0);
+                    $nbv             = (float)($sheet->getCell('J' . $row)->getCalculatedValue() ?? 0);
+                    $acquisitionDate = $this->parseFixedAssetDate($sheet->getCell('C' . $row)->getCalculatedValue());
+                    $datePosted      = $this->parseFixedAssetDate($sheet->getCell('D' . $row)->getCalculatedValue());
+                    $depStartDate    = $this->parseFixedAssetDate($sheet->getCell('E' . $row)->getCalculatedValue());
+
+                    // Look up asset class record for supplemental fields
+                    $classRecord = $assetClasses[strtoupper($assetClassName)] ?? null;
+
+                    $assetGroup          = $classRecord?->asset_group          ?? $assetClassName;
+                    $usefulLifeMonths    = $classRecord?->useful_life_months   ?? 0;
+                    $usefulLifeYears     = $usefulLifeMonths > 0 ? round($usefulLifeMonths / 12, 2) : 0;
+                    $glAccount           = $classRecord?->gl_account           ?? '';
+                    $depreciationAccount = $classRecord?->depreciation_account ?? '';
+                    $depType             = $classRecord?->dep_type             ?? 'Straight Line';
+
+                    // Determine monthly/yearly depreciation from accumulated dep and useful life
+                    $monthlyDep = ($usefulLifeMonths > 0 && $cost > 0)
+                        ? round(($cost - 0) / $usefulLifeMonths, 2)
+                        : 0;
+                    $yearlyDep  = $monthlyDep * 12;
+
+                    // Estimate remaining months from NBV and monthly depreciation
+                    $remainingMonths = 0;
+                    if ($monthlyDep > 0 && $nbv > 0) {
+                        $remainingMonths = (int)round($nbv / $monthlyDep);
+                    }
+
+                    $status = 'Active';
+                    if ($nbv <= 0 && $cost > 0) $status = 'Fully Depreciated';
+
+                    \App\Models\FixedAsset::create([
+                        'asset_code'               => $assetCode,
+                        'asset_description'        => $assetDesc,
+                        'asset_class'              => $assetClassName,
+                        'asset_group'              => $assetGroup,
+                        'acquisition_date'         => $acquisitionDate,
+                        'date_posted'              => $datePosted,
+                        'dep_start_date'           => $depStartDate,
+                        'cost'                     => $cost,
+                        'accumulated_depreciation' => round($accumDep, 2),
+                        'net_book_value'           => round(max(0, $nbv), 2),
+                        'gl_account'               => $glAccount,
+                        'depreciation_account'     => $depreciationAccount,
+                        'dep_type'                 => $depType,
+                        'useful_life_years'        => $usefulLifeYears,
+                        'useful_life_months'       => $usefulLifeMonths,
+                        'remaining_life_months'    => $remainingMonths,
+                        'monthly_depreciation'     => $monthlyDep,
+                        'yearly_depreciation'      => $yearlyDep,
+                        'salvage_value'            => 0,
+                        'additions'                => 0,
+                        'reclass_affiliates'       => 0,
+                        'disposal_amount'          => 0,
+                        'status'                   => $status,
+                        'created_by'               => auth()->user()->name ?? 'Import',
+                    ]);
+
+                    $imported++;
+                } catch (\Exception $e) {
+                    $errors[] = "Row {$row}: " . $e->getMessage();
+                }
+            }
+
+            $msg = "Import complete: {$imported} assets imported, {$skipped} blank rows skipped.";
+            if ($errors) {
+                $msg .= ' Errors: ' . implode('; ', array_slice($errors, 0, 5));
+            }
+
+            return redirect()->back()->with('success', $msg);
+
+        } catch (\Exception $e) {
+            \Log::error('Fixed Assets import failed', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
+        }
+    }
+
+    private function parseFixedAssetDate($value)
+    {
+        if (empty($value)) return null;
+        if (is_numeric($value)) {
+            try {
+                return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+        try {
+            return \Carbon\Carbon::parse($value)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    public function importVendors(Request $request)
+    {
+        $request->validate(['file' => 'required|file|mimes:xlsx,xls,csv|max:10240']);
+
+        $forcedCategory = $request->input('forced_category'); // TRADE, NON TRADE, or EMPLOYEES
+
+        // Maps lowercased header text → internal field name
+        // "date hired*" handles "Date Hired (mm/dd/yyyy)" etc.
+        $headerMap = [
+            'vendor code'    => 'vendor_code',
+            'vendor name'    => 'vendor_name',
+            'payee name'     => 'vendor_name',
+            'payee'          => 'vendor_name',
+            'category'       => 'category',
+            'group'          => 'group',
+            'gl account'     => 'gl_account',
+            'status'         => 'status',
+            'company'        => 'company',
+            'ee id'          => 'ee_id',
+            'ee_id'          => 'ee_id',
+            'last name'      => 'last_name',
+            'first name'     => 'first_name',
+            'middle name'    => 'middle_name',
+            'position'       => 'position',
+            'positions'      => 'position',
+            'department'     => 'department',
+            'location'       => 'location',
+            'office address' => 'office_address',
+            'date hired'     => 'date_hired',
+        ];
+
+        // Additional anchor headers that indicate a valid header row even without vendor_code/vendor_name
+        $employeeAnchors = ['ee id', 'ee_id', 'last name', 'first name', 'company'];
+
+        try {
+            $spreadsheet = IOFactory::load($request->file('file')->getPathname());
+            $sheet = $spreadsheet->getSheetByName('Vendor Database')
+                  ?? $spreadsheet->getSheetByName('Vendors')
+                  ?? $spreadsheet->getActiveSheet();
+
+            $highestRow = $sheet->getHighestDataRow();
+            $highestCol = $sheet->getHighestDataColumn();
+            $imported = $updated = $skipped = 0;
+            $errors = [];
+
+            // Find header row in first 5 rows
+            $headerRow = null;
+            $colMap = [];
+
+            for ($r = 1; $r <= min(5, $highestRow); $r++) {
+                $tmpMap = [];
+                $colIdx = 1;
+                $col = 'A';
+                while ($col <= $highestCol) {
+                    $raw = trim($sheet->getCell($col . $r)->getValue() ?? '');
+                    $val = strtolower($raw);
+
+                    // Strip trailing parenthetical like " (mm/dd/yyyy)"
+                    $val = preg_replace('/\s*\(.*\)$/', '', $val);
+
+                    if (isset($headerMap[$val])) {
+                        $tmpMap[$headerMap[$val]] = $col;
+                    }
+                    $colIdx++;
+                    $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
+                }
+
+                // Valid if has vendor_code/vendor_name OR any employee anchor field
+                $hasVendorFields = isset($tmpMap['vendor_code']) || isset($tmpMap['vendor_name']);
+                $hasEmployeeFields = count(array_intersect(array_keys($tmpMap), ['ee_id', 'last_name', 'first_name', 'company'])) > 0;
+
+                if (!empty($tmpMap) && ($hasVendorFields || $hasEmployeeFields)) {
+                    $colMap = $tmpMap;
+                    $headerRow = $r;
+                    break;
+                }
+            }
+
+            // Hard fallback: no recognizable header
+            if (!$headerRow) {
+                $headerRow = 0;
+                $colMap = ['vendor_code' => 'A', 'vendor_name' => 'B'];
+            }
+
+            $startRow = $headerRow + 1;
+
+            for ($row = $startRow; $row <= $highestRow; $row++) {
+                $get = function ($field) use ($sheet, $colMap, $row) {
+                    if (!isset($colMap[$field])) return '';
+                    return trim($sheet->getCell($colMap[$field] . $row)->getCalculatedValue() ?? '');
+                };
+
+                // For employee files: EE ID → vendor_code, build vendor_name from name fields
+                $vendorCode = $get('vendor_code') ?: $get('ee_id');
+                $vendorName = $get('vendor_name');
+                if (empty($vendorName)) {
+                    $parts = array_filter([$get('last_name'), $get('first_name'), $get('middle_name')]);
+                    if ($parts) $vendorName = implode(', ', array_slice($parts, 0, 1)) . ($parts ? ' ' . implode(' ', array_slice(array_values($parts), 1)) : '');
+                    // Cleaner: LASTNAME, FIRSTNAME MIDDLENAME
+                    $last   = $get('last_name');
+                    $first  = $get('first_name');
+                    $middle = $get('middle_name');
+                    if ($last || $first) {
+                        $vendorName = trim(($last ? $last . ', ' : '') . $first . ($middle ? ' ' . $middle : ''));
+                    }
+                }
+
+                if (empty($vendorCode) && empty($vendorName)) continue;
+
+                if (empty($vendorCode)) {
+                    $skipped++;
+                    $errors[] = "Row {$row}: No vendor code or EE ID found";
+                    continue;
+                }
+
+                // Category
+                if ($forcedCategory) {
+                    $category = $forcedCategory;
+                } else {
+                    $category = strtoupper($get('category'));
+                    if (str_contains($category, 'NON')) $category = 'NON TRADE';
+                    elseif (str_contains($category, 'TRADE')) $category = 'TRADE';
+                    elseif (str_contains($category, 'EMP')) $category = 'EMPLOYEES';
+                }
+
+                // Parse date_hired — handles "September 11, 2007", Excel serial, Y-m-d, etc.
+                $dateHired = null;
+                $rawDate = $get('date_hired');
+                if ($rawDate) {
+                    try {
+                        if (is_numeric($rawDate)) {
+                            $dateHired = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float)$rawDate)->format('Y-m-d');
+                        } else {
+                            $dateHired = \Carbon\Carbon::parse($rawDate)->format('Y-m-d');
+                        }
+                    } catch (\Exception $e) { $dateHired = null; }
+                }
+
+                $data = array_filter([
+                    'vendor_name'    => $vendorName ?: null,
+                    'category'       => $category ?: null,
+                    'group'          => $get('group') ?: null,
+                    'gl_account'     => $get('gl_account') ?: null,
+                    'status'         => $get('status') ?: null,
+                    'company'        => $get('company') ?: null,
+                    'ee_id'          => $get('ee_id') ?: null,
+                    'last_name'      => $get('last_name') ?: null,
+                    'first_name'     => $get('first_name') ?: null,
+                    'middle_name'    => $get('middle_name') ?: null,
+                    'position'       => $get('position') ?: null,
+                    'department'     => $get('department') ?: null,
+                    'location'       => $get('location') ?: null,
+                    'office_address' => $get('office_address') ?: null,
+                    'date_hired'     => $dateHired,
+                ], fn($v) => $v !== null);
+
+                $existing = Vendor::where('vendor_code', $vendorCode)->first();
+                if ($existing) {
+                    $existing->update($data);
+                    $updated++;
+                } else {
+                    Vendor::create(array_merge(['vendor_code' => $vendorCode, 'status' => 'active'], $data));
+                    $imported++;
+                }
+            }
+
+            $categoryLabel = $forcedCategory ? " [{$forcedCategory}]" : '';
+            $message = "Vendors{$categoryLabel} import complete: {$imported} imported, {$updated} updated, {$skipped} skipped.";
+            if (!empty($errors)) {
+                $message .= "\nWarnings:\n" . implode("\n", array_slice($errors, 0, 10));
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => $message, 'imported' => $imported, 'updated' => $updated, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20)]);
+            }
+
+            return redirect()->route('excel.import')->with('success', $message);
+        } catch (\Exception $e) {
+            \Log::error('Vendor import error: ' . $e->getMessage());
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Import failed: ' . $e->getMessage()], 500);
+            }
+            return redirect()->route('excel.import')->with('error', 'Import failed: ' . $e->getMessage());
+        }
+    }
+
+public function importCostCenters(Request $request)
+{
+    $request->validate(['file' => 'required|file|mimes:xlsx,xls,csv|max:10240']);
+
+    try {
+        $spreadsheet = IOFactory::load($request->file('file')->getPathname());
+        $sheet       = $spreadsheet->getActiveSheet();
+
+        foreach (array_keys($sheet->getMergeCells()) as $mergeRange) {
+            $sheet->unmergeCells($mergeRange);
+        }
+
+        $rows = $sheet->toArray(null, true, true, true);
+
+        $columnMap = [
+            'cost center code'  => 'cost_center_code',
+            'cc code'           => 'cost_center_code',
+            'cost center name'  => 'cost_center_name',
+            'cost center  name' => 'cost_center_name',
+            'cc name'           => 'cost_center_name',
+            'dimension'         => 'dimension',
+            'cost center owner' => 'cost_center_owner',
+            'owner'             => 'cost_center_owner',
+            'division'          => 'division',
+            'department'        => 'department',
+            'general cc'        => 'general_cc',
+            'generalcc'         => 'general_cc',
+            'cc'                => 'cc',
+            'gl account names'  => 'gl_accounts_raw',
+            'gl accounts'       => 'gl_accounts_raw',
+            'gl account'        => 'gl_accounts_raw',
+            'lookup'            => 'lookup',
+            'opex mapping'      => 'opex_mapping',
+            'opex'              => 'opex_mapping',
+        ];
+
+        $requiredFields  = ['cost_center_code', 'cost_center_name'];
+        $rowKeys         = array_keys($rows);
+        $bestHeaderIndex = null;
+        $mappedHeaders   = [];
+        $bestScore       = 0;
+
+        foreach ($rowKeys as $idx => $i) {
+            $firstCellVal = strtolower(trim((string)($rows[$i][array_key_first($rows[$i])] ?? '')));
+            if (str_starts_with($firstCellVal, 'note:') || str_contains($firstCellVal, 'gl account names are matched')) {
+                continue;
+            }
+
+            $combinedRow = $rows[$i];
+            $nextIdx = $rowKeys[$idx + 1] ?? null;
+            if ($nextIdx) {
+                $nextFirstCell = strtolower(trim((string)($rows[$nextIdx][array_key_first($rows[$nextIdx])] ?? '')));
+                $isNoteRow = str_starts_with($nextFirstCell, 'note:') || str_contains($nextFirstCell, 'gl account names are matched');
+                if (!$isNoteRow) {
+                    foreach ($rows[$nextIdx] as $letter => $cell) {
+                        if (!empty(trim((string)$cell)) && empty(trim((string)($combinedRow[$letter] ?? '')))) {
+                            $combinedRow[$letter] = $cell;
+                        }
+                    }
+                }
+            }
+
+            $tmp        = [];
+            $seenFields = [];
+            foreach ($combinedRow as $letter => $cell) {
+                $h = preg_replace('/\s+/', ' ', strtolower(trim((string)$cell)));
+                foreach ($columnMap as $key => $field) {
+                    if ($h === $key && !in_array($field, $seenFields)) {
+                        $tmp[$letter] = $field;
+                        $seenFields[] = $field;
+                        break;
+                    }
+                }
+            }
+
+            $score = count(array_intersect($requiredFields, array_values($tmp)));
+            if ($score > $bestScore) {
+                $bestScore       = $score;
+                $bestHeaderIndex = $i;
+                $mappedHeaders   = $tmp;
+            }
+        }
+
+        if (!$mappedHeaders || $bestScore < count($requiredFields)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Header row not found. Expected columns: Cost Center Code, Cost Center Name, Dimension, Cost Center Owner, Division, Department, General CC, CC, GL Account Names, OPEX Mapping',
+            ], 422);
+        }
+
+        $glByName = [];
+        $glByCode = [];
+        GlAccount::all(['id', 'account_code', 'account_name'])->each(function ($gl) use (&$glByName, &$glByCode) {
+            $glByName[strtolower(trim($gl->account_name))] = $gl;
+            $glByCode[strtolower(trim($gl->account_code))] = $gl;
+        });
+
+        $created      = 0;
+        $updated      = 0;
+        $skipped      = 0;
+        $passedHeader = false;
+
+        foreach ($rows as $i => $row) {
+            if (!$passedHeader) {
+                if ($i == $bestHeaderIndex) $passedHeader = true;
+                continue;
+            }
+
+            $firstVals = array_map(fn($v) => strtolower(trim((string)$v)), array_values($row));
+            if (in_array('division', $firstVals) && in_array('department', $firstVals)) {
+                continue;
+            }
+
+            $firstCell = strtolower(trim((string)($row[array_key_first($row)] ?? '')));
+            if (str_starts_with($firstCell, 'note:') || str_contains($firstCell, 'gl account names are matched')) {
+                continue;
+            }
+
+            $data = [];
+            foreach ($mappedHeaders as $letter => $field) {
+                $data[$field] = trim((string)($row[$letter] ?? ''));
+            }
+
+            $code = strtoupper($data['cost_center_code'] ?? '');
+            $name = $data['cost_center_name'] ?? '';
+
+            if (!$code) { $skipped++; continue; }
+            if (!$name) $name = $code;
+
+            $glAccounts = [];
+            if (!empty($data['gl_accounts_raw'])) {
+                foreach (array_map('trim', explode(',', $data['gl_accounts_raw'])) as $entry) {
+                    if (!$entry) continue;
+                    $entryLower = strtolower($entry);
+                    $gl = $glByName[$entryLower] ?? $glByCode[$entryLower] ?? null;
+                    if ($gl) {
+                        $glAccounts[] = [
+                            'id'           => $gl->id,
+                            'account_code' => $gl->account_code,
+                            'account_name' => $gl->account_name,
+                        ];
+                    }
+                }
+            }
+
+            $payload = [
+                'cost_center_name'  => $name,
+                'dimension'         => $data['dimension']         ?? null ?: null,
+                'cost_center_owner' => $data['cost_center_owner'] ?? null ?: null,
+                'division'          => $data['division']          ?? null ?: null,
+                'department'        => $data['department']        ?? null ?: null,
+                'general_cc'        => $data['general_cc']        ?? null ?: null,
+                'cc'                => $data['cc']                ?? null ?: null,
+                'gl_accounts'       => $glAccounts,
+                'lookup'            => $data['lookup']            ?? null ?: null,
+                'opex_mapping'      => $data['opex_mapping']      ?? null ?: null,
+                'created_by'        => auth()->id(),
+            ];
+
+            try {
+                $existing = CostCenter::where('cost_center_code', $code)->first();
+                if ($existing) {
+                    unset($payload['created_by']);
+                    $existing->update($payload);
+                    $updated++;
+                } else {
+                    CostCenter::create(array_merge(['cost_center_code' => $code], $payload));
+                    $created++;
+                }
+           } catch (\Exception $rowEx) {
+    $skipped++;
+}
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Import complete: {$created} created, {$updated} updated, {$skipped} skipped.",
+            'created' => $created,
+            'updated' => $updated,
+            'skipped' => $skipped,
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'Import failed: ' . $e->getMessage()], 500);
+    }
+}
+public function debugImport(Request $request)
+{
+    $request->validate(['file' => 'required|file|mimes:xlsx,xls,csv|max:10240']);
+
+    $spreadsheet = IOFactory::load($request->file('file')->getPathname());
+    $sheet = $spreadsheet->getActiveSheet();
+
+    $mergesBefore = array_keys($sheet->getMergeCells());
+
+    foreach (array_keys($sheet->getMergeCells()) as $range) {
+        $sheet->unmergeCells($range);
+    }
+
+    $mergesAfter = array_keys($sheet->getMergeCells());
+    $rows = $sheet->toArray(null, true, true, true);
+
+    return response()->json([
+        'merges_before' => $mergesBefore,
+        'merges_after'  => $mergesAfter,
+        'total_rows'    => count($rows),
+        'row1'          => $rows[1] ?? 'MISSING',
+        'row2'          => $rows[2] ?? 'MISSING',
+        'row3'          => $rows[3] ?? 'MISSING',
+        'row_keys'      => array_slice(array_keys($rows), 0, 5),
+    ]);
+}
 }

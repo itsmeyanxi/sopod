@@ -9,8 +9,9 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-white">EDIT CASH ADVANCE REQUEST</h1>
             <div class="text-right">
-                <label class="font-semibold text-gray-300">CAR NO:</label>
-                <span class="ml-2 px-4 py-1 bg-gray-900 border border-gray-700 text-white rounded">{{ $car->car_no }}</span>
+                <label class="font-semibold text-gray-300 block mb-1">CAR NO:</label>
+                <input type="text" name="car_no" value="{{ old('car_no', $car->car_no) }}"
+                    class="px-3 py-1 bg-gray-900 border border-gray-600 text-white rounded focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm w-48">
             </div>
         </div>
 
@@ -24,7 +25,7 @@
             </div>
         @endif
 
-        <form action="{{ route('cash_advance_requests.update', $car->id) }}" method="POST">
+        <form action="{{ route('cash_advance_requests.update', $car->id) }}" method="POST" enctype="multipart/form-data" id="carForm">
             @csrf
             @method('PUT')
 
@@ -32,11 +33,22 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-300 mb-2">PAYEE: <span class="text-red-700">*</span></label>
-                    <input type="text" name="payee" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('payee', $car->payee) }}" required>
+                    <div class="relative">
+                        <input type="text" id="payeeSearch" autocomplete="off"
+                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Search employee..." value="{{ old('payee', $car->payee) }}" required>
+                        <input type="hidden" name="payee" id="payeeValue" value="{{ old('payee', $car->payee) }}">
+                        <div id="payeeDropdown" class="hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto" style="top:100%"></div>
+                    </div>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-300 mb-2">DEPARTMENT: <span class="text-red-700">*</span></label>
-                    <input type="text" name="department" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('department', $car->department) }}" required>
+                    <div class="relative">
+                        <input type="text" name="department" id="deptInput" autocomplete="off"
+                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            value="{{ old('department', $car->department) }}" required placeholder="Type or search department...">
+                        <div id="deptDropdown" class="hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto" style="top:100%"></div>
+                    </div>
                 </div>
             </div>
 
@@ -84,6 +96,20 @@
                 <textarea name="remarks" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Optional remarks...">{{ old('remarks', $car->remarks) }}</textarea>
             </div>
 
+            <!-- File Attachment -->
+            <div class="mb-6 p-4 bg-gray-900 border border-gray-700 rounded">
+                <label class="block font-semibold text-gray-300 mb-2"><i class="fas fa-paperclip mr-1"></i> ATTACH FILE <span class="text-xs text-gray-400 font-normal">(PDF, image, Excel, Word — max 10MB). If attached, all other fields become optional.</span></label>
+                @if($car->attachment_name)
+                    <div class="mb-2 flex items-center gap-2 text-sm text-green-400">
+                        <i class="fas fa-file"></i>
+                        <a href="{{ Storage::url($car->attachment_path) }}" target="_blank" class="hover:underline">{{ $car->attachment_name }}</a>
+                        <span class="text-gray-400">(current)</span>
+                    </div>
+                @endif
+                <input type="file" name="attachment" id="attachmentInput" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.doc,.docx"
+                    class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+
             <!-- Fine Print -->
             <div class="mb-6 p-4 bg-gray-900 border border-gray-700 rounded">
                 <p class="text-gray-300 text-sm italic">
@@ -103,4 +129,79 @@
         </form>
     </div>
 </div>
+
+<script>
+(function () {
+    const searchUrl = '{{ route("suppliers.vendors.employees_search") }}';
+    const deptUrl   = '{{ route("suppliers.vendors.departments_search") }}';
+    const input     = document.getElementById('payeeSearch');
+    const hidden    = document.getElementById('payeeValue');
+    const dropdown  = document.getElementById('payeeDropdown');
+    const deptInput = document.getElementById('deptInput');
+    const deptDD    = document.getElementById('deptDropdown');
+    let t, td;
+
+    input.addEventListener('input', function () {
+        hidden.value = this.value;
+        clearTimeout(t);
+        if (!this.value.length) { dropdown.classList.add('hidden'); return; }
+        t = setTimeout(async () => {
+            const items = await fetch(searchUrl + '?q=' + encodeURIComponent(this.value)).then(r => r.json());
+            if (!items.length) { dropdown.classList.add('hidden'); return; }
+            dropdown.innerHTML = items.map(e =>
+                `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 border-b border-gray-700 payee-opt"
+                      data-name="${e.vendor_name}" data-dept="${e.department || ''}">${e.vendor_name} <span class="text-xs text-gray-400">${e.vendor_code}</span></div>`
+            ).join('');
+            dropdown.classList.remove('hidden');
+            dropdown.querySelectorAll('.payee-opt').forEach(opt => {
+                opt.addEventListener('mousedown', e => {
+                    e.preventDefault();
+                    input.value = hidden.value = opt.dataset.name;
+                    if (opt.dataset.dept && deptInput) deptInput.value = opt.dataset.dept;
+                    dropdown.classList.add('hidden');
+                });
+            });
+        }, 250);
+    });
+    input.addEventListener('focus', function () { if (this.value) this.dispatchEvent(new Event('input')); });
+    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 200));
+
+    deptInput.addEventListener('input', function () {
+        clearTimeout(td);
+        if (!this.value.length) { deptDD.classList.add('hidden'); return; }
+        td = setTimeout(async () => {
+            const items = await fetch(deptUrl + '?q=' + encodeURIComponent(this.value)).then(r => r.json());
+            if (!items.length) { deptDD.classList.add('hidden'); return; }
+            deptDD.innerHTML = items.map(d =>
+                `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 border-b border-gray-700 dept-opt">${d}</div>`
+            ).join('');
+            deptDD.classList.remove('hidden');
+            deptDD.querySelectorAll('.dept-opt').forEach(opt => {
+                opt.addEventListener('mousedown', e => {
+                    e.preventDefault();
+                    deptInput.value = opt.textContent;
+                    deptDD.classList.add('hidden');
+                });
+            });
+        }, 250);
+    });
+    deptInput.addEventListener('blur', () => setTimeout(() => deptDD.classList.add('hidden'), 200));
+
+    // Toggle required when file is attached (or existing file already present)
+    const attachInput = document.getElementById('attachmentInput');
+    const requiredFields = document.querySelectorAll('#carForm [required]');
+    @if($car->attachment_name)
+    requiredFields.forEach(f => f.removeAttribute('required'));
+    @endif
+    attachInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            requiredFields.forEach(f => f.removeAttribute('required'));
+        } else {
+            @if(!$car->attachment_name)
+            requiredFields.forEach(f => f.setAttribute('required', ''));
+            @endif
+        }
+    });
+})();
+</script>
 @endsection

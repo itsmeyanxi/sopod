@@ -20,6 +20,7 @@ class SalesOrderItem extends Model
         'brand',
         'item_category',
         'quantity',
+        'pcs',
         'unit',
         'unit_price',
         'total_amount',
@@ -30,7 +31,11 @@ class SalesOrderItem extends Model
     ];
 
     protected $casts = [
-        'request_delivery_date' => 'date', 
+        'request_delivery_date' => 'date',
+        'quantity' => 'decimal:3',
+        'pcs' => 'integer',
+        'unit_price' => 'decimal:2',
+        'total_amount' => 'decimal:2',
     ];
 
     /**

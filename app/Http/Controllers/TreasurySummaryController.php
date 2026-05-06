@@ -90,4 +90,33 @@ class TreasurySummaryController extends Controller
 
         return view('treasury.summary', compact('payments', 'stats', 'bankStats'));
     }
+
+    public function storeBank(Request $request)
+{
+    $request->validate([
+        'bank_name'      => 'required|string|max:100',
+        'account_number' => 'required|string|max:100',
+        'account_type'   => 'required|in:CA,SA',
+        'currency'       => 'required|in:PHP,USD',
+        'cash_balance'   => 'nullable|numeric|min:0',
+        'balance_as_of'  => 'nullable|date',
+        'gl_account_id'  => 'nullable|integer',
+        'short_name'     => 'nullable|string|max:100',
+    ]);
+
+    TreasuryBankAccount::create([
+        'bank_name'      => $request->bank_name,
+        'account_number' => $request->account_number,
+        'account_type'   => $request->account_type,
+        'currency'       => $request->currency,
+        'cash_balance'   => $request->cash_balance ?? 0,
+        'balance_as_of'  => $request->balance_as_of,
+        'gl_account_id'  => $request->gl_account_id ?: null,
+        'short_name'     => $request->short_name,
+        'is_active'      => true,
+        'created_by'     => auth()->id(),  // or auth()->user()->name if you store names
+    ]);
+
+    return redirect()->back()->with('success', 'Bank account "' . $request->bank_name . '" added successfully.');
+}
 }

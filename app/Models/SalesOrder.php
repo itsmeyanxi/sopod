@@ -187,6 +187,27 @@ class SalesOrder extends Model
     }
 }
 
+    public function isCustomerChangeApproved()
+    {
+        return (bool) $this->customer_change_approved;
+    }
+
+    public function approveCustomerChange($approverName)
+    {
+        $this->customer_change_approved = true;
+        $this->customer_change_approved_by = $approverName;
+        $this->customer_change_approved_at = now();
+        $this->save();
+    }
+
+    public function resetCustomerChangeApproval()
+    {
+        $this->customer_change_approved = false;
+        $this->customer_change_approved_by = null;
+        $this->customer_change_approved_at = null;
+        $this->save();
+    }
+
     public function isEditApprovedByCC()
     {
         // We'll use a simple flag in the additional_instructions or notes field

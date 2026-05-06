@@ -76,6 +76,15 @@
             </div>
         </div>
 
+        <!-- Type -->
+        <div class="mt-4">
+            <label class="block text-sm font-semibold text-gray-200 mb-2">Type</label>
+            <select name="type" class="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white focus:ring-2 focus:ring-blue-400">
+                <option value="trade" {{ old('type', $item->type ?? 'trade') === 'trade' ? 'selected' : '' }}>Trade</option>
+                <option value="non_trade" {{ old('type', $item->type ?? 'trade') === 'non_trade' ? 'selected' : '' }}>Non-Trade</option>
+            </select>
+        </div>
+
         <div class="flex justify-end space-x-4 mt-8">
             <a href="{{ route('items.index', $item->id) }}" class="bg-gray-700 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition">
                 Cancel

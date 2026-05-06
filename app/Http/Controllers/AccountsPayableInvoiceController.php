@@ -6,6 +6,7 @@ use App\Models\AccountsPayableInvoice;
 use App\Models\RequestForPayment;
 use App\Models\CashAdvanceRequest;
 use App\Models\ReimbursementForm;
+use App\Models\ApvItem;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -74,14 +75,13 @@ class AccountsPayableInvoiceController extends Controller
         $filename = 'AP_Invoices_' . date('Y-m-d_His') . '.csv';
 
         $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
         $callback = function () use ($invoices) {
             $file = fopen('php://output', 'w');
-            // UTF-8 BOM for Excel
-            fwrite($file, "\xEF\xBB\xBF");
+            fwrite($file, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
 
             fputcsv($file, [
                 'APV No', 'APV Date', 'RFP No', 'Vendor Name', 'Payment Type',
@@ -112,25 +112,23 @@ class AccountsPayableInvoiceController extends Controller
 
     public function create(Request $request)
     {
-        // Check if user can create APV invoices
         if (!Auth::user()->canCreateAPV()) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Generate APV number
         $apvNo = 'APV-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-        // Check if an RFP was selected
-        $selectedRFP = null;
+        $selectedRFP  = null;
         $supplierInfo = null;
+
         if ($request->has('rfp_id')) {
             $selectedRFP = RequestForPayment::with(['purchaseOrder.supplierModel'])->find($request->rfp_id);
             if ($selectedRFP && $selectedRFP->purchaseOrder) {
-                $supplier = $selectedRFP->purchaseOrder->supplierModel;
+                $supplier     = $selectedRFP->purchaseOrder->supplierModel;
                 $supplierInfo = [
                     'address' => $supplier->address ?? $selectedRFP->purchaseOrder->supplier_address ?? '',
-                    'tin' => $supplier->tin ?? '',
-                    'code' => $supplier->supplier_code ?? '',
+                    'tin'     => $supplier->tin ?? '',
+                    'code'    => $supplier->supplier_code ?? '',
                 ];
             }
         }
@@ -152,24 +150,25 @@ class AccountsPayableInvoiceController extends Controller
             ->where(function ($query) use ($searchTerm) {
                 $query->where('rfp_no', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('payee', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('company', 'LIKE', "%{$searchTerm}%");
+                    ->orWhere('company', 'LIKE', "%{$searchTerm}%")
+                    ->orWhereHas('purchaseOrder', fn($q) => $q->where('po_no', 'LIKE', "%{$searchTerm}%"));
             })
             ->limit(10)
             ->get()
             ->map(function ($rfp) {
                 $supplier = $rfp->purchaseOrder->supplierModel ?? null;
                 return [
-                    'id' => $rfp->id,
-                    'rfp_no' => $rfp->rfp_no,
-                    'payee' => $rfp->payee,
-                    'company' => $rfp->company,
-                    'date' => $rfp->date,
-                    'amount' => (float) $rfp->amount,
-                    'particulars' => $rfp->particulars,
-                    'purchase_order_no' => $rfp->purchaseOrder->po_no ?? '',
-                    'vendor_address' => $supplier->address ?? $rfp->purchaseOrder->supplier_address ?? '',
-                    'vendor_tin' => $supplier->tin ?? '',
-                    'vendor_code' => $supplier->supplier_code ?? '',
+                    'id'               => $rfp->id,
+                    'rfp_no'           => $rfp->rfp_no,
+                    'payee'            => $rfp->payee,
+                    'company'          => $rfp->company,
+                    'date'             => $rfp->date,
+                    'amount'           => (float) $rfp->amount,
+                    'particulars'      => $rfp->particulars,
+                    'purchase_order_no'=> $rfp->purchaseOrder->po_no ?? '',
+                    'vendor_address'   => $supplier->address ?? $rfp->purchaseOrder->supplier_address ?? '',
+                    'vendor_tin'       => $supplier->tin ?? '',
+                    'vendor_code'      => $supplier->supplier_code ?? '',
                 ];
             });
 
@@ -193,12 +192,12 @@ class AccountsPayableInvoiceController extends Controller
             ->get()
             ->map(function ($car) {
                 return [
-                    'id' => $car->id,
-                    'car_no' => $car->car_no,
-                    'payee' => $car->payee,
-                    'department' => $car->department,
-                    'amount' => (float) $car->amount_advanced,
-                    'purpose' => $car->purpose,
+                    'id'             => $car->id,
+                    'car_no'         => $car->car_no,
+                    'payee'          => $car->payee,
+                    'department'     => $car->department,
+                    'amount'         => (float) $car->amount_advanced,
+                    'purpose'        => $car->purpose,
                     'date_requested' => $car->date_requested?->format('Y-m-d'),
                 ];
             });
@@ -223,12 +222,12 @@ class AccountsPayableInvoiceController extends Controller
             ->get()
             ->map(function ($ri) {
                 return [
-                    'id' => $ri->id,
-                    'ri_no' => $ri->ri_no,
-                    'department' => $ri->department,
+                    'id'           => $ri->id,
+                    'ri_no'        => $ri->ri_no,
+                    'department'   => $ri->department,
                     'submitted_by' => $ri->submitted_by,
-                    'amount' => (float) $ri->amount_to_be_reimbursed,
-                    'total_spent' => (float) $ri->total_amount_spent,
+                    'amount'       => (float) $ri->amount_to_be_reimbursed,
+                    'total_spent'  => (float) $ri->total_amount_spent,
                     'date_applied' => $ri->date_applied?->format('Y-m-d'),
                 ];
             });
@@ -237,97 +236,132 @@ class AccountsPayableInvoiceController extends Controller
     }
 
     /**
-     * Store a newly created invoice
+     * Store a newly created invoice.
+     * VAT and EWT are only computed when currency is PHP.
+     * For all other currencies (USD, EUR, JPY, etc.) vat_amount and w_tax_amount are forced to 0.
      */
     public function store(Request $request)
     {
-        // Check if user can create APV invoices
         if (!Auth::user()->canCreateAPV()) {
             abort(403, 'Unauthorized action.');
         }
 
         $request->validate([
-            'apv_date' => 'required|date',
-            'payment_type' => 'required|in:full_payment,downpayment',
-            'vendor_name' => 'required|string',
-            'document_date' => 'required|date',
-            'particulars' => 'required|string',
-            'total' => 'required|numeric|min:0',
-            'currency' => 'required|string',
+            'request_for_payment_id' => 'nullable|exists:request_for_payments,id',
+            'apv_date'               => 'required|date',
+            'payment_type'           => 'required|in:full_payment,downpayment',
+            'vendor_name'            => 'required|string',
+            'document_date'          => 'required|date',
+            'currency'               => 'required|string',
+            'items'                  => 'required|array|min:1',
+            'items.*.gross_amount'   => 'required|numeric|min:0',
         ]);
 
-        // Validate total does not exceed linked RFP amount
+        $items    = $request->items ?? [];
+        $currency = $request->currency;
+        $isPhp    = $currency === 'PHP';
+
+        // ── Compute totals ────────────────────────────────────────────────────
+        $total = array_sum(array_column($items, 'gross_amount'));
+
+        if ($isPhp) {
+            $vatAmount = array_sum(array_map(
+                fn($i) => !empty($i['vat']) ? ($i['gross_amount'] * 12 / 112) : 0,
+                $items
+            ));
+            $wTaxAmount = array_sum(array_map(function ($i) {
+                $net  = !empty($i['vat']) ? ($i['gross_amount'] * 100 / 112) : $i['gross_amount'];
+                $rate = ($i['tax_code'] ?? '') === '158' ? 0.01
+                      : (($i['tax_code'] ?? '') === '160' ? 0.02 : 0);
+                return $net * $rate;
+            }, $items));
+        } else {
+            // No VAT or withholding tax for foreign currencies
+            $vatAmount  = 0;
+            $wTaxAmount = 0;
+        }
+
+        $netOfVat          = $total - $vatAmount;
+        $grandTotal        = $isPhp ? ($netOfVat - $wTaxAmount) : $total;
+        $downpaymentAmount = $request->downpayment_amount ?? 0;
+
+        // ── RFP amount cap check ──────────────────────────────────────────────
         if ($request->request_for_payment_id) {
             $rfp = RequestForPayment::find($request->request_for_payment_id);
-            if ($rfp && (float) $request->total > (float) $rfp->amount) {
-                return back()->withInput()->with('error', 'Total amount (₱' . number_format($request->total, 2) . ') exceeds RFP amount (₱' . number_format($rfp->amount, 2) . ').');
+            if ($rfp && (float) $total > (float) $rfp->amount) {
+                return back()->withInput()->with(
+                    'error',
+                    'Total amount (₱' . number_format($total, 2) . ') exceeds RFP amount (₱' . number_format($rfp->amount, 2) . ').'
+                );
             }
         }
 
         DB::beginTransaction();
         try {
-            // Generate APV number
             $apvNo = 'APV-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-            // Calculate totals
-            $total = $request->total;
-            $downpaymentAmount = $request->downpayment_amount ?? 0;
-            $vatAmount = $request->vat_amount ?? 0;
-            $wTaxAmount = $request->w_tax_amount ?? 0;
-
-            // Calculate based on payment type
-            $totalBeforeVat = $request->payment_type === 'downpayment' ? $downpaymentAmount : $total;
-            $totalAfterVat = $totalBeforeVat + $vatAmount;
-            $grandTotal = $totalAfterVat - $wTaxAmount;
-
-            // Create invoice
             $invoice = AccountsPayableInvoice::create([
-                'apv_no' => $apvNo,
-                'request_for_payment_id' => $request->request_for_payment_id,
+                'apv_no'                  => $apvNo,
+                'request_for_payment_id'  => $request->request_for_payment_id,
                 'cash_advance_request_id' => $request->cash_advance_request_id,
-                'reimbursement_form_id' => $request->reimbursement_form_id,
-                'reference_type' => $request->reference_type,
-                'apv_date' => $request->apv_date,
-                'payment_type' => $request->payment_type,
-                'vendor_code' => $request->vendor_code,
-                'vendor_name' => $request->vendor_name,
-                'vendor_address' => $request->vendor_address,
-                'vendor_tin' => $request->vendor_tin,
-                'document_date' => $request->document_date,
-                'payment_terms' => $request->payment_terms,
-                'due_date' => $request->due_date,
-                'reference_no' => $request->reference_no,
-                'purchase_order_no' => $request->purchase_order_no,
-                'currency' => $request->currency,
-                'forex_rate' => $request->forex_rate,
-                'particulars' => $request->particulars,
-                'item_code' => $request->item_code,
-                'cost_center' => $request->cost_center,
-                'account_code' => $request->account_code,
-                'account_name' => $request->account_name,
-                'total' => $total,
-                'downpayment_amount' => $downpaymentAmount,
-                'total_before_vat' => $totalBeforeVat,
-                'vat_amount' => $vatAmount,
-                'total_after_vat' => $totalAfterVat,
-                'w_tax_amount' => $wTaxAmount,
-                'grand_total' => $grandTotal,
-                'prepared_by' => $request->prepared_by,
-                'reviewed_by' => $request->reviewed_by,
-                'remarks' => $request->remarks,
-                'status' => 'pending',
-                'created_by' => Auth::id(),
+                'reimbursement_form_id'   => $request->reimbursement_form_id,
+                'reference_type'          => $request->reference_type,
+                'apv_date'                => $request->apv_date,
+                'payment_type'            => $request->payment_type,
+                'vendor_code'             => $request->vendor_code,
+                'vendor_name'             => $request->vendor_name,
+                'vendor_address'          => $request->vendor_address,
+                'vendor_tin'              => $request->vendor_tin,
+                'document_date'           => $request->document_date,
+                'payment_terms'           => $request->payment_terms,
+                'due_date'                => $request->due_date,
+                'reference_no'            => $request->reference_no,
+                'purchase_order_no'       => $request->purchase_order_no,
+                'currency'                => $currency,
+                'forex_rate'              => $request->forex_rate,
+                'particulars'             => collect($items)->pluck('particulars')->filter()->implode('; '),
+                'item_code'               => collect($items)->pluck('item_code')->filter()->first(),
+                'account_code'            => collect($items)->pluck('account_code')->filter()->first(),
+                'account_name'            => collect($items)->pluck('account_name')->filter()->first(),
+                'total'                   => $total,
+                'downpayment_amount'      => $downpaymentAmount,
+                'total_before_vat'        => $netOfVat,
+                'vat_amount'              => $vatAmount,
+                'total_after_vat'         => $total,
+                'w_tax_amount'            => $wTaxAmount,
+                'grand_total'             => $grandTotal,
+                'prepared_by'             => $request->prepared_by,
+                'reviewed_by'             => $request->reviewed_by,
+                'remarks'                 => $request->remarks,
+                'status'                  => 'pending',
+                'created_by'              => Auth::id(),
             ]);
+
+            foreach ($items as $row) {
+                ApvItem::create([
+                    'apv_id'       => $invoice->id,
+                    'particulars'  => $row['particulars'] ?? null,
+                    'item_code'    => $row['item_code'] ?? null,
+                    'department'   => $row['department'] ?? null,
+                    'division'     => $row['division'] ?? null,
+                    // Force VAT and tax to zero/null for non-PHP currencies
+                    'vat'          => ($isPhp && !empty($row['vat'])) ? 1 : 0,
+                    'tax_code'     => $isPhp ? ($row['tax_code'] ?? null) : null,
+                    'account_code' => $row['account_code'] ?? null,
+                    'account_name' => $row['account_name'] ?? null,
+                    'gross_amount' => $row['gross_amount'] ?? 0,
+                ]);
+            }
 
             DB::commit();
 
             Activity::create([
                 'user_name' => Auth::user()->name ?? 'System',
-                'action' => 'Created',
-                'item' => $invoice->apv_no,
-                'target' => $invoice->vendor_name,
-                'type' => 'Accounts Payable Invoice',
-                'message' => 'Created Accounts Payable Invoice ' . $invoice->apv_no . ' for ' . $invoice->vendor_name,
+                'action'    => 'Created',
+                'item'      => $invoice->apv_no,
+                'target'    => $invoice->vendor_name,
+                'type'      => 'Accounts Payable Invoice',
+                'message'   => 'Created Accounts Payable Invoice ' . $invoice->apv_no . ' for ' . $invoice->vendor_name,
             ]);
 
             return redirect()
@@ -343,7 +377,7 @@ class AccountsPayableInvoiceController extends Controller
     }
 
     /**
-     * Display the specified invoice
+     * Display the specified invoice.
      */
     public function show($id)
     {
@@ -354,11 +388,10 @@ class AccountsPayableInvoiceController extends Controller
     }
 
     /**
-     * Show the form for editing the specified invoice
+     * Show the form for editing the specified invoice.
      */
     public function edit($id)
     {
-        // Check if user can create/edit APV invoices
         if (!Auth::user()->canCreateAPV()) {
             abort(403, 'Unauthorized action.');
         }
@@ -370,89 +403,123 @@ class AccountsPayableInvoiceController extends Controller
     }
 
     /**
-     * Update the specified invoice
+     * Update the specified invoice.
+     * VAT and EWT are only computed when currency is PHP.
+     * For all other currencies (USD, EUR, JPY, etc.) vat_amount and w_tax_amount are forced to 0.
      */
     public function update(Request $request, $id)
     {
-        // Check if user can create/edit APV invoices
         if (!Auth::user()->canCreateAPV()) {
             abort(403, 'Unauthorized action.');
         }
 
         $request->validate([
-            'apv_date' => 'required|date',
-            'payment_type' => 'required|in:full_payment,downpayment',
-            'vendor_name' => 'required|string',
-            'document_date' => 'required|date',
-            'particulars' => 'required|string',
-            'total' => 'required|numeric|min:0',
-            'currency' => 'required|string',
+            'apv_date'             => 'required|date',
+            'payment_type'         => 'required|in:full_payment,downpayment',
+            'vendor_name'          => 'required|string',
+            'document_date'        => 'required|date',
+            'currency'             => 'required|string',
+            'items'                => 'required|array|min:1',
+            'items.*.gross_amount' => 'required|numeric|min:0',
         ]);
 
-        // Validate total does not exceed linked RFP amount
-        $invoice = AccountsPayableInvoice::findOrFail($id);
+        $invoice  = AccountsPayableInvoice::findOrFail($id);
+        $items    = $request->input('items', []);
+        $currency = $request->currency;
+        $isPhp    = $currency === 'PHP';
+
+        // ── Compute totals ────────────────────────────────────────────────────
+        $total = array_sum(array_column($items, 'gross_amount'));
+
+        if ($isPhp) {
+            $vatAmount = array_sum(array_map(
+                fn($i) => !empty($i['vat']) ? ($i['gross_amount'] * 12 / 112) : 0,
+                $items
+            ));
+            $wTaxAmount = array_sum(array_map(function ($i) {
+                $net  = !empty($i['vat']) ? ($i['gross_amount'] * 100 / 112) : $i['gross_amount'];
+                $rate = ($i['tax_code'] ?? '') === '158' ? 0.01
+                      : (($i['tax_code'] ?? '') === '160' ? 0.02 : 0);
+                return $net * $rate;
+            }, $items));
+        } else {
+            // No VAT or withholding tax for foreign currencies
+            $vatAmount  = 0;
+            $wTaxAmount = 0;
+        }
+
+        $netOfVat          = $total - $vatAmount;
+        $grandTotal        = $isPhp ? ($netOfVat - $wTaxAmount) : $total;
+        $downpaymentAmount = $request->downpayment_amount ?? 0;
+
+        // ── RFP amount cap check ──────────────────────────────────────────────
         $rfpId = $request->request_for_payment_id ?: $invoice->request_for_payment_id;
         if ($rfpId) {
             $rfp = RequestForPayment::find($rfpId);
-            if ($rfp && (float) $request->total > (float) $rfp->amount) {
-                return back()->withInput()->with('error', 'Total amount (₱' . number_format($request->total, 2) . ') exceeds RFP amount (₱' . number_format($rfp->amount, 2) . ').');
+            if ($rfp && (float) $total > (float) $rfp->amount) {
+                return back()->withInput()->with(
+                    'error',
+                    'Total amount (₱' . number_format($total, 2) . ') exceeds RFP amount (₱' . number_format($rfp->amount, 2) . ').'
+                );
             }
         }
 
         DB::beginTransaction();
         try {
-            // Calculate totals
-            $total = $request->total;
-            $downpaymentAmount = $request->downpayment_amount ?? 0;
-            $vatAmount = $request->vat_amount ?? 0;
-            $wTaxAmount = $request->w_tax_amount ?? 0;
-
-            // Calculate based on payment type
-            $totalBeforeVat = $request->payment_type === 'downpayment' ? $downpaymentAmount : $total;
-            $totalAfterVat = $totalBeforeVat + $vatAmount;
-            $grandTotal = $totalAfterVat - $wTaxAmount;
-
-            // Update invoice
             $invoice->update([
-                'apv_date' => $request->apv_date,
-                'payment_type' => $request->payment_type,
-                'vendor_code' => $request->vendor_code,
-                'vendor_name' => $request->vendor_name,
-                'vendor_address' => $request->vendor_address,
-                'vendor_tin' => $request->vendor_tin,
-                'document_date' => $request->document_date,
-                'payment_terms' => $request->payment_terms,
-                'due_date' => $request->due_date,
-                'reference_no' => $request->reference_no,
+                'apv_date'          => $request->apv_date,
+                'payment_type'      => $request->payment_type,
+                'vendor_code'       => $request->vendor_code,
+                'vendor_name'       => $request->vendor_name,
+                'vendor_address'    => $request->vendor_address,
+                'vendor_tin'        => $request->vendor_tin,
+                'document_date'     => $request->document_date,
+                'payment_terms'     => $request->payment_terms,
+                'due_date'          => $request->due_date,
+                'reference_no'      => $request->reference_no,
                 'purchase_order_no' => $request->purchase_order_no,
-                'currency' => $request->currency,
-                'forex_rate' => $request->forex_rate,
-                'particulars' => $request->particulars,
-                'item_code' => $request->item_code,
-                'cost_center' => $request->cost_center,
-                'account_code' => $request->account_code,
-                'account_name' => $request->account_name,
-                'total' => $total,
-                'downpayment_amount' => $downpaymentAmount,
-                'total_before_vat' => $totalBeforeVat,
-                'vat_amount' => $vatAmount,
-                'total_after_vat' => $totalAfterVat,
-                'w_tax_amount' => $wTaxAmount,
-                'grand_total' => $grandTotal,
-                'prepared_by' => $request->prepared_by,
-                'reviewed_by' => $request->reviewed_by,
-                'remarks' => $request->remarks,
+                'currency'          => $currency,
+                'forex_rate'        => $request->forex_rate,
+                'particulars'       => collect($items)->pluck('particulars')->filter()->implode('; '),
+                'total'             => $total,
+                'downpayment_amount'=> $downpaymentAmount,
+                'total_before_vat'  => $netOfVat,
+                'vat_amount'        => $vatAmount,
+                'total_after_vat'   => $total,
+                'w_tax_amount'      => $wTaxAmount,
+                'grand_total'       => $grandTotal,
+                'prepared_by'       => $request->prepared_by,
+                'reviewed_by'       => $request->reviewed_by,
+                'remarks'           => $request->remarks,
             ]);
+
+            // Replace all items
+            $invoice->items()->delete();
+            foreach ($items as $row) {
+                ApvItem::create([
+                    'apv_id'       => $invoice->id,
+                    'particulars'  => $row['particulars'] ?? null,
+                    'item_code'    => $row['item_code'] ?? null,
+                    'department'   => $row['department'] ?? null,
+                    'division'     => $row['division'] ?? null,
+                    // Force VAT and tax to zero/null for non-PHP currencies
+                    'vat'          => ($isPhp && !empty($row['vat'])) ? 1 : 0,
+                    'tax_code'     => $isPhp ? ($row['tax_code'] ?? null) : null,
+                    'account_code' => $row['account_code'] ?? null,
+                    'account_name' => $row['account_name'] ?? null,
+                    'gross_amount' => $row['gross_amount'],
+                ]);
+            }
 
             DB::commit();
 
             Activity::create([
                 'user_name' => Auth::user()->name ?? 'System',
-                'action' => 'Updated',
-                'item' => $invoice->apv_no,
-                'target' => $invoice->vendor_name,
-                'type' => 'Accounts Payable Invoice',
-                'message' => 'Updated Accounts Payable Invoice ' . $invoice->apv_no,
+                'action'    => 'Updated',
+                'item'      => $invoice->apv_no,
+                'target'    => $invoice->vendor_name,
+                'type'      => 'Accounts Payable Invoice',
+                'message'   => 'Updated Accounts Payable Invoice ' . $invoice->apv_no,
             ]);
 
             return redirect()
@@ -468,22 +535,22 @@ class AccountsPayableInvoiceController extends Controller
     }
 
     /**
-     * Remove the specified invoice
+     * Remove the specified invoice.
      */
     public function destroy($id)
     {
         try {
             $invoice = AccountsPayableInvoice::findOrFail($id);
-            $apvNo = $invoice->apv_no;
+            $apvNo   = $invoice->apv_no;
             $invoice->delete();
 
             Activity::create([
                 'user_name' => Auth::user()->name ?? 'System',
-                'action' => 'Deleted',
-                'item' => $apvNo,
-                'target' => 'N/A',
-                'type' => 'Accounts Payable Invoice',
-                'message' => 'Deleted Accounts Payable Invoice ' . $apvNo,
+                'action'    => 'Deleted',
+                'item'      => $apvNo,
+                'target'    => 'N/A',
+                'type'      => 'Accounts Payable Invoice',
+                'message'   => 'Deleted Accounts Payable Invoice ' . $apvNo,
             ]);
 
             return redirect()
@@ -491,8 +558,7 @@ class AccountsPayableInvoiceController extends Controller
                 ->with('success', 'Invoice deleted successfully!');
 
         } catch (\Exception $e) {
-            return back()
-                ->with('error', 'Error deleting invoice: ' . $e->getMessage());
+            return back()->with('error', 'Error deleting invoice: ' . $e->getMessage());
         }
     }
 
@@ -508,22 +574,22 @@ class AccountsPayableInvoiceController extends Controller
 
         $invoice = AccountsPayableInvoice::where('approval_stage', 'pending_dh')->findOrFail($id);
         $invoice->update([
-            'approval_stage' => 'pending_accounting',
-            'department_head_approved_by' => Auth::id(),
-            'department_head_approved_at' => now(),
+            'approval_stage'                    => 'pending_accounting',
+            'department_head_approved_by'       => Auth::id(),
+            'department_head_approved_at'       => now(),
             'department_head_approved_latitude' => $request->input('latitude'),
-            'department_head_approved_longitude' => $request->input('longitude'),
+            'department_head_approved_longitude'=> $request->input('longitude'),
             'department_head_approved_location' => $request->input('location'),
-            'rejection_reason' => null,
+            'rejection_reason'                  => null,
         ]);
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
-            'action' => 'Reviewed (DH)',
-            'item' => $invoice->apv_no,
-            'target' => $invoice->vendor_name,
-            'type' => 'Accounts Payable Invoice',
-            'message' => 'Department Head reviewed Accounts Payable Invoice ' . $invoice->apv_no,
+            'action'    => 'Reviewed (DH)',
+            'item'      => $invoice->apv_no,
+            'target'    => $invoice->vendor_name,
+            'type'      => 'Accounts Payable Invoice',
+            'message'   => 'Department Head reviewed Accounts Payable Invoice ' . $invoice->apv_no,
         ]);
 
         return redirect()->back()->with('success', 'APV reviewed by Department Head. Forwarded to Accounting Manager.');
@@ -541,23 +607,23 @@ class AccountsPayableInvoiceController extends Controller
 
         $invoice = AccountsPayableInvoice::where('approval_stage', 'pending_accounting')->findOrFail($id);
         $invoice->update([
-            'status' => 'approved',
-            'approval_stage' => 'approved',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
+            'status'            => 'approved',
+            'approval_stage'    => 'approved',
+            'approved_by'       => Auth::id(),
+            'approved_at'       => now(),
             'approved_latitude' => $request->input('latitude'),
-            'approved_longitude' => $request->input('longitude'),
+            'approved_longitude'=> $request->input('longitude'),
             'approved_location' => $request->input('location'),
-            'rejection_reason' => null,
+            'rejection_reason'  => null,
         ]);
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
-            'action' => 'Approved',
-            'item' => $invoice->apv_no,
-            'target' => $invoice->vendor_name,
-            'type' => 'Accounts Payable Invoice',
-            'message' => 'Approved Accounts Payable Invoice ' . $invoice->apv_no,
+            'action'    => 'Approved',
+            'item'      => $invoice->apv_no,
+            'target'    => $invoice->vendor_name,
+            'type'      => 'Accounts Payable Invoice',
+            'message'   => 'Approved Accounts Payable Invoice ' . $invoice->apv_no,
         ]);
 
         return redirect()->back()->with('success', 'Invoice approved!');
@@ -568,7 +634,6 @@ class AccountsPayableInvoiceController extends Controller
      */
     public function reject(Request $request, $id)
     {
-        // Check if user can approve/reject APV invoices
         if (!Auth::user()->canApproveAPVInvoices()) {
             abort(403, 'Unauthorized action.');
         }
@@ -577,18 +642,18 @@ class AccountsPayableInvoiceController extends Controller
         $invoice = AccountsPayableInvoice::findOrFail($id);
 
         $invoice->update([
-            'status' => 'rejected',
-            'approval_stage' => 'rejected',
+            'status'           => 'rejected',
+            'approval_stage'   => 'rejected',
             'rejection_reason' => $request->rejection_reason,
         ]);
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
-            'action' => 'Rejected',
-            'item' => $invoice->apv_no,
-            'target' => $invoice->vendor_name,
-            'type' => 'Accounts Payable Invoice',
-            'message' => 'Rejected Accounts Payable Invoice ' . $invoice->apv_no,
+            'action'    => 'Rejected',
+            'item'      => $invoice->apv_no,
+            'target'    => $invoice->vendor_name,
+            'type'      => 'Accounts Payable Invoice',
+            'message'   => 'Rejected Accounts Payable Invoice ' . $invoice->apv_no,
         ]);
 
         return redirect()->back()->with('success', 'Invoice rejected.');
@@ -599,7 +664,7 @@ class AccountsPayableInvoiceController extends Controller
      */
     public function print($id)
     {
-        $apv = AccountsPayableInvoice::with(['creator', 'approver', 'departmentHeadApprover'])->findOrFail($id);
+        $apv = AccountsPayableInvoice::with(['creator', 'approver', 'departmentHeadApprover', 'items'])->findOrFail($id);
         return view('accounts_payable_invoices.print', ['apv' => $apv]);
     }
 

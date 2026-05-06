@@ -7,9 +7,15 @@
     <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
         <!-- Action Buttons -->
         <div class="flex justify-between items-center mb-6">
-            <a href="{{ route('accounts_payable_invoices.index') }}" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
-                <i class="fas fa-arrow-left mr-1"></i> Back to List
-            </a>
+            @if(request('from_mapping'))
+                <a href="{{ route('mapping.index') }}" class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Mapping
+                </a>
+            @else
+                <a href="{{ route('accounts_payable_invoices.index') }}" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to List
+                </a>
+            @endif
             <div class="flex gap-2">
                 @if($invoice->status === 'pending')
                     <a href="{{ route('accounts_payable_invoices.edit', $invoice->id) }}" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 transition">
@@ -40,9 +46,9 @@
         @endif
 
         <!-- Invoice Content -->
-        <div id="printableInvoice" class="bg-gray-800 text-black p-8 rounded">
+        <div id="printableInvoice" class="bg-gray-800 text-white p-8 rounded">
             <!-- Header -->
-            <div class="border-b-2 border-black pb-4 mb-6">
+            <div class="border-b-2 border-gray-600 pb-4 mb-6">
                 <div class="text-center mb-4">
                     <h1 class="text-3xl font-bold">ACCOUNTS PAYABLE VOUCHER</h1>
                     <p class="text-sm text-gray-300 mt-1">APV No: {{ $invoice->apv_no }}</p>
@@ -66,7 +72,7 @@
                             <p><strong>Reference No:</strong> {{ $invoice->reference_no }}</p>
                         @endif
                         <p><strong>Payment Type:</strong>
-                            <span class="px-2 py-1 {{ $invoice->payment_type === 'downpayment' ? 'bg-blue-100' : 'bg-green-100' }} rounded">
+                            <span class="px-2 py-1 {{ $invoice->payment_type === 'downpayment' ? 'bg-blue-700' : 'bg-green-700' }} rounded">
                                 {{ $invoice->payment_type === 'downpayment' ? 'Downpayment' : 'Full Payment' }}
                             </span>
                         </p>
@@ -103,68 +109,59 @@
                 </div>
             </div>
 
-            <!-- Particulars -->
+            <!-- Particulars & Accounting Items -->
             <div class="mb-6">
-                <h2 class="text-lg font-bold border-b border-gray-400 pb-2 mb-3">PARTICULARS</h2>
-                <div class="bg-gray-900 p-4 rounded text-sm whitespace-pre-wrap">{{ $invoice->particulars }}</div>
-            </div>
-
-            <!-- Accounting Details -->
-            @if($invoice->item_code || $invoice->cost_center || $invoice->account_code || $invoice->account_name)
-            <div class="mb-6">
-                <h2 class="text-lg font-bold border-b border-gray-400 pb-2 mb-3">ACCOUNTING DETAILS</h2>
-                <div class="grid grid-cols-2 gap-4 text-sm">
-                    @if($invoice->item_code)
-                        <p><strong>Item Code:</strong> {{ $invoice->item_code }}</p>
-                    @endif
-                    @if($invoice->cost_center)
-                        <p><strong>Cost Center:</strong> {{ $invoice->cost_center }}</p>
-                    @endif
-                    @if($invoice->account_code)
-                        <p><strong>Account Code:</strong> {{ $invoice->account_code }}</p>
-                    @endif
-                    @if($invoice->account_name)
-                        <p><strong>Account Name:</strong> {{ $invoice->account_name }}</p>
-                    @endif
+                <h2 class="text-lg font-bold border-b border-gray-400 pb-2 mb-3">PARTICULARS & ACCOUNTING</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs border-collapse">
+                        <thead class="bg-red-700 text-white uppercase">
+                            <tr>
+                                <th class="border border-gray-600 px-2 py-2">#</th>
+                                <th class="border border-gray-600 px-2 py-2">PARTICULARS</th>
+                                <th class="border border-gray-600 px-2 py-2">ITEM CODE</th>
+                                <th class="border border-gray-600 px-2 py-2">DEPT</th>
+                                <th class="border border-gray-600 px-2 py-2">DIVISION</th>
+                                <th class="border border-gray-600 px-2 py-2">VAT</th>
+                                <th class="border border-gray-600 px-2 py-2">TAX CODE</th>
+                                <th class="border border-gray-600 px-2 py-2">ACCOUNT CODE</th>
+                                <th class="border border-gray-600 px-2 py-2">ACCOUNT NAME</th>
+                                <th class="border border-gray-600 px-2 py-2 text-right">GROSS AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($invoice->items as $i => $item)
+                            <tr class="hover:bg-gray-700/40">
+                                <td class="border border-gray-600 px-2 py-1 text-center text-gray-400">{{ $i+1 }}</td>
+                                <td class="border border-gray-600 px-2 py-1">{{ $item->particulars }}</td>
+                                <td class="border border-gray-600 px-2 py-1 font-mono">{{ $item->item_code ?? '—' }}</td>
+                                <td class="border border-gray-600 px-2 py-1">{{ $item->department ?? '—' }}</td>
+                                <td class="border border-gray-600 px-2 py-1">{{ $item->division ?? '—' }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-center">{{ $item->vat ? '✓' : '—' }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-center font-mono">{{ $item->tax_code ?? '—' }}</td>
+                                <td class="border border-gray-600 px-2 py-1 font-mono">{{ $item->account_code ?? '—' }}</td>
+                                <td class="border border-gray-600 px-2 py-1">{{ $item->account_name ?? '—' }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right">{{ number_format($item->gross_amount, 2) }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="10" class="border border-gray-600 px-2 py-3 text-center text-gray-400">No items.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            @endif
 
-            <!-- Amount Breakdown -->
-            <div class="mb-6">
-                <h2 class="text-lg font-bold border-b border-gray-400 pb-2 mb-3">AMOUNT BREAKDOWN</h2>
-                <table class="w-full text-sm">
+            <!-- Amount Summary -->
+            <div class="mb-6 flex justify-end">
+                <table class="text-sm w-72">
                     <tbody>
-                        <tr class="border-b">
-                            <td class="py-2 text-right pr-4 font-semibold">Total Amount:</td>
-                            <td class="py-2 text-right">{{ $invoice->currency }} {{ number_format($invoice->total, 2) }}</td>
-                        </tr>
+                        <tr><td class="py-1 pr-4 text-gray-300">Total Gross:</td><td class="py-1 text-right font-bold">{{ $invoice->currency }} {{ number_format($invoice->total_after_vat, 2) }}</td></tr>
+                        <tr><td class="py-1 pr-4 text-gray-300">VAT (12%):</td><td class="py-1 text-right text-yellow-400">{{ $invoice->currency }} {{ number_format($invoice->vat_amount, 2) }}</td></tr>
+                        <tr><td class="py-1 pr-4 text-gray-300">Net of VAT:</td><td class="py-1 text-right text-blue-400">{{ $invoice->currency }} {{ number_format($invoice->total_before_vat, 2) }}</td></tr>
+                        <tr><td class="py-1 pr-4 text-gray-300">EWT:</td><td class="py-1 text-right text-red-400">({{ $invoice->currency }} {{ number_format($invoice->w_tax_amount, 2) }})</td></tr>
                         @if($invoice->payment_type === 'downpayment' && $invoice->downpayment_amount)
-                        <tr class="border-b bg-blue-50">
-                            <td class="py-2 text-right pr-4 font-semibold">Downpayment Amount:</td>
-                            <td class="py-2 text-right">{{ $invoice->currency }} {{ number_format($invoice->downpayment_amount, 2) }}</td>
-                        </tr>
+                        <tr><td class="py-1 pr-4 text-gray-300">Downpayment:</td><td class="py-1 text-right">{{ $invoice->currency }} {{ number_format($invoice->downpayment_amount, 2) }}</td></tr>
                         @endif
-                        <tr class="border-b">
-                            <td class="py-2 text-right pr-4 font-semibold">Total Before VAT:</td>
-                            <td class="py-2 text-right">{{ $invoice->currency }} {{ number_format($invoice->total_before_vat, 2) }}</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-2 text-right pr-4 font-semibold">VAT Amount:</td>
-                            <td class="py-2 text-right">{{ $invoice->currency }} {{ number_format($invoice->vat_amount, 2) }}</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-2 text-right pr-4 font-semibold">Total After VAT:</td>
-                            <td class="py-2 text-right">{{ $invoice->currency }} {{ number_format($invoice->total_after_vat, 2) }}</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-2 text-right pr-4 font-semibold">Withholding Tax:</td>
-                            <td class="py-2 text-right">({{ $invoice->currency }} {{ number_format($invoice->w_tax_amount, 2) }})</td>
-                        </tr>
-                        <tr class="border-t-2 border-black bg-gray-700">
-                            <td class="py-3 text-right pr-4 font-bold text-lg">GRAND TOTAL:</td>
-                            <td class="py-3 text-right font-bold text-lg">{{ $invoice->currency }} {{ number_format($invoice->grand_total, 2) }}</td>
-                        </tr>
+                        <tr class="border-t border-gray-500"><td class="pt-2 pr-4 font-bold text-white">Amount Due:</td><td class="pt-2 text-right font-bold text-green-400 text-base">{{ $invoice->currency }} {{ number_format($invoice->grand_total, 2) }}</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -192,7 +189,7 @@
                         <p class="text-xs text-gray-300">Reviewed By (Dept Head)</p>
                         @if($invoice->departmentHeadApprover && $invoice->department_head_approved_at)
                             <p class="text-xs text-gray-300 italic mt-1">
-                                Digitally Signed<br>
+                                @include('partials.esignature', ['signer' => $invoice->departmentHeadApprover])<br>
                                 {{ $invoice->department_head_approved_at->format('d M Y | H:i') }}
                                 @if($invoice->department_head_approved_latitude && $invoice->department_head_approved_longitude)
                                     <br>Coords: {{ $invoice->department_head_approved_latitude }}, {{ $invoice->department_head_approved_longitude }}
@@ -207,7 +204,7 @@
                         <p class="text-xs text-gray-300">Approved By (Accounting Manager)</p>
                         @if($invoice->approver && $invoice->approved_at)
                             <p class="text-xs text-gray-300 italic mt-1">
-                                Digitally Signed<br>
+                                @include('partials.esignature', ['signer' => $invoice->approver])<br>
                                 {{ $invoice->approved_at->format('d M Y | H:i') }}
                                 @if($invoice->approved_latitude && $invoice->approved_longitude)
                                     <br>Coords: {{ $invoice->approved_latitude }}, {{ $invoice->approved_longitude }}
