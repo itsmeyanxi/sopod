@@ -64,7 +64,7 @@
         .company-name {
             font-size: 14px;
             font-weight: bold;
-            color: #000;
+            color: #ff0000;
             line-height: 1.3;
         }
 
@@ -370,115 +370,150 @@
 
     <div class="page">
         <!-- Header -->
-        <div class="header-top">
+        @php $methods = is_array($rfp->payment_methods) ? $rfp->payment_methods : json_decode($rfp->payment_methods ?? '[]', true); @endphp
+        <div class="header-top" style="display:grid;grid-template-columns:1fr auto;column-gap:30px;row-gap:0;align-items:flex-start;">
             <div class="header-title-section">
                 <div class="main-title">REQUEST FOR PAYMENT</div>
-                <div class="company-name">{{ $rfp->company ?? 'Meatplus Trading Corp.' }}</div>
+                <div class="company-name">Meatplus Trading Corp.</div>
             </div>
             <div class="logo-section">
                 <img src="{{ asset('images/sopod-logo.PNG') }}" class="logo" alt="Logo">
                 <div class="header-info-right">
                     <div><strong>Date:</strong> {{ $rfp->date ? $rfp->date->format('F j, Y') : '' }}</div>
                     <div><strong>Due Date:</strong> {{ $rfp->due_date ? $rfp->due_date->format('F j, Y') : '' }}</div>
-                    <div><strong>RFP #:</strong> {{ $rfp->rfp_no ?? '' }}</div>
                 </div>
             </div>
-        </div>
-
-        <!-- Payment Methods -->
-        <div class="payment-methods">
-            @php
-                $methods = is_array($rfp->payment_methods) ? $rfp->payment_methods : json_decode($rfp->payment_methods ?? '[]', true);
-            @endphp
-            <div class="payment-grid">
-                <div class="payment-item">
-                    <div class="checkbox {{ in_array('managers_check', $methods) ? 'checked' : '' }}"></div>
-                    <span>MANAGER CHECK</span>
+            <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;flex-wrap:wrap;gap:3px 10px;">
+                    @foreach(['managers_check'=>'MANAGER CHECK','fund_transfer'=>'FUND TRANSFER','regular_check'=>'REGULAR CHECK','pdc'=>'PDC','wire_transfer'=>'WIRE TRANSFER','auto_debit'=>'AUTO DEBIT','cash'=>'CASH','other'=>'OTHER'] as $key=>$label)
+                    <div style="display:flex;align-items:center;gap:2px;font-size:8px;">
+                        <div style="width:9px;height:9px;border:1px solid #000;flex-shrink:0;{{ in_array($key,$methods)?'background:#000;':'' }}"></div>
+                        <span>{{ $label }}</span>
+                    </div>
+                    @endforeach
                 </div>
-                <div class="payment-item">
-                    <div class="checkbox {{ in_array('fund_transfer', $methods) ? 'checked' : '' }}"></div>
-                    <span>FUND TRANSFER</span>
-                </div>
-                <div class="payment-item">
-                    <div class="checkbox {{ in_array('regular_check', $methods) ? 'checked' : '' }}"></div>
-                    <span>REGULAR CHECK</span>
-                </div>
-                <div class="payment-item">
-                    <div class="checkbox {{ in_array('pdc', $methods) ? 'checked' : '' }}"></div>
-                    <span>PDC</span>
-                </div>
-                <div class="payment-item">
-                    <div class="checkbox {{ in_array('wire_transfer', $methods) ? 'checked' : '' }}"></div>
-                    <span>WIRE TRANSFER</span>
-                </div>
-                <div class="payment-item">
-                    <div class="checkbox {{ in_array('auto_debit', $methods) ? 'checked' : '' }}"></div>
-                    <span>AUTO DEBIT</span>
-                </div>
-                <div class="payment-item">
-                    <div class="checkbox {{ in_array('cash', $methods) ? 'checked' : '' }}"></div>
-                    <span>CASH</span>
-                </div>
-                <div class="payment-item">
-                    <div class="checkbox"></div>
-                    <span>OTHER</span>
-                </div>
+                <span style="font-size:10px;white-space:nowrap;"><strong>RFP #:</strong> {{ $rfp->rfp_no ?? '' }}</span>
             </div>
         </div>
 
         <!-- Payee -->
         <div class="section-title">Payee (Vendor/Supplier)</div>
-        <div class="payee-box">{{ $rfp->payee ?? '' }}</div>
+        <div class="payee-box">
+            <div style="font-weight:bold;">{{ $rfp->payee ?? '' }}</div>
+            @if($rfp->payment_terms)
+            <div style="margin-top:3px;font-size:9px;color:#555;">Terms: <strong>{{ $rfp->payment_terms }}</strong></div>
+            @endif
+        </div>
+
+        <!-- PR / PO Reference -->
+        @if($po)
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;font-size:10px;">
+            <div class="info-field">
+                <div class="info-label">PR NO.</div>
+                <div class="info-value">{{ $po->pr_no ?? '—' }}</div>
+            </div>
+            <div class="info-field">
+                <div class="info-label">PO NO.</div>
+                <div class="info-value">{{ $po->po_no ?? '—' }}</div>
+            </div>
+        </div>
+        @endif
 
         <!-- Particulars Table -->
+        @php $currSym = ($rfp->currency ?? 'PHP') === 'USD' ? '$ ' : '₱'; @endphp
         <table>
             <thead>
                 <tr>
                     <th style="width: 75%;">Particulars</th>
-                    <th style="width: 25%; text-align: right;">Amount</th>
+                    <th style="width: 25%; text-align: right;">Amount ({{ $rfp->currency ?? 'PHP' }})</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>{{ $rfp->particulars ?? '' }}</td>
-                    <td class="amount">{{ $rfp->amount ? number_format($rfp->amount, 2) : '' }}</td>
+                    <td class="amount">{{ $rfp->amount ? $currSym . number_format($rfp->amount, 2) : '' }}</td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- PO Items -->
-        @if($rfp->purchaseOrder && $rfp->purchaseOrder->items->count())
-        <div class="section-title">Purchase Order Items ({{ $rfp->purchaseOrder->po_no }})</div>
+        <!-- GRPO Items (preferred) or PO Items fallback -->
+        @if($po || $grpos->isNotEmpty())
+        @php
+            $useGrpo = $grpos->isNotEmpty();
+            $poNo    = $po->po_no ?? '';
+            $items = $useGrpo
+                ? $grpos->map(fn($g,$i) => (object)[
+                    'no'         => $i+1,
+                    'item_code'  => $g->grpo_no ?? '',
+                    'description'=> $g->items ?? '',
+                    'brand'      => $g->brand ?? '',
+                    'qty'        => $g->actual_qty,
+                    'uom'        => $g->uom ?? 'KG',
+                    'unit_price' => $g->price ?? 0,
+                    'total'      => ($g->actual_qty ?? 0) * ($g->price ?? 0),
+                  ])
+                : ($po?->items->map(fn($item,$i) => (object)[
+                    'no'         => $item->item_no ?? $i+1,
+                    'item_code'  => $item->item_code ?? '',
+                    'description'=> $item->description ?? '',
+                    'brand'      => $item->brand ?? '',
+                    'qty'        => $item->qty,
+                    'uom'        => $item->uom ?? '',
+                    'unit_price' => $item->unit_price,
+                    'total'      => $item->total,
+                  ]) ?? collect());
+        @endphp
+        <div class="section-title">
+            {{ $useGrpo ? 'GRPO Items' . ($poNo ? ' — '.$poNo : '') : 'Purchase Order Items — '.$poNo }}
+        </div>
         <table>
             <thead>
                 <tr>
-                    <th style="width: 5%;">#</th>
-                    <th style="width: 15%;">Item Code</th>
-                    <th style="width: 35%;">Description</th>
-                    <th style="width: 10%; text-align: center;">Qty</th>
-                    <th style="width: 8%; text-align: center;">UOM</th>
-                    <th style="width: 13%; text-align: right;">Unit Price</th>
-                    <th style="width: 14%; text-align: right;">Total</th>
+                    <th style="width:4%;">#</th>
+                    <th style="width:13%;">Item Code</th>
+                    <th style="width:28%;">Description</th>
+                    <th style="width:13%;">Brand</th>
+                    <th style="width:9%;text-align:center;">Actual Received</th>
+                    <th style="width:7%;text-align:center;">UOM</th>
+                    <th style="width:13%;text-align:right;">Unit Price</th>
+                    <th style="width:13%;text-align:right;">Total</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($rfp->purchaseOrder->items as $item)
+                @foreach($items as $item)
                 <tr>
-                    <td>{{ $item->item_no }}</td>
+                    <td>{{ $item->no }}</td>
                     <td>{{ $item->item_code }}</td>
                     <td>{{ $item->description }}</td>
-                    <td style="text-align: center;">{{ number_format($item->qty, 2) }}</td>
-                    <td style="text-align: center;">{{ $item->uom }}</td>
-                    <td class="amount">{{ number_format($item->unit_price, 2) }}</td>
-                    <td class="amount">{{ number_format($item->total, 2) }}</td>
+                    <td>{{ $item->brand }}</td>
+                    <td style="text-align:center;">{{ number_format($item->qty, 2) }}</td>
+                    <td style="text-align:center;">{{ $item->uom }}</td>
+                    <td class="amount">{{ $currSym }}{{ number_format($item->unit_price, 2) }}</td>
+                    <td class="amount">{{ $currSym }}{{ number_format($item->total, 2) }}</td>
                 </tr>
                 @endforeach
-                <tr>
-                    <td colspan="6" style="text-align: right; font-weight: bold;">Grand Total:</td>
-                    <td class="amount" style="font-weight: bold;">{{ number_format($rfp->purchaseOrder->items->sum('total'), 2) }}</td>
+                @if(($rfp->currency ?? 'PHP') === 'USD' && optional($po)->exchange_rate)
+                <tr style="background:#fffbe6;">
+                    <td colspan="7" style="text-align:right;font-weight:bold;">PHP Equivalent (Rate: {{ $po->exchange_rate }}):</td>
+                    <td class="amount" style="font-weight:bold;">₱{{ number_format($items->sum('total') * $po->exchange_rate, 2) }}</td>
                 </tr>
+                @endif
             </tbody>
         </table>
+        @endif
+
+        @if($poTotal > 0)
+        <div style="margin:8px 0;padding:8px 10px;border:1px solid #ccc;border-radius:4px;font-size:9pt;">
+            <div style="font-weight:bold;margin-bottom:4px;">Payment Progress (vs PO Total: {{ $currSym }}{{ number_format($poTotal,2) }})</div>
+            <div style="display:flex;gap:16px;">
+                @if($paidBefore > 0)
+                <span>Previously Paid: <strong>{{ $currSym }}{{ number_format($paidBefore,2) }}</strong></span>
+                @endif
+                <span>This RFP: <strong>{{ $currSym }}{{ number_format($thisAmount,2) }}</strong></span>
+                <span>Total Paid: <strong>{{ $currSym }}{{ number_format($paidBefore + $thisAmount,2) }}</strong></span>
+                <span>Remaining: <strong>{{ $currSym }}{{ number_format($remaining,2) }}</strong></span>
+            </div>
+        </div>
         @endif
 
         <!-- Info Fields -->
@@ -496,10 +531,6 @@
                 <div class="info-value">{{ $rfp->bank ?? '' }}</div>
             </div>
         </div>
-
-        <!-- Remarks -->
-        <div class="section-title">Remarks:</div>
-        <div class="remarks-box">&nbsp;</div>
 
         <!-- Signatures -->
         <div class="signatures">
@@ -553,11 +584,6 @@
                             <div class="approval-e-signature-detail">Coords: {{ $rfp->approved_latitude }}, {{ $rfp->approved_longitude }}@if($rfp->approved_location) ({{ $rfp->approved_location }})@endif</div>
                         @endif
                     @endif
-                </div>
-                <div class="approval-block">
-                    <div class="approval-label">Approved By (Php 50,000 above):</div>
-                    <div class="approval-line"></div>
-                    <div class="approval-name"></div>
                 </div>
             </div>
         </div>

@@ -35,6 +35,11 @@
                         class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
                 <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">2307 NAME</label>
+                    <input type="text" name="name_2307" value="{{ old('name_2307', $vendor->name_2307) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
                     <label class="block text-sm font-semibold text-gray-300 mb-1">COMPANY</label>
                     <input type="text" name="company" value="{{ old('company', $vendor->company) }}"
                         class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
@@ -64,6 +69,106 @@
                         <option value="active" {{ old('status', $vendor->status) === 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ old('status', $vendor->status) === 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
+                </div>
+            </div>
+
+            {{-- Billing Address --}}
+            <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3 border-t border-gray-700 pt-4">Billing Address</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">STREET #/PO BOX</label>
+                    <input type="text" name="billing_street" value="{{ old('billing_street', $vendor->billing_street) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">BLOCK</label>
+                    <input type="text" name="billing_block" value="{{ old('billing_block', $vendor->billing_block) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">CITY</label>
+                    <input type="text" name="billing_city" value="{{ old('billing_city', $vendor->billing_city) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">ZIP CODE</label>
+                    <input type="text" name="billing_zip" value="{{ old('billing_zip', $vendor->billing_zip) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">COUNTRY</label>
+                    <input type="text" name="billing_country" value="{{ old('billing_country', $vendor->billing_country) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+            </div>
+
+            {{-- Shipping Address --}}
+            <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3 border-t border-gray-700 pt-4">Shipping Address</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">STREET #/PO BOX</label>
+                    <input type="text" name="shipping_street" value="{{ old('shipping_street', $vendor->shipping_street) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">BLOCK</label>
+                    <input type="text" name="shipping_block" value="{{ old('shipping_block', $vendor->shipping_block) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">CITY</label>
+                    <input type="text" name="shipping_city" value="{{ old('shipping_city', $vendor->shipping_city) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">ZIP CODE</label>
+                    <input type="text" name="shipping_zip" value="{{ old('shipping_zip', $vendor->shipping_zip) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">COUNTRY</label>
+                    <input type="text" name="shipping_country" value="{{ old('shipping_country', $vendor->shipping_country) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+            </div>
+
+            {{-- Financial / Tax Info --}}
+            <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3 border-t border-gray-700 pt-4">Financial / Tax Info</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">PAYMENT TERMS</label>
+                    <input type="text" name="payment_terms" value="{{ old('payment_terms', $vendor->payment_terms) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">SELLING PRICE LIST</label>
+                    <input type="text" name="selling_price_list" value="{{ old('selling_price_list', $vendor->selling_price_list) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">VAT</label>
+                    <input type="text" name="vat" value="{{ old('vat', $vendor->vat) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">WITHHOLDING</label>
+                    <input type="text" name="withholding" value="{{ old('withholding', $vendor->withholding) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">REGISTRATION</label>
+                    <input type="text" name="registration" value="{{ old('registration', $vendor->registration) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">TIN</label>
+                    <input type="text" name="tin" value="{{ old('tin', $vendor->tin) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">ACCOUNT</label>
+                    <input type="text" name="account" value="{{ old('account', $vendor->account) }}"
+                        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
                 </div>
             </div>
 

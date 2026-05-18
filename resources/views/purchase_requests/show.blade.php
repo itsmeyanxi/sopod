@@ -150,7 +150,6 @@
                             <th class="border border-gray-700 px-4 py-3">UNIT PRICE</th>
                             <th class="border border-gray-700 px-4 py-3">AMOUNT</th>
                             <th class="border border-gray-700 px-4 py-3">REMARKS/SPECIFICATIONS</th>
-                            <th class="border border-gray-700 px-4 py-3">NOTE</th>
                         </tr>
                     </thead>
                     <tbody class="text-gray-200 divide-y divide-gray-700">
@@ -166,7 +165,6 @@
                                 <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->unit_price ? '₱' . number_format($item->unit_price, 2) : 'N/A' }}</td>
                                 <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->amount ? '₱' . number_format($item->amount, 2) : 'N/A' }}</td>
                                 <td class="border border-gray-700 px-4 py-3">{{ $item->remarks ?? 'N/A' }}</td>
-                                <td class="border border-gray-700 px-4 py-3">{{ $item->note ?? '' }}</td>
                             </tr>
                         @endforeach
                         @if($purchaseRequest->items->count() > 0)
@@ -475,10 +473,8 @@
                 <a href="{{ route('purchase_requests.go_to_po', $purchaseRequest->id) }}" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
                     <i class="fas fa-file-invoice mr-1"></i> Go to PO
                 </a>
-                <a href="{{ route('purchase_requests.edit', $purchaseRequest->id) }}" class="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700 transition">
-                    <i class="fas fa-sticky-note mr-1"></i> Edit Notes
-                </a>
-                @elseif($purchaseRequest->status !== 'rejected')
+                @endif
+                @if($purchaseRequest->status !== 'rejected')
                 <a href="{{ route('purchase_requests.edit', $purchaseRequest->id) }}" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     <i class="fas fa-edit mr-1"></i> Edit
                 </a>

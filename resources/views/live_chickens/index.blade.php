@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Live Chicken')
+@section('title', 'Goods Receipt PO')
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
     <div class="bg-gray-800 text-white rounded-lg shadow-lg p-6">
 
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold text-white">🐔 Live Chicken Records</h1>
+            <h1 class="text-2xl font-bold text-white">📦 Goods Receipt PO Records</h1>
             @if(auth()->user()->canManageLiveChicken())
                 <a href="{{ route('live_chickens.create') }}"
                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded font-semibold">

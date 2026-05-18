@@ -54,6 +54,7 @@ class AccountsPayableInvoice extends Model
         'approved_location',
         'rejection_reason',
         'created_by',
+        'updated_by',
         'cash_advance_request_id',
         'reimbursement_form_id',
         'reference_type',
@@ -78,6 +79,11 @@ class AccountsPayableInvoice extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function requestForPayment()

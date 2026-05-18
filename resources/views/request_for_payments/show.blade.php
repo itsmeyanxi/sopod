@@ -87,10 +87,13 @@
                 <div>
                     <label class="block font-semibold text-gray-300 mb-1">LINKED PO:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">
-                        @if($rfp->purchaseOrder)
-                            <a href="{{ route('purchase_orders.show', $rfp->purchaseOrder->id) }}" class="text-purple-700 hover:text-purple-700">
-                                {{ $rfp->purchaseOrder->po_no }}
+                        @if($po)
+                            <a href="{{ route('purchase_orders.show', $po->id) }}" class="text-purple-400 hover:text-purple-300">
+                                {{ $po->po_no }}
                             </a>
+                            @if($rfp->grpo)
+                                <span class="ml-2 text-xs text-blue-400">(via GRPO: {{ $rfp->grpo->grpo_no }})</span>
+                            @endif
                         @else
                             N/A
                         @endif
@@ -98,6 +101,20 @@
                 </div>
             </div>
         </div>
+
+        <!-- Payment Type -->
+        @if($rfp->payment_type)
+        <div class="mb-4">
+            <label class="block font-semibold text-gray-300 mb-1">PAYMENT TYPE:</label>
+            @php $ptLabels = ['full_payment' => 'Full Payment', 'downpayment' => 'Downpayment', 'cad' => 'Cash Against Documents (CAD)']; @endphp
+            <span class="px-3 py-1 rounded text-sm font-semibold
+                @if($rfp->payment_type === 'full_payment') bg-green-700 text-white
+                @elseif($rfp->payment_type === 'downpayment') bg-yellow-600 text-white
+                @else bg-blue-700 text-white @endif">
+                {{ $ptLabels[$rfp->payment_type] ?? $rfp->payment_type }}
+            </span>
+        </div>
+        @endif
 
         <!-- Main Form Fields -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -125,13 +142,24 @@
             <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $rfp->bank ?? 'N/A' }}</p>
         </div>
 
-        <!-- PO Items Table -->
-        @if($rfp->purchaseOrder && $rfp->purchaseOrder->items->count())
+        <!-- PO / GRPO Items Table -->
+        @php
+            $useGrpo   = $grpos->isNotEmpty();
+            $currSym   = ($rfp->currency ?? 'PHP') === 'USD' ? '$' : '₱';
+            $showItems = $useGrpo || ($po && $po->items->count());
+        @endphp
+        @if($showItems)
+        @php
+            $displayItems = $useGrpo
+                ? $grpos->map(fn($g,$i) => (object)['no'=>$i+1,'item_code'=>$g->grpo_no??'','description'=>$g->items??'','brand'=>$g->brand??'','qty'=>$g->actual_qty,'uom'=>$g->uom??'KG','unit_price'=>$g->price??0,'total'=>($g->actual_qty??0)*($g->price??0)])
+                : $po->items->map(fn($item,$i) => (object)['no'=>$item->item_no??$i+1,'item_code'=>$item->item_code??'','description'=>$item->description??'','brand'=>$item->brand??'','qty'=>$item->qty,'uom'=>$item->uom??'','unit_price'=>$item->unit_price,'total'=>$item->total]);
+            $label = $useGrpo ? 'GRPO Items' : 'Purchase Order Items';
+        @endphp
         <div class="mb-6">
             <div class="bg-gray-900 border border-gray-700 rounded overflow-hidden">
                 <div class="px-4 py-3 border-b border-gray-700 flex justify-between items-center">
-                    <h3 class="font-semibold text-white"><i class="fas fa-boxes mr-2"></i>Purchase Order Items ({{ $rfp->purchaseOrder->po_no }})</h3>
-                    <span class="text-sm text-gray-400">{{ $rfp->purchaseOrder->items->count() }} item(s)</span>
+                    <h3 class="font-semibold text-white"><i class="fas fa-boxes mr-2"></i>{{ $label }} ({{ $po?->po_no ?? '' }})</h3>
+                    <span class="text-sm text-gray-400">{{ $displayItems->count() }} item(s)</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
@@ -140,29 +168,31 @@
                                 <th class="px-4 py-2 text-left">#</th>
                                 <th class="px-4 py-2 text-left">Item Code</th>
                                 <th class="px-4 py-2 text-left">Description</th>
-                                <th class="px-4 py-2 text-center">Qty</th>
+                                <th class="px-4 py-2 text-left">Brand</th>
+                                <th class="px-4 py-2 text-center">Qty Received</th>
                                 <th class="px-4 py-2 text-center">UOM</th>
                                 <th class="px-4 py-2 text-right">Unit Price</th>
                                 <th class="px-4 py-2 text-right">Total</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($rfp->purchaseOrder->items as $idx => $item)
-                            <tr class="{{ $idx % 2 === 0 ? 'bg-gray-800' : '' }} border-b border-gray-700">
-                                <td class="px-4 py-2 text-gray-400">{{ $item->item_no }}</td>
-                                <td class="px-4 py-2 text-white font-medium">{{ $item->item_code }}</td>
-                                <td class="px-4 py-2 text-gray-200">{{ $item->description }}</td>
-                                <td class="px-4 py-2 text-center text-gray-200">{{ number_format($item->qty, 2) }}</td>
-                                <td class="px-4 py-2 text-center text-gray-200">{{ $item->uom }}</td>
-                                <td class="px-4 py-2 text-right text-gray-200">{{ number_format($item->unit_price, 2) }}</td>
-                                <td class="px-4 py-2 text-right text-white font-semibold">{{ number_format($item->total, 2) }}</td>
+                            @foreach($displayItems as $ditem)
+                            <tr class="{{ $loop->even ? 'bg-gray-800' : '' }} border-b border-gray-700">
+                                <td class="px-4 py-2 text-gray-400">{{ $ditem->no }}</td>
+                                <td class="px-4 py-2 text-white font-medium font-mono">{{ $ditem->item_code }}</td>
+                                <td class="px-4 py-2 text-gray-200">{{ $ditem->description }}</td>
+                                <td class="px-4 py-2 text-gray-300">{{ $ditem->brand }}</td>
+                                <td class="px-4 py-2 text-center text-gray-200">{{ number_format($ditem->qty, 2) }}</td>
+                                <td class="px-4 py-2 text-center text-gray-200">{{ $ditem->uom }}</td>
+                                <td class="px-4 py-2 text-right text-gray-200">{{ $currSym }}{{ number_format($ditem->unit_price, 2) }}</td>
+                                <td class="px-4 py-2 text-right text-white font-semibold">{{ $currSym }}{{ number_format($ditem->total, 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
                             <tr class="bg-gray-700 font-bold text-white">
-                                <td colspan="6" class="px-4 py-2 text-right">Grand Total:</td>
-                                <td class="px-4 py-2 text-right">₱{{ number_format($rfp->purchaseOrder->items->sum('total'), 2) }}</td>
+                                <td colspan="7" class="px-4 py-2 text-right">Grand Total:</td>
+                                <td class="px-4 py-2 text-right">{{ $currSym }}{{ number_format($displayItems->sum('total'), 2) }}</td>
                             </tr>
                         </tfoot>
                     </table>

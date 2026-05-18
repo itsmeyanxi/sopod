@@ -32,11 +32,11 @@
             </div>
         @endif
 
-        <form action="{{ route('purchase_requests.store') }}" method="POST" id="prForm">
+        <form action="{{ route('purchase_requests.store') }}" method="POST" id="prForm" novalidate>
             @csrf
 
             <!-- Company (Hidden - MeatPlus Only) -->
-            <input type="hidden" name="company" value="MeatPlus">
+            <input type="hidden" name="company" value="Meatplus Trading Corp.">
 
             @if(!empty($bom))
             <input type="hidden" name="bom_id" value="{{ $bom->id }}">
@@ -69,18 +69,19 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Left Column -->
                 <div class="space-y-4">
-                    <div>
+                    <div class="relative">
                         <label class="block font-semibold text-gray-300 mb-1">REQUISITIONER: <span class="text-red-700">*</span></label>
-                        <input type="text" name="requisitioner" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('requisitioner') }}" required>
+                        <input type="text" id="requisitioner_input" autocomplete="off"
+                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            value="{{ old('requisitioner') }}" placeholder="Search employee name..." required>
+                        <input type="hidden" name="requisitioner" id="requisitioner_value" value="{{ old('requisitioner') }}">
+                        <div id="requisitioner_dropdown" class="absolute z-50 w-full bg-gray-800 border border-gray-600 rounded mt-1 shadow-lg hidden max-h-48 overflow-y-auto"></div>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">DEPARTMENT:</label>
-                        <select name="department" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
-                            <option value="">-- Select Department --</option>
-                            @foreach(['Accounting', 'Admin', 'Commissary', 'Engineering', 'Finance', 'HR', 'IT', 'Logistics', 'Marketing', 'Operations', 'Procurement', 'Production', 'QA/QC', 'Sales', 'Warehouse'] as $dept)
-                                <option value="{{ $dept }}" {{ old('department') == $dept ? 'selected' : '' }}>{{ $dept }}</option>
-                            @endforeach
-                        </select>
+                        <input type="text" name="department" id="department_input" autocomplete="off"
+                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            value="{{ old('department') }}" placeholder="Auto-filled or type manually">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">TERMS:</label>
@@ -138,7 +139,13 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">CHARGE TO:</label>
-                        <input type="text" name="charge_to" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('charge_to') }}">
+                        <div class="relative">
+                            <input type="text" id="charge_to_search" autocomplete="off"
+                                class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="Search cost center..." value="{{ old('charge_to') }}">
+                            <input type="hidden" name="charge_to" id="charge_to_value" value="{{ old('charge_to') }}">
+                            <div id="charge_to_dropdown" class="hidden absolute z-30 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto" style="top:100%"></div>
+                        </div>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">CONTACT NUMBER:</label>
@@ -169,7 +176,6 @@
                                 <th class="border px-2 py-2" style="width:110px">UNIT PRICE</th>
                                 <th class="border px-2 py-2" style="width:100px">AMOUNT</th>
                                 <th class="border px-2 py-2" style="width:160px">REMARKS/SPECIFICATIONS</th>
-                                <th class="border px-2 py-2" style="width:140px">NOTE</th>
                             </tr>
                         </thead>
                         <tbody id="itemsBody" class="bg-gray-800 text-gray-300 divide-y divide-gray-700">
@@ -182,11 +188,11 @@
                                 <td class="border border-gray-700 px-2 py-2 text-center">1</td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="date" name="items[0][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" required></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" ></td>
                                 <td class="border border-gray-700 px-2 py-2">
                                     <div class="relative">
-                                        <input type="text" name="items[0][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" required autocomplete="off">
+                                        <input type="text" name="items[0][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" autocomplete="off">
                                         <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
                                     </div>
                                 </td>
@@ -195,7 +201,6 @@
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[0][amount]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-amount" readonly></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][remarks]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[0][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -261,6 +266,31 @@ const SUPPLIER_SEARCH_URL    = '{{ route("purchase_requests.search_suppliers") }
 const SEARCH_URL             = '{{ route("items.search") }}';
 const ITEM_CODE_SEARCH_URL   = '{{ route("purchase_orders.search_by_item_code") }}';
 const GENERATE_ITEM_CODE_URL = '{{ route("purchase_orders.generate_item_code") }}';
+const COST_CENTER_SEARCH_URL = '{{ route("purchase_requests.search_cost_centers") }}';
+
+// ── Charge To Searchable Dropdown ──────────────────────────────────────────
+(function() {
+    const input = document.getElementById('charge_to_search');
+    const hidden = document.getElementById('charge_to_value');
+    const dd = document.getElementById('charge_to_dropdown');
+    let timer;
+    input.addEventListener('input', function() {
+        hidden.value = this.value;
+        clearTimeout(timer);
+        if (!this.value.trim()) { dd.classList.add('hidden'); return; }
+        timer = setTimeout(async () => {
+            const res = await fetch(`${COST_CENTER_SEARCH_URL}?q=${encodeURIComponent(this.value)}`);
+            const data = await res.json();
+            if (!data.length) { dd.classList.add('hidden'); return; }
+            dd.innerHTML = data.map(c => `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-white cc-opt" data-name="${c.cost_center_name}"><span class="font-semibold">${c.cost_center_name}</span> <span class="text-gray-400 text-xs">${c.cost_center_code}</span></div>`).join('');
+            dd.classList.remove('hidden');
+            dd.querySelectorAll('.cc-opt').forEach(o => o.addEventListener('mousedown', function(e) {
+                e.preventDefault(); input.value = this.dataset.name; hidden.value = this.dataset.name; dd.classList.add('hidden');
+            }));
+        }, 250);
+    });
+    input.addEventListener('blur', () => setTimeout(() => dd.classList.add('hidden'), 200));
+})();
 
 // ======================== ROW MANAGEMENT ========================
 function addRow() {
@@ -302,9 +332,6 @@ function addRow() {
         </td>
         <td class="border border-gray-700 px-2 py-2">
             <input type="text" name="items[${rowCount}][remarks]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
-        </td>
-        <td class="border border-gray-700 px-2 py-2">
-            <input type="text" name="items[${rowCount}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
         </td>
     `;
     rowCount++;
@@ -505,11 +532,8 @@ function attachDescAutocomplete(input) {
                         const row = input.closest('tr');
                         if (!row) return;
                         const itemCodeInput = row.querySelector('.item-code-input');
-                        if (this.dataset.itemCode && itemCodeInput) {
-                            itemCodeInput.value = this.dataset.itemCode;
-                        } else if (itemCodeInput) {
-                            itemCodeInput.value = '';
-                            autoGenerateItemCode(row);
+                        if (itemCodeInput) {
+                            itemCodeInput.value = this.dataset.itemCode || '';
                         }
                         if (this.dataset.supplierId) {
                             const ss = row.querySelector('.supplier-search');
@@ -542,11 +566,6 @@ function attachDescAutocomplete(input) {
     input.addEventListener('focus', fetchSuggestions);
     input.addEventListener('blur', () => {
         setTimeout(() => dropdown.classList.add('hidden'), 200);
-        const row           = input.closest('tr');
-        const itemCodeInput = row?.querySelector('.item-code-input');
-        if (row && itemCodeInput && !itemCodeInput.value.trim()) {
-            autoGenerateItemCode(row);
-        }
     });
 }
 
@@ -680,9 +699,6 @@ function prefillBomItems(bomItems) {
             <td class="border border-gray-700 px-2 py-2">
                 <input type="text" name="items[${idx}][remarks]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="${(item.remarks || '').replace(/"/g, '&quot;')}">
             </td>
-            <td class="border border-gray-700 px-2 py-2">
-                <input type="text" name="items[${idx}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="${(item.note || '').replace(/"/g, '&quot;')}">
-            </td>
         `;
         tbody.appendChild(tr);
         rowCount++;
@@ -692,6 +708,87 @@ function prefillBomItems(bomItems) {
     attachItemCodeListeners();
     initDescAutocomplete();
 }
+
+// ======================== CLIENT-SIDE VALIDATION ========================
+(function () {
+    const form = document.getElementById('prForm');
+    form.addEventListener('submit', function (e) {
+        let errors = [];
+
+        const requisitioner = document.getElementById('requisitioner_value').value.trim();
+        if (!requisitioner) errors.push('Requisitioner is required.');
+
+        const dateOfRequest = form.querySelector('[name="date_of_request"]').value.trim();
+        if (!dateOfRequest) errors.push('Date of Request is required.');
+
+        const rows = document.querySelectorAll('#itemsBody tr');
+        let hasValidItem = false;
+        rows.forEach((row, i) => {
+            const qty = row.querySelector('[name*="[qty]"]')?.value.trim();
+            const desc = row.querySelector('[name*="[description]"]')?.value.trim();
+            if (qty || desc) {
+                if (!qty) errors.push(`Row ${i + 1}: Quantity is required.`);
+                if (!desc) errors.push(`Row ${i + 1}: Description is required.`);
+                if (qty && desc) hasValidItem = true;
+            }
+        });
+        if (!hasValidItem) errors.push('At least one item with quantity and description is required.');
+
+        if (errors.length > 0) {
+            e.preventDefault();
+            let box = document.getElementById('client_validation_errors');
+            if (!box) {
+                box = document.createElement('div');
+                box.id = 'client_validation_errors';
+                box.className = 'bg-red-600 text-white px-4 py-3 rounded mb-4';
+                form.insertBefore(box, form.firstChild);
+            }
+            box.innerHTML = '<p class="font-bold mb-2">Please fix the following:</p><ul class="list-disc list-inside">' +
+                errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+            box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+})();
+
+// ======================== REQUISITIONER AUTOCOMPLETE ========================
+(function () {
+    const SEARCH_URL = '{{ route("suppliers.vendors.employees_search") }}';
+    const input = document.getElementById('requisitioner_input');
+    const hidden = document.getElementById('requisitioner_value');
+    const dropdown = document.getElementById('requisitioner_dropdown');
+    const deptInput = document.getElementById('department_input');
+    let debounceTimer;
+
+    input.addEventListener('input', function () {
+        hidden.value = this.value;
+        clearTimeout(debounceTimer);
+        const q = this.value.trim();
+        if (q.length < 1) { dropdown.classList.add('hidden'); return; }
+        debounceTimer = setTimeout(async () => {
+            const res = await fetch(`${SEARCH_URL}?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            dropdown.innerHTML = '';
+            if (!data.length) { dropdown.classList.add('hidden'); return; }
+            data.forEach(emp => {
+                const div = document.createElement('div');
+                div.className = 'px-3 py-2 cursor-pointer hover:bg-gray-700 text-white text-sm border-b border-gray-700 last:border-0';
+                div.innerHTML = `<span class="font-semibold">${emp.vendor_name}</span><span class="text-gray-400 text-xs ml-2">${emp.department || ''}</span>`;
+                div.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    input.value = emp.vendor_name;
+                    hidden.value = emp.vendor_name;
+                    if (emp.department) deptInput.value = emp.department;
+                    dropdown.classList.add('hidden');
+                });
+                dropdown.appendChild(div);
+            });
+            dropdown.classList.remove('hidden');
+        }, 250);
+    });
+
+    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 150));
+    input.addEventListener('focus', () => { if (input.value.trim()) input.dispatchEvent(new Event('input')); });
+})();
 
 // ======================== INIT ========================
 document.addEventListener('DOMContentLoaded', function () {

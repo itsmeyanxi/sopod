@@ -13,12 +13,17 @@ class RequestForPayment extends Model
     protected $fillable = [
         'rfp_no',
         'purchase_order_id',
+        'srr_id',
+        'live_chicken_id',
+        'payment_type',
         'company',
         'payment_methods',
         'date',
         'due_date',
         'payee',
+        'payment_terms',
         'amount',
+        'currency',
         'particulars',
         'bank',
         'apv_no',
@@ -84,6 +89,16 @@ class RequestForPayment extends Model
     public function apvs()
     {
         return $this->hasMany(AccountsPayableInvoice::class, 'request_for_payment_id');
+    }
+
+    public function accountsPayableInvoices()
+    {
+        return $this->hasMany(AccountsPayableInvoice::class, 'request_for_payment_id');
+    }
+
+    public function grpo()
+    {
+        return $this->belongsTo(\App\Models\LiveChicken::class, 'live_chicken_id');
     }
 
     /**

@@ -83,6 +83,40 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="mt-4">
+                        <label class="block font-semibold text-gray-300 mb-2">LINKED GRPO <span class="text-xs text-gray-400">(search by GRPO#, PO#, supplier, brand)</span>:</label>
+                        <div class="relative">
+                            <input type="text" id="grpo_search_input" autocomplete="off" placeholder="Search GRPO#, PO#, supplier..."
+                                value="{{ $rfp->grpo ? ($rfp->grpo->grpo_no ?? '') : '' }}"
+                                class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <div id="grpo_search_results" class="hidden absolute z-30 w-full bg-gray-800 border border-gray-700 rounded mt-1 max-h-52 overflow-y-auto shadow-xl"></div>
+                        </div>
+                        <input type="hidden" name="live_chicken_id" id="live_chicken_id" value="{{ old('live_chicken_id', $rfp->live_chicken_id) }}">
+                        @if($rfp->grpo)
+                        <div id="grpo_linked_badge" class="mt-2 p-2 bg-blue-900 border border-blue-700 rounded text-sm text-blue-200 flex justify-between items-center">
+                            <span id="grpo_linked_text">GRPO: {{ $rfp->grpo->grpo_no }} | PO: {{ $rfp->grpo->po_no }}</span>
+                            <button type="button" onclick="clearGrpo()" class="text-red-400 hover:text-red-300 ml-2 text-xs">✕ Clear</button>
+                        </div>
+                        @else
+                        <div id="grpo_linked_badge" class="hidden mt-2 p-2 bg-blue-900 border border-blue-700 rounded text-sm text-blue-200 flex justify-between items-center">
+                            <span id="grpo_linked_text"></span>
+                            <button type="button" onclick="clearGrpo()" class="text-red-400 hover:text-red-300 ml-2 text-xs">✕ Clear</button>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Type -->
+            <div class="mb-6">
+                <label class="block font-semibold text-gray-300 mb-2">PAYMENT TYPE:</label>
+                <div class="flex gap-4">
+                    @foreach(['full_payment' => 'Full Payment', 'downpayment' => 'Downpayment', 'cad' => 'Cash Against Documents (CAD)'] as $val => $label)
+                    <label class="flex items-center gap-2 px-4 py-2 bg-gray-900 border border-gray-700 rounded cursor-pointer hover:bg-gray-800">
+                        <input type="radio" name="payment_type" value="{{ $val }}" class="text-purple-600" {{ old('payment_type', $rfp->payment_type) === $val ? 'checked' : '' }}>
+                        <span class="text-gray-300 text-sm">{{ $label }}</span>
+                    </label>
+                    @endforeach
                 </div>
             </div>
 
@@ -195,4 +229,53 @@
         </form>
     </div>
 </div>
+<script>
+(function() {
+    const inp = document.getElementById('grpo_search_input');
+    const res = document.getElementById('grpo_search_results');
+    const hid = document.getElementById('live_chicken_id');
+    const badge = document.getElementById('grpo_linked_badge');
+    const badgeTxt = document.getElementById('grpo_linked_text');
+    if (!inp) return;
+    let t;
+    inp.addEventListener('input', function() {
+        clearTimeout(t);
+        const q = this.value.trim();
+        if (q.length < 1) { res.classList.add('hidden'); return; }
+        t = setTimeout(async () => {
+            const data = await fetch(`{{ route('live_chickens.search') }}?q=${encodeURIComponent(q)}`).then(r=>r.json());
+            if (!data.length) { res.classList.add('hidden'); return; }
+            res.innerHTML = data.map(lc => `
+                <div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm border-b border-gray-700 grpo-opt"
+                     data-id="${lc.id}" data-grpo="${lc.grpo_no||''}" data-po="${lc.po_no||''}" data-po-id="${lc.po_id||''}">
+                    <span class="text-purple-300 font-mono font-bold">${lc.grpo_no||'—'}</span>
+                    <span class="text-gray-400 ml-2">PO: ${lc.po_no||''}</span>
+                    <span class="text-yellow-400 ml-2">${lc.brand||''}</span>
+                    <span class="text-gray-500 ml-2 text-xs">Qty: ${lc.actual_qty}</span>
+                </div>`).join('');
+            res.classList.remove('hidden');
+            res.querySelectorAll('.grpo-opt').forEach(el => {
+                el.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    hid.value = this.dataset.id;
+                    inp.value = this.dataset.grpo;
+                    badgeTxt.textContent = `GRPO: ${this.dataset.grpo} | PO: ${this.dataset.po}`;
+                    badge.classList.remove('hidden');
+                    res.classList.add('hidden');
+                    if (this.dataset.poId) {
+                        document.getElementById('purchase_order_id').value = this.dataset.poId;
+                        if (typeof loadPOItems === 'function') loadPOItems(this.dataset.poId);
+                    }
+                });
+            });
+        }, 250);
+    });
+    inp.addEventListener('blur', () => setTimeout(() => res.classList.add('hidden'), 200));
+})();
+window.clearGrpo = function() {
+    document.getElementById('live_chicken_id').value = '';
+    document.getElementById('grpo_search_input').value = '';
+    document.getElementById('grpo_linked_badge').classList.add('hidden');
+};
+</script>
 @endsection

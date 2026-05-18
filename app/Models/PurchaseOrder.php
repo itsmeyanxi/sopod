@@ -13,11 +13,13 @@ class PurchaseOrder extends Model
 
     protected $fillable = [
         'po_no',
+        'reference_number',
         'purchase_request_id',
         'company',
         'supplier',          // string column (supplier name text)
         'supplier_id',       // FK to suppliers table
         'supplier_address',
+        'supplier_tin',
         'consignee',
         'consignee_address',
         'delivery_address',
@@ -36,8 +38,11 @@ class PurchaseOrder extends Model
         'service_description',
         'service_qty',
         'service_amount',
+        'service_uom',
+        'service_vat',
         'quotation',
         'status',
+        'is_closed',
         'approval_stage',
         'approved_by',
         'approved_at',

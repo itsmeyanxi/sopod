@@ -84,6 +84,11 @@
                         </div>
                     </div>
                     <div>
+                        <label class="block font-semibold text-gray-300 mb-1">REFERENCE NUMBER:</label>
+                        <input type="text" name="reference_number" id="srr_reference_number" value="{{ old('reference_number', $report->reference_number) }}" placeholder="Auto-filled from PO or enter manually"
+                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
                         <label class="block font-semibold text-gray-300 mb-2">TYPE: <span class="text-red-700">*</span></label>
                         <div class="flex flex-wrap gap-4">
                             <label class="flex items-center gap-2 cursor-pointer">
@@ -376,9 +381,15 @@ poInput.addEventListener('input', function() {
     }, 300);
 });
 
-function selectPO(poNo) {
+async function selectPO(poNo) {
     document.getElementById('po_no').value = poNo;
     document.getElementById('poSearchResults').classList.add('hidden');
+    try {
+        const res = await fetch(`{{ route('supplier_receiving_reports.getPOItems') }}?po_no=${encodeURIComponent(poNo)}`);
+        const data = await res.json();
+        const refField = document.getElementById('srr_reference_number');
+        if (refField && data.reference_number) refField.value = data.reference_number;
+    } catch (e) {}
 }
 
 document.addEventListener('click', function(e) {

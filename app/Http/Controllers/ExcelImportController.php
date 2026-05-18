@@ -2235,31 +2235,55 @@ private $arAdjustmentColumnMap = [
 
         // Maps lowercased header text → internal field name
         // "date hired*" handles "Date Hired (mm/dd/yyyy)" etc.
+        // Note: duplicate headers (street #/po box, block, city, zip code, country) are handled
+        // by occurrence order: first = billing, second = shipping
         $headerMap = [
-            'vendor code'    => 'vendor_code',
-            'vendor name'    => 'vendor_name',
-            'payee name'     => 'vendor_name',
-            'payee'          => 'vendor_name',
-            'category'       => 'category',
-            'group'          => 'group',
-            'gl account'     => 'gl_account',
-            'status'         => 'status',
-            'company'        => 'company',
-            'ee id'          => 'ee_id',
-            'ee_id'          => 'ee_id',
-            'last name'      => 'last_name',
-            'first name'     => 'first_name',
-            'middle name'    => 'middle_name',
-            'position'       => 'position',
-            'positions'      => 'position',
-            'department'     => 'department',
-            'location'       => 'location',
-            'office address' => 'office_address',
-            'date hired'     => 'date_hired',
+            'vendor code'       => 'vendor_code',
+            'vendor name'       => 'vendor_name',
+            'payee name'        => 'vendor_name',
+            'payee'             => 'vendor_name',
+            '2307 name'         => 'name_2307',
+            'category'          => 'category',
+            'group'             => 'group',
+            'vendor group'      => 'group',
+            'gl account'        => 'gl_account',
+            'status'            => 'status',
+            'company'           => 'company',
+            'ee id'             => 'ee_id',
+            'ee_id'             => 'ee_id',
+            'last name'         => 'last_name',
+            'first name'        => 'first_name',
+            'middle name'       => 'middle_name',
+            'position'          => 'position',
+            'positions'         => 'position',
+            'department'        => 'department',
+            'location'          => 'location',
+            'office address'    => 'office_address',
+            'date hired'        => 'date_hired',
+            'payment terms'     => 'payment_terms',
+            'selling price list'=> 'selling_price_list',
+            'vat'               => 'vat',
+            'withholding'       => 'withholding',
+            'registration'      => 'registration',
+            'tin'               => 'tin',
+            'account'           => 'account',
+        ];
+
+        // These headers appear twice (billing then shipping); track occurrences
+        $duplicateHeaderMap = [
+            'street #/po box' => ['billing_street',  'shipping_street'],
+            'block'           => ['billing_block',   'shipping_block'],
+            'city'            => ['billing_city',    'shipping_city'],
+            'zip code'        => ['billing_zip',     'shipping_zip'],
+            'country'         => ['billing_country', 'shipping_country'],
         ];
 
         // Additional anchor headers that indicate a valid header row even without vendor_code/vendor_name
         $employeeAnchors = ['ee id', 'ee_id', 'last name', 'first name', 'company'];
+
+        if ($request->boolean('replace_all')) {
+            \App\Models\Vendor::truncate();
+        }
 
         try {
             $spreadsheet = IOFactory::load($request->file('file')->getPathname());
@@ -2272,12 +2296,13 @@ private $arAdjustmentColumnMap = [
             $imported = $updated = $skipped = 0;
             $errors = [];
 
-            // Find header row in first 5 rows
+            // Find header row in first 10 rows
             $headerRow = null;
             $colMap = [];
 
-            for ($r = 1; $r <= min(5, $highestRow); $r++) {
+            for ($r = 1; $r <= min(10, $highestRow); $r++) {
                 $tmpMap = [];
+                $dupSeen = [];
                 $colIdx = 1;
                 $col = 'A';
                 while ($col <= $highestCol) {
@@ -2287,7 +2312,14 @@ private $arAdjustmentColumnMap = [
                     // Strip trailing parenthetical like " (mm/dd/yyyy)"
                     $val = preg_replace('/\s*\(.*\)$/', '', $val);
 
-                    if (isset($headerMap[$val])) {
+                    if (isset($duplicateHeaderMap[$val])) {
+                        $occurrence = ($dupSeen[$val] ?? 0);
+                        $dupSeen[$val] = $occurrence + 1;
+                        $fields = $duplicateHeaderMap[$val];
+                        if (isset($fields[$occurrence])) {
+                            $tmpMap[$fields[$occurrence]] = $col;
+                        }
+                    } elseif (isset($headerMap[$val])) {
                         $tmpMap[$headerMap[$val]] = $col;
                     }
                     $colIdx++;
@@ -2366,21 +2398,39 @@ private $arAdjustmentColumnMap = [
                 }
 
                 $data = array_filter([
-                    'vendor_name'    => $vendorName ?: null,
-                    'category'       => $category ?: null,
-                    'group'          => $get('group') ?: null,
-                    'gl_account'     => $get('gl_account') ?: null,
-                    'status'         => $get('status') ?: null,
-                    'company'        => $get('company') ?: null,
-                    'ee_id'          => $get('ee_id') ?: null,
-                    'last_name'      => $get('last_name') ?: null,
-                    'first_name'     => $get('first_name') ?: null,
-                    'middle_name'    => $get('middle_name') ?: null,
-                    'position'       => $get('position') ?: null,
-                    'department'     => $get('department') ?: null,
-                    'location'       => $get('location') ?: null,
-                    'office_address' => $get('office_address') ?: null,
-                    'date_hired'     => $dateHired,
+                    'vendor_name'        => $vendorName ?: null,
+                    'name_2307'          => $get('name_2307') ?: null,
+                    'category'           => $category ?: null,
+                    'group'              => $get('group') ?: null,
+                    'gl_account'         => $get('gl_account') ?: null,
+                    'status'             => $get('status') ?: null,
+                    'company'            => $get('company') ?: null,
+                    'ee_id'              => $get('ee_id') ?: null,
+                    'last_name'          => $get('last_name') ?: null,
+                    'first_name'         => $get('first_name') ?: null,
+                    'middle_name'        => $get('middle_name') ?: null,
+                    'position'           => $get('position') ?: null,
+                    'department'         => $get('department') ?: null,
+                    'location'           => $get('location') ?: null,
+                    'office_address'     => $get('office_address') ?: null,
+                    'date_hired'         => $dateHired,
+                    'billing_street'     => $get('billing_street') ?: null,
+                    'billing_block'      => $get('billing_block') ?: null,
+                    'billing_city'       => $get('billing_city') ?: null,
+                    'billing_zip'        => $get('billing_zip') ?: null,
+                    'billing_country'    => $get('billing_country') ?: null,
+                    'shipping_street'    => $get('shipping_street') ?: null,
+                    'shipping_block'     => $get('shipping_block') ?: null,
+                    'shipping_city'      => $get('shipping_city') ?: null,
+                    'shipping_zip'       => $get('shipping_zip') ?: null,
+                    'shipping_country'   => $get('shipping_country') ?: null,
+                    'payment_terms'      => $get('payment_terms') ?: null,
+                    'selling_price_list' => $get('selling_price_list') ?: null,
+                    'vat'                => $get('vat') ?: null,
+                    'withholding'        => $get('withholding') ?: null,
+                    'registration'       => $get('registration') ?: null,
+                    'tin'                => $get('tin') ?: null,
+                    'account'            => $get('account') ?: null,
                 ], fn($v) => $v !== null);
 
                 $existing = Vendor::where('vendor_code', $vendorCode)->first();

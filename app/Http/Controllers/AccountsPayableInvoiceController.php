@@ -145,7 +145,7 @@ class AccountsPayableInvoiceController extends Controller
     {
         $searchTerm = $request->input('search', '');
 
-        $rfps = RequestForPayment::with(['purchaseOrder.supplierModel'])
+        $rfps = RequestForPayment::with(['purchaseOrder.supplierModel', 'purchaseOrder.items'])
             ->where('status', 'approved')
             ->where(function ($query) use ($searchTerm) {
                 $query->where('rfp_no', 'LIKE', "%{$searchTerm}%")
@@ -157,6 +157,18 @@ class AccountsPayableInvoiceController extends Controller
             ->get()
             ->map(function ($rfp) {
                 $supplier = $rfp->purchaseOrder->supplierModel ?? null;
+                $po = $rfp->purchaseOrder;
+                $vendorAddress = $po->supplier_address ?? $supplier->address ?? '';
+                $vendorTin     = $po->supplier_tin ?? $supplier->tin ?? '';
+
+                // Resolve vendor_code: try supplier first, then vendor table by payee name
+                $vendorCode = $supplier->supplier_code ?? '';
+                if (!$vendorCode) {
+                    $vendorMatch = \App\Models\Vendor::where('vendor_name', $rfp->payee)->first()
+                        ?? \App\Models\Supplier::where('supplier_name', $rfp->payee)->first();
+                    $vendorCode = $vendorMatch->vendor_code ?? $vendorMatch->supplier_code ?? '';
+                }
+
                 return [
                     'id'               => $rfp->id,
                     'rfp_no'           => $rfp->rfp_no,
@@ -165,10 +177,19 @@ class AccountsPayableInvoiceController extends Controller
                     'date'             => $rfp->date,
                     'amount'           => (float) $rfp->amount,
                     'particulars'      => $rfp->particulars,
-                    'purchase_order_no'=> $rfp->purchaseOrder->po_no ?? '',
-                    'vendor_address'   => $supplier->address ?? $rfp->purchaseOrder->supplier_address ?? '',
-                    'vendor_tin'       => $supplier->tin ?? '',
-                    'vendor_code'      => $supplier->supplier_code ?? '',
+                    'purchase_order_no'   => $po->po_no ?? '',
+                    'po_reference_number' => $po->reference_number ?? '',
+                    'vendor_address'      => $vendorAddress,
+                    'vendor_tin'          => $vendorTin,
+                    'vendor_code'         => $vendorCode,
+                    'payment_terms'       => $po->payment_terms ?? '',
+                    'currency'            => $po->currency ?? 'PHP',
+                    'forex_rate'          => $po->forex_rate ?? '',
+                    'po_type'             => $po->po_type ?? 'items',
+                    'service_description' => $po->service_description ?? null,
+                    'po_items'            => $po && $po->po_type !== 'service'
+                        ? $po->items->map(fn($i) => ['description' => $i->description, 'item_code' => $i->item_code])->values()
+                        : [],
                 ];
             });
 
@@ -254,27 +275,42 @@ class AccountsPayableInvoiceController extends Controller
             'document_date'          => 'required|date',
             'currency'               => 'required|string',
             'items'                  => 'required|array|min:1',
-            'items.*.gross_amount'   => 'required|numeric|min:0',
+            'items.*.gross_amount'   => 'required|numeric',
         ]);
 
         $items    = $request->items ?? [];
         $currency = $request->currency;
         $isPhp    = $currency === 'PHP';
 
+        // ── Only use positive (DR) items for totals; skip CR entries ─────────
+        $drItems = array_filter($items, fn($i) => ((float)($i['gross_amount'] ?? 0)) > 0);
+
         // ── Compute totals ────────────────────────────────────────────────────
-        $total = array_sum(array_column($items, 'gross_amount'));
+        $total = array_sum(array_column($drItems, 'gross_amount'));
+
+        $ewtRates = ['C158'=>0.01,'158'=>0.01,'C160'=>0.02,'160'=>0.02,'C100'=>0.05,'I010'=>0.05,'I011'=>0.10];
 
         if ($isPhp) {
             $vatAmount = array_sum(array_map(
                 fn($i) => !empty($i['vat']) ? ($i['gross_amount'] * 12 / 112) : 0,
-                $items
+                $drItems
             ));
-            $wTaxAmount = array_sum(array_map(function ($i) {
+            $wTaxAmount = array_sum(array_map(function ($i) use ($ewtRates) {
                 $net  = !empty($i['vat']) ? ($i['gross_amount'] * 100 / 112) : $i['gross_amount'];
-                $rate = ($i['tax_code'] ?? '') === '158' ? 0.01
-                      : (($i['tax_code'] ?? '') === '160' ? 0.02 : 0);
+                $rate = $ewtRates[$i['tax_code'] ?? ''] ?? 0;
                 return $net * $rate;
-            }, $items));
+            }, $drItems));
+
+            // Fallback: if no tax_code computed EWT, check if any item explicitly uses the EWT account
+            if ($wTaxAmount == 0) {
+                foreach ($items as $i) {
+                    $code = $i['account_code'] ?? '';
+                    $name = strtolower($i['account_name'] ?? '');
+                    if ($code === '211300015' || str_contains($name, 'withholding') || str_contains($name, 'ewt')) {
+                        $wTaxAmount += abs((float)($i['gross_amount'] ?? 0));
+                    }
+                }
+            }
         } else {
             // No VAT or withholding tax for foreign currencies
             $vatAmount  = 0;
@@ -282,7 +318,7 @@ class AccountsPayableInvoiceController extends Controller
         }
 
         $netOfVat          = $total - $vatAmount;
-        $grandTotal        = $isPhp ? ($netOfVat - $wTaxAmount) : $total;
+        $grandTotal        = $isPhp ? ($total - $wTaxAmount) : $total;
         $downpaymentAmount = $request->downpayment_amount ?? 0;
 
         // ── RFP amount cap check ──────────────────────────────────────────────
@@ -325,9 +361,9 @@ class AccountsPayableInvoiceController extends Controller
                 'account_name'            => collect($items)->pluck('account_name')->filter()->first(),
                 'total'                   => $total,
                 'downpayment_amount'      => $downpaymentAmount,
-                'total_before_vat'        => $netOfVat,
+                'total_before_vat'        => $total,
                 'vat_amount'              => $vatAmount,
-                'total_after_vat'         => $total,
+                'total_after_vat'         => $netOfVat,
                 'w_tax_amount'            => $wTaxAmount,
                 'grand_total'             => $grandTotal,
                 'prepared_by'             => $request->prepared_by,
@@ -337,14 +373,13 @@ class AccountsPayableInvoiceController extends Controller
                 'created_by'              => Auth::id(),
             ]);
 
-            foreach ($items as $row) {
+            foreach ($drItems as $row) {
                 ApvItem::create([
                     'apv_id'       => $invoice->id,
                     'particulars'  => $row['particulars'] ?? null,
                     'item_code'    => $row['item_code'] ?? null,
                     'department'   => $row['department'] ?? null,
                     'division'     => $row['division'] ?? null,
-                    // Force VAT and tax to zero/null for non-PHP currencies
                     'vat'          => ($isPhp && !empty($row['vat'])) ? 1 : 0,
                     'tax_code'     => $isPhp ? ($row['tax_code'] ?? null) : null,
                     'account_code' => $row['account_code'] ?? null,
@@ -381,10 +416,13 @@ class AccountsPayableInvoiceController extends Controller
      */
     public function show($id)
     {
-        $invoice = AccountsPayableInvoice::with(['creator', 'requestForPayment', 'approver', 'departmentHeadApprover'])
+        $invoice = AccountsPayableInvoice::with(['creator', 'requestForPayment.purchaseOrder.items', 'approver', 'departmentHeadApprover', 'items'])
             ->findOrFail($id);
 
-        return view('accounts_payable_invoices.show', compact('invoice'));
+        $po    = $invoice->requestForPayment?->purchaseOrder ?? null;
+        $grpos = $po ? \App\Models\LiveChicken::where('po_no', $po->po_no)->orderBy('date')->get() : collect();
+
+        return view('accounts_payable_invoices.show', compact('invoice', 'grpos'));
     }
 
     /**
@@ -397,8 +435,9 @@ class AccountsPayableInvoiceController extends Controller
         }
 
         $invoice    = AccountsPayableInvoice::findOrFail($id);
-        $glAccounts = $this->getGlAccounts();
 
+
+        $glAccounts = $this->getGlAccounts();
         return view('accounts_payable_invoices.edit', compact('invoice', 'glAccounts'));
     }
 
@@ -420,28 +459,44 @@ class AccountsPayableInvoiceController extends Controller
             'document_date'        => 'required|date',
             'currency'             => 'required|string',
             'items'                => 'required|array|min:1',
-            'items.*.gross_amount' => 'required|numeric|min:0',
+            'items.*.gross_amount' => 'required|numeric',
         ]);
 
         $invoice  = AccountsPayableInvoice::findOrFail($id);
+        $wasApproved = $invoice->status === 'approved';
         $items    = $request->input('items', []);
         $currency = $request->currency;
         $isPhp    = $currency === 'PHP';
 
+        // ── Only use positive (DR) items for totals; skip CR entries ─────────
+        $drItems = array_filter($items, fn($i) => ((float)($i['gross_amount'] ?? 0)) > 0);
+
         // ── Compute totals ────────────────────────────────────────────────────
-        $total = array_sum(array_column($items, 'gross_amount'));
+        $total = array_sum(array_column($drItems, 'gross_amount'));
+
+        $ewtRates = ['C158'=>0.01,'158'=>0.01,'C160'=>0.02,'160'=>0.02,'C100'=>0.05,'I010'=>0.05,'I011'=>0.10];
 
         if ($isPhp) {
             $vatAmount = array_sum(array_map(
                 fn($i) => !empty($i['vat']) ? ($i['gross_amount'] * 12 / 112) : 0,
-                $items
+                $drItems
             ));
-            $wTaxAmount = array_sum(array_map(function ($i) {
+            $wTaxAmount = array_sum(array_map(function ($i) use ($ewtRates) {
                 $net  = !empty($i['vat']) ? ($i['gross_amount'] * 100 / 112) : $i['gross_amount'];
-                $rate = ($i['tax_code'] ?? '') === '158' ? 0.01
-                      : (($i['tax_code'] ?? '') === '160' ? 0.02 : 0);
+                $rate = $ewtRates[$i['tax_code'] ?? ''] ?? 0;
                 return $net * $rate;
-            }, $items));
+            }, $drItems));
+
+            // Fallback: if no tax_code computed EWT, check if any item explicitly uses the EWT account
+            if ($wTaxAmount == 0) {
+                foreach ($items as $i) {
+                    $code = $i['account_code'] ?? '';
+                    $name = strtolower($i['account_name'] ?? '');
+                    if ($code === '211300015' || str_contains($name, 'withholding') || str_contains($name, 'ewt')) {
+                        $wTaxAmount += abs((float)($i['gross_amount'] ?? 0));
+                    }
+                }
+            }
         } else {
             // No VAT or withholding tax for foreign currencies
             $vatAmount  = 0;
@@ -449,7 +504,7 @@ class AccountsPayableInvoiceController extends Controller
         }
 
         $netOfVat          = $total - $vatAmount;
-        $grandTotal        = $isPhp ? ($netOfVat - $wTaxAmount) : $total;
+        $grandTotal        = $isPhp ? ($total - $wTaxAmount) : $total;
         $downpaymentAmount = $request->downpayment_amount ?? 0;
 
         // ── RFP amount cap check ──────────────────────────────────────────────
@@ -480,12 +535,12 @@ class AccountsPayableInvoiceController extends Controller
                 'purchase_order_no' => $request->purchase_order_no,
                 'currency'          => $currency,
                 'forex_rate'        => $request->forex_rate,
-                'particulars'       => collect($items)->pluck('particulars')->filter()->implode('; '),
+                'particulars'       => collect($drItems)->pluck('particulars')->filter()->implode('; '),
                 'total'             => $total,
                 'downpayment_amount'=> $downpaymentAmount,
-                'total_before_vat'  => $netOfVat,
+                'total_before_vat'  => $total,
                 'vat_amount'        => $vatAmount,
-                'total_after_vat'   => $total,
+                'total_after_vat'   => $netOfVat,
                 'w_tax_amount'      => $wTaxAmount,
                 'grand_total'       => $grandTotal,
                 'prepared_by'       => $request->prepared_by,
@@ -493,9 +548,9 @@ class AccountsPayableInvoiceController extends Controller
                 'remarks'           => $request->remarks,
             ]);
 
-            // Replace all items
+            // Replace all items (only save positive DR entries)
             $invoice->items()->delete();
-            foreach ($items as $row) {
+            foreach ($drItems as $row) {
                 ApvItem::create([
                     'apv_id'       => $invoice->id,
                     'particulars'  => $row['particulars'] ?? null,
@@ -511,6 +566,23 @@ class AccountsPayableInvoiceController extends Controller
                 ]);
             }
 
+            if ($wasApproved) {
+                DB::table('accounts_payable_invoices')->where('id', $invoice->id)->update([
+                    'status'                            => 'pending',
+                    'approval_stage'                    => 'pending',
+                    'approved_by'                       => null,
+                    'approved_at'                       => null,
+                    'department_head_approved_by'       => null,
+                    'department_head_approved_at'       => null,
+                    'department_head_approved_latitude' => null,
+                    'department_head_approved_longitude'=> null,
+                    'department_head_approved_location' => null,
+                ]);
+                // Invalidate downstream CVs
+                \App\Models\CheckVoucher::where('accounts_payable_invoice_id', $invoice->id)
+                    ->update(['status' => 'invalidated']);
+            }
+
             DB::commit();
 
             Activity::create([
@@ -519,12 +591,16 @@ class AccountsPayableInvoiceController extends Controller
                 'item'      => $invoice->apv_no,
                 'target'    => $invoice->vendor_name,
                 'type'      => 'Accounts Payable Invoice',
-                'message'   => 'Updated Accounts Payable Invoice ' . $invoice->apv_no,
+                'message'   => 'Updated Accounts Payable Invoice ' . $invoice->apv_no . ($wasApproved ? ' (reset to pending for re-approval)' : ''),
             ]);
+
+            $msg = $wasApproved
+                ? 'Invoice updated and reset to pending for re-approval.'
+                : 'Invoice updated successfully!';
 
             return redirect()
                 ->route('accounts_payable_invoices.show', $invoice->id)
-                ->with('success', 'Invoice updated successfully!');
+                ->with('success', $msg);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -541,6 +617,11 @@ class AccountsPayableInvoiceController extends Controller
     {
         try {
             $invoice = AccountsPayableInvoice::findOrFail($id);
+
+            if (\App\Models\CheckVoucher::where('accounts_payable_invoice_id', $invoice->id)->exists()) {
+                return back()->with('error', 'Cannot delete: this APV has linked Check Vouchers.');
+            }
+
             $apvNo   = $invoice->apv_no;
             $invoice->delete();
 
@@ -664,8 +745,11 @@ class AccountsPayableInvoiceController extends Controller
      */
     public function print($id)
     {
-        $apv = AccountsPayableInvoice::with(['creator', 'approver', 'departmentHeadApprover', 'items'])->findOrFail($id);
-        return view('accounts_payable_invoices.print', ['apv' => $apv]);
+        $apv = AccountsPayableInvoice::with(['creator', 'approver', 'departmentHeadApprover', 'items', 'requestForPayment.purchaseOrder.items'])->findOrFail($id);
+        $liveRate = \App\Models\Currency::phpRate($apv->currency ?? 'PHP');
+        $po    = $apv->requestForPayment->purchaseOrder ?? null;
+        $grpos = $po ? \App\Models\LiveChicken::where('po_no', $po->po_no)->orderBy('date')->get() : collect();
+        return view('accounts_payable_invoices.print', ['apv' => $apv, 'liveRate' => $liveRate, 'grpos' => $grpos]);
     }
 
     private function getGlAccounts(): array
@@ -678,5 +762,96 @@ class AccountsPayableInvoiceController extends Controller
                 'display' => $a->account_code . ' — ' . $a->account_name,
                 'search'  => strtolower($a->account_code . ' ' . $a->account_name),
             ])->toArray();
+    }
+
+    public function ewtRegister(Request $request)
+    {
+        if (!Auth::user()->canAccessAPV()) abort(403);
+
+        $dateFrom = $request->date_from ?? now()->startOfYear()->format('Y-m-d');
+        $dateTo   = $request->date_to   ?? now()->format('Y-m-d');
+        $status   = $request->status;
+
+        $ewtRates = ['C158'=>0.01,'158'=>0.01,'C160'=>0.02,'160'=>0.02,'C100'=>0.05,'I010'=>0.05,'I011'=>0.10];
+
+        $items = \App\Models\ApvItem::with('apv')
+            ->whereNotNull('tax_code')->where('tax_code', '!=', '')
+            ->whereHas('apv', function($q) use ($dateFrom, $dateTo, $status) {
+                $q->whereDate('apv_date', '>=', $dateFrom)->whereDate('apv_date', '<=', $dateTo);
+                if ($status) $q->where('status', $status);
+            })->get();
+
+        $vendors = [];
+        foreach ($items as $item) {
+            $name = $item->apv->vendor_name ?? 'Unknown';
+            if (!isset($vendors[$name])) $vendors[$name] = ['gross'=>0,'vat'=>0,'net'=>0,'ewt'=>0,'amount_due'=>0,'count'=>0];
+            $gross = abs((float)$item->gross_amount);
+            $vatAmt = $item->vat ? $gross * 12/112 : 0;
+            $net    = $gross - $vatAmt;
+            $ewt    = $net * ($ewtRates[$item->tax_code] ?? 0);
+            $vendors[$name]['gross']      += $gross;
+            $vendors[$name]['vat']        += $vatAmt;
+            $vendors[$name]['net']        += $net;
+            $vendors[$name]['ewt']        += $ewt;
+            $vendors[$name]['amount_due'] += ($net - $ewt);
+            $vendors[$name]['count']++;
+        }
+        ksort($vendors);
+
+        return view('ewt_register.index', compact('vendors','dateFrom','dateTo','status'));
+    }
+
+    public function ewtDetail(Request $request, $vendorName)
+    {
+        if (!Auth::user()->canAccessAPV()) abort(403);
+
+        $vendorName = urldecode($vendorName);
+
+        $dateFrom = $request->date_from ?? now()->startOfYear()->format('Y-m-d');
+        $dateTo   = $request->date_to   ?? now()->format('Y-m-d');
+        $status   = $request->status;
+
+        $ewtRates = ['C158'=>0.01,'158'=>0.01,'C160'=>0.02,'160'=>0.02,'C100'=>0.05,'I010'=>0.05,'I011'=>0.10];
+
+        $items = \App\Models\ApvItem::with('apv')
+            ->whereNotNull('tax_code')->where('tax_code', '!=', '')
+            ->whereHas('apv', function($q) use ($vendorName, $dateFrom, $dateTo, $status) {
+                $q->where('vendor_name', $vendorName)
+                  ->whereDate('apv_date', '>=', $dateFrom)
+                  ->whereDate('apv_date', '<=', $dateTo);
+                if ($status) $q->where('status', $status);
+            })->get();
+
+        $rows = $items->map(function($item) use ($ewtRates) {
+            $gross  = abs((float)$item->gross_amount);
+            $vatAmt = $item->vat ? $gross * 12/112 : 0;
+            $net    = $gross - $vatAmt;
+            $rate   = $ewtRates[$item->tax_code] ?? 0;
+            $ewt    = $net * $rate;
+            return [
+                'apv_no'      => $item->apv->apv_no,
+                'apv_date'    => $item->apv->apv_date,
+                'status'      => $item->apv->status,
+                'apv_id'      => $item->apv->id,
+                'particulars' => $item->particulars,
+                'tax_code'    => $item->tax_code,
+                'rate_pct'    => $rate * 100,
+                'gross'       => $gross,
+                'vat'         => $vatAmt,
+                'net'         => $net,
+                'ewt'         => $ewt,
+                'amount_due'  => $net - $ewt,
+            ];
+        });
+
+        $totals = [
+            'gross'      => $rows->sum('gross'),
+            'vat'        => $rows->sum('vat'),
+            'net'        => $rows->sum('net'),
+            'ewt'        => $rows->sum('ewt'),
+            'amount_due' => $rows->sum('amount_due'),
+        ];
+
+        return view('ewt_register.detail', compact('vendorName','rows','totals','dateFrom','dateTo','status'));
     }
 }

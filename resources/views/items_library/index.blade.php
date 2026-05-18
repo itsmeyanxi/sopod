@@ -77,8 +77,10 @@
                     <td class="px-4 py-3 text-gray-400">{{ $item->item_category ?: '—' }}</td>
                     <td class="px-4 py-3 text-gray-400">{{ $item->unit ?: '—' }}</td>
                     <td class="px-4 py-3 text-center">
-                        @if($item->source === 'items' && auth()->user()->canManageItems())
-                            <div class="flex justify-center gap-2">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="viewItem({{ json_encode(['code'=>$item->item_code,'desc'=>$item->item_description,'brand'=>$item->brand,'category'=>$item->item_category,'unit'=>$item->unit,'type'=>$item->type]) }})"
+                                class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs">View</button>
+                            @if($item->source === 'items' && auth()->user()->canManageItems())
                                 <a href="{{ route('items_library.edit', $item->id) }}"
                                    class="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs">Edit</a>
                                 <form action="{{ route('items_library.destroy', $item->id) }}" method="POST" class="inline"
@@ -86,10 +88,10 @@
                                     @csrf @method('DELETE')
                                     <button class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs">Delete</button>
                                 </form>
-                            </div>
-                        @elseif($item->source === 'non_trade_items')
-                            <span class="text-xs text-gray-500 italic">Legacy</span>
-                        @endif
+                            @elseif($item->source === 'non_trade_items')
+                                <span class="text-xs text-gray-500 italic">Legacy</span>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @empty
@@ -114,4 +116,34 @@
     </div>
     @endif
 </div>
+{{-- View Modal --}}
+<div id="viewModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+    <div class="bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-white">Item Details</h2>
+            <button onclick="document.getElementById('viewModal').classList.add('hidden')" class="text-gray-400 hover:text-white text-xl">&times;</button>
+        </div>
+        <table class="w-full text-sm">
+            <tbody id="viewModalBody" class="divide-y divide-gray-700">
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+function viewItem(item) {
+    const typeLabel = item.type === 'non_trade' ? 'Non-Trade' : 'Trade';
+    const rows = [
+        ['Item Code', item.code],
+        ['Description', item.desc],
+        ['Brand', item.brand || '—'],
+        ['Category', item.category || '—'],
+        ['Unit', item.unit || '—'],
+        ['Type', typeLabel],
+    ];
+    document.getElementById('viewModalBody').innerHTML = rows.map(([k,v]) =>
+        `<tr><td class="py-2 pr-4 text-gray-400 font-medium w-32">${k}</td><td class="py-2 text-white">${v}</td></tr>`
+    ).join('');
+    document.getElementById('viewModal').classList.remove('hidden');
+}
+</script>
 @endsection

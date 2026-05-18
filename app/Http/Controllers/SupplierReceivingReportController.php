@@ -84,6 +84,7 @@ class SupplierReceivingReportController extends Controller
                 'supplier_name' => $supplier?->supplier_name,
                 'cv_no' => $request->cv_no,
                 'po_no' => $request->po_no,
+                'reference_number' => $request->reference_number ?: null,
                 'storage' => $request->storage,
                 'report_type' => $request->report_type,
                 'note' => $request->note,
@@ -137,11 +138,6 @@ class SupplierReceivingReportController extends Controller
     {
         $report = SupplierReceivingReport::with('items')->findOrFail($id);
 
-        if ($report->isApproved()) {
-            return redirect()
-                ->route('supplier_receiving_reports.show', $id)
-                ->with('error', 'Cannot edit an approved report.');
-        }
 
         $suppliers = Supplier::where('status', 'active')->orderBy('supplier_name')->get();
 
@@ -162,10 +158,7 @@ class SupplierReceivingReportController extends Controller
         try {
             $report = SupplierReceivingReport::findOrFail($id);
 
-            if ($report->isApproved()) {
-                return back()->with('error', 'Cannot edit an approved report.');
-            }
-
+            $wasApproved = $report->isApproved();
             $supplier = $request->supplier_id ? Supplier::find($request->supplier_id) : null;
 
             $report->update([
@@ -174,6 +167,7 @@ class SupplierReceivingReportController extends Controller
                 'supplier_name' => $supplier?->supplier_name,
                 'cv_no' => $request->cv_no,
                 'po_no' => $request->po_no,
+                'reference_number' => $request->reference_number ?: null,
                 'storage' => $request->storage,
                 'report_type' => $request->report_type,
                 'note' => $request->note,
@@ -201,11 +195,33 @@ class SupplierReceivingReportController extends Controller
                 ]);
             }
 
+            if ($wasApproved) {
+                $rfpIds = DB::table('request_for_payments')
+                    ->where('srr_id', $report->id)
+                    ->pluck('id');
+                DB::table('request_for_payments')->where('srr_id', $report->id)
+                    ->update(['status' => 'invalidated']);
+                if ($rfpIds->isNotEmpty()) {
+                    $apvIds = DB::table('accounts_payable_invoices')
+                        ->whereIn('request_for_payment_id', $rfpIds)->pluck('id');
+                    if ($apvIds->isNotEmpty()) {
+                        DB::table('accounts_payable_invoices')->whereIn('id', $apvIds)
+                            ->update(['status' => 'invalidated']);
+                        DB::table('check_vouchers')->whereIn('accounts_payable_invoice_id', $apvIds)
+                            ->update(['status' => 'invalidated']);
+                    }
+                }
+            }
+
             DB::commit();
+
+            $msg = $wasApproved
+                ? 'Report updated and reset to pending; linked RFPs invalidated.'
+                : 'Supplier Receiving Report updated successfully!';
 
             return redirect()
                 ->route('supplier_receiving_reports.show', $report->id)
-                ->with('success', 'Supplier Receiving Report updated successfully!');
+                ->with('success', $msg);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -220,8 +236,8 @@ class SupplierReceivingReportController extends Controller
         try {
             $report = SupplierReceivingReport::findOrFail($id);
 
-            if ($report->isApproved()) {
-                return back()->with('error', 'Cannot delete an approved report.');
+            if (\App\Models\RequestForPayment::where('srr_id', $report->id)->exists()) {
+                return back()->with('error', 'Cannot delete: this SRR has linked RFPs.');
             }
 
             $report->delete();
@@ -315,20 +331,9 @@ class SupplierReceivingReportController extends Controller
             });
         }
 
-        // Exclude POs blocked by Live Chicken (actual_qty < PO total qty)
-        $blockedPoNos = LiveChicken::whereNotNull('po_no')
-            ->whereRaw('actual_qty < (
-                SELECT COALESCE(SUM(poi.qty), 0)
-                FROM purchase_order_items poi
-                INNER JOIN purchase_orders po ON po.id = poi.purchase_order_id
-                WHERE po.po_no = live_chickens.po_no
-            )')
-            ->pluck('po_no')
-            ->toArray();
-
-        if (!empty($blockedPoNos)) {
-            $query->whereNotIn('po_no', $blockedPoNos);
-        }
+        // Only show POs that have a live chicken record
+        $lcPoNos = LiveChicken::whereNotNull('po_no')->pluck('po_no')->toArray();
+        $query->whereIn('po_no', $lcPoNos);
 
         $pos = $query->select('id', 'po_no', 'supplier', 'brand', 'order_date')
             ->limit(10)
@@ -439,6 +444,7 @@ class SupplierReceivingReportController extends Controller
             'supplier_name'     => $po->supplierModel->supplier_name ?? $po->supplier,
             'note'              => $po->remarks,
             'items'             => $items->values(),
+            'reference_number'  => $po->reference_number,
             'blocked'           => $blocked,
             'blocked_message'   => $blocked
                 ? "PO {$poNo} is blocked: Live Chicken actual qty ({$liveChicken->actual_qty}) is less than PO qty ({$poTotalQty}). Update the Live Chicken record or adjust the PO qty first."

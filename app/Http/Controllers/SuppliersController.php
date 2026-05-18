@@ -18,7 +18,7 @@ class SuppliersController extends Controller
      */
     public function index(Request $request)
     {
-        $tab = $request->get('tab', 'suppliers');
+        $tab = $request->get('tab', 'vendors');
         $search = $request->get('search', '');
         $category = $request->get('category', '');
 
@@ -289,6 +289,49 @@ class SuppliersController extends Controller
         }
     }
 
+    private function nextVendorCode(string $category): string
+    {
+        $prefix = match(strtoupper($category)) {
+            'EMPLOYEES' => 'VE',
+            'NON TRADE' => 'VN',
+            default     => 'VT',
+        };
+        $last = Vendor::where('vendor_code', 'LIKE', $prefix . '%')
+            ->orderByRaw('CAST(SUBSTRING(vendor_code, 3) AS UNSIGNED) DESC')
+            ->value('vendor_code');
+        $num = $last ? ((int) substr($last, 2)) + 1 : 1;
+        return $prefix . str_pad($num, 7, '0', STR_PAD_LEFT);
+    }
+
+    public function createVendor(Request $request)
+    {
+        $category = $request->input('category', 'TRADE');
+        $nextCode = $this->nextVendorCode($category);
+        return view('suppliers.vendor_create', compact('nextCode', 'category'));
+    }
+
+    public function storeVendor(Request $request)
+    {
+        $request->validate([
+            'vendor_name' => 'required|string',
+            'category'    => 'required|in:TRADE,NON TRADE,EMPLOYEES',
+        ]);
+
+        $code = $this->nextVendorCode($request->category);
+
+        Vendor::create(array_merge($request->only([
+            'vendor_name','name_2307','category','group','gl_account','status',
+            'company','ee_id','last_name','first_name','middle_name',
+            'position','department','location','office_address','date_hired',
+            'billing_street','billing_block','billing_city','billing_zip','billing_country',
+            'shipping_street','shipping_block','shipping_city','shipping_zip','shipping_country',
+            'payment_terms','selling_price_list','vat','withholding','registration','tin','account',
+        ]), ['vendor_code' => $code, 'status' => $request->status ?? 'active']));
+
+        return redirect()->route('suppliers.index', ['tab' => 'vendors'])
+            ->with('success', "Vendor created with code {$code}!");
+    }
+
     public function editVendor($id)
     {
         $vendor = Vendor::findOrFail($id);
@@ -309,9 +352,12 @@ class SuppliersController extends Controller
 
         $vendor = Vendor::findOrFail($id);
         $vendor->update($request->only([
-            'vendor_code','vendor_name','category','group','gl_account','status',
+            'vendor_code','vendor_name','name_2307','category','group','gl_account','status',
             'company','ee_id','last_name','first_name','middle_name',
             'position','department','location','office_address','date_hired',
+            'billing_street','billing_block','billing_city','billing_zip','billing_country',
+            'shipping_street','shipping_block','shipping_city','shipping_zip','shipping_country',
+            'payment_terms','selling_price_list','vat','withholding','registration','tin','account',
         ]));
 
         return redirect()->route('suppliers.index', ['tab' => 'vendors'])

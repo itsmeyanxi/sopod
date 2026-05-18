@@ -11,11 +11,11 @@ class MappingController extends Controller
     {
         $query = PurchaseOrder::with([
             'purchaseRequest',
-            'rfps',
-            'rfps.apvs',
+            'rfps' => fn($q) => $q->where('status', 'approved'),
+            'rfps.apvs' => fn($q) => $q->where('status', 'approved'),
             'srrs',
             'supplierModel',
-        ])->orderByDesc('created_at');
+        ])->where('status', 'approved')->orderByDesc('created_at');
 
         if ($request->filled('search')) {
             $s = $request->search;

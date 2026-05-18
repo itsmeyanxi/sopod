@@ -102,6 +102,7 @@
                                     @if($po->status === 'pending') bg-yellow-600 text-white
                                     @elseif($po->status === 'approved') bg-green-600 text-white
                                     @elseif($po->status === 'rejected') bg-red-600 text-white
+                                    @elseif($po->status === 'invalidated') bg-gray-500 text-white
                                     @else bg-blue-600 text-white
                                     @endif">
                                     {{ ucfirst($po->status) }}

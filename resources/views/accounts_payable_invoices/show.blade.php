@@ -55,8 +55,8 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                        <p><strong>APV Date:</strong> {{ $invoice->apv_date->format('F d, Y') }}</p>
-                        <p><strong>Document Date:</strong> {{ $invoice->document_date->format('F d, Y') }}</p>
+                        <p><strong>APV Date:</strong> {{ $invoice->apv_date?->format('F d, Y') ?? '—' }}</p>
+                        <p><strong>Document Date:</strong> {{ $invoice->document_date?->format('F d, Y') ?? '—' }}</p>
                         @if($invoice->due_date)
                             <p><strong>Due Date:</strong> {{ $invoice->due_date->format('F d, Y') }}</p>
                         @endif
@@ -109,6 +109,58 @@
                 </div>
             </div>
 
+            <!-- PO / GRPO Reference Items -->
+            @if($grpos->isNotEmpty() || ($invoice->requestForPayment?->purchaseOrder?->items?->isNotEmpty()))
+            @php
+                $po       = $invoice->requestForPayment?->purchaseOrder ?? null;
+                $useGrpo  = $grpos->isNotEmpty();
+                $poItems  = $useGrpo
+                    ? $grpos->map(fn($g,$i) => (object)['no'=>$i+1,'item_code'=>$g->grpo_no??'','description'=>$g->items??'','brand'=>$g->brand??'','qty'=>$g->actual_qty,'uom'=>$g->uom??'KG','unit_price'=>$g->price??0,'total'=>($g->actual_qty??0)*($g->price??0)])
+                    : ($po?->items->map(fn($item,$i) => (object)['no'=>$item->item_no??$i+1,'item_code'=>$item->item_code??'','description'=>$item->description??'','brand'=>$item->brand??'','qty'=>$item->qty,'uom'=>$item->uom??'','unit_price'=>$item->unit_price,'total'=>$item->total]) ?? collect());
+                $poNo = $po?->po_no ?? '';
+                $currSym = ($invoice->currency ?? 'PHP') === 'USD' ? '$' : '₱';
+            @endphp
+            <div class="mb-6">
+                <h2 class="text-lg font-bold border-b border-gray-400 pb-2 mb-3">
+                    {{ $useGrpo ? 'GRPO ITEMS' : 'PURCHASE ORDER ITEMS' }}{{ $poNo ? ' — '.$poNo : '' }}
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs border-collapse">
+                        <thead class="bg-gray-700 text-white uppercase">
+                            <tr>
+                                <th class="border border-gray-600 px-2 py-2">#</th>
+                                <th class="border border-gray-600 px-2 py-2">Item Code</th>
+                                <th class="border border-gray-600 px-2 py-2">Description</th>
+                                <th class="border border-gray-600 px-2 py-2">Brand</th>
+                                <th class="border border-gray-600 px-2 py-2 text-center">Qty Received</th>
+                                <th class="border border-gray-600 px-2 py-2 text-center">UOM</th>
+                                <th class="border border-gray-600 px-2 py-2 text-right">Unit Price</th>
+                                <th class="border border-gray-600 px-2 py-2 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($poItems as $pi)
+                            <tr class="hover:bg-gray-700/40">
+                                <td class="border border-gray-600 px-2 py-1 text-center text-gray-400">{{ $pi->no }}</td>
+                                <td class="border border-gray-600 px-2 py-1 font-mono">{{ $pi->item_code }}</td>
+                                <td class="border border-gray-600 px-2 py-1">{{ $pi->description }}</td>
+                                <td class="border border-gray-600 px-2 py-1">{{ $pi->brand }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-center">{{ number_format($pi->qty, 2) }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-center">{{ $pi->uom }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right">{{ $currSym }}{{ number_format($pi->unit_price, 2) }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right font-semibold">{{ $currSym }}{{ number_format($pi->total, 2) }}</td>
+                            </tr>
+                            @endforeach
+                            <tr class="bg-gray-700 font-bold">
+                                <td colspan="7" class="border border-gray-600 px-2 py-1 text-right">Grand Total:</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right text-green-400">{{ $currSym }}{{ number_format($poItems->sum('total'), 2) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
+
             <!-- Particulars & Accounting Items -->
             <div class="mb-6">
                 <h2 class="text-lg font-bold border-b border-gray-400 pb-2 mb-3">PARTICULARS & ACCOUNTING</h2>
@@ -125,11 +177,13 @@
                                 <th class="border border-gray-600 px-2 py-2">TAX CODE</th>
                                 <th class="border border-gray-600 px-2 py-2">ACCOUNT CODE</th>
                                 <th class="border border-gray-600 px-2 py-2">ACCOUNT NAME</th>
-                                <th class="border border-gray-600 px-2 py-2 text-right">GROSS AMOUNT</th>
+                                <th class="border border-gray-600 px-2 py-2 text-right">DEBIT</th>
+                                <th class="border border-gray-600 px-2 py-2 text-right">CREDIT</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($invoice->items as $i => $item)
+                            @php $amt = (float)$item->gross_amount; @endphp
                             <tr class="hover:bg-gray-700/40">
                                 <td class="border border-gray-600 px-2 py-1 text-center text-gray-400">{{ $i+1 }}</td>
                                 <td class="border border-gray-600 px-2 py-1">{{ $item->particulars }}</td>
@@ -140,11 +194,40 @@
                                 <td class="border border-gray-600 px-2 py-1 text-center font-mono">{{ $item->tax_code ?? '—' }}</td>
                                 <td class="border border-gray-600 px-2 py-1 font-mono">{{ $item->account_code ?? '—' }}</td>
                                 <td class="border border-gray-600 px-2 py-1">{{ $item->account_name ?? '—' }}</td>
-                                <td class="border border-gray-600 px-2 py-1 text-right">{{ number_format($item->gross_amount, 2) }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right">{{ $amt > 0 ? number_format($amt, 2) : '—' }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right text-gray-400">{{ $amt < 0 ? number_format(abs($amt), 2) : '—' }}</td>
                             </tr>
                             @empty
-                            <tr><td colspan="10" class="border border-gray-600 px-2 py-3 text-center text-gray-400">No items.</td></tr>
+                            <tr><td colspan="11" class="border border-gray-600 px-2 py-3 text-center text-gray-400">No items.</td></tr>
                             @endforelse
+                            @if($invoice->w_tax_amount > 0)
+                            <tr class="bg-gray-800/50">
+                                <td class="border border-gray-600 px-2 py-1 text-center text-gray-400">—</td>
+                                <td class="border border-gray-600 px-2 py-1 text-gray-400">EWT</td>
+                                <td class="border border-gray-600 px-2 py-1">—</td>
+                                <td class="border border-gray-600 px-2 py-1">—</td>
+                                <td class="border border-gray-600 px-2 py-1">—</td>
+                                <td class="border border-gray-600 px-2 py-1">—</td>
+                                <td class="border border-gray-600 px-2 py-1">—</td>
+                                <td class="border border-gray-600 px-2 py-1 font-mono text-yellow-300">211300015</td>
+                                <td class="border border-gray-600 px-2 py-1 text-yellow-300">Withholding Tax Payable - EWT</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right text-gray-400">—</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right text-yellow-300">{{ number_format($invoice->w_tax_amount, 2) }}</td>
+                            </tr>
+                            @endif
+                            <tr class="bg-gray-800/50">
+                                <td class="border border-gray-600 px-2 py-1 text-center text-gray-400">—</td>
+                                <td class="border border-gray-600 px-2 py-1 text-gray-400">AP</td>
+                                <td class="border border-gray-600 px-2 py-1">—</td>
+                                <td class="border border-gray-600 px-2 py-1">—</td>
+                                <td class="border border-gray-600 px-2 py-1">—</td>
+                                <td class="border border-gray-600 px-2 py-1">—</td>
+                                <td class="border border-gray-600 px-2 py-1">—</td>
+                                <td class="border border-gray-600 px-2 py-1 font-mono text-green-300">{{ $invoice->account_code ?? '211100004' }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-green-300">{{ $invoice->account_name ?? 'Accounts Payable' }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right text-gray-400">—</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right text-green-300">{{ number_format($invoice->grand_total, 2) }}</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -154,9 +237,9 @@
             <div class="mb-6 flex justify-end">
                 <table class="text-sm w-72">
                     <tbody>
-                        <tr><td class="py-1 pr-4 text-gray-300">Total Gross:</td><td class="py-1 text-right font-bold">{{ $invoice->currency }} {{ number_format($invoice->total_after_vat, 2) }}</td></tr>
+                        <tr><td class="py-1 pr-4 text-gray-300">Total Gross:</td><td class="py-1 text-right font-bold">{{ $invoice->currency }} {{ number_format($invoice->total_before_vat, 2) }}</td></tr>
                         <tr><td class="py-1 pr-4 text-gray-300">VAT (12%):</td><td class="py-1 text-right text-yellow-400">{{ $invoice->currency }} {{ number_format($invoice->vat_amount, 2) }}</td></tr>
-                        <tr><td class="py-1 pr-4 text-gray-300">Net of VAT:</td><td class="py-1 text-right text-blue-400">{{ $invoice->currency }} {{ number_format($invoice->total_before_vat, 2) }}</td></tr>
+                        <tr><td class="py-1 pr-4 text-gray-300">Net of VAT:</td><td class="py-1 text-right text-blue-400">{{ $invoice->currency }} {{ number_format($invoice->total_after_vat, 2) }}</td></tr>
                         <tr><td class="py-1 pr-4 text-gray-300">EWT:</td><td class="py-1 text-right text-red-400">({{ $invoice->currency }} {{ number_format($invoice->w_tax_amount, 2) }})</td></tr>
                         @if($invoice->payment_type === 'downpayment' && $invoice->downpayment_amount)
                         <tr><td class="py-1 pr-4 text-gray-300">Downpayment:</td><td class="py-1 text-right">{{ $invoice->currency }} {{ number_format($invoice->downpayment_amount, 2) }}</td></tr>

@@ -120,18 +120,7 @@
                 </select>
             </div>
 
-            <!-- Company Selection -->
-            <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-2">COMPANY: <span class="text-red-700">*</span></label>
-                <select name="company" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                    <option value="">-- Select Company --</option>
-                    @foreach($companies as $company)
-                        <option value="{{ $company }}" {{ old('company', $purchaseOrder->company) == $company ? 'selected' : '' }}>
-                            {{ $company }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <input type="hidden" name="company" value="Meatplus Trading Corp">
 
             <!-- Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -151,6 +140,7 @@
                         <input type="hidden" name="supplier_id" id="supplier_id" value="{{ old('supplier_id', $purchaseOrder->supplier_id) }}">
                         <input type="hidden" name="supplier" id="supplier_text" value="{{ old('supplier', $purchaseOrder->supplier ?? ($purchaseOrder->items->first()->supplier_name ?? '')) }}">
                         <input type="hidden" name="supplier_address" id="supplier_address_hidden" value="{{ old('supplier_address', $purchaseOrder->supplier_address) }}">
+                        <input type="hidden" name="supplier_tin" id="supplier_tin_hidden" value="{{ old('supplier_tin', $purchaseOrder->supplier_tin) }}">
                         <p id="topSupplierInfo" class="text-xs text-gray-400 mt-1 {{ $purchaseOrder->supplier_id ? '' : 'hidden' }}">
                             <span class="text-green-400"><i class="fas fa-check-circle"></i></span>
                             <span id="topSupplierCode">{{ optional(\App\Models\Supplier::find($purchaseOrder->supplier_id))->supplier_code }}</span>
@@ -192,13 +182,17 @@
                         <label class="block font-semibold text-gray-300 mb-1">HOUSE:</label>
                         <input type="text" name="house" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('house', $purchaseOrder->house) }}">
                     </div>
-                    <div>
+                    <div id="brandFieldWrapper" {{ ($purchaseOrder->po_type ?? 'items') === 'service' ? 'style=display:none' : '' }}>
                         <label class="block font-semibold text-gray-300 mb-1">BRAND:</label>
                         <input type="text" name="brand" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('brand', $purchaseOrder->brand) }}" placeholder="e.g. Brand name">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">PR#:</label>
                         <input type="text" name="pr_no" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('pr_no', $purchaseOrder->pr_no) }}">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-300 mb-1">REFERENCE NUMBER:</label>
+                        <input type="text" name="reference_number" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reference_number', $purchaseOrder->reference_number) }}" placeholder="e.g. REF-001">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">LC PRICE:</label>
@@ -229,10 +223,6 @@
                 </div>
             </div>
 
-            <!-- Hidden fields for backward compatibility -->
-            <input type="hidden" name="supplier_id" value="{{ $purchaseOrder->supplier_id }}">
-            <input type="hidden" name="supplier" value="{{ $purchaseOrder->supplier }}">
-            <input type="hidden" name="supplier_address" value="{{ $purchaseOrder->supplier_address }}">
             <input type="hidden" name="po_type" id="poTypeInput" value="{{ old('po_type', $purchaseOrder->po_type ?? 'items') }}">
 
             <!-- PO Type Toggle -->
@@ -254,12 +244,18 @@
                 <textarea name="service_description" id="serviceDescription" rows="4"
                     class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Describe the service to be rendered...">{{ old('service_description', $purchaseOrder->service_description) }}</textarea>
-                <div class="grid grid-cols-3 gap-4 mt-3">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
                     <div>
                         <label class="block text-sm font-semibold text-gray-300 mb-1">QUANTITY</label>
-                        <input type="number" step="0.0001" name="service_qty" id="service_qty"
+                        <input type="number" step="any" name="service_qty" id="service_qty"
                             class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                             placeholder="0" value="{{ old('service_qty', $purchaseOrder->service_qty) }}" oninput="calcServiceTotal()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-1">UOM</label>
+                        <input type="text" name="service_uom" id="service_uom"
+                            class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="e.g. hrs, units" value="{{ old('service_uom', $purchaseOrder->service_uom) }}">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-300 mb-1">UNIT AMOUNT</label>
@@ -270,14 +266,23 @@
                                 placeholder="0.00" value="{{ old('service_amount', $purchaseOrder->service_amount) }}" oninput="calcServiceTotal()">
                         </div>
                     </div>
-                    <div id="service_total_wrapper" class="hidden">
-                        <label class="block text-sm font-semibold text-gray-300 mb-1" id="service_total_label">TOTAL (PHP)</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
-                            <input type="number" step="0.01" id="service_total_display"
-                                class="w-full bg-gray-700 border border-gray-600 rounded pl-7 pr-3 py-2 text-green-400 font-bold focus:outline-none"
-                                placeholder="0.00" readonly>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-1">VAT (12%)</label>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" name="service_vat" id="service_vat" value="1"
+                                class="w-4 h-4 accent-purple-500" onchange="calcServiceTotal()"
+                                {{ old('service_vat', $purchaseOrder->service_vat ?? 0) ? 'checked' : '' }}>
+                            <span class="text-sm text-gray-300">Include 12% VAT</span>
                         </div>
+                    </div>
+                </div>
+                <div class="mt-3" id="service_total_wrapper">
+                    <label class="block text-sm font-semibold text-gray-300 mb-1" id="service_total_label">TOTAL AMOUNT</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
+                        <input type="number" step="0.01" id="service_total_display"
+                            class="w-full bg-gray-700 border border-gray-600 rounded pl-7 pr-3 py-2 text-green-400 font-bold focus:outline-none"
+                            placeholder="0.00" readonly>
                     </div>
                 </div>
             </div>
@@ -297,13 +302,13 @@
                                 <th class="border border-gray-700 px-2 py-2" style="width:70px">ACTION</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:40px">NO.</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:130px">ITEM CODE</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:70px">QTY</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:120px">QTY</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:80px">UOM</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:280px">DESCRIPTION</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:130px">BRAND</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:110px">UNIT PRICE</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:80px">TAX</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:100px">TOTAL</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:110px">VAT (12%)</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:110px">TOTAL</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:180px">NOTE</th>
                             </tr>
                         </thead>
@@ -320,7 +325,7 @@
                                     <input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" value="{{ $item->item_code }}" autocomplete="off">
                                     <input type="hidden" name="items[{{ $index }}][purchase_request_item_id]" value="{{ $item->purchase_request_item_id }}">
                                 </td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->qty }}" required></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="any" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->qty }}" required></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->uom }}" required></td>
                                 <td class="border border-gray-700 px-2 py-2">
                                     <div class="relative">
@@ -334,7 +339,13 @@
                                 <input type="hidden" name="items[{{ $index }}][supplier_id]" class="supplier-id-input" value="{{ $item->supplier_id ?? $purchaseOrder->supplier_id }}">
                                 <input type="hidden" name="items[{{ $index }}][supplier_name]" class="supplier-name-input" value="{{ $item->supplier_name ?? $purchaseOrder->supplier }}">
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->unit_price }}"></td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->tax }}"></td>
+                                <td class="border border-gray-700 px-2 py-2 text-center">
+                                    <label class="flex items-center justify-center gap-1 cursor-pointer mb-1">
+                                        <input type="checkbox" name="items[{{ $index }}][vat]" class="item-vat" value="1" {{ $item->vat ? 'checked' : '' }} onchange="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
+                                        <span class="text-xs text-gray-300">VAT</span>
+                                    </label>
+                                    <input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-1 py-1 bg-gray-800 border border-gray-700 rounded text-green-400 item-tax text-xs text-center" readonly value="{{ $item->tax }}" placeholder="0.00">
+                                </td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" value="{{ $item->total }}" readonly></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->note }}" placeholder="Note..."></td>
                             </tr>
@@ -449,7 +460,7 @@ function addRow() {
             <input type="text" name="items[${rowCount}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" autocomplete="off">
             <input type="hidden" name="items[${rowCount}][purchase_request_item_id]" value="">
         </td>
-        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" required></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="any" name="items[${rowCount}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" required></td>
         <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" required></td>
         <td class="border border-gray-700 px-2 py-2">
             <div class="relative">
@@ -463,7 +474,13 @@ function addRow() {
         <input type="hidden" name="items[${rowCount}][supplier_id]" class="supplier-id-input" value="">
         <input type="hidden" name="items[${rowCount}][supplier_name]" class="supplier-name-input" value="">
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();"></td>
-        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-tax" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="0"></td>
+        <td class="border border-gray-700 px-2 py-2 text-center">
+            <label class="flex items-center justify-center gap-1 cursor-pointer mb-1">
+                <input type="checkbox" name="items[${rowCount}][vat]" class="item-vat" value="1" onchange="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
+                <span class="text-xs text-gray-300">VAT</span>
+            </label>
+            <input type="number" step="0.01" name="items[${rowCount}][tax]" class="w-full px-1 py-1 bg-gray-800 border border-gray-700 rounded text-green-400 item-tax text-xs text-center" readonly value="0" placeholder="0.00">
+        </td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly></td>
         <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="Note..."></td>
     `;
@@ -495,7 +512,7 @@ function reorderRows() {
 }
 
 function attachCalculationListeners() {
-    document.querySelectorAll('.item-qty, .item-price, .item-tax').forEach(input => {
+    document.querySelectorAll('.item-qty, .item-price').forEach(input => {
         input.removeEventListener('input', calculateTotal);
         input.addEventListener('input', calculateTotal);
     });
@@ -504,9 +521,11 @@ function attachCalculationListeners() {
 function calculateRowTotal(row) {
     const qty   = parseFloat(row.querySelector('.item-qty')?.value)   || 0;
     const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
-    const tax   = parseFloat(row.querySelector('.item-tax')?.value)   || 0;
+    const vat   = row.querySelector('.item-vat')?.checked || false;
+    const taxInput = row.querySelector('.item-tax');
+    if (taxInput) taxInput.value = vat ? (qty * price * 0.12).toFixed(2) : '0.00';
     const total = row.querySelector('.item-total');
-    if (total) total.value = (tax > 0 ? (qty * price) + tax : qty * price).toFixed(2);
+    if (total) total.value = (qty * price).toFixed(2);
 }
 
 function calculateTotal(e) {
@@ -542,19 +561,24 @@ function onCurrencyChange() {
 function calcServiceTotal() {
     const qty     = parseFloat(document.getElementById('service_qty')?.value) || 0;
     const amt     = parseFloat(document.getElementById('service_amount')?.value) || 0;
+    const vatChk  = document.getElementById('service_vat')?.checked || false;
     const code    = document.getElementById('currency_select').value;
     const rate    = parseFloat(document.getElementById('exchange_rate').value) || 1;
-    const wrapper = document.getElementById('service_total_wrapper');
     const label   = document.getElementById('service_total_label');
     const disp    = document.getElementById('service_total_display');
 
-    if (code === 'PHP') {
-        wrapper?.classList.add('hidden');
-    } else {
-        const phpTotal = qty * amt * rate;
-        if (disp) disp.value = phpTotal.toFixed(2);
-        if (label) label.textContent = `TOTAL (PHP equiv. @ ${rate.toFixed(4)})`;
-        wrapper?.classList.remove('hidden');
+    const subtotal   = qty * amt;
+    const vatAmt     = vatChk ? subtotal * 0.12 : 0;
+    const grandTotal = subtotal + vatAmt;
+
+    if (disp) {
+        if (code === 'PHP') {
+            disp.value = grandTotal.toFixed(2);
+            if (label) label.textContent = 'TOTAL AMOUNT' + (vatChk ? ' (incl. VAT)' : '');
+        } else {
+            disp.value = (grandTotal * rate).toFixed(2);
+            if (label) label.textContent = `TOTAL (PHP equiv. @ ${rate.toFixed(4)})` + (vatChk ? ' incl. VAT' : '');
+        }
     }
     updateCurrencySummary();
 }
@@ -568,9 +592,11 @@ function updateCurrencySummary() {
     const isService = document.getElementById('poTypeInput')?.value === 'service';
     let foreignTotal = 0;
     if (isService) {
-        const sQty = parseFloat(document.getElementById('service_qty')?.value) || 0;
-        const sAmt = parseFloat(document.getElementById('service_amount')?.value) || 0;
-        foreignTotal = sQty * sAmt;
+        const sQty    = parseFloat(document.getElementById('service_qty')?.value) || 0;
+        const sAmt    = parseFloat(document.getElementById('service_amount')?.value) || 0;
+        const sVat    = document.getElementById('service_vat')?.checked || false;
+        const subtotal = sQty * sAmt;
+        foreignTotal  = subtotal + (sVat ? subtotal * 0.12 : 0);
     } else {
         document.querySelectorAll('.item-total').forEach(inp => foreignTotal += parseFloat(inp.value) || 0);
     }
@@ -841,9 +867,12 @@ function initTopSupplierSearch() {
                          data-code="${s.supplier_code || ''}"
                          data-address="${(s.address || '').replace(/"/g, '&quot;')}"
                          data-terms="${(s.terms || '').replace(/"/g, '&quot;')}"
-                         data-contact="${(s.contact_person || '').replace(/"/g, '&quot;')}">
+                         data-contact="${(s.contact_person || '').replace(/"/g, '&quot;')}"
+                         data-tin="${(s.tin || '').replace(/"/g, '&quot;')}"
+                         data-name2307="${(s.name_2307 || '').replace(/"/g, '&quot;')}"
+                         data-shipping="${(s.shipping_address || '').replace(/"/g, '&quot;')}">
                         <div class="text-sm font-semibold text-white">${s.supplier_name}</div>
-                        <div class="text-xs text-gray-400">${s.supplier_code || ''}</div>
+                        <div class="text-xs text-gray-400">${s.supplier_code || ''}${s.tin ? ' · TIN: ' + s.tin : ''}</div>
                     </div>
                 `).join('');
                 dropdown.classList.remove('hidden');
@@ -862,6 +891,12 @@ function initTopSupplierSearch() {
                         if (pt) pt.value = this.dataset.terms || '';
                         const cn = document.getElementById('consignee');
                         if (cn && !cn.value.trim()) cn.value = this.dataset.contact || '';
+                        const tinH = document.getElementById('supplier_tin_hidden');
+                        if (tinH) tinH.value = this.dataset.tin || '';
+                        const caEl = document.getElementById('consignee_address');
+                        if (caEl && !caEl.value.trim()) caEl.value = this.dataset.address || '';
+                        const daEl = document.getElementById('delivery_address');
+                        if (daEl && !daEl.value.trim()) daEl.value = this.dataset.shipping || '';
                     });
                 });
             } catch (err) {
@@ -912,17 +947,20 @@ function setPOType(type) {
     const serviceDesc = document.getElementById('serviceDescription');
     const btnItems = document.getElementById('btnTypeItems');
     const btnService = document.getElementById('btnTypeService');
+    const brandWrapper = document.getElementById('brandFieldWrapper');
 
     if (type === 'service') {
         itemsSection.classList.add('hidden');
         serviceSection.classList.remove('hidden');
         serviceDesc.required = true;
+        if (brandWrapper) brandWrapper.classList.add('hidden');
         btnService.className = 'px-5 py-2 rounded font-semibold transition bg-purple-600 text-white';
         btnItems.className = 'px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600';
     } else {
         itemsSection.classList.remove('hidden');
         serviceSection.classList.add('hidden');
         serviceDesc.required = false;
+        if (brandWrapper) brandWrapper.classList.remove('hidden');
         btnItems.className = 'px-5 py-2 rounded font-semibold transition bg-purple-600 text-white';
         btnService.className = 'px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600';
     }

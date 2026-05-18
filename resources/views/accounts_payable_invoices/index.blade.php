@@ -47,6 +47,7 @@
                     <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
                     <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
                     <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Paid</option>
+                    <option value="invalidated" {{ request('status') === 'invalidated' ? 'selected' : '' }}>Invalidated</option>
                 </select>
                 <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 text-sm font-semibold">
                     <i class="fas fa-search mr-1"></i> Filter
@@ -98,7 +99,7 @@
                             <td class="px-4 py-2 border-b border-gray-700 text-gray-300">{{ $invoice->apv_date->format('Y-m-d') }}</td>
                             <td class="px-4 py-2 border-b border-gray-700 text-gray-300">
                                 @if($invoice->requestForPayment)
-                                    <span class="text-purple-700">{{ $invoice->requestForPayment->rfp_no }}</span>
+                                    <span class="text-purple-300">{{ $invoice->requestForPayment->rfp_no }}</span>
                                 @else
                                     <span class="text-gray-300">N/A</span>
                                 @endif
@@ -123,6 +124,8 @@
                                     <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">Rejected</span>
                                 @elseif($invoice->status === 'paid')
                                     <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Paid</span>
+                                @elseif($invoice->status === 'invalidated')
+                                    <span class="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs">Invalidated</span>
                                 @endif
                             </td>
                             <td class="px-4 py-2 border-b border-gray-700 text-gray-300">

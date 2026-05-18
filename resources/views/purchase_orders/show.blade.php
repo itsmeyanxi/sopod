@@ -21,6 +21,11 @@
                     @endif">
                     {{ ucfirst($purchaseOrder->status) }}
                 </span>
+                @if($purchaseOrder->is_closed)
+                    <span class="px-3 py-1 rounded font-semibold bg-gray-600 text-gray-200 text-sm">
+                        <i class="fas fa-lock mr-1"></i> Closed
+                    </span>
+                @endif
             </div>
         </div>
 
@@ -282,6 +287,12 @@
                     <label class="block font-semibold text-gray-300 mb-1">PAYMENT TERMS:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->payment_terms ?? 'N/A' }}</p>
                 </div>
+                @if($purchaseOrder->supplier_tin)
+                <div>
+                    <label class="block font-semibold text-gray-300 mb-1">SUPPLIER TIN:</label>
+                    <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->supplier_tin }}</p>
+                </div>
+                @endif
                 <div>
                     <label class="block font-semibold text-gray-300 mb-1">LOCATION:</label>
                     <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->location ?? 'N/A' }}</p>
@@ -302,6 +313,12 @@
                         @endif
                     </p>
                 </div>
+                @if($purchaseOrder->reference_number)
+                <div>
+                    <label class="block font-semibold text-gray-300 mb-1">REFERENCE NUMBER:</label>
+                    <p class="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-gray-200">{{ $purchaseOrder->reference_number }}</p>
+                </div>
+                @endif
                 @if($purchaseOrder->purchaseRequest && $purchaseOrder->purchaseRequest->reason_for_requisition)
                 <div>
                     <label class="block font-semibold text-gray-300 mb-1">REASON FOR REQUISITION:</label>
@@ -337,6 +354,7 @@
                                 <th class="border border-gray-700 px-4 py-3">QTY</th>
                                 <th class="border border-gray-700 px-4 py-3">UOM</th>
                                 <th class="border border-gray-700 px-4 py-3">DESCRIPTION</th>
+                                <th class="border border-gray-700 px-4 py-3">BRAND</th>
                                 <th class="border border-gray-700 px-4 py-3">SUPPLIER</th>
                                 <th class="border border-gray-700 px-4 py-3">DATE NEEDED</th>
                                 <th class="border border-gray-700 px-4 py-3">UNIT PRICE</th>
@@ -353,6 +371,7 @@
                                     <td class="border border-gray-700 px-4 py-3">{{ number_format($item->qty, 2) }}</td>
                                     <td class="border border-gray-700 px-4 py-3">{{ $item->uom }}</td>
                                     <td class="border border-gray-700 px-4 py-3">{{ $item->description }}</td>
+                                    <td class="border border-gray-700 px-4 py-3">{{ $item->brand ?? '—' }}</td>
                                     <td class="border border-gray-700 px-4 py-3">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? 'N/A' }}</td>
                                     <td class="border border-gray-700 px-4 py-3 text-center">
                                         {{ $item->date_needed ? \Carbon\Carbon::parse($item->date_needed)->format('M d, Y') : 'N/A' }}
@@ -365,7 +384,7 @@
                             @endforeach
                             @if($purchaseOrder->items->count() > 0)
                                 <tr class="bg-gray-700 font-semibold">
-                                    <td colspan="8" class="border border-gray-700 px-4 py-3 text-right text-white">TOTAL:</td>
+                                    <td colspan="9" class="border border-gray-700 px-4 py-3 text-right text-white">TOTAL:</td>
                                     <td class="border border-gray-700 px-4 py-3 text-right text-green-400">₱{{ number_format($purchaseOrder->items->sum('total'), 2) }}</td>
                                     <td class="border border-gray-700"></td>
                                 </tr>
@@ -485,18 +504,30 @@
                 </a>
             @endif
             <div class="flex gap-4">
-                @if($purchaseOrder->status === 'approved' && $purchaseOrder->approved_at !== null)
-                    <a href="{{ route('purchase_orders.edit', $purchaseOrder->id) }}" class="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700 transition">
-                        <i class="fas fa-sticky-note mr-1"></i> Edit Notes
-                    </a>
-                @else
-                    <a href="{{ route('purchase_orders.edit', $purchaseOrder->id) }}" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
-                        <i class="fas fa-edit mr-1"></i> Edit
-                    </a>
-                @endif
+                <a href="{{ route('purchase_orders.edit', $purchaseOrder->id) }}" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+                    <i class="fas fa-edit mr-1"></i> Edit
+                </a>
                 <a href="{{ route('purchase_orders.print', $purchaseOrder->id) }}" target="_blank" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
                     <i class="fas fa-print mr-1"></i> Print
                 </a>
+                @if($purchaseOrder->status === 'approved')
+                    @if(!$purchaseOrder->is_closed)
+                        <form method="POST" action="{{ route('purchase_orders.close', $purchaseOrder->id) }}" onsubmit="return confirm('Close this PO? It will no longer appear in RFP searches.')">
+                            @csrf
+                            <button type="submit" class="bg-red-700 text-white px-6 py-2 rounded hover:bg-red-800 transition">
+                                <i class="fas fa-lock mr-1"></i> Close PO
+                            </button>
+                        </form>
+                    @else
+                        <span class="px-3 py-2 bg-gray-600 text-gray-300 rounded text-sm"><i class="fas fa-lock mr-1"></i> Closed</span>
+                        <form method="POST" action="{{ route('purchase_orders.reopen', $purchaseOrder->id) }}">
+                            @csrf
+                            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+                                <i class="fas fa-lock-open mr-1"></i> Reopen PO
+                            </button>
+                        </form>
+                    @endif
+                @endif
             </div>
         </div>
     </div>

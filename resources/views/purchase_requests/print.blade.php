@@ -154,10 +154,6 @@
                             <td class="info-value">{{ $purchaseRequest->date_needed ? $purchaseRequest->date_needed->format('m/d/Y') : '' }}</td>
                         </tr>
                         <tr><td colspan="2" style="height:4px"></td></tr>
-                        <tr>
-                            <td class="info-label">Supplier:</td>
-                            <td class="info-value">{{ $purchaseRequest->items->pluck('supplier_name')->filter()->unique()->implode(', ') }}</td>
-                        </tr>
                     </table>
                 </td>
             </tr>
@@ -173,7 +169,6 @@
                     <th style="width:70px">Item Code</th>
                     <th style="width:80px">Date Needed</th>
                     <th>Description</th>
-                    <th style="width:90px">Supplier</th>
                     <th style="width:80px">Quantity</th>
                     <th style="width:60px">UOM</th>
                     <th style="width:80px">Unit Price</th>
@@ -185,13 +180,7 @@
                     <tr>
                         <td class="text-left">{{ $item->item_code ?? '' }}</td>
                         <td>{{ $item->date_needed ? \Carbon\Carbon::parse($item->date_needed)->format('m/d/Y') : '' }}</td>
-                        <td class="text-left">
-                            {{ $item->description }}
-                            @if($item->note)
-                                <div style="font-size:8px; color:#666;">Note: {{ $item->note }}</div>
-                            @endif
-                        </td>
-                        <td class="text-left" style="font-size:9px;">{{ $item->supplier_name ?? '' }}</td>
+                        <td class="text-left">{{ $item->description }}</td>
                         <td>{{ number_format($item->qty, 2) }}</td>
                         <td>{{ $item->uom }}</td>
                         <td class="text-right">{{ $item->unit_price ? number_format($item->unit_price, 2) : '' }}</td>
@@ -201,13 +190,13 @@
                 @for($i = $purchaseRequest->items->count(); $i < 8; $i++)
                     <tr>
                         <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-                        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+                        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
                     </tr>
                 @endfor
             </tbody>
             <tfoot>
                 <tr class="totals-row">
-                    <td colspan="6" style="text-align:right; padding-right:10px;">TOTAL:</td>
+                    <td colspan="5" style="text-align:right; padding-right:10px;">TOTAL:</td>
                     <td class="text-right">{{ number_format($purchaseRequest->items->sum('amount'), 2) }}</td>
                 </tr>
             </tfoot>

@@ -127,7 +127,7 @@
             </div>
             <div class="header-right">
                 <div class="doc-title">Purchase Order</div>
-                <div class="doc-no">P.O. {{ $purchaseOrder->po_no }}</div>
+                <div class="doc-no">{{ $purchaseOrder->po_no }}</div>
             </div>
         </div>
 
@@ -145,6 +145,10 @@
                 <td style="width:20%">
                     <div class="lbl">PR No.</div>
                     <div>{{ $purchaseOrder->pr_no ?? '' }}</div>
+                </td>
+                <td style="width:20%">
+                    <div class="lbl">Reference No.</div>
+                    <div>{{ $purchaseOrder->reference_number ?? '' }}</div>
                 </td>
                 <td style="width:20%">
                     <div class="lbl">Currency</div>
@@ -197,12 +201,14 @@
         </p>
 
         <!-- Items Table -->
+        @php $isService = ($purchaseOrder->po_type ?? 'items') === 'service'; @endphp
         <table class="items-table">
             <thead>
                 <tr>
                     <th style="width:30px">No.</th>
-                    <th style="width:70px">Item Code</th>
+                    @if(!$isService)<th style="width:70px">Item Code</th>@endif
                     <th>Description</th>
+                    @if(!$isService)<th style="width:80px">Brand</th>@endif
                     <th style="width:90px">Supplier</th>
                     <th style="width:70px">Quantity</th>
                     <th style="width:50px">UoM</th>
@@ -211,59 +217,59 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($purchaseOrder->items as $item)
+                @if($isService)
+                    @php $svcTotal = (float)($purchaseOrder->service_qty ?? 1) * (float)($purchaseOrder->service_amount ?? 0); @endphp
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td class="text-left">{{ $item->item_code ?? '' }}</td>
-                        <td class="text-left">
-                            {{ $item->description }}
-                            @if($item->note)
-                                <div style="font-size:8px; color:#666; margin-top:2px;">Note: {{ $item->note }}</div>
-                            @endif
-                        </td>
-                        <td class="text-left" style="font-size:9px;">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? '' }}</td>
-                        <td>{{ number_format($item->qty, 2) }}</td>
-                        <td>{{ $item->uom }}</td>
-                        <td class="text-right">{{ $item->unit_price ? number_format($item->unit_price, 2) : '' }}</td>
-                        <td class="text-right">{{ $item->total ? number_format($item->total, 2) : '' }}</td>
+                        <td>1</td>
+                        <td class="text-left">{{ $purchaseOrder->service_description ?? '' }}</td>
+                        <td class="text-left" style="font-size:9px;">{{ $purchaseOrder->supplier ?? '' }}</td>
+                        <td>{{ $purchaseOrder->service_qty ? number_format($purchaseOrder->service_qty, 2) : '' }}</td>
+                        <td>{{ $purchaseOrder->service_uom ?? '' }}</td>
+                        <td class="text-right">{{ $purchaseOrder->service_amount ? number_format($purchaseOrder->service_amount, 2) : '' }}</td>
+                        <td class="text-right">{{ $svcTotal ? number_format($svcTotal, 2) : '' }}</td>
                     </tr>
-                @endforeach
-                @for($i = $purchaseOrder->items->count(); $i < 8; $i++)
-                    <tr>
-                        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-                        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-                    </tr>
-                @endfor
+                @else
+                    @foreach($purchaseOrder->items as $item)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td class="text-left">{{ $item->item_code ?? '' }}</td>
+                            <td class="text-left">{{ $item->description }}</td>
+                            <td class="text-left" style="font-size:9px;">{{ $item->brand ?? '' }}</td>
+                            <td class="text-left" style="font-size:9px;">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? '' }}</td>
+                            <td>{{ number_format($item->qty, 2) }}</td>
+                            <td>{{ $item->uom }}</td>
+                            <td class="text-right">{{ $item->unit_price ? number_format($item->unit_price, 2) : '' }}</td>
+                            <td class="text-right">{{ $item->total ? number_format($item->total, 2) : '' }}</td>
+                        </tr>
+                    @endforeach
+                    @for($i = $purchaseOrder->items->count(); $i < 8; $i++)
+                        <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+                    @endfor
+                @endif
             </tbody>
         </table>
 
         <!-- Totals -->
         @php
-            $grandTotal = $purchaseOrder->items->sum('total');  // total per line already includes tax
-            $totalTax   = $purchaseOrder->items->sum('tax');
-            $netTotal   = $grandTotal - $totalTax;              // amount before VAT
+            if (($purchaseOrder->po_type ?? 'items') === 'service') {
+                $netTotal   = (float)($purchaseOrder->service_qty ?? 1) * (float)($purchaseOrder->service_amount ?? 0);
+                $totalVat   = ($purchaseOrder->service_vat ?? 0) ? round($netTotal * 0.12, 2) : 0;
+                $grandTotal = $netTotal + $totalVat;
+            } else {
+                $netTotal   = $purchaseOrder->items->sum('total');
+                $totalVat   = $purchaseOrder->items->sum('tax');
+                $grandTotal = $netTotal + $totalVat;
+            }
         @endphp
         <div class="clearfix">
             <table class="totals-box">
                 <tr>
-                    <td class="tlabel">Total Purchase Before VAT</td>
+                    <td class="tlabel">Total Before VAT</td>
                     <td class="tvalue">{{ number_format($netTotal, 2) }}</td>
                 </tr>
                 <tr>
-                    <td class="tlabel">Discount 0.00 %</td>
-                    <td class="tvalue">0.00</td>
-                </tr>
-                <tr>
-                    <td class="tlabel">VAT Amount</td>
-                    <td class="tvalue">{{ number_format($totalTax, 2) }}</td>
-                </tr>
-                <tr>
-                    <td class="tlabel">Total Purchase After VAT</td>
-                    <td class="tvalue">{{ number_format($grandTotal, 2) }}</td>
-                </tr>
-                <tr>
-                    <td class="tlabel">Withholding Tax</td>
-                    <td class="tvalue">0.00</td>
+                    <td class="tlabel">VAT (12%)</td>
+                    <td class="tvalue">{{ number_format($totalVat, 2) }}</td>
                 </tr>
                 <tr class="grand">
                     <td class="tlabel">Grand Total</td>
@@ -406,6 +412,7 @@
             <span>COPY 1 : VENDOR / SUPPLIER</span>
             <span>COPY 2 : ACCOUNTING</span>
             <span>COPY 3 : PURCHASING</span>
+            <span>COPY 4 : WAREHOUSE</span>
         </div>
 
         <div style="text-align:right; font-size:9px; color:#555; margin-top:4px;">

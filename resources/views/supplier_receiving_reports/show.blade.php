@@ -190,11 +190,9 @@
                 <a href="{{ route('supplier_receiving_reports.print', $report->id) }}" target="_blank" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                     <i class="fas fa-print mr-1"></i> Print
                 </a>
-                @if(!$report->isApproved())
-                    <a href="{{ route('supplier_receiving_reports.edit', $report->id) }}" class="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700 transition">
-                        <i class="fas fa-edit mr-1"></i> Edit
-                    </a>
-                @endif
+                <a href="{{ route('supplier_receiving_reports.edit', $report->id) }}" class="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700 transition">
+                    <i class="fas fa-edit mr-1"></i> Edit
+                </a>
                 @if($report->isDraft())
                     <form action="{{ route('supplier_receiving_reports.destroy', $report->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this report?');">
                         @csrf

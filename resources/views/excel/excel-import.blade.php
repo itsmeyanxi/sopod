@@ -59,6 +59,10 @@
                     class="tab-button px-6 py-3 font-medium text-gray-300 hover:text-gray-300">
                     Employees
                 </button>
+                <button onclick="switchTab('vendors_replace')" id="vendors_replace-tab"
+                    class="tab-button px-6 py-3 font-medium text-red-300 hover:text-red-200">
+                    🔄 Replace All Vendors
+                </button>
                 @endif
 
                 @if($canImportMonthlySales)
@@ -331,6 +335,33 @@
                     </div>
                     <button type="submit" class="mt-4 w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
                         <i class="fas fa-upload mr-2"></i> Upload & Import Employees
+                    </button>
+                </form>
+            </div>
+
+            {{-- REPLACE ALL VENDORS TAB --}}
+            <div id="vendors_replace-content" class="tab-content hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2 text-white">Replace All Vendors</h3>
+                    <div class="bg-red-900/40 border border-red-600 rounded-lg p-4">
+                        <p class="text-sm text-red-400 font-bold mb-2">⚠️ WARNING: This will DELETE all existing vendors and replace with the uploaded file.</p>
+                        <p class="text-sm text-gray-300">Upload a CSV/Excel with all categories (TRADE, NON TRADE, EMPLOYEES) in one file. The CATEGORY column in the file will be used.</p>
+                    </div>
+                </div>
+                <form action="{{ route('excel.import.vendors') }}" method="POST" enctype="multipart/form-data" id="vendors_replace-form">
+                    @csrf
+                    <input type="hidden" name="replace_all" value="1">
+                    <div class="border-2 border-dashed border-red-700 rounded-lg p-8 text-center hover:border-red-400 transition-colors">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" id="vendors_replace-file" class="hidden" onchange="handleFileSelect(this, 'vendors_replace')" required>
+                        <label for="vendors_replace-file" class="cursor-pointer">
+                            <i class="fas fa-file-excel text-5xl text-gray-300 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-300 mb-2">Click to upload CSV/Excel file</p>
+                            <p id="vendors_replace-filename" class="text-sm text-red-400 mt-2"></p>
+                        </label>
+                    </div>
+                    <button type="submit" onclick="return confirm('This will DELETE ALL existing vendors and replace them. Are you sure?')"
+                        class="mt-4 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                        <i class="fas fa-sync-alt mr-2"></i> Delete All & Re-Import Vendors
                     </button>
                 </form>
             </div>

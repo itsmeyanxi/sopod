@@ -1261,6 +1261,23 @@ Route::prefix('items')->name('items.')->group(function () {
             return response()->json($query);
         })->name('search_quick');
 
+        // Vendor create/store
+        Route::get('/vendors/create', function () {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->createVendor(request());
+            }
+            return view('errors.noaccess');
+        })->name('vendors.create');
+
+        Route::post('/vendors', function () {
+            $user = auth()->user();
+            if ($user->canManageSuppliers()) {
+                return app(SuppliersController::class)->storeVendor(request());
+            }
+            return view('errors.noaccess');
+        })->name('vendors.store');
+
         // Vendor edit/update/destroy
         Route::get('/vendors/{id}/edit', function ($id) {
             $user = auth()->user();
@@ -1725,6 +1742,18 @@ Route::prefix('items')->name('items.')->group(function () {
             return response()->json([]);
         })->name('search_items');
 
+        // Search Cost Centers (AJAX)
+        Route::get('/search-cost-centers', function () {
+            $q = request('q', '');
+            return response()->json(
+                \App\Models\CostCenter::where('cost_center_name', 'LIKE', "%{$q}%")
+                    ->orWhere('cost_center_code', 'LIKE', "%{$q}%")
+                    ->orderBy('cost_center_name')
+                    ->limit(15)
+                    ->get(['id', 'cost_center_code', 'cost_center_name'])
+            );
+        })->name('search_cost_centers');
+
         // Go to PO (smart redirect: existing PO view or PO creation)
         Route::get('/{id}/go-to-po', function ($id) {
             $user = auth()->user();
@@ -2045,6 +2074,24 @@ Route::prefix('items')->name('items.')->group(function () {
             return view('errors.noaccess');
         })->name('update_notes');
 
+        // Close PO (manual close — removes from RFP search)
+        Route::post('/{id}/close', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->close($id);
+            }
+            return view('errors.noaccess');
+        })->name('close');
+
+        // Reopen PO
+        Route::post('/{id}/reopen', function ($id) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->reopen($id);
+            }
+            return view('errors.noaccess');
+        })->name('reopen');
+
         // Show (must be last)
         Route::get('/{id}', function ($id) {
             $user = auth()->user();
@@ -2160,6 +2207,49 @@ Route::prefix('items')->name('items.')->group(function () {
             }
             return response()->json([]);
         })->name('search_pos');
+
+        // Search SRRs (AJAX)
+        Route::get('/search-srrs', function () {
+            $user = auth()->user();
+            if (!$user->canManageRequestForPayments()) return response()->json([]);
+            $q = request('search', '');
+            $srrs = \App\Models\SupplierReceivingReport::where('status', 'approved')
+                ->where(function ($sq) use ($q) {
+                    $sq->where('srr_code', 'LIKE', "%{$q}%")
+                       ->orWhere('supplier_name', 'LIKE', "%{$q}%")
+                       ->orWhere('po_no', 'LIKE', "%{$q}%");
+                })
+                ->orderByDesc('created_at')->limit(15)
+                ->get(['id', 'srr_code', 'supplier_name', 'po_no', 'report_date'])
+                ->map(function ($srr) {
+                    $po = null;
+                    $poTotal = 0;
+                    if ($srr->po_no) {
+                        $po = \App\Models\PurchaseOrder::with('items')->where('po_no', $srr->po_no)->first();
+                        if ($po) $poTotal = (float)($po->items->sum('total') ?: $po->lc_price ?? 0);
+                    }
+                    // Count RFPs via srr_id OR via the linked PO (avoid double-counting)
+                    $paidTotal = \DB::table('request_for_payments')
+                        ->where(function ($q) use ($srr, $po) {
+                            $q->where('srr_id', $srr->id);
+                            if ($po) $q->orWhere(function ($q2) use ($po) {
+                                $q2->where('purchase_order_id', $po->id)->whereNull('srr_id');
+                            });
+                        })
+                        ->whereNotIn('status', ['invalidated', 'rejected'])
+                        ->sum('amount');
+                    return [
+                        'id'           => $srr->id,
+                        'srr_code'     => $srr->srr_code,
+                        'supplier_name'=> $srr->supplier_name,
+                        'po_no'        => $srr->po_no,
+                        'report_date'  => $srr->report_date,
+                        'paid_total'   => round((float)$paidTotal, 2),
+                        'fully_paid'   => $poTotal > 0 && (float)$paidTotal >= $poTotal,
+                    ];
+                });
+            return response()->json($srrs);
+        })->name('search_srrs');
 
         // PO Items (AJAX)
         Route::get('/po-items/{poId}', function ($poId) {
@@ -2282,17 +2372,28 @@ Route::prefix('items')->name('items.')->group(function () {
     // ===================== ACCOUNTS PAYABLE INVOICES =====================
     Route::prefix('accounts_payable_invoices')->name('accounts_payable_invoices.')->group(function () {
 
+        Route::get('/ewt-register', [AccountsPayableInvoiceController::class, 'ewtRegister'])->name('ewt_register');
+        Route::get('/ewt-register/{vendorName}', [AccountsPayableInvoiceController::class, 'ewtDetail'])->name('ewt_detail')->where('vendorName', '.*');
+
         // Search Vendors (AJAX — vendors table)
         Route::get('/search-vendors', function () {
             $q = trim(request('q', ''));
             if (strlen($q) < 1) return response()->json([]);
-            return response()->json(
-                \DB::table('vendors')
-                    ->where(fn($w) => $w->where('vendor_name', 'like', "%{$q}%")->orWhere('vendor_code', 'like', "%{$q}%"))
-                    ->where('status', 'active')
-                    ->orderBy('vendor_name')->limit(20)
-                    ->get(['id', 'vendor_code', 'vendor_name', 'gl_account'])
-            );
+            $rows = \DB::table('vendors')
+                ->where(fn($w) => $w->where('vendor_name', 'like', "%{$q}%")->orWhere('vendor_code', 'like', "%{$q}%"))
+                ->where('status', 'active')
+                ->orderBy('vendor_name')->limit(20)
+                ->get(['id', 'vendor_code', 'vendor_name', 'gl_account', 'name_2307',
+                       'billing_street', 'billing_block', 'billing_city', 'billing_zip', 'billing_country',
+                       'tin', 'payment_terms']);
+            return response()->json($rows->map(fn($v) => array_merge((array)$v, [
+                'address' => implode(', ', array_filter([
+                    $v->billing_street ?? null,
+                    $v->billing_city   ?? null,
+                    $v->billing_zip    ?? null,
+                    $v->billing_country ?? null,
+                ])),
+            ])));
         })->name('search_vendors');
 
         // Search Items (AJAX — items table)
@@ -2885,6 +2986,8 @@ Route::prefix('currencies')->name('currencies.')->group(function () {
         return app(CurrencyController::class)->index();
     })->name('index');
 
+    Route::get('/history', [CurrencyController::class, 'history'])->name('history');
+
     Route::get('/{id}', function ($id) {
         return redirect()->route('currencies.index');
     })->name('show');
@@ -3105,6 +3208,45 @@ Route::middleware('auth')->prefix('live-chickens')->name('live_chickens.')->grou
         return response()->json([]);
     })->name('searchPOs');
 
+    Route::get('/search', function () {
+        $q = trim(request('q', ''));
+        $results = \App\Models\LiveChicken::where(function ($query) use ($q) {
+                $query->where('grpo_no', 'LIKE', "%{$q}%")
+                      ->orWhere('po_no', 'LIKE', "%{$q}%")
+                      ->orWhere('supplier', 'LIKE', "%{$q}%")
+                      ->orWhere('brand', 'LIKE', "%{$q}%");
+            })
+            ->orderByDesc('date')
+            ->limit(20)
+            ->get(['id', 'grpo_no', 'po_no', 'supplier', 'brand', 'actual_qty', 'amount', 'delivery_date', 'reference_number', 'date'])
+            ->map(function ($lc) {
+                $poId = \App\Models\PurchaseOrder::where('po_no', $lc->po_no)->value('id');
+                // Count RFPs via live_chicken_id OR via the linked PO (to catch RFPs created before GRPO was linked)
+                $paidTotal = \DB::table('request_for_payments')
+                    ->where(function ($q) use ($lc, $poId) {
+                        $q->where('live_chicken_id', $lc->id);
+                        if ($poId) $q->orWhere(function ($q2) use ($poId, $lc) {
+                            $q2->where('purchase_order_id', $poId)
+                               ->whereNull('live_chicken_id'); // avoid double-counting
+                        });
+                    })
+                    ->whereNotIn('status', ['invalidated', 'rejected'])
+                    ->sum('amount');
+                // Use PO total as the reference amount if GRPO amount is 0
+                $lcAmount = (float)($lc->amount ?? 0);
+                if ($lcAmount <= 0 && $poId) {
+                    $po = \App\Models\PurchaseOrder::with('items')->find($poId);
+                    if ($po) $lcAmount = (float)($po->items->sum('total') ?: $po->lc_price ?? 0);
+                }
+                return array_merge($lc->toArray(), [
+                    'po_id'      => $poId,
+                    'paid_total' => round((float)$paidTotal, 2),
+                    'fully_paid' => $lcAmount > 0 && (float)$paidTotal >= $lcAmount,
+                ]);
+            });
+        return response()->json($results);
+    })->name('search');
+
     Route::get('/', function () {
         if (auth()->user()->canManageLiveChicken()) {
             return app(LiveChickenController::class)->index(request());
@@ -3139,6 +3281,27 @@ Route::middleware('auth')->prefix('live-chickens')->name('live_chickens.')->grou
         }
         return view('errors.noaccess');
     })->name('update');
+
+    Route::post('/{id}/receive', function ($id) {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->receive(request(), $id);
+        }
+        return view('errors.noaccess');
+    })->name('receive');
+
+    Route::post('/{id}/approve', function ($id) {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->grpoApprove(request(), $id);
+        }
+        return view('errors.noaccess');
+    })->name('approve');
+
+    Route::get('/{id}/print', function ($id) {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->print($id);
+        }
+        return view('errors.noaccess');
+    })->name('print');
 
     Route::get('/{id}', function ($id) {
         if (auth()->user()->canManageLiveChicken()) {

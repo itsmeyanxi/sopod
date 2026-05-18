@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
 use App\Models\PurchaseRequestItem;
+use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\NonTradeItem;
 use App\Models\TradeItem;
+use App\Models\Item;
 use App\Models\Supplier;
 use App\Models\Activity;
 use App\Models\InHouseBom;
@@ -211,60 +213,30 @@ class PurchaseRequestController extends Controller
     public function searchItems(Request $request)
     {
         $term = $request->input('q', '');
-        $supplierId = $request->input('supplier_id');
 
-        if (strlen($term) < 2 && !$supplierId) {
+        if (strlen($term) < 2) {
             return response()->json([]);
         }
 
-        // Search Non-Trade Items
-        $ntQuery = NonTradeItem::with('supplier')->where('name', 'LIKE', "%{$term}%");
-        if ($supplierId) {
-            $ntQuery->where('supplier_id', $supplierId);
-        }
-        $nonTradeItems = $ntQuery->orderBy('name')->limit(25)->get()->map(function ($item) {
-            $displayName = $item->name;
-            if ($item->supplier) {
-                $displayName .= ' (' . $item->supplier->supplier_name . ')';
-            }
-            return [
-                'display_name' => $displayName,
-                'name' => $item->name,
-                'item_code' => $item->item_code,
-                'supplier_id' => $item->supplier_id,
-                'supplier_name' => $item->supplier->supplier_name ?? null,
-                'type' => 'non_trade',
-            ];
-        });
+        $items = Item::where('approval_status', 'approved')
+            ->where('is_enabled', 1)
+            ->where(function ($q) use ($term) {
+                $q->where('item_description', 'LIKE', "%{$term}%")
+                  ->orWhere('item_code', 'LIKE', "%{$term}%")
+                  ->orWhere('brand', 'LIKE', "%{$term}%");
+            })
+            ->orderBy('item_description')
+            ->limit(50)
+            ->get(['item_code', 'item_description', 'brand', 'unit', 'type'])
+            ->map(fn($item) => [
+                'item_code'        => $item->item_code,
+                'item_description' => $item->item_description,
+                'brand'            => $item->brand,
+                'unit'             => $item->unit,
+                'type'             => $item->type === 'DOC' ? 'non_trade' : 'trade',
+            ]);
 
-        // Search Trade Items
-        $tQuery = TradeItem::with('supplier')->where('name', 'LIKE', "%{$term}%");
-        if ($supplierId) {
-            $tQuery->where('supplier_id', $supplierId);
-        }
-        $tradeItems = $tQuery->orderBy('name')->limit(25)->get()->map(function ($item) {
-            $displayName = $item->name;
-            if ($item->supplier) {
-                $displayName .= ' (' . $item->supplier->supplier_name . ')';
-            }
-            return [
-                'display_name' => $displayName,
-                'name' => $item->name,
-                'item_code' => $item->item_code,
-                'supplier_id' => $item->supplier_id,
-                'supplier_name' => $item->supplier->supplier_name ?? null,
-                'type' => 'trade',
-            ];
-        });
-
-        // Merge, deduplicate by name+supplier, and limit
-        $combined = $nonTradeItems->merge($tradeItems)
-            ->unique(fn($item) => $item['name'] . '|' . $item['supplier_id'])
-            ->sortBy('name')
-            ->take(50)
-            ->values();
-
-        return response()->json($combined);
+        return response()->json($items);
     }
 
     /**
@@ -279,7 +251,7 @@ class PurchaseRequestController extends Controller
             'date_of_request' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.qty' => 'required|numeric|min:0',
-            'items.*.uom' => 'required|string',
+            'items.*.uom' => 'nullable|string',
             'items.*.description' => 'required|string',
         ]);
 
@@ -330,7 +302,7 @@ class PurchaseRequestController extends Controller
                     'item_code' => $item['item_code'] ?? null,
                     'date_needed' => $item['date_needed'] ?? null,
                     'qty' => $item['qty'],
-                    'uom' => $item['uom'],
+                    'uom' => $item['uom'] ?? '',
                     'description' => $item['description'],
                     'unit_price' => $item['unit_price'] ?? null,
                     'amount' => $item['amount'] ?? null,
@@ -397,14 +369,8 @@ class PurchaseRequestController extends Controller
     {
         $purchaseRequest = PurchaseRequest::with('items')->findOrFail($id);
 
-        $notesOnly = false;
-        if (in_array($purchaseRequest->status, ['approved']) && $purchaseRequest->approved_at !== null) {
-            $notesOnly = true;
-        }
-
-        if ($purchaseRequest->status === 'rejected' && $purchaseRequest->approved_at !== null) {
-            return redirect()
-                ->route('purchase_requests.show', $purchaseRequest->id)
+        if ($purchaseRequest->status === 'rejected') {
+            return redirect()->route('purchase_requests.show', $purchaseRequest->id)
                 ->with('error', 'Cannot edit a rejected Purchase Request.');
         }
 
@@ -415,7 +381,7 @@ class PurchaseRequestController extends Controller
             'Pacific Agrisolutions Enterprises Inc.',
         ];
 
-        return view('purchase_requests.edit', compact('purchaseRequest', 'companies', 'notesOnly'));
+        return view('purchase_requests.edit', compact('purchaseRequest', 'companies'));
     }
 
     /**
@@ -468,13 +434,15 @@ class PurchaseRequestController extends Controller
             'date_of_request' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.qty' => 'required|numeric|min:0',
-            'items.*.uom' => 'required|string',
+            'items.*.uom' => 'nullable|string',
             'items.*.description' => 'required|string',
         ]);
 
         DB::beginTransaction();
         try {
             $purchaseRequest = PurchaseRequest::findOrFail($id);
+
+            $wasApproved = $purchaseRequest->status === 'approved';
 
             $purchaseRequest->update([
                 'company' => $request->company,
@@ -506,7 +474,7 @@ class PurchaseRequestController extends Controller
                     'item_code' => $item['item_code'] ?? null,
                     'date_needed' => $item['date_needed'] ?? null,
                     'qty' => $item['qty'],
-                    'uom' => $item['uom'],
+                    'uom' => $item['uom'] ?? '',
                     'description' => $item['description'],
                     'unit_price' => $item['unit_price'] ?? null,
                     'amount' => $item['amount'] ?? null,
@@ -522,6 +490,50 @@ class PurchaseRequestController extends Controller
                 }
             }
 
+            if ($wasApproved) {
+                DB::table('purchase_requests')->where('id', $purchaseRequest->id)->update([
+                    'status'                            => 'pending',
+                    'approval_stage'                    => 'pending',
+                    'approved_by'                       => null,
+                    'approved_at'                       => null,
+                    'department_head_approved_by'       => null,
+                    'department_head_approved_at'       => null,
+                    'department_head_approved_latitude' => null,
+                    'department_head_approved_longitude'=> null,
+                    'department_head_approved_location' => null,
+                    'management_approved_by'            => null,
+                    'management_approved_at'            => null,
+                    'management_approved_latitude'      => null,
+                    'management_approved_longitude'     => null,
+                    'management_approved_location'      => null,
+                ]);
+                // Invalidate downstream POs
+                PurchaseOrder::where('purchase_request_id', $purchaseRequest->id)
+                    ->update(['status' => 'invalidated']);
+
+                // Cascade: invalidate SRRs, RFPs, APVs, CVs linked to those POs
+                $pos = PurchaseOrder::where('purchase_request_id', $purchaseRequest->id)->get(['id', 'po_no']);
+                if ($pos->isNotEmpty()) {
+                    $poIds = $pos->pluck('id');
+                    $poNos = $pos->pluck('po_no');
+                    DB::table('supplier_receiving_reports')->whereIn('po_no', $poNos)
+                        ->update(['status' => 'invalidated']);
+                    DB::table('request_for_payments')->whereIn('purchase_order_id', $poIds)
+                        ->update(['status' => 'invalidated']);
+                    $rfpIds = DB::table('request_for_payments')->whereIn('purchase_order_id', $poIds)->pluck('id');
+                    if ($rfpIds->isNotEmpty()) {
+                        $apvIds = DB::table('accounts_payable_invoices')
+                            ->whereIn('request_for_payment_id', $rfpIds)->pluck('id');
+                        if ($apvIds->isNotEmpty()) {
+                            DB::table('accounts_payable_invoices')->whereIn('id', $apvIds)
+                                ->update(['status' => 'invalidated']);
+                            DB::table('check_vouchers')->whereIn('accounts_payable_invoice_id', $apvIds)
+                                ->update(['status' => 'invalidated']);
+                        }
+                    }
+                }
+            }
+
             DB::commit();
 
             Activity::create([
@@ -530,12 +542,16 @@ class PurchaseRequestController extends Controller
                 'item' => $purchaseRequest->pr_no,
                 'target' => $purchaseRequest->company,
                 'type' => 'Purchase Request',
-                'message' => 'Updated Purchase Request ' . $purchaseRequest->pr_no,
+                'message' => 'Updated Purchase Request ' . $purchaseRequest->pr_no . ($wasApproved ? ' (reset to pending for re-approval)' : ''),
             ]);
+
+            $msg = $wasApproved
+                ? 'Purchase Request updated and reset to pending for re-approval.'
+                : 'Purchase Request updated successfully!';
 
             return redirect()
                 ->route('purchase_requests.show', $purchaseRequest->id)
-                ->with('success', 'Purchase Request updated successfully!');
+                ->with('success', $msg);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -557,6 +573,10 @@ class PurchaseRequestController extends Controller
                 return back()->with('error', 'You can only delete your own Purchase Requests.');
             }
 
+            if (PurchaseOrder::where('purchase_request_id', $purchaseRequest->id)->exists()) {
+                return back()->with('error', 'Cannot delete: this PR has linked Purchase Orders.');
+            }
+
             $prNo = $purchaseRequest->pr_no;
             $purchaseRequest->delete();
 
@@ -566,7 +586,7 @@ class PurchaseRequestController extends Controller
                 'item' => $prNo,
                 'target' => 'N/A',
                 'type' => 'Purchase Request',
-                'message' => 'Deleted Purchase Request ' . $prNo,
+                'message' => 'Deleted Purchase Request ' . $prNo . ' and all linked PO, SRR, RFP, APV, CV records.',
             ]);
 
             return redirect()

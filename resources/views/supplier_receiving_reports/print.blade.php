@@ -240,6 +240,12 @@
                 <span class="info-label">PO NO:</span>
                 <span class="info-value">{{ $report->po_no ?? '' }}</span>
             </div>
+            @if($report->reference_number)
+            <div class="info-row">
+                <span class="info-label">REFERENCE NO:</span>
+                <span class="info-value">{{ $report->reference_number }}</span>
+            </div>
+            @endif
             <div class="info-row">
                 <span class="info-label">SUPPLY:</span>
                 <span class="info-value">{{ $report->supplier_name }}</span>

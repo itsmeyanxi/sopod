@@ -16,6 +16,7 @@ class SupplierReceivingReport extends Model
         'supplier_name',
         'cv_no',
         'po_no',
+        'reference_number',
         'storage',
         'report_type',
         'note',

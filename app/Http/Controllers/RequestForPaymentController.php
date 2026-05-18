@@ -7,6 +7,7 @@ use App\Models\PurchaseOrder;
 use App\Models\Activity;
 use App\Models\Vendor;
 use App\Models\Supplier;
+use App\Models\LiveChicken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -58,7 +59,9 @@ class RequestForPaymentController extends Controller
             Supplier::where('status', 'active')->orderBy('supplier_name')->get(['id', 'supplier_name'])->map(fn($s) => ['label' => $s->supplier_name, 'type' => 'Supplier'])
         )->sortBy('label')->values();
 
-        return view('request_for_payments.create', compact('rfpNo', 'companies', 'selectedPO', 'poAmount', 'payeeOptions'));
+        $currencyRates = \App\Models\Currency::whereNotNull('rate_to_php')->pluck('rate_to_php', 'code');
+
+        return view('request_for_payments.create', compact('rfpNo', 'companies', 'selectedPO', 'poAmount', 'payeeOptions', 'currencyRates'));
     }
 
     /**
@@ -69,15 +72,28 @@ class RequestForPaymentController extends Controller
     $searchTerm = $request->input('search', '');
 
     try {
+        // Also find POs linked to GRPOs matching the search term
+        $grpoPoNos = LiveChicken::where('grpo_no', 'LIKE', "%{$searchTerm}%")
+            ->whereNotNull('po_no')
+            ->pluck('po_no')
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
         $pos = PurchaseOrder::with(['items.supplierModel', 'supplierModel'])
             ->where('status', 'approved')
-            ->where(function ($query) use ($searchTerm) {
+            ->where('is_closed', false)
+            ->where(function ($query) use ($searchTerm, $grpoPoNos) {
                 $query->where('po_no', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('supplier', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('company', 'LIKE', "%{$searchTerm}%")
                     ->orWhereHas('supplierModel', function($q) use ($searchTerm) {
                         $q->where('supplier_name', 'LIKE', "%{$searchTerm}%");
                     });
+                if (!empty($grpoPoNos)) {
+                    $query->orWhereIn('po_no', $grpoPoNos);
+                }
             })
             ->limit(10)
             ->get()
@@ -95,6 +111,12 @@ class RequestForPaymentController extends Controller
                     ?? $po->supplier
                     ?? 'N/A';
 
+                $paidTotal = \DB::table('request_for_payments')
+                    ->where('purchase_order_id', $po->id)
+                    ->whereNotIn('status', ['invalidated', 'rejected'])
+                    ->sum('amount');
+                $fullyPaid = $poAmount > 0 && (float)$paidTotal >= (float)$poAmount;
+
                 return [
                     'id'               => $po->id,
                     'po_no'            => $po->po_no,
@@ -102,9 +124,12 @@ class RequestForPaymentController extends Controller
                     'company'          => $po->company,
                     'order_date'       => $po->order_date ? $po->order_date->format('Y-m-d') : null,
                     'amount'           => round($poAmount, 2),
+                    'paid_total'       => round((float)$paidTotal, 2),
+                    'fully_paid'       => $fullyPaid,
                     'currency'         => $po->currency ?? 'PHP',
                     'supplier_address' => $po->supplierModel->address ?? $po->supplier_address ?? '',
                     'supplier_tin'     => $po->supplierModel->tin ?? '',
+                    'payment_terms'    => $po->payment_terms ?? '',
                 ];
             });
 
@@ -124,14 +149,68 @@ class RequestForPaymentController extends Controller
      */
     public function getPoItems($poId)
     {
-        $po = PurchaseOrder::with('items')->find($poId);
+        $po = PurchaseOrder::with(['items', 'purchaseRequest'])->find($poId);
         if (!$po) {
             return response()->json(['po_type' => 'items', 'items' => [], 'service_description' => null]);
         }
+
+        // Build remarks hint from PO, PR, and GRPO notes
+        $remarksParts = array_filter([
+            $po->remarks ? 'PO: ' . $po->remarks : null,
+            $po->purchaseRequest?->remarks ? 'PR: ' . $po->purchaseRequest->remarks : null,
+        ]);
+
+        // Try to get items from GRPO (live_chickens) linked to this PO
+        $grpos = LiveChicken::where('po_no', $po->po_no)->orderBy('date')->get();
+        if ($grpos->isNotEmpty()) {
+            foreach ($grpos as $g) {
+                if ($g->remarks ?? null) $remarksParts[] = 'GRPO ' . $g->grpo_no . ': ' . $g->remarks;
+            }
+            // Aggregate items by GRPO (each GRPO is one item line)
+            $items = $grpos->map(fn($g, $i) => [
+                'item_no'    => $i + 1,
+                'item_code'  => $g->grpo_no,
+                'description'=> $g->items ?? $po->items->first()?->description ?? '',
+                'brand'      => $g->brand ?? '',
+                'qty'        => $g->actual_qty,
+                'uom'        => 'KG',
+                'unit_price' => $g->price ?? ($po->lc_price ?? 0),
+                'total'      => ($g->actual_qty ?? 0) * ($g->price ?? $po->lc_price ?? 0),
+            ]);
+            return response()->json([
+                'po_type'             => $po->po_type ?? 'items',
+                'service_description' => $po->service_description,
+                'items'               => $items,
+                'terms'               => $po->payment_terms ?? '',
+                'remarks_hint'        => implode("\n", $remarksParts),
+                'source'              => 'grpo',
+                'pr_no'               => $po->pr_no ?? '',
+                'po_no'               => $po->po_no ?? '',
+                'exchange_rate'       => $po->exchange_rate ?? null,
+            ]);
+        }
+
+        // Fallback: PO items
+        $items = $po->items->map(fn($item, $i) => [
+            'item_no'    => $item->item_no ?? $i + 1,
+            'item_code'  => $item->item_code ?? '',
+            'description'=> $item->description ?? '',
+            'brand'      => $item->brand ?? '',
+            'qty'        => $item->qty,
+            'uom'        => $item->uom ?? '',
+            'unit_price' => $item->unit_price,
+            'total'      => $item->total,
+        ]);
         return response()->json([
             'po_type'             => $po->po_type ?? 'items',
             'service_description' => $po->service_description,
-            'items'               => $po->items,
+            'items'               => $items,
+            'terms'               => $po->payment_terms ?? '',
+            'remarks_hint'        => implode("\n", $remarksParts),
+            'source'              => 'po',
+            'pr_no'               => $po->pr_no ?? '',
+            'po_no'               => $po->po_no ?? '',
+            'exchange_rate'       => $po->exchange_rate ?? null,
         ]);
     }
 
@@ -148,17 +227,6 @@ class RequestForPaymentController extends Controller
             'payment_methods' => 'array',
         ]);
 
-        // Validate amount does not exceed linked PO total
-        if ($request->purchase_order_id) {
-            $po = PurchaseOrder::with('items')->find($request->purchase_order_id);
-            if ($po) {
-                $poAmount = $po->items->sum('total') ?: (float) $po->lc_price;
-                if ($poAmount > 0 && (float) $request->amount > $poAmount) {
-                    return back()->withInput()->with('error', 'Amount (₱' . number_format($request->amount, 2) . ') exceeds PO total (₱' . number_format($poAmount, 2) . ').');
-                }
-            }
-        }
-
         DB::beginTransaction();
         try {
             // Generate RFP number
@@ -167,13 +235,18 @@ class RequestForPaymentController extends Controller
             // Create request for payment
             $rfp = RequestForPayment::create([
                 'rfp_no' => $rfpNo,
-                'purchase_order_id' => $request->purchase_order_id,
+                'purchase_order_id' => $request->purchase_order_id ?: null,
+                'srr_id' => $request->srr_id ?: null,
+                'live_chicken_id' => $request->live_chicken_id ?: null,
+                'payment_type' => $request->payment_type,
                 'company' => $request->company,
                 'payment_methods' => json_encode($request->payment_methods ?? []),
                 'date' => $request->date,
                 'due_date' => $request->due_date,
                 'payee' => $request->payee,
+                'payment_terms' => $request->payment_terms,
                 'amount' => $request->amount,
+                'currency' => $request->currency ?? 'PHP',
                 'particulars' => $request->particulars,
                 'bank' => $request->bank,
                 'apv_no' => $request->apv_no,
@@ -212,10 +285,24 @@ class RequestForPaymentController extends Controller
      */
     public function show($id)
     {
-        $rfp = RequestForPayment::with(['creator', 'purchaseOrder.items', 'approver', 'departmentHeadApprover', 'accountingApprover'])
+        $rfp = RequestForPayment::with(['creator', 'purchaseOrder.items', 'approver', 'departmentHeadApprover', 'accountingApprover', 'grpo'])
             ->findOrFail($id);
 
-        return view('request_for_payments.show', compact('rfp'));
+        // Resolve PO — direct link first, fallback via GRPO's po_no
+        $po = $rfp->purchaseOrder;
+        if (!$po && $rfp->grpo && $rfp->grpo->po_no) {
+            $po = PurchaseOrder::with('items')->where('po_no', $rfp->grpo->po_no)->first();
+        }
+
+        if ($rfp->grpo) {
+            $grpos = collect([$rfp->grpo]);
+        } elseif ($po) {
+            $grpos = LiveChicken::where('po_no', $po->po_no)->orderBy('date')->get();
+        } else {
+            $grpos = collect();
+        }
+
+        return view('request_for_payments.show', compact('rfp', 'grpos', 'po'));
     }
 
     /**
@@ -225,6 +312,7 @@ class RequestForPaymentController extends Controller
     {
         $rfp = RequestForPayment::with(['purchaseOrder.items'])->findOrFail($id);
 
+
         $companies = [
             'North Breeders Corporation',
             'Pacific Agro Resources Inc.',
@@ -233,6 +321,7 @@ class RequestForPaymentController extends Controller
         ];
 
         $purchaseOrders = PurchaseOrder::where('status', 'approved')
+            ->where('is_closed', false)
             ->orderByDesc('created_at')
             ->get();
 
@@ -252,31 +341,26 @@ class RequestForPaymentController extends Controller
             'payment_methods' => 'array',
         ]);
 
-        // Validate amount does not exceed linked PO total
-        $poId = $request->purchase_order_id ?: RequestForPayment::find($id)?->purchase_order_id;
-        if ($poId) {
-            $po = PurchaseOrder::with('items')->find($poId);
-            if ($po) {
-                $poAmount = $po->items->sum('total') ?: (float) $po->lc_price;
-                if ($poAmount > 0 && (float) $request->amount > $poAmount) {
-                    return back()->withInput()->with('error', 'Amount (₱' . number_format($request->amount, 2) . ') exceeds PO total (₱' . number_format($poAmount, 2) . ').');
-                }
-            }
-        }
-
         DB::beginTransaction();
         try {
             $rfp = RequestForPayment::findOrFail($id);
 
+            $wasApproved = $rfp->status === 'approved';
+
             // Update request for payment
             $rfp->update([
-                'purchase_order_id' => $request->purchase_order_id,
+                'purchase_order_id' => $request->purchase_order_id ?: null,
+                'srr_id' => $request->srr_id ?: null,
+                'live_chicken_id' => $request->live_chicken_id ?: null,
+                'payment_type' => $request->payment_type,
                 'company' => $request->company,
                 'payment_methods' => json_encode($request->payment_methods ?? []),
                 'date' => $request->date,
                 'due_date' => $request->due_date,
                 'payee' => $request->payee,
+                'payment_terms' => $request->payment_terms,
                 'amount' => $request->amount,
+                'currency' => $request->currency ?? 'PHP',
                 'particulars' => $request->particulars,
                 'bank' => $request->bank,
                 'apv_no' => $request->apv_no,
@@ -284,6 +368,31 @@ class RequestForPaymentController extends Controller
                 'requested_by' => $request->requested_by,
                 'checked_by' => $request->checked_by,
             ]);
+
+            if ($wasApproved) {
+                DB::table('request_for_payments')->where('id', $rfp->id)->update([
+                    'status'                            => 'pending',
+                    'approval_stage'                    => 'pending',
+                    'approved_by'                       => null,
+                    'approved_at'                       => null,
+                    'department_head_approved_by'       => null,
+                    'department_head_approved_at'       => null,
+                    'department_head_approved_latitude' => null,
+                    'department_head_approved_longitude'=> null,
+                    'department_head_approved_location' => null,
+                    'accounting_approved_by'            => null,
+                    'accounting_approved_at'            => null,
+                    'accounting_approved_latitude'      => null,
+                    'accounting_approved_longitude'     => null,
+                    'accounting_approved_location'      => null,
+                ]);
+                // Invalidate downstream APVs (and their CVs)
+                $apvIds = \App\Models\AccountsPayableInvoice::where('request_for_payment_id', $rfp->id)->pluck('id');
+                \App\Models\AccountsPayableInvoice::whereIn('id', $apvIds)->update(['status' => 'invalidated']);
+                if ($apvIds->isNotEmpty()) {
+                    \App\Models\CheckVoucher::whereIn('accounts_payable_invoice_id', $apvIds)->update(['status' => 'invalidated']);
+                }
+            }
 
             DB::commit();
 
@@ -293,12 +402,16 @@ class RequestForPaymentController extends Controller
                 'item' => $rfp->rfp_no,
                 'target' => $rfp->payee,
                 'type' => 'Request For Payment',
-                'message' => 'Updated Request for Payment ' . $rfp->rfp_no,
+                'message' => 'Updated Request for Payment ' . $rfp->rfp_no . ($wasApproved ? ' (reset to pending for re-approval)' : ''),
             ]);
+
+            $msg = $wasApproved
+                ? 'Request for Payment updated and reset to pending for re-approval.'
+                : 'Request for Payment updated successfully!';
 
             return redirect()
                 ->route('request_for_payments.show', $rfp->id)
-                ->with('success', 'Request for Payment updated successfully!');
+                ->with('success', $msg);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -315,6 +428,11 @@ class RequestForPaymentController extends Controller
     {
         try {
             $rfp = RequestForPayment::findOrFail($id);
+
+            if ($rfp->accountsPayableInvoices()->exists()) {
+                return back()->with('error', 'Cannot delete: this RFP has linked APVs.');
+            }
+
             $rfpNo = $rfp->rfp_no;
             $rfp->delete();
 
@@ -473,7 +591,39 @@ class RequestForPaymentController extends Controller
      */
     public function print($id)
     {
-        $rfp = RequestForPayment::with(['creator', 'purchaseOrder.items', 'approver', 'departmentHeadApprover', 'accountingApprover'])->findOrFail($id);
-        return view('request_for_payments.print', ['rfp' => $rfp]);
+        $rfp = RequestForPayment::with(['creator', 'purchaseOrder.items', 'approver', 'departmentHeadApprover', 'accountingApprover', 'grpo'])->findOrFail($id);
+
+        // Resolve PO — direct link first, fallback via GRPO's po_no
+        $po = $rfp->purchaseOrder;
+        if (!$po && $rfp->grpo && $rfp->grpo->po_no) {
+            $po = PurchaseOrder::with('items')->where('po_no', $rfp->grpo->po_no)->first();
+        }
+
+        if ($rfp->grpo) {
+            $grpos = collect([$rfp->grpo]);
+        } elseif ($po) {
+            $grpos = LiveChicken::where('po_no', $po->po_no)->orderBy('date')->get();
+        } else {
+            $grpos = collect();
+        }
+        // Payment percentage stats
+        $poTotal = 0;
+        if ($po) {
+            $poTotal = (float)($po->items->sum('total') ?: $po->lc_price ?? 0);
+        }
+        $allPaid = \DB::table('request_for_payments')
+            ->where(function ($q) use ($rfp, $po) {
+                if ($po) $q->where('purchase_order_id', $po->id);
+                if ($rfp->live_chicken_id) $q->orWhere('live_chicken_id', $rfp->live_chicken_id);
+            })
+            ->whereNotIn('status', ['invalidated', 'rejected'])
+            ->sum('amount');
+        $thisAmount = (float)$rfp->amount;
+        $paidBefore = max(0, (float)$allPaid - $thisAmount);
+        $remaining  = max(0, $poTotal - (float)$allPaid);
+        $paidPct    = $poTotal > 0 ? round(($allPaid / $poTotal) * 100, 1) : null;
+        $remainPct  = $poTotal > 0 ? round(($remaining / $poTotal) * 100, 1) : null;
+
+        return view('request_for_payments.print', compact('rfp', 'grpos', 'po', 'poTotal', 'paidBefore', 'remaining', 'paidPct', 'remainPct', 'thisAmount'));
     }
 }

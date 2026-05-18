@@ -79,6 +79,7 @@
                                     @if($rfp->status === 'pending') bg-yellow-600 text-white
                                     @elseif($rfp->status === 'approved') bg-green-600 text-white
                                     @elseif($rfp->status === 'rejected') bg-red-600 text-white
+                                    @elseif($rfp->status === 'invalidated') bg-gray-500 text-white
                                     @else bg-blue-600 text-white
                                     @endif">
                                     {{ ucfirst($rfp->status) }}

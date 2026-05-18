@@ -23,6 +23,14 @@
             @csrf
             @method('PUT')
 
+            {{-- GRPO Number (read-only) --}}
+            @if($record->grpo_no)
+            <div class="mb-4 p-3 bg-gray-900 border border-purple-700 rounded">
+                <span class="text-gray-400 text-sm font-semibold">GRPO #:</span>
+                <span class="text-purple-300 font-mono text-lg ml-2">{{ $record->grpo_no }}</span>
+            </div>
+            @endif
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                 <div>
@@ -46,6 +54,13 @@
                 </div>
 
                 <div>
+                    <label class="block text-gray-300 mb-1 text-sm font-semibold">Reference Number</label>
+                    <input type="text" name="reference_number" value="{{ old('reference_number', $record->reference_number) }}"
+                           placeholder="Auto-filled from PO or enter manually"
+                           class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                </div>
+
+                <div>
                     <label class="block text-gray-300 mb-1 text-sm font-semibold">Supplier <span class="text-red-400">*</span></label>
                     <input type="text" name="supplier" value="{{ old('supplier', $record->supplier) }}" id="supplier_field"
                            class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none">
@@ -58,14 +73,48 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-gray-300 mb-1 text-sm font-semibold">Item Description <span class="text-red-400">*</span></label>
-                    <div class="relative">
-                        <input type="text" id="items_search" name="items" value="{{ old('items', $record->items) }}"
-                               placeholder="Type to search item description..."
-                               autocomplete="off"
-                               class="w-full bg-gray-900 border border-gray-700 text-white rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none">
-                        <div id="items_dropdown" class="absolute z-50 bg-gray-900 border border-gray-700 rounded w-full hidden max-h-48 overflow-y-auto shadow-lg"></div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-gray-300 text-sm font-semibold">Items <span class="text-red-400">*</span></label>
+                        <button type="button" onclick="addItemRow()" class="bg-purple-600 hover:bg-purple-700 text-white text-xs px-2 py-1 rounded">+ Add Row</button>
                     </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs bg-gray-900 rounded border border-gray-700" id="items_table">
+                            <thead class="bg-gray-700 text-gray-300">
+                                <tr>
+                                    <th class="px-2 py-2 text-left">Description</th>
+                                    <th class="px-2 py-2 text-left w-28">Brand</th>
+                                    <th class="px-2 py-2 text-left w-20">Qty</th>
+                                    <th class="px-2 py-2 text-left w-20">UOM</th>
+                                    <th class="px-2 py-2 text-left w-24">Unit Price</th>
+                                    <th class="px-2 py-2 w-8"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="items_tbody">
+                                @php
+                                    $existingItems = [];
+                                    if ($record->items_data) {
+                                        $existingItems = is_array($record->items_data) ? $record->items_data : json_decode($record->items_data, true) ?? [];
+                                    } elseif ($record->items) {
+                                        foreach (explode("\n", $record->items) as $line) {
+                                            if (trim($line)) $existingItems[] = ['description'=>trim($line),'brand'=>'','qty'=>0,'uom'=>'','unit_price'=>0];
+                                        }
+                                    }
+                                @endphp
+                                @foreach($existingItems as $ei)
+                                <tr class="border-b border-gray-700">
+                                    <td class="px-1 py-1"><input type="text" value="{{ $ei['description']??'' }}" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs item-desc"></td>
+                                    <td class="px-1 py-1"><input type="text" value="{{ $ei['brand']??'' }}" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs item-brand"></td>
+                                    <td class="px-1 py-1"><input type="number" value="{{ $ei['qty']??0 }}" step="0.01" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs item-qty"></td>
+                                    <td class="px-1 py-1"><input type="text" value="{{ $ei['uom']??'' }}" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs item-uom"></td>
+                                    <td class="px-1 py-1"><input type="number" value="{{ $ei['unit_price']??0 }}" step="0.01" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs item-price"></td>
+                                    <td class="px-1 py-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-red-400 hover:text-red-300 text-xs">✕</button></td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <input type="hidden" name="items" id="items_hidden">
+                    <input type="hidden" name="items_data" id="items_data_hidden">
                     <p class="text-xs text-gray-500 mt-1">Auto-filled from PO when a PO is selected. You may also type to search.</p>
                 </div>
 
@@ -258,10 +307,15 @@ poSearch.addEventListener('input', function () {
                     div.addEventListener('click', () => {
                         poSearch.value    = po.po_no;
                         poValInput.value  = po.po_no;
+                        const refFld = document.querySelector('input[name="reference_number"]');
+                        if (refFld && po.reference_number) refFld.value = po.reference_number;
                         supplierFld.value = po.supplier || '';
                         if (brandFld && po.brand) brandFld.value = po.brand;
-                        if (itemsFld && po.items_desc) itemsFld.value = po.items_desc;
                         if (po.price) document.getElementById('price_field').value = parseFloat(po.price).toFixed(2);
+                        if (po.po_items && po.po_items.length) {
+                            document.getElementById('items_tbody').innerHTML = '';
+                            po.po_items.forEach(item => addItemRow(item));
+                        }
                         poQty = po.po_qty;
                         poQtyDisp.textContent = po.po_qty;
                         poInfo.classList.remove('hidden');
@@ -278,38 +332,34 @@ document.addEventListener('click', e => {
     if (!poDropdown.contains(e.target) && e.target !== poSearch) poDropdown.classList.add('hidden');
 });
 
-// Items description autocomplete
-const itemsDropdown = document.getElementById('items_dropdown');
-let itemsDebounce;
-itemsFld.addEventListener('input', function () {
-    clearTimeout(itemsDebounce);
-    const q = this.value.trim();
-    if (!q || q.length < 2) { itemsDropdown.classList.add('hidden'); return; }
-    itemsDebounce = setTimeout(() => {
-        fetch(`/purchase_orders/search-items?q=${encodeURIComponent(q)}`)
-            .then(r => r.json())
-            .then(data => {
-                itemsDropdown.innerHTML = '';
-                if (!data.length) { itemsDropdown.classList.add('hidden'); return; }
-                data.slice(0, 10).forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm border-b border-gray-800';
-                    div.innerHTML = `<span class="text-white">${item.item_description || item.description}</span>`
-                        + (item.item_code ? `<span class="text-gray-500 ml-2 text-xs">${item.item_code}</span>` : '');
-                    div.addEventListener('click', () => {
-                        itemsFld.value = item.item_description || item.description || '';
-                        if (brandFld && item.brand) brandFld.value = item.brand;
-                        itemsDropdown.classList.add('hidden');
-                    });
-                    itemsDropdown.appendChild(div);
-                });
-                itemsDropdown.classList.remove('hidden');
-            }).catch(() => itemsDropdown.classList.add('hidden'));
-    }, 300);
-});
-
-document.addEventListener('click', e => {
-    if (!itemsDropdown.contains(e.target) && e.target !== itemsFld) itemsDropdown.classList.add('hidden');
+// Items table
+function addItemRow(data = {}) {
+    const tr = document.createElement('tr');
+    tr.className = 'border-b border-gray-700';
+    tr.innerHTML = `
+        <td class="px-1 py-1"><input type="text" placeholder="Description" value="${data.description||''}" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs item-desc"></td>
+        <td class="px-1 py-1"><input type="text" placeholder="Brand" value="${data.brand||''}" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs item-brand"></td>
+        <td class="px-1 py-1"><input type="number" placeholder="0" value="${data.qty||''}" step="0.01" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs item-qty"></td>
+        <td class="px-1 py-1"><input type="text" placeholder="kg" value="${data.uom||''}" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs item-uom"></td>
+        <td class="px-1 py-1"><input type="number" placeholder="0" value="${data.unit_price||''}" step="0.01" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs item-price"></td>
+        <td class="px-1 py-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-red-400 hover:text-red-300 text-xs">✕</button></td>`;
+    document.getElementById('items_tbody').appendChild(tr);
+}
+document.querySelector('form').addEventListener('submit', function() {
+    const rows = document.querySelectorAll('#items_tbody tr');
+    const data = [];
+    rows.forEach(tr => {
+        const desc = tr.querySelector('.item-desc')?.value?.trim();
+        if (desc) data.push({
+            description: desc,
+            brand: tr.querySelector('.item-brand')?.value?.trim()||'',
+            qty: parseFloat(tr.querySelector('.item-qty')?.value)||0,
+            uom: tr.querySelector('.item-uom')?.value?.trim()||'',
+            unit_price: parseFloat(tr.querySelector('.item-price')?.value)||0,
+        });
+    });
+    document.getElementById('items_hidden').value = data.map(d=>d.description).join('\n');
+    document.getElementById('items_data_hidden').value = JSON.stringify(data);
 });
 </script>
 @endsection

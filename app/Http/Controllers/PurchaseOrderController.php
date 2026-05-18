@@ -6,8 +6,13 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseRequest;
 use App\Models\Supplier;
+use App\Models\Vendor;
 use App\Models\Currency;
 use App\Models\Activity;
+use App\Models\SupplierReceivingReport;
+use App\Models\RequestForPayment;
+use App\Models\AccountsPayableInvoice;
+use App\Models\CheckVoucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -56,7 +61,10 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $poNo = 'PO-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        $today = date('Ymd');
+        $lastToday = PurchaseOrder::where('po_no', 'like', "PO-{$today}-%")->orderByDesc('po_no')->value('po_no');
+        $nextSeq = $lastToday ? (intval(explode('-', $lastToday)[2]) + 1) : 1;
+        $poNo = 'PO-' . $today . '-' . str_pad($nextSeq, 3, '0', STR_PAD_LEFT);
 
         $companies = [
             'North Breeders Corporation',
@@ -144,85 +152,40 @@ class PurchaseOrderController extends Controller
      */
     public function searchSuppliers(Request $request)
     {
-        $q                 = $request->input('q', '');
-        $description       = trim($request->input('description', ''));
-        $currentSupplierId = $request->input('current_supplier_id');
+        $q = $request->input('q', '');
 
-        // Base query: active suppliers matching the typed name/code search
-        $baseQuery = Supplier::where('status', 'active')
-            ->where(function ($query) use ($q) {
-                $query->where('supplier_name', 'LIKE', "%{$q}%")
-                      ->orWhere('supplier_code', 'LIKE', "%{$q}%");
-            });
+        $vendors = Vendor::where('status', 'active')
+            ->where(function ($vq) use ($q) {
+                $vq->where('vendor_name', 'LIKE', "%{$q}%")
+                   ->orWhere('vendor_code', 'LIKE', "%{$q}%");
+            })
+            ->whereIn('category', ['NON TRADE', 'TRADE'])
+            ->orderBy('vendor_name')
+            ->limit(20)
+            ->get()
+            ->map(fn($v) => [
+                'id'               => null,
+                'supplier_name'    => $v->vendor_name,
+                'supplier_code'    => $v->vendor_code,
+                'address'          => implode(', ', array_filter([
+                    $v->billing_street,
+                    $v->billing_city,
+                    $v->billing_zip,
+                    $v->billing_country,
+                ])) ?: $v->office_address,
+                'shipping_address' => implode(', ', array_filter([
+                    $v->shipping_street,
+                    $v->shipping_city,
+                    $v->shipping_zip,
+                    $v->shipping_country,
+                ])),
+                'terms'            => $v->payment_terms,
+                'tin'              => $v->tin,
+                'contact_person'   => null,
+                'name_2307'        => $v->name_2307,
+            ]);
 
-        if ($description !== '') {
-            // Find supplier IDs confirmed in the Non-Trade Items library for this item
-            $confirmedIds = \App\Models\NonTradeItem::where('name', $description)
-                ->whereNotNull('supplier_id')
-                ->pluck('supplier_id')
-                ->unique()->filter()->values();
-
-            if ($confirmedIds->isNotEmpty()) {
-                // Return confirmed suppliers, always ensuring current supplier is included
-                $suppliers = (clone $baseQuery)
-                    ->whereIn('id', $confirmedIds)
-                    ->orderBy('supplier_name')
-                    ->limit(15)
-                    ->get(['id', 'supplier_name', 'supplier_code', 'address']);
-
-                // If the current supplier is set but NOT in the confirmed list, append them
-                if ($currentSupplierId && !$confirmedIds->contains($currentSupplierId)) {
-                    $currentSupplier = Supplier::where('status', 'active')
-                        ->where(function ($q2) use ($q) {
-                            $q2->where('supplier_name', 'LIKE', "%{$q}%")
-                               ->orWhere('supplier_code', 'LIKE', "%{$q}%")
-                               ->orWhereRaw('1=1'); // always fetch regardless of name search
-                        })
-                        ->find($currentSupplierId, ['id', 'supplier_name', 'supplier_code', 'address']);
-
-                    if ($currentSupplier) {
-                        // Tag it as the original/current supplier but unconfirmed for this item
-                        $currentSupplier->carries_item   = false;
-                        $currentSupplier->is_current     = true;
-                        // Prepend so it appears first
-                        $suppliers = collect([$currentSupplier])->merge(
-                            $suppliers->map(function ($s) {
-                                $s->carries_item = true;
-                                return $s;
-                            })
-                        );
-                        return response()->json($suppliers->values());
-                    }
-                }
-
-                if ($suppliers->isNotEmpty()) {
-                    return response()->json($suppliers->map(function ($s) {
-                        $s->carries_item = true;
-                        return $s;
-                    }));
-                }
-            }
-
-            // Item not in library — show all suppliers; mark current supplier specially
-            $suppliers = $baseQuery->orderBy('supplier_name')->limit(15)
-                ->get(['id', 'supplier_name', 'supplier_code', 'address']);
-
-            return response()->json($suppliers->map(function ($s) use ($currentSupplierId) {
-                $s->carries_item = false;
-                $s->is_fallback  = true;
-                $s->is_current   = ($currentSupplierId && $s->id == $currentSupplierId);
-                return $s;
-            }));
-        }
-
-        // No description context — plain supplier search, no item filtering
-        $suppliers = $baseQuery->orderBy('supplier_name')->limit(15)
-            ->get(['id', 'supplier_name', 'supplier_code', 'address']);
-
-        return response()->json($suppliers->map(function ($s) use ($currentSupplierId) {
-            $s->is_current = ($currentSupplierId && $s->id == $currentSupplierId);
-            return $s;
-        }));
+        return response()->json($vendors->values());
     }
 
     /**
@@ -321,9 +284,10 @@ class PurchaseOrderController extends Controller
 
         DB::beginTransaction();
         try {
-            do {
-                $poNo = 'PO-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-            } while (PurchaseOrder::where('po_no', $poNo)->exists());
+            $today = date('Ymd');
+            $lastToday = PurchaseOrder::where('po_no', 'like', "PO-{$today}-%")->orderByDesc('po_no')->lockForUpdate()->value('po_no');
+            $nextSeq = $lastToday ? (intval(explode('-', $lastToday)[2]) + 1) : 1;
+            $poNo = 'PO-' . $today . '-' . str_pad($nextSeq, 3, '0', STR_PAD_LEFT);
 
             $quotationPath = null;
             if ($request->hasFile('quotation')) {
@@ -332,11 +296,13 @@ class PurchaseOrderController extends Controller
 
             $purchaseOrder = PurchaseOrder::create([
                 'po_no'                  => $poNo,
+                'reference_number'       => $request->reference_number ?: null,
                 'purchase_request_id'    => $request->purchase_request_id ?: null,
                 'company'                => $request->company,
-                'supplier_id'            => $request->supplier_id ?: null,
+                'supplier_id'            => is_numeric($request->supplier_id) ? $request->supplier_id : null,
                 'supplier'               => $request->supplier ?: null,
                 'supplier_address'       => $request->supplier_address ?: null,
+                'supplier_tin'           => $request->supplier_tin ?: null,
                 'consignee'              => $request->consignee ?: null,
                 'consignee_address'      => $request->consignee_address ?: null,
                 'delivery_address'       => $request->delivery_address ?: null,
@@ -353,6 +319,8 @@ class PurchaseOrderController extends Controller
                 'service_description'    => $request->po_type === 'service' ? $request->service_description : null,
                 'service_qty'            => $request->po_type === 'service' ? $request->service_qty : null,
                 'service_amount'         => $request->po_type === 'service' ? $request->service_amount : null,
+                'service_uom'            => $request->po_type === 'service' ? ($request->service_uom ?: null) : null,
+                'service_vat'            => $request->po_type === 'service' ? (!empty($request->service_vat) ? 1 : 0) : 0,
                 'quotation'              => $quotationPath,
                 'currency'               => $request->currency ?? 'PHP',
                 'exchange_rate'          => $request->exchange_rate ?? 1,
@@ -447,10 +415,6 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $notesOnly = false;
-        if ($purchaseOrder->status === 'approved' && $purchaseOrder->approved_at !== null) {
-            $notesOnly = true;
-        }
 
         $companies = [
             'North Breeders Corporation',
@@ -466,6 +430,7 @@ class PurchaseOrderController extends Controller
         $suppliers  = Supplier::where('status', 'active')->orderBy('supplier_name')->get();
         $currencies = Currency::orderByRaw("FIELD(code,'PHP','USD','AUD','GBP','EUR')")->get();
 
+        $notesOnly = false;
         return view('purchase_orders.edit', compact(
             'purchaseOrder', 'companies', 'purchaseRequests', 'suppliers', 'currencies', 'notesOnly'
         ));
@@ -486,7 +451,7 @@ class PurchaseOrderController extends Controller
             'items'                    => 'required|array|min:1',
             'items.*.qty'              => 'required|numeric|min:0',
             'items.*.description'      => 'required|string',
-            'items.*.supplier_id'      => 'nullable|exists:suppliers,id',
+            'items.*.supplier_id'      => 'nullable',
             'items.*.supplier_name'    => 'nullable|string',
             'items.*.note'             => 'nullable|string',
         ];
@@ -501,12 +466,17 @@ class PurchaseOrderController extends Controller
         try {
             $purchaseOrder = PurchaseOrder::findOrFail($id);
 
+            $wasApproved = $purchaseOrder->status === 'approved';
+            \Log::info('PO Update Start', ['id' => $id, 'status' => $purchaseOrder->status, 'wasApproved' => $wasApproved]);
+
             $updateData = [
+                'reference_number'       => $request->reference_number ?: null,
                 'purchase_request_id'    => $request->purchase_request_id ?: null,
                 'company'                => $request->company,
-                'supplier_id'            => $request->supplier_id ?: null,
+                'supplier_id'            => is_numeric($request->supplier_id) ? $request->supplier_id : null,
                 'supplier'               => $request->supplier ?: null,
                 'supplier_address'       => $request->supplier_address ?: null,
+                'supplier_tin'           => $request->supplier_tin ?: null,
                 'consignee'              => $request->consignee ?: null,
                 'consignee_address'      => $request->consignee_address ?: null,
                 'delivery_address'       => $request->delivery_address ?: null,
@@ -523,6 +493,8 @@ class PurchaseOrderController extends Controller
                 'service_description'    => $request->po_type === 'service' ? $request->service_description : null,
                 'service_qty'            => $request->po_type === 'service' ? $request->service_qty : null,
                 'service_amount'         => $request->po_type === 'service' ? $request->service_amount : null,
+                'service_uom'            => $request->po_type === 'service' ? ($request->service_uom ?: null) : null,
+                'service_vat'            => $request->po_type === 'service' ? (!empty($request->service_vat) ? 1 : 0) : 0,
                 'currency'               => $request->currency ?? 'PHP',
                 'exchange_rate'          => $request->exchange_rate ?? 1,
             ];
@@ -550,7 +522,7 @@ class PurchaseOrderController extends Controller
                     'supplier_name'            => !empty($item['supplier_name']) ? $item['supplier_name'] : null,
                     'item_no'                  => $index + 1,
                     'item_code'                => $item['item_code'] ?: null,
-                    'date_needed'              => $item['date_needed'] ?: null,
+                    'date_needed'              => ($item['date_needed'] ?? null) ?: null,
                     'qty'                      => $item['qty'],
                     'uom'                      => $item['uom'] ?? null,
                     'description'              => $item['description'],
@@ -565,7 +537,54 @@ class PurchaseOrderController extends Controller
             }
             } // end if not service
 
+            if ($wasApproved) {
+                \Log::info('PO wasApproved block running', ['id' => $purchaseOrder->id]);
+                DB::table('purchase_orders')->where('id', $purchaseOrder->id)->update([
+                    'status'                           => 'pending',
+                    'approval_stage'                   => 'pending',
+                    'approved_by'                      => null,
+                    'approved_at'                      => null,
+                    'approved_latitude'                => null,
+                    'approved_longitude'               => null,
+                    'approved_location'                => null,
+                    'department_head_approved_by'      => null,
+                    'department_head_approved_at'      => null,
+                    'department_head_approved_latitude'=> null,
+                    'department_head_approved_longitude'=> null,
+                    'department_head_approved_location'=> null,
+                    'management_approved_by'           => null,
+                    'management_approved_at'           => null,
+                    'management_approved_latitude'     => null,
+                    'management_approved_longitude'    => null,
+                    'management_approved_location'     => null,
+                ]);
+                DB::table('supplier_receiving_reports')->where('po_no', $purchaseOrder->po_no)
+                    ->update(['status' => 'invalidated']);
+                DB::table('request_for_payments')->where('purchase_order_id', $purchaseOrder->id)
+                    ->update(['status' => 'invalidated']);
+
+                // Cascade invalidation to APVs and Check Vouchers linked to those RFPs
+                $rfpIds = DB::table('request_for_payments')
+                    ->where('purchase_order_id', $purchaseOrder->id)
+                    ->pluck('id');
+                if ($rfpIds->isNotEmpty()) {
+                    $apvIds = DB::table('accounts_payable_invoices')
+                        ->whereIn('request_for_payment_id', $rfpIds)
+                        ->pluck('id');
+                    if ($apvIds->isNotEmpty()) {
+                        DB::table('accounts_payable_invoices')
+                            ->whereIn('id', $apvIds)
+                            ->update(['status' => 'invalidated']);
+                        DB::table('check_vouchers')
+                            ->whereIn('accounts_payable_invoice_id', $apvIds)
+                            ->update(['status' => 'invalidated']);
+                    }
+                }
+            }
+
+            \Log::info('PO Update before commit', ['id' => $purchaseOrder->id, 'wasApproved' => $wasApproved]);
             DB::commit();
+            \Log::info('PO Update committed', ['id' => $purchaseOrder->id]);
 
             Activity::create([
                 'user_name' => Auth::user()->name ?? 'System',
@@ -573,12 +592,16 @@ class PurchaseOrderController extends Controller
                 'item'      => $purchaseOrder->po_no,
                 'target'    => $purchaseOrder->company,
                 'type'      => 'Purchase Order',
-                'message'   => 'Updated Purchase Order ' . $purchaseOrder->po_no,
+                'message'   => 'Updated Purchase Order ' . $purchaseOrder->po_no . ($wasApproved ? ' (reset to pending for re-approval)' : ''),
             ]);
+
+            $msg = $wasApproved
+                ? 'Purchase Order updated and reset to pending for re-approval.'
+                : 'Purchase Order updated successfully!';
 
             return redirect()
                 ->route('purchase_orders.show', $purchaseOrder->id)
-                ->with('success', 'Purchase Order updated successfully!');
+                ->with('success', $msg);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -628,7 +651,12 @@ class PurchaseOrderController extends Controller
     {
         try {
             $purchaseOrder = PurchaseOrder::findOrFail($id);
-            $poNo          = $purchaseOrder->po_no;
+
+            if ($purchaseOrder->rfps()->exists() || $purchaseOrder->srrs()->exists()) {
+                return back()->with('error', 'Cannot delete: this PO has linked RFPs or Receiving Reports.');
+            }
+
+            $poNo = $purchaseOrder->po_no;
             $purchaseOrder->delete();
 
             Activity::create([
@@ -637,16 +665,40 @@ class PurchaseOrderController extends Controller
                 'item'      => $poNo,
                 'target'    => 'N/A',
                 'type'      => 'Purchase Order',
-                'message'   => 'Deleted Purchase Order ' . $poNo,
+                'message'   => 'Deleted Purchase Order ' . $poNo . ' and all linked SRR, RFP, APV, CV records.',
             ]);
 
             return redirect()
                 ->route('purchase_orders.index')
-                ->with('success', 'Purchase Order deleted successfully!');
+                ->with('success', 'Purchase Order and all linked documents deleted.');
 
         } catch (\Exception $e) {
             return back()->with('error', 'Error deleting Purchase Order: ' . $e->getMessage());
         }
+    }
+
+    public function cascadeDeletePO(PurchaseOrder $po): void
+    {
+        // Delete SRRs linked by po_no
+        SupplierReceivingReport::where('po_no', $po->po_no)->delete();
+
+        // Delete RFPs and their downstream APV → CV
+        $rfps = RequestForPayment::where('purchase_order_id', $po->id)->get();
+        foreach ($rfps as $rfp) {
+            $this->cascadeDeleteRFP($rfp);
+        }
+
+        $po->delete();
+    }
+
+    private function cascadeDeleteRFP(RequestForPayment $rfp): void
+    {
+        $apvs = AccountsPayableInvoice::where('request_for_payment_id', $rfp->id)->get();
+        foreach ($apvs as $apv) {
+            CheckVoucher::where('accounts_payable_invoice_id', $apv->id)->delete();
+            $apv->delete();
+        }
+        $rfp->delete();
     }
 
     /**
@@ -974,6 +1026,46 @@ class PurchaseOrderController extends Controller
             'supplier_id'   => $poItem->supplier_id,
             'supplier_name' => $poItem->supplier_name,
         ]);
+    }
+
+    /**
+     * Manually close a PO so it can no longer be called in new RFPs
+     */
+    public function close($id)
+    {
+        $po = PurchaseOrder::findOrFail($id);
+        $po->update(['is_closed' => true]);
+
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action'    => 'Closed',
+            'item'      => $po->po_no,
+            'target'    => $po->company,
+            'type'      => 'Purchase Order',
+            'message'   => 'Manually closed Purchase Order ' . $po->po_no,
+        ]);
+
+        return redirect()->back()->with('success', 'Purchase Order closed. It will no longer appear in RFP searches.');
+    }
+
+    /**
+     * Reopen a manually closed PO
+     */
+    public function reopen($id)
+    {
+        $po = PurchaseOrder::findOrFail($id);
+        $po->update(['is_closed' => false]);
+
+        Activity::create([
+            'user_name' => Auth::user()->name ?? 'System',
+            'action'    => 'Reopened',
+            'item'      => $po->po_no,
+            'target'    => $po->company,
+            'type'      => 'Purchase Order',
+            'message'   => 'Reopened Purchase Order ' . $po->po_no,
+        ]);
+
+        return redirect()->back()->with('success', 'Purchase Order reopened.');
     }
 
     /**

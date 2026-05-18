@@ -274,8 +274,8 @@
             <div>
                 <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-700">
                     <span class="flex items-center space-x-2">
-                        <span>🐔</span>
-                        <span class="sidebar-text">Live Chicken</span>
+                        <span>📦</span>
+                        <span class="sidebar-text">Goods Receipt PO</span>
                     </span>
                     <span class="chevron">▼</span>
                 </button>
@@ -445,6 +445,7 @@
                     @endif
                     @if(auth()->user()->canAccessModule('apv'))
                         <a href="{{ route('accounts_payable_invoices.index') }}" class="block hover:underline">Account Payable Invoice (APV)</a>
+                        <a href="{{ route('accounts_payable_invoices.ewt_register') }}" class="block hover:underline">EWT Register</a>
                     @endif
                     <hr class="my-2 border-gray-600">
 

@@ -15,13 +15,11 @@
         </div>
 
         @if($errors->any())
-            <div class="bg-red-600 text-white px-4 py-3 rounded mb-4">
-                <ul class="list-disc list-inside">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({ icon: 'error', title: 'Validation Error', html: '{!! implode("<br>", $errors->all()) !!}' });
+        });
+        </script>
         @endif
 
         <!-- RFP Reference Selector -->
@@ -83,22 +81,15 @@
             <!-- Vendor Information -->
             <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
                 <h3 class="font-semibold text-white mb-4">VENDOR INFORMATION</h3>
-                <!-- Supplier Search -->
-                <div class="mb-4 relative" id="supplierSearchWrap">
-                    <label class="block font-semibold text-gray-300 mb-2">SEARCH SUPPLIER:</label>
-                    <input type="text" id="supplier_search_input" autocomplete="off"
-                           placeholder="Type supplier name..."
-                           class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <div id="supplier_search_dropdown" class="hidden absolute z-50 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-52 overflow-y-auto" style="top:100%;margin-top:2px;"></div>
-                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">VENDOR CODE:</label>
                         <input type="text" name="vendor_code" id="vendor_code" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_code', $supplierInfo['code'] ?? '') }}">
                     </div>
-                    <div>
+                    <div class="relative">
                         <label class="block font-semibold text-gray-300 mb-2">VENDOR NAME: <span class="text-red-700">*</span></label>
-                        <input type="text" name="vendor_name" id="vendor_name" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_name', $selectedRFP->payee ?? '') }}" required>
+                        <input type="text" name="vendor_name" id="vendor_name" autocomplete="off" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_name', $selectedRFP->payee ?? '') }}" required placeholder="Type to search vendor...">
+                        <div id="vendor_name_dropdown" class="hidden absolute z-50 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-52 overflow-y-auto" style="top:100%;margin-top:2px;"></div>
                     </div>
                     <div class="md:col-span-2">
                         <label class="block font-semibold text-gray-300 mb-2">VENDOR ADDRESS:</label>
@@ -107,6 +98,14 @@
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">VENDOR TIN:</label>
                         <input type="text" name="vendor_tin" id="vendor_tin" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_tin', $supplierInfo['tin'] ?? '') }}">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-300 mb-2">PO NUMBER:</label>
+                        <input type="text" name="purchase_order_no" id="purchase_order_no" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('purchase_order_no', $selectedRFP->purchaseOrder->po_no ?? '') }}">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-300 mb-2">REFERENCE NO.:</label>
+                        <input type="text" name="reference_no" id="reference_no_vendor" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reference_no') }}" placeholder="Manual entry">
                     </div>
                 </div>
             </div>
@@ -126,14 +125,6 @@
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">DUE DATE:</label>
                         <input type="date" name="due_date" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('due_date') }}">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-300 mb-2">REFERENCE NO:</label>
-                        <input type="text" name="reference_no" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reference_no') }}">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-300 mb-2">PURCHASE ORDER NO:</label>
-                        <input type="text" name="purchase_order_no" id="purchase_order_no" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('purchase_order_no', $selectedRFP->purchaseOrder->po_no ?? '') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">CURRENCY: <span class="text-red-700">*</span></label>
@@ -168,13 +159,13 @@
                         <i class="fas fa-plus mr-1"></i> Add Row
                     </button>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm border-collapse" id="apvItemsTable">
+                <div style="overflow-x:auto;overflow-y:visible;">
+                    <table class="w-full text-sm border-collapse" style="overflow:visible;" id="apvItemsTable">
                         <thead class="bg-red-700 text-white text-xs uppercase">
                             <tr>
                                 <th class="border border-gray-600 px-2 py-2" style="width:28px">#</th>
                                 <th class="border border-gray-600 px-2 py-2" style="min-width:180px">PARTICULARS</th>
-                                <th class="border border-gray-600 px-2 py-2" style="min-width:130px">ITEM CODE</th>
+                                <th class="border border-gray-600 px-2 py-2 apv-item-code-th" style="min-width:130px">ITEM CODE</th>
                                 <th class="border border-gray-600 px-2 py-2" style="width:90px">DEPT</th>
                                 <th class="border border-gray-600 px-2 py-2" style="width:90px">DIVISION</th>
                                 <th class="border border-gray-600 px-2 py-2 apv-vat-col" style="width:40px">VAT</th>
@@ -190,18 +181,16 @@
                 </div>
             </div>
 
-            <!-- Computed Summary -->
-            <div class="mb-6 flex justify-end">
-                <div class="bg-gray-900 border border-gray-700 rounded p-4 w-80">
-                    <div class="flex flex-col gap-1 text-sm">
-                        <div class="flex justify-between"><span class="text-gray-300">Gross Amount:</span><span class="font-bold text-white" id="apvSumGross">₱0.00</span></div>
-                        <div class="flex justify-between apv-vat-summary-row"><span class="text-gray-300">VAT (12%):</span><span class="font-bold text-yellow-400" id="apvSumVat">₱0.00</span></div>
-                        <div class="flex justify-between apv-vat-summary-row"><span class="text-gray-300">Net of VAT:</span><span class="font-bold text-blue-400" id="apvSumNetVat">₱0.00</span></div>
-                        <div class="flex justify-between apv-ewt-summary-row"><span class="text-gray-300">EWT:</span><span class="font-bold text-red-400" id="apvSumEwt">(₱0.00)</span></div>
-                        <div class="flex justify-between border-t border-gray-600 pt-2 mt-1">
-                            <span class="text-white font-semibold">Total Amount Due:</span>
-                            <span class="font-bold text-green-400 text-base" id="apvSumAmountDue">₱0.00</span>
-                        </div>
+            <!-- Computed Summary (compact) -->
+            <div class="mb-4 flex justify-end">
+                <div class="bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs" style="min-width:220px;">
+                    <div class="flex justify-between gap-4"><span class="text-gray-400">Gross:</span><span class="font-bold text-white" id="apvSumGross">₱0.00</span></div>
+                    <div class="flex justify-between gap-4 apv-vat-summary-row"><span class="text-gray-400">VAT (12%):</span><span class="text-yellow-400" id="apvSumVat">₱0.00</span></div>
+                    <div class="flex justify-between gap-4 apv-vat-summary-row"><span class="text-gray-400">Net of VAT:</span><span class="text-blue-400" id="apvSumNetVat">₱0.00</span></div>
+                    <div class="flex justify-between gap-4 apv-ewt-summary-row"><span class="text-gray-400">Wtax:</span><span class="text-red-400" id="apvSumEwt">(₱0.00)</span></div>
+                    <div class="flex justify-between gap-4 border-t border-gray-600 pt-1 mt-1">
+                        <span class="text-white font-semibold">Amount Due:</span>
+                        <span class="font-bold text-green-400" id="apvSumAmountDue">₱0.00</span>
                     </div>
                 </div>
             </div>
@@ -277,9 +266,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                      data-amount="${rfp.amount || 0}"
                                      data-particulars="${(rfp.particulars || '').replace(/"/g, '&quot;')}"
                                      data-purchase-order-no="${(rfp.purchase_order_no || '').replace(/"/g, '&quot;')}"
+                                     data-po-reference-number="${(rfp.po_reference_number || '').replace(/"/g, '&quot;')}"
                                      data-vendor-address="${(rfp.vendor_address || '').replace(/"/g, '&quot;')}"
                                      data-vendor-tin="${(rfp.vendor_tin || '').replace(/"/g, '&quot;')}"
-                                     data-vendor-code="${(rfp.vendor_code || '').replace(/"/g, '&quot;')}">
+                                     data-vendor-code="${(rfp.vendor_code || '').replace(/"/g, '&quot;')}"
+                                     data-payment-terms="${(rfp.payment_terms || '').replace(/"/g, '&quot;')}"
+                                     data-currency="${rfp.currency || 'PHP'}"
+                                     data-forex-rate="${rfp.forex_rate || ''}"
+                                     data-po-type="${rfp.po_type || 'items'}"
+                                     data-service-description="${(rfp.service_description || '').replace(/"/g, '&quot;')}"
+                                     data-po-items="${JSON.stringify(rfp.po_items || []).replace(/"/g, '&quot;')}">
                                     <div class="flex justify-between items-center">
                                         <div>
                                             <div class="font-semibold text-purple-400">${rfp.rfp_no}${rfp.purchase_order_no ? ' <span class="text-yellow-400 text-xs">PO: '+rfp.purchase_order_no+'</span>' : ''}</div>
@@ -312,12 +308,30 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (vendorAddress) vendorAddress.value = this.dataset.vendorAddress;
                                 if (vendorTin)     vendorTin.value     = this.dataset.vendorTin;
 
+                                const pmtTerms = document.querySelector('input[name="payment_terms"]');
+                                if (pmtTerms && this.dataset.paymentTerms) pmtTerms.value = this.dataset.paymentTerms;
+
+                                const currencyEl = document.querySelector('select[name="currency"]');
+                                if (currencyEl && this.dataset.currency) currencyEl.value = this.dataset.currency;
+
+                                const forexEl = document.querySelector('input[name="forex_rate"]');
+                                if (forexEl && this.dataset.forexRate) forexEl.value = this.dataset.forexRate;
+
                                 const poNo = document.getElementById('purchase_order_no');
                                 if (poNo) poNo.value = this.dataset.purchaseOrderNo;
 
-                                const firstParticulars = document.querySelector('#apvItemsBody .apv-particulars');
-                                if (firstParticulars && !firstParticulars.value.trim()) {
-                                    firstParticulars.value = this.dataset.particulars;
+                                const refNo = document.getElementById('reference_no_vendor');
+                                if (refNo && this.dataset.poReferenceNumber) refNo.value = this.dataset.poReferenceNumber;
+
+                                toggleServiceMode(this.dataset.poType === 'service');
+
+                                const poItems = JSON.parse(this.dataset.poItems || '[]');
+                                document.getElementById('apvItemsBody').innerHTML = '';
+                                apvRowCount = 0;
+                                if (poItems.length) {
+                                    poItems.forEach(i => addApvRow({ particulars: i.description, item_code: i.item_code }));
+                                } else {
+                                    addApvRow({ particulars: this.dataset.serviceDescription || this.dataset.particulars || '' });
                                 }
 
                                 document.getElementById('maxInvoiceAmount').value = parseFloat(this.dataset.amount).toFixed(2);
@@ -392,14 +406,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // RFP click: also fill first row particulars
+    // RFP click: update max amount
     document.addEventListener('click', function(e) {
         const item = e.target.closest('.rfp-result-item');
-        if (item) {
-            const firstParticulars = document.querySelector('#apvItemsBody .apv-particulars');
-            if (firstParticulars && !firstParticulars.value.trim()) firstParticulars.value = item.dataset.particulars;
-            document.getElementById('maxInvoiceAmount').value = parseFloat(item.dataset.amount).toFixed(2);
-        }
+        if (item) document.getElementById('maxInvoiceAmount').value = parseFloat(item.dataset.amount).toFixed(2);
     });
 });
 
@@ -460,34 +470,26 @@ function addApvRow(data) {
     tr.className = 'bg-gray-800 hover:bg-gray-750 border-b border-gray-600';
     tr.innerHTML = `
         <td class="border border-gray-600 px-2 py-2 text-center text-gray-300 text-xs font-semibold row-num">${document.querySelectorAll('#apvItemsBody tr').length + 1}</td>
-        <td class="border border-gray-600 px-1 py-1">
+        <td class="border border-gray-600 px-1 py-1" style="position:relative">
             <input type="text" name="items[${idx}][particulars]"
                 class="w-full px-2 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs apv-particulars placeholder-gray-400"
-                placeholder="Description..." value="${(data.particulars || '').replace(/"/g, '&quot;')}">
+                placeholder="Search description..." autocomplete="off" value="${(data.particulars || '').replace(/"/g, '&quot;')}">
+            <div class="apv-part-drop hidden bg-gray-800 border-2 border-gray-500 rounded-lg shadow-2xl overflow-y-auto" style="min-width:320px;"></div>
         </td>
-        <td class="border border-gray-600 px-1 py-1">
-            <div class="relative">
-                <input type="text"
-                    class="apv-item-search w-full bg-gray-700 border border-gray-500 rounded px-2 py-1.5 pr-7 text-white text-xs placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                    placeholder="Search item..." autocomplete="off" value="${data.item_code || ''}">
-                <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <div class="apv-item-drop hidden absolute z-[9999] bg-gray-800 border-2 border-gray-500 rounded-lg mt-1 shadow-2xl max-h-64 overflow-y-auto" style="min-width:320px;left:0;top:100%">
-                    <div class="sticky top-0 bg-gray-700 px-3 py-1.5 text-xs text-gray-300 font-semibold border-b border-gray-600">Select an item</div>
-                </div>
-                <input type="hidden" name="items[${idx}][item_code]" class="apv-item-code-val" value="${data.item_code || ''}">
-            </div>
+        <td class="border border-gray-600 px-1 py-1 apv-item-code-td" style="display:${window.apvIsService?'none':''}">
+            <input type="text" name="items[${idx}][item_code]"
+                class="w-full px-2 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs apv-item-code-val placeholder-gray-400"
+                placeholder="Item code" value="${data.item_code || ''}">
         </td>
         <td class="border border-gray-600 px-1 py-1">
             <input type="text" name="items[${idx}][department]"
                 class="w-full px-2 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs placeholder-gray-400"
-                placeholder="Dept" value="${data.department || ''}">
+                placeholder="Dept" value="${data.department || ''}" list="dept-list" autocomplete="off">
         </td>
         <td class="border border-gray-600 px-1 py-1">
             <input type="text" name="items[${idx}][division]"
                 class="w-full px-2 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs placeholder-gray-400"
-                placeholder="Div" value="${data.division || ''}">
+                placeholder="Div" value="${data.division || ''}" list="div-list" autocomplete="off">
         </td>
         <td class="border border-gray-600 px-1 py-1 text-center apv-vat-td" style="display:${isPhp ? '' : 'none'}">
             <input type="checkbox" name="items[${idx}][vat]" value="1"
@@ -502,27 +504,30 @@ function addApvRow(data) {
                 onchange="recalcApvSummary()"
                 ${!isPhp ? 'disabled' : ''}>
                 <option value="">—</option>
-                <option value="158" ${data.tax_code === '158' ? 'selected' : ''}>158 (1%)</option>
-                <option value="160" ${data.tax_code === '160' ? 'selected' : ''}>160 (2%)</option>
+                <option value="C158" ${data.tax_code === 'C158' || data.tax_code === '158' ? 'selected' : ''}>C158 - Goods (1%)</option>
+                <option value="C160" ${data.tax_code === 'C160' || data.tax_code === '160' ? 'selected' : ''}>C160 - Services (2%)</option>
+                <option value="C100" ${data.tax_code === 'C100' ? 'selected' : ''}>C100 - Rental (5%)</option>
+                <option value="I010" ${data.tax_code === 'I010' ? 'selected' : ''}>I010 - Professional (5%)</option>
+                <option value="I011" ${data.tax_code === 'I011' ? 'selected' : ''}>I011 - Professional (10%)</option>
             </select>
         </td>
-        <td class="border border-gray-600 px-1 py-1" style="position:relative">
-            <input type="text"
-                class="w-full px-2 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs apv-gl-search placeholder-gray-400"
-                placeholder="Search GL..." autocomplete="off" value="${data.account_code || ''}">
-            <div class="apv-gl-drop hidden absolute z-50 bg-gray-800 border border-gray-600 rounded shadow-lg text-xs max-h-40 overflow-y-auto" style="top:100%;left:0;min-width:280px;"></div>
-            <input type="hidden" name="items[${idx}][account_code]" class="apv-gl-code" value="${data.account_code || ''}">
-        </td>
         <td class="border border-gray-600 px-1 py-1">
+            <input type="text" name="items[${idx}][account_code]"
+                class="w-full px-2 py-1.5 bg-gray-600 border border-gray-500 rounded text-gray-300 text-xs apv-gl-code"
+                value="${data.account_code || ''}" readonly placeholder="Auto-filled">
+        </td>
+        <td class="border border-gray-600 px-1 py-1" style="position:relative">
             <input type="text" name="items[${idx}][account_name]"
-                class="w-full px-2 py-1.5 bg-gray-600 border border-gray-500 rounded text-gray-300 text-xs apv-gl-name"
-                value="${data.account_name || ''}" readonly placeholder="Auto-filled">
+                class="w-full px-2 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs apv-gl-search placeholder-gray-400"
+                placeholder="Search account name..." autocomplete="off" value="${data.account_name || ''}">
+            <div class="apv-gl-drop hidden bg-gray-800 border border-gray-600 rounded shadow-lg text-xs overflow-y-auto" style="min-width:280px;"></div>
         </td>
         <td class="border border-gray-600 px-1 py-1">
             <input type="number" step="0.01" name="items[${idx}][gross_amount]"
                 class="w-full px-2 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs apv-gross placeholder-gray-400"
-                value="${data.gross_amount || ''}" min="0" required
-                oninput="recalcApvSummary()" placeholder="0.00">
+                value="${data.gross_amount || ''}" required
+                oninput="updateDebitCredit(this);recalcApvSummary()" placeholder="+Debit / -Credit">
+            <div class="text-center text-xs mt-0.5 apv-dc-label font-semibold ${data.gross_amount < 0 ? 'text-red-400' : 'text-green-400'}">${data.gross_amount < 0 ? 'CREDIT' : (data.gross_amount > 0 ? 'DEBIT' : '')}</div>
         </td>
         <td class="border border-gray-600 px-1 py-2 text-center">
             <button type="button" onclick="removeApvRow(this)" class="text-red-400 hover:text-red-300">
@@ -533,77 +538,78 @@ function addApvRow(data) {
 
     document.getElementById('apvItemsBody').appendChild(tr);
 
-    // GL Account search
+    // GL Account search — wired to account name field; pastes auto-fill code
     const glSearch = tr.querySelector('.apv-gl-search');
     const glDrop   = tr.querySelector('.apv-gl-drop');
     const glCode   = tr.querySelector('.apv-gl-code');
-    const glName   = tr.querySelector('.apv-gl-name');
+
+    function positionDrop(input, drop) {
+        const rect = input.getBoundingClientRect();
+        drop.style.cssText = `position:absolute;top:${rect.bottom+window.scrollY}px;left:${rect.left+window.scrollX}px;width:320px;z-index:99999;max-height:220px;overflow-y:auto;`;
+        document.body.appendChild(drop);
+    }
 
     glSearch.addEventListener('input', function() {
-        const q = this.value.toLowerCase();
+        const q = this.value.toLowerCase().trim();
         if (q.length < 1) { glDrop.classList.add('hidden'); return; }
-        const hits = GL_ACCOUNTS.filter(a => (a.search || '').includes(q)).slice(0, 50);
+        const exact = GL_ACCOUNTS.find(a => a.name.toLowerCase() === q || a.display.toLowerCase() === q);
+        if (exact) { glCode.value = exact.code; glDrop.classList.add('hidden'); return; }
+        const hits = GL_ACCOUNTS.filter(a => (a.search||'').includes(q)).slice(0, 50);
         glDrop.innerHTML = hits.length
-            ? hits.map(a => `<div class="px-2 py-1 hover:bg-blue-600 cursor-pointer border-b border-gray-700 gl-o" data-code="${a.code}" data-name="${a.name}"><span class="font-mono font-semibold">${a.code}</span> <span class="text-gray-400">${a.name}</span></div>`).join('')
-            : '<div class="px-2 py-1 text-gray-400">No matches</div>';
+            ? hits.map(a => `<div class="px-2 py-1 hover:bg-blue-600 cursor-pointer border-b border-gray-700 gl-o" data-code="${a.code}" data-name="${a.name}"><span class="font-mono font-semibold text-yellow-300 text-xs">${a.code}</span> <span class="text-gray-300 text-xs">${a.name}</span></div>`).join('')
+            : '<div class="px-2 py-1 text-gray-400 text-xs">No matches</div>';
+        positionDrop(glSearch, glDrop);
         glDrop.classList.remove('hidden');
         glDrop.querySelectorAll('.gl-o').forEach(o => o.addEventListener('mousedown', function(e) {
             e.preventDefault();
-            glSearch.value = this.dataset.code + ' — ' + this.dataset.name;
+            glSearch.value = this.dataset.name;
             glCode.value   = this.dataset.code;
-            glName.value   = this.dataset.name;
             glDrop.classList.add('hidden');
         }));
     });
     glSearch.addEventListener('blur', () => setTimeout(() => glDrop.classList.add('hidden'), 200));
 
-    // Item code typeahead
-    const itemSearch  = tr.querySelector('.apv-item-search');
-    const itemDrop    = tr.querySelector('.apv-item-drop');
+    // Particulars search — typeahead for item descriptions, fills item code
+    const partInput   = tr.querySelector('.apv-particulars');
+    const partDrop    = tr.querySelector('.apv-part-drop');
     const itemCodeVal = tr.querySelector('.apv-item-code-val');
     const ITEM_URL    = '{{ route("accounts_payable_invoices.search_items") }}';
+    const ITEM_HDR    = '<div class="sticky top-0 bg-gray-700 px-3 py-1.5 text-xs text-gray-300 font-semibold border-b border-gray-600">Select an item</div>';
     let itemDebounce;
-    const ITEM_HEADER = '<div class="sticky top-0 bg-gray-700 px-3 py-1.5 text-xs text-gray-300 font-semibold border-b border-gray-600">Select an item</div>';
 
-    itemSearch.addEventListener('input', function() {
+    partInput.addEventListener('input', function() {
         clearTimeout(itemDebounce);
         const q = this.value.trim();
-        if (q.length < 1) { itemDrop.classList.add('hidden'); return; }
+        if (q.length < 1) { partDrop.classList.add('hidden'); return; }
         itemDebounce = setTimeout(async () => {
             try {
                 const res   = await fetch(`${ITEM_URL}?q=${encodeURIComponent(q)}`);
                 const items = await res.json();
-                if (!items.length) {
-                    itemDrop.innerHTML = ITEM_HEADER + '<div class="px-4 py-3 text-gray-400 text-xs">No items found</div>';
-                } else {
-                    itemDrop.innerHTML = ITEM_HEADER + items.map(i =>
-                        `<div class="item-o px-4 py-2 hover:bg-blue-600 hover:text-white cursor-pointer text-white border-b border-gray-700 transition-colors"
-                              data-code="${(i.item_code || '').replace(/"/g, '&quot;')}"
-                              data-desc="${(i.item_description || '').replace(/"/g, '&quot;')}"
-                              data-cat="${(i.item_category || '').replace(/"/g, '&quot;')}"
-                              data-brand="${(i.brand || '').replace(/"/g, '&quot;')}">
-                            <div class="font-semibold text-xs mb-0.5">${i.item_description || ''}</div>
-                            <div class="flex gap-2 text-xs text-gray-300">
-                                <span class="bg-gray-700 px-1.5 py-0.5 rounded">${i.brand || ''}</span>
-                                <span>${i.item_category || ''}</span>
-                                <span class="text-yellow-300 font-mono">${i.item_code || ''}</span>
+                partDrop.innerHTML = !items.length
+                    ? ITEM_HDR + '<div class="px-4 py-3 text-gray-400 text-xs">No items found</div>'
+                    : ITEM_HDR + items.map(i =>
+                        `<div class="item-o px-4 py-2 hover:bg-blue-600 cursor-pointer text-white border-b border-gray-700"
+                              data-code="${(i.item_code||'').replace(/"/g,'&quot;')}"
+                              data-desc="${(i.item_description||'').replace(/"/g,'&quot;')}">
+                            <div class="font-semibold text-xs">${i.item_description||''}</div>
+                            <div class="flex gap-2 text-xs text-gray-300 mt-0.5">
+                                <span class="bg-gray-700 px-1 rounded">${i.brand||''}</span>
+                                <span class="text-yellow-300 font-mono">${i.item_code||''}</span>
                             </div>
                         </div>`
                     ).join('');
-                    itemDrop.querySelectorAll('.item-o').forEach(o => o.addEventListener('mousedown', function(e) {
-                        e.preventDefault();
-                        itemSearch.value  = this.dataset.code;
-                        itemCodeVal.value = this.dataset.code;
-                        const particulars = tr.querySelector('.apv-particulars');
-                        if (particulars) particulars.value = this.dataset.desc;
-                        itemDrop.classList.add('hidden');
-                    }));
-                }
-                itemDrop.classList.remove('hidden');
-            } catch (err) { itemDrop.classList.add('hidden'); }
+                partDrop.querySelectorAll('.item-o').forEach(o => o.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    partInput.value = this.dataset.desc;
+                    if (itemCodeVal) itemCodeVal.value = this.dataset.code;
+                    partDrop.classList.add('hidden');
+                }));
+                positionDrop(partInput, partDrop);
+                partDrop.classList.remove('hidden');
+            } catch (err) { partDrop.classList.add('hidden'); }
         }, 250);
     });
-    itemSearch.addEventListener('blur', () => setTimeout(() => itemDrop.classList.add('hidden'), 200));
+    partInput.addEventListener('blur', () => setTimeout(() => partDrop.classList.add('hidden'), 200));
 
     reorderApvRows();
 }
@@ -626,42 +632,61 @@ function reorderApvRows() {
     apvRowCount = document.querySelectorAll('#apvItemsBody tr').length;
 }
 
+function updateDebitCredit(input) {
+    const lbl = input.closest('td').querySelector('.apv-dc-label');
+    if (!lbl) return;
+    const v = parseFloat(input.value);
+    if (isNaN(v) || v === 0) { lbl.textContent = ''; lbl.className = 'text-center text-xs mt-0.5 apv-dc-label font-semibold'; }
+    else if (v > 0) { lbl.textContent = 'DEBIT'; lbl.className = 'text-center text-xs mt-0.5 apv-dc-label font-semibold text-green-400'; }
+    else { lbl.textContent = 'CREDIT'; lbl.className = 'text-center text-xs mt-0.5 apv-dc-label font-semibold text-red-400'; }
+}
+
 function recalcApvSummary() {
     const isPhp = document.getElementById('apvCurrencySelect').value === 'PHP';
     const sym   = document.getElementById('apvCurrencySelect').selectedOptions[0]?.getAttribute('data-symbol') || '₱';
     let gross = 0, vat = 0, ewt = 0;
 
     document.querySelectorAll('#apvItemsBody tr').forEach(tr => {
-        const g  = parseFloat(tr.querySelector('.apv-gross')?.value) || 0;
-        const v  = isPhp && (tr.querySelector('.apv-vat')?.checked);
-        const tc = isPhp ? (tr.querySelector('.apv-tax-code')?.value || '') : '';
-        const iv = v ? g * 12 / 112 : 0;
+        const raw = parseFloat(tr.querySelector('.apv-gross')?.value) || 0;
+        const g   = Math.abs(raw); // use abs for VAT/EWT calc; sign determines debit/credit
+        const v   = isPhp && (tr.querySelector('.apv-vat')?.checked);
+        const tc  = isPhp ? (tr.querySelector('.apv-tax-code')?.value || '') : '';
+        const iv  = v ? g * 12 / 112 : 0;
         const net = v ? g * 100 / 112 : g;
-        gross += g;
+        gross += raw; // signed total
         vat   += iv;
-        ewt   += net * (tc === '158' ? 0.01 : tc === '160' ? 0.02 : 0);
+        const ewtRates = {'C158':0.01,'158':0.01,'C160':0.02,'160':0.02,'C100':0.05,'I010':0.05,'I011':0.10};
+        ewt   += net * (ewtRates[tc] || 0);
     });
 
     const netOfVat = gross - vat;
-    const fmt = (v, s) => (s || sym) + v.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmt = (v, s) => (s || sym) + Math.abs(v).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     document.getElementById('apvSumGross').textContent     = fmt(gross);
     document.getElementById('apvSumVat').textContent       = fmt(vat);
     document.getElementById('apvSumNetVat').textContent    = fmt(netOfVat);
     document.getElementById('apvSumEwt').textContent       = '(' + fmt(ewt) + ')';
-    document.getElementById('apvSumAmountDue').textContent = fmt(isPhp ? netOfVat - ewt : gross);
+    document.getElementById('apvSumAmountDue').textContent = fmt(isPhp ? gross - ewt : gross);
 }
 
-// ── Vendor Search Dropdown ────────────────────────────────────────────────────
+// ── Service PO Toggle ─────────────────────────────────────────────────────────
+window.apvIsService = false;
+function toggleServiceMode(isService) {
+    window.apvIsService = isService;
+    document.querySelectorAll('.apv-item-code-th, .apv-item-code-td').forEach(el => {
+        el.style.display = isService ? 'none' : '';
+    });
+}
+
+// ── Vendor Name Search Typeahead ──────────────────────────────────────────────
 (function() {
-    const VENDOR_URL  = '{{ route("accounts_payable_invoices.search_vendors") }}';
-    const searchInput = document.getElementById('supplier_search_input');
-    const dropdown    = document.getElementById('supplier_search_dropdown');
+    const VENDOR_URL = '{{ route("accounts_payable_invoices.search_vendors") }}';
+    const input      = document.getElementById('vendor_name');
+    const dropdown   = document.getElementById('vendor_name_dropdown');
     let debounce;
+    if (!input || !dropdown) return;
 
-    if (!searchInput) return;
-
-    searchInput.addEventListener('input', function() {
+    input.addEventListener('input', function() {
         clearTimeout(debounce);
         const q = this.value.trim();
         if (q.length < 1) { dropdown.classList.add('hidden'); return; }
@@ -675,29 +700,49 @@ function recalcApvSummary() {
                     return;
                 }
                 dropdown.innerHTML = items.map(s =>
-                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 supplier-opt"
-                          data-name="${(s.vendor_name || '').replace(/"/g, '&quot;')}"
-                          data-code="${(s.vendor_code || '').replace(/"/g, '&quot;')}"
-                          data-gl="${(s.gl_account || '').replace(/"/g, '&quot;')}">
+                    `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-gray-200 vnd-opt"
+                          data-name="${(s.vendor_name||'').replace(/"/g,'&quot;')}"
+                          data-code="${(s.vendor_code||'').replace(/"/g,'&quot;')}"
+                          data-address="${(s.address||'').replace(/"/g,'&quot;')}"
+                          data-tin="${(s.tin||'').replace(/"/g,'&quot;')}">
                         <span class="font-semibold">${s.vendor_name}</span>
-                        <span class="text-gray-400 ml-2 text-xs">${s.vendor_code || ''}</span>
+                        <span class="text-gray-400 ml-2 text-xs">${s.vendor_code||''}</span>
+                        ${s.tin ? `<span class="text-gray-500 ml-2 text-xs">TIN: ${s.tin}</span>` : ''}
                     </div>`
                 ).join('');
                 dropdown.classList.remove('hidden');
-                dropdown.querySelectorAll('.supplier-opt').forEach(opt => {
+                dropdown.querySelectorAll('.vnd-opt').forEach(opt => {
                     opt.addEventListener('mousedown', function(e) {
                         e.preventDefault();
-                        document.getElementById('vendor_name').value = this.dataset.name;
-                        document.getElementById('vendor_code').value = this.dataset.code;
-                        searchInput.value = this.dataset.name;
+                        input.value = this.dataset.name;
+                        document.getElementById('vendor_code').value    = this.dataset.code;
+                        document.getElementById('vendor_address').value = this.dataset.address || '';
+                        document.getElementById('vendor_tin').value     = this.dataset.tin || '';
                         dropdown.classList.add('hidden');
                     });
                 });
-            } catch (e) { dropdown.classList.add('hidden'); }
+            } catch(e) { dropdown.classList.add('hidden'); }
         }, 250);
     });
-
-    searchInput.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 200));
+    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 200));
 })();
 </script>
+
+<datalist id="dept-list">
+    <option>Accounting</option><option>Administration</option><option>Credit &amp; Collection</option>
+    <option>Delivery</option><option>Executive</option><option>Finance</option>
+    <option>Finance &amp; Accounting</option><option>HR &amp; Administration</option>
+    <option>Information System</option><option>Procurement</option><option>Purchasing</option>
+    <option>Sales</option><option>Supply Chain</option><option>Treasury</option><option>Warehouse</option>
+</datalist>
+<datalist id="div-list">
+    <option>Accounting</option><option>Benefits</option><option>Category</option><option>CFO</option>
+    <option>Credit &amp; Collection</option><option>Customer Service</option><option>Delivery</option>
+    <option>Employee Relations</option><option>Finance Management</option><option>General Administration</option>
+    <option>General Manager</option><option>Imports</option><option>IT Operations</option>
+    <option>Logistics</option><option>Procurement Approver</option><option>Purchasing</option>
+    <option>Quality Assurance</option><option>Recruitment</option><option>Sales</option>
+    <option>Trade Local/Imports</option><option>Training and Development</option>
+    <option>Treasury Operations</option><option>Vice President</option><option>Warehouse Operations</option>
+</datalist>
 @endsection

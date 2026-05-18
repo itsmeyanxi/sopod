@@ -40,36 +40,27 @@
             @csrf
             @method('PUT')
 
+            <input type="hidden" name="company" value="{{ old('company', $purchaseRequest->company) }}">
+
             @if(!isset($notesOnly) || !$notesOnly)
-            <!-- Company Selection -->
-            <div class="mb-6">
-                <label class="block font-semibold text-gray-300 mb-2">COMPANY: <span class="text-red-700">*</span></label>
-                <select name="company" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                    <option value="">-- Select Company --</option>
-                    @foreach($companies as $company)
-                        <option value="{{ $company }}" {{ old('company', $purchaseRequest->company) == $company ? 'selected' : '' }}>
-                            {{ $company }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
 
             <!-- Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Left Column -->
                 <div class="space-y-4">
-                    <div>
+                    <div class="relative">
                         <label class="block font-semibold text-gray-300 mb-1">REQUISITIONER: <span class="text-red-700">*</span></label>
-                        <input type="text" name="requisitioner" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('requisitioner', $purchaseRequest->requisitioner) }}" required>
+                        <input type="text" id="requisitioner_input" autocomplete="off"
+                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            value="{{ old('requisitioner', $purchaseRequest->requisitioner) }}" placeholder="Search employee name..." required>
+                        <input type="hidden" name="requisitioner" id="requisitioner_value" value="{{ old('requisitioner', $purchaseRequest->requisitioner) }}">
+                        <div id="requisitioner_dropdown" class="absolute z-50 w-full bg-gray-800 border border-gray-600 rounded mt-1 shadow-lg hidden max-h-48 overflow-y-auto"></div>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">DEPARTMENT:</label>
-                        <select name="department" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
-                            <option value="">-- Select Department --</option>
-                            @foreach(['Accounting', 'Admin', 'Commissary', 'Engineering', 'Finance', 'HR', 'IT', 'Logistics', 'Marketing', 'Operations', 'Procurement', 'Production', 'QA/QC', 'Sales', 'Warehouse'] as $dept)
-                                <option value="{{ $dept }}" {{ old('department', $purchaseRequest->department) == $dept ? 'selected' : '' }}>{{ $dept }}</option>
-                            @endforeach
-                        </select>
+                        <input type="text" name="department" id="department_input" autocomplete="off"
+                            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            value="{{ old('department', $purchaseRequest->department) }}" placeholder="Auto-filled or type manually">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">TERMS:</label>
@@ -127,7 +118,13 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">CHARGE TO:</label>
-                        <input type="text" name="charge_to" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('charge_to', $purchaseRequest->charge_to) }}">
+                        <div class="relative">
+                            <input type="text" id="charge_to_search" autocomplete="off"
+                                class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="Search cost center..." value="{{ old('charge_to', $purchaseRequest->charge_to) }}">
+                            <input type="hidden" name="charge_to" id="charge_to_value" value="{{ old('charge_to', $purchaseRequest->charge_to) }}">
+                            <div id="charge_to_dropdown" class="hidden absolute z-30 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto" style="top:100%"></div>
+                        </div>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-1">CONTACT NUMBER:</label>
@@ -164,7 +161,6 @@
                                 <th class="border border-gray-700 px-2 py-2" style="width:110px">UNIT PRICE</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:100px">AMOUNT</th>
                                 <th class="border border-gray-700 px-2 py-2" style="width:160px">REMARKS/SPECIFICATIONS</th>
-                                <th class="border border-gray-700 px-2 py-2" style="width:140px">NOTE</th>
                             </tr>
                         </thead>
                         <tbody id="itemsBody" class="bg-gray-800 text-gray-300 divide-y divide-gray-700">
@@ -206,7 +202,6 @@
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" value="{{ $item->unit_price }}"></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][amount]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-amount" value="{{ $item->amount }}" readonly></td>
                                 <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][remarks]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->remarks }}"></td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->note }}"></td>
                                 @endif
                             </tr>
                             @endforeach
@@ -276,9 +271,33 @@
 
 <script>
 let rowCount = {{ $purchaseRequest->items->count() }};
-const SUPPLIER_SEARCH_URL = '{{ route("purchase_requests.search_suppliers") }}';
-const SEARCH_URL = '{{ route("items.search") }}';
-const ITEM_CODE_SEARCH_URL = '{{ route("purchase_orders.search_by_item_code") }}';
+const SUPPLIER_SEARCH_URL    = '{{ route("purchase_requests.search_suppliers") }}';
+const SEARCH_URL             = '{{ route("items.search") }}';
+const ITEM_CODE_SEARCH_URL   = '{{ route("purchase_orders.search_by_item_code") }}';
+const COST_CENTER_SEARCH_URL = '{{ route("purchase_requests.search_cost_centers") }}';
+
+(function() {
+    const input = document.getElementById('charge_to_search');
+    const hidden = document.getElementById('charge_to_value');
+    const dd = document.getElementById('charge_to_dropdown');
+    let timer;
+    input.addEventListener('input', function() {
+        hidden.value = this.value;
+        clearTimeout(timer);
+        if (!this.value.trim()) { dd.classList.add('hidden'); return; }
+        timer = setTimeout(async () => {
+            const res = await fetch(`${COST_CENTER_SEARCH_URL}?q=${encodeURIComponent(this.value)}`);
+            const data = await res.json();
+            if (!data.length) { dd.classList.add('hidden'); return; }
+            dd.innerHTML = data.map(c => `<div class="px-3 py-2 hover:bg-gray-700 cursor-pointer text-sm text-white cc-opt" data-name="${c.cost_center_name}"><span class="font-semibold">${c.cost_center_name}</span> <span class="text-gray-400 text-xs">${c.cost_center_code}</span></div>`).join('');
+            dd.classList.remove('hidden');
+            dd.querySelectorAll('.cc-opt').forEach(o => o.addEventListener('mousedown', function(e) {
+                e.preventDefault(); input.value = this.dataset.name; hidden.value = this.dataset.name; dd.classList.add('hidden');
+            }));
+        }, 250);
+    });
+    input.addEventListener('blur', () => setTimeout(() => dd.classList.add('hidden'), 200));
+})();
 const GENERATE_ITEM_CODE_URL = '{{ route("purchase_orders.generate_item_code") }}';
 
 function addRow() {
@@ -302,7 +321,6 @@ function addRow() {
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price"></td>
         <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[${rowCount}][amount]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-amount" readonly></td>
         <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][remarks]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
-        <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[${rowCount}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white"></td>
     `;
     rowCount++;
     attachCalculationListeners();
@@ -442,11 +460,8 @@ function attachDescAutocomplete(input) {
                         const row = input.closest('tr');
                         if (!row) return;
                         const itemCodeInput = row.querySelector('.item-code-input');
-                        if (this.dataset.itemCode && itemCodeInput) {
-                            itemCodeInput.value = this.dataset.itemCode;
-                        } else if (itemCodeInput) {
-                            itemCodeInput.value = '';
-                            autoGenerateItemCode(row);
+                        if (itemCodeInput) {
+                            itemCodeInput.value = this.dataset.itemCode || '';
                         }
                         if (this.dataset.supplierId) {
                             const ss = row.querySelector('.supplier-search');
@@ -478,11 +493,6 @@ function attachDescAutocomplete(input) {
     input.addEventListener('focus', fetchSuggestions);
     input.addEventListener('blur', () => {
         setTimeout(() => dropdown.classList.add('hidden'), 200);
-        const row = input.closest('tr');
-        if (row) {
-            const itemCodeInput = row.querySelector('.item-code-input');
-            if (itemCodeInput && !itemCodeInput.value.trim()) autoGenerateItemCode(row);
-        }
     });
 }
 
@@ -533,6 +543,46 @@ async function autoGenerateItemCode(row) {
         if (data.item_code) itemCodeInput.value = data.item_code;
     } catch (e) { console.error('Error generating item code:', e); }
 }
+
+// ======================== REQUISITIONER AUTOCOMPLETE ========================
+(function () {
+    const SEARCH_URL = '{{ route("suppliers.vendors.employees_search") }}';
+    const input = document.getElementById('requisitioner_input');
+    const hidden = document.getElementById('requisitioner_value');
+    const dropdown = document.getElementById('requisitioner_dropdown');
+    const deptInput = document.getElementById('department_input');
+    let debounceTimer;
+
+    input.addEventListener('input', function () {
+        hidden.value = this.value;
+        clearTimeout(debounceTimer);
+        const q = this.value.trim();
+        if (q.length < 1) { dropdown.classList.add('hidden'); return; }
+        debounceTimer = setTimeout(async () => {
+            const res = await fetch(`${SEARCH_URL}?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            dropdown.innerHTML = '';
+            if (!data.length) { dropdown.classList.add('hidden'); return; }
+            data.forEach(emp => {
+                const div = document.createElement('div');
+                div.className = 'px-3 py-2 cursor-pointer hover:bg-gray-700 text-white text-sm border-b border-gray-700 last:border-0';
+                div.innerHTML = `<span class="font-semibold">${emp.vendor_name}</span><span class="text-gray-400 text-xs ml-2">${emp.department || ''}</span>`;
+                div.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    input.value = emp.vendor_name;
+                    hidden.value = emp.vendor_name;
+                    if (emp.department) deptInput.value = emp.department;
+                    dropdown.classList.add('hidden');
+                });
+                dropdown.appendChild(div);
+            });
+            dropdown.classList.remove('hidden');
+        }, 250);
+    });
+
+    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.add('hidden'), 150));
+    input.addEventListener('focus', () => { if (input.value.trim()) input.dispatchEvent(new Event('input')); });
+})();
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {

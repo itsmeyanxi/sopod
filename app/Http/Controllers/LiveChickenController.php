@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LiveChicken;
 use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class LiveChickenController extends Controller
@@ -18,6 +18,7 @@ class LiveChickenController extends Controller
             $s = $request->search;
             $query->where(function ($q) use ($s) {
                 $q->where('po_no', 'LIKE', "%{$s}%")
+                  ->orWhere('grpo_no', 'LIKE', "%{$s}%")
                   ->orWhere('supplier', 'LIKE', "%{$s}%")
                   ->orWhere('items', 'LIKE', "%{$s}%")
                   ->orWhere('delivery_week_no', 'LIKE', "%{$s}%");
@@ -51,6 +52,13 @@ class LiveChickenController extends Controller
         $validated = $request->validate([
             'date'                   => 'required|date',
             'po_no'                  => 'nullable|string|max:100',
+            'reference_number'       => 'nullable|string|max:255',
+            'items_data'             => 'nullable|string',
+            'container_no'           => 'nullable|string|max:100',
+            'pallet_no'              => 'nullable|string|max:100',
+            'storage_name'           => 'nullable|string|max:255',
+            'storage_reference_no'   => 'nullable|string|max:100',
+            'shipping_type'          => 'nullable|string|max:100',
             'supplier'               => 'required|string|max:255',
             'items'                  => 'required|string',
             'brand'                  => 'nullable|string|max:255',
@@ -69,6 +77,7 @@ class LiveChickenController extends Controller
         ]);
 
         $validated['created_by'] = auth()->id();
+        $validated['grpo_no'] = LiveChicken::generateGrpoNo();
 
         if ($request->hasFile('docs_required_file')) {
             $validated['docs_required_file'] = $request->file('docs_required_file')->store('live_chicken_docs', 'public');
@@ -78,14 +87,14 @@ class LiveChickenController extends Controller
             $validated['docs_transmitted_file'] = $request->file('docs_transmitted_file')->store('live_chicken_docs', 'public');
         }
 
-        LiveChicken::create($validated);
+        $record = LiveChicken::create($validated);
 
-        return redirect()->route('live_chickens.index')->with('success', 'Live chicken record created.');
+        return redirect()->route('live_chickens.show', $record->id)->with('success', 'GRPO record created.');
     }
 
     public function show($id)
     {
-        $record = LiveChicken::with(['creator', 'purchaseOrder.items'])->findOrFail($id);
+        $record = LiveChicken::with(['creator', 'purchaseOrder.items', 'receivedBy', 'grpoApprovedBy'])->findOrFail($id);
         return view('live_chickens.show', compact('record'));
     }
 
@@ -102,6 +111,13 @@ class LiveChickenController extends Controller
         $validated = $request->validate([
             'date'                   => 'required|date',
             'po_no'                  => 'nullable|string|max:100',
+            'reference_number'       => 'nullable|string|max:255',
+            'items_data'             => 'nullable|string',
+            'container_no'           => 'nullable|string|max:100',
+            'pallet_no'              => 'nullable|string|max:100',
+            'storage_name'           => 'nullable|string|max:255',
+            'storage_reference_no'   => 'nullable|string|max:100',
+            'shipping_type'          => 'nullable|string|max:100',
             'supplier'               => 'required|string|max:255',
             'items'                  => 'required|string',
             'brand'                  => 'nullable|string|max:255',
@@ -120,16 +136,12 @@ class LiveChickenController extends Controller
         ]);
 
         if ($request->hasFile('docs_required_file')) {
-            if ($record->docs_required_file) {
-                Storage::disk('public')->delete($record->docs_required_file);
-            }
+            if ($record->docs_required_file) Storage::disk('public')->delete($record->docs_required_file);
             $validated['docs_required_file'] = $request->file('docs_required_file')->store('live_chicken_docs', 'public');
         }
 
         if ($request->hasFile('docs_transmitted_file')) {
-            if ($record->docs_transmitted_file) {
-                Storage::disk('public')->delete($record->docs_transmitted_file);
-            }
+            if ($record->docs_transmitted_file) Storage::disk('public')->delete($record->docs_transmitted_file);
             $validated['docs_transmitted_file'] = $request->file('docs_transmitted_file')->store('live_chicken_docs', 'public');
         }
 
@@ -142,16 +154,48 @@ class LiveChickenController extends Controller
     {
         $record = LiveChicken::findOrFail($id);
 
-        if ($record->docs_required_file) {
-            Storage::disk('public')->delete($record->docs_required_file);
-        }
-        if ($record->docs_transmitted_file) {
-            Storage::disk('public')->delete($record->docs_transmitted_file);
-        }
+        if ($record->docs_required_file) Storage::disk('public')->delete($record->docs_required_file);
+        if ($record->docs_transmitted_file) Storage::disk('public')->delete($record->docs_transmitted_file);
 
         $record->delete();
 
         return redirect()->route('live_chickens.index')->with('success', 'Record deleted.');
+    }
+
+    public function receive(Request $request, $id)
+    {
+        $record = LiveChicken::findOrFail($id);
+
+        $record->update([
+            'received_by_user_id'  => Auth::id(),
+            'received_at'          => now(),
+            'received_latitude'    => $request->input('latitude'),
+            'received_longitude'   => $request->input('longitude'),
+            'received_location'    => $request->input('location'),
+        ]);
+
+        return redirect()->back()->with('success', 'Signed as Received.');
+    }
+
+    public function grpoApprove(Request $request, $id)
+    {
+        $record = LiveChicken::findOrFail($id);
+
+        $record->update([
+            'grpo_approved_by_user_id' => Auth::id(),
+            'grpo_approved_at'         => now(),
+            'grpo_approved_latitude'   => $request->input('latitude'),
+            'grpo_approved_longitude'  => $request->input('longitude'),
+            'grpo_approved_location'   => $request->input('location'),
+        ]);
+
+        return redirect()->back()->with('success', 'Signed as Approved (Warehouse Supervisor).');
+    }
+
+    public function print($id)
+    {
+        $record = LiveChicken::with(['creator', 'purchaseOrder.items', 'receivedBy', 'grpoApprovedBy'])->findOrFail($id);
+        return view('live_chickens.print', compact('record'));
     }
 
     public function searchPOs(Request $request)
@@ -167,20 +211,23 @@ class LiveChickenController extends Controller
             });
         }
 
-        $pos = $query->select('id', 'po_no', 'supplier', 'brand', 'order_date', 'lc_price')
+        $pos = $query->select('id', 'po_no', 'reference_number', 'supplier', 'brand', 'order_date', 'lc_price')
             ->limit(15)
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($po) {
                 return [
-                    'id'           => $po->id,
-                    'po_no'        => $po->po_no,
-                    'supplier'     => $po->supplier,
-                    'brand'        => $po->brand,
+                    'id'              => $po->id,
+                    'po_no'           => $po->po_no,
+                    'reference_number'=> $po->reference_number,
+                    'supplier'        => $po->supplier,
+                    'brand'        => $po->brand ?: $po->items->first()?->brand,
                     'order_date'   => $po->order_date,
                     'po_qty'       => (float) $po->items->sum('qty'),
-                    'items_desc'   => $po->items->pluck('description')->filter()->implode(', '),
+                    'items_desc'   => $po->items->pluck('description')->filter()->implode("\n"),
+                    'po_items'     => $po->items->map(fn($i) => ['description'=>$i->description,'brand'=>$i->brand,'qty'=>(float)$i->qty,'uom'=>$i->uom??'','unit_price'=>(float)$i->unit_price])->values(),
                     'price'        => (float) ($po->lc_price ?? $po->items->first()?->unit_price ?? 0),
+                    'payment_terms' => $po->payment_terms,
                 ];
             });
 
