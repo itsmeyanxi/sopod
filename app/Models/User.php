@@ -22,6 +22,7 @@ class User extends Authenticatable
         'locked_at',
         'locked_by',
         'full_aging_access',
+        'esignature',
     ];
 
     protected $hidden = [

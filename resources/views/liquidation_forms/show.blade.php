@@ -164,7 +164,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $liquidation->departmentHeadApprover->name ?? '' }}</span>
                                 @if($liquidation->departmentHeadApprover && $liquidation->department_head_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $liquidation->departmentHeadApprover])<br>
                                         {{ $liquidation->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($liquidation->department_head_approved_latitude && $liquidation->department_head_approved_longitude)
                                             <br>Coords: {{ $liquidation->department_head_approved_latitude }}, {{ $liquidation->department_head_approved_longitude }}
@@ -179,7 +179,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $liquidation->executiveApprover->name ?? '' }}</span>
                                 @if($liquidation->executiveApprover && $liquidation->executive_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $liquidation->executiveApprover])<br>
                                         {{ $liquidation->executive_approved_at->format('d M Y | H:i') }}
                                         @if($liquidation->executive_approved_latitude && $liquidation->executive_approved_longitude)
                                             <br>Coords: {{ $liquidation->executive_approved_latitude }}, {{ $liquidation->executive_approved_longitude }}

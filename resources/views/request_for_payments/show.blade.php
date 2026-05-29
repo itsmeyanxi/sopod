@@ -181,7 +181,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $rfp->departmentHeadApprover->name ?? '' }}</span>
                                 @if($rfp->departmentHeadApprover && $rfp->department_head_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $rfp->departmentHeadApprover])<br>
                                         {{ $rfp->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($rfp->department_head_approved_latitude && $rfp->department_head_approved_longitude)
                                             <br>Coords: {{ $rfp->department_head_approved_latitude }}, {{ $rfp->department_head_approved_longitude }}
@@ -196,7 +196,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $rfp->accountingApprover->name ?? '' }}</span>
                                 @if($rfp->accountingApprover && $rfp->accounting_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $rfp->accountingApprover])<br>
                                         {{ $rfp->accounting_approved_at->format('d M Y | H:i') }}
                                         @if($rfp->accounting_approved_latitude && $rfp->accounting_approved_longitude)
                                             <br>Coords: {{ $rfp->accounting_approved_latitude }}, {{ $rfp->accounting_approved_longitude }}
@@ -211,7 +211,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $rfp->approver->name ?? '' }}</span>
                                 @if($rfp->approver && $rfp->approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $rfp->approver])<br>
                                         {{ $rfp->approved_at->format('d M Y | H:i') }}
                                         @if($rfp->approved_latitude && $rfp->approved_longitude)
                                             <br>Coords: {{ $rfp->approved_latitude }}, {{ $rfp->approved_longitude }}

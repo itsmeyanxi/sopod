@@ -284,7 +284,9 @@ class UserController extends Controller
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $user->id,
-                'password' => 'nullable|min:6|confirmed',
+                'password' => 'nullable|min:6',
+                'password_confirmation' => 'nullable|same:password',
+                'esignature' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             ]);
 
             $user->name = $request->name;
@@ -294,6 +296,13 @@ class UserController extends Controller
             if ($request->filled('password')) {
                 $user->password = Hash::make($request->password);
                 $passwordChanged = true;
+            }
+
+            if ($request->hasFile('esignature')) {
+                if ($user->esignature) {
+                    \Storage::disk('public')->delete($user->esignature);
+                }
+                $user->esignature = $request->file('esignature')->store('esignatures', 'public');
             }
 
             $user->save();

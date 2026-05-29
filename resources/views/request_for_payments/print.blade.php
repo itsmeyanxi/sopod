@@ -473,7 +473,7 @@
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $rfp->creator->name ?? '' }}</div>
                 @if($rfp->creator && $rfp->created_at)
-                    <div class="e-signature">Digitally Signed</div>
+                    <div class="e-signature">@include('partials.esignature', ['signer' => $rfp->creator])</div>
                     <div class="e-signature-detail">Date/Time: {{ $rfp->created_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                 @endif
             </div>
@@ -482,7 +482,7 @@
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $rfp->departmentHeadApprover->name ?? '' }}</div>
                 @if($rfp->departmentHeadApprover && $rfp->department_head_approved_at)
-                    <div class="e-signature">Digitally Signed</div>
+                    <div class="e-signature">@include('partials.esignature', ['signer' => $rfp->departmentHeadApprover])</div>
                     <div class="e-signature-detail">Date/Time: {{ $rfp->department_head_approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                     @if($rfp->department_head_approved_latitude && $rfp->department_head_approved_longitude)
                         <div class="e-signature-detail">Coords: {{ $rfp->department_head_approved_latitude }}, {{ $rfp->department_head_approved_longitude }}@if($rfp->department_head_approved_location) ({{ $rfp->department_head_approved_location }})@endif</div>
@@ -494,7 +494,7 @@
                 <div class="sig-line"></div>
                 <div class="sig-name">{{ $rfp->accountingApprover->name ?? '' }}</div>
                 @if($rfp->accountingApprover && $rfp->accounting_approved_at)
-                    <div class="e-signature">Digitally Signed</div>
+                    <div class="e-signature">@include('partials.esignature', ['signer' => $rfp->accountingApprover])</div>
                     <div class="e-signature-detail">Date/Time: {{ $rfp->accounting_approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                     @if($rfp->accounting_approved_latitude && $rfp->accounting_approved_longitude)
                         <div class="e-signature-detail">Coords: {{ $rfp->accounting_approved_latitude }}, {{ $rfp->accounting_approved_longitude }}@if($rfp->accounting_approved_location) ({{ $rfp->accounting_approved_location }})@endif</div>
@@ -512,7 +512,7 @@
                     <div class="approval-line"></div>
                     <div class="approval-name">{{ $rfp->approver->name ?? '' }}</div>
                     @if($rfp->approver && $rfp->approved_at)
-                        <div class="approval-e-signature">Digitally Signed</div>
+                        <div class="approval-e-signature">@include('partials.esignature', ['signer' => $rfp->approver])</div>
                         <div class="approval-e-signature-detail">Date/Time: {{ $rfp->approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                         @if($rfp->approved_latitude && $rfp->approved_longitude)
                             <div class="approval-e-signature-detail">Coords: {{ $rfp->approved_latitude }}, {{ $rfp->approved_longitude }}@if($rfp->approved_location) ({{ $rfp->approved_location }})@endif</div>

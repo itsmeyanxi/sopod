@@ -16,7 +16,7 @@
         </div>
     @endif
 
-    <form action="{{ route('profile.update') }}" method="POST">
+    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -79,6 +79,18 @@
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm mb-1">E-Signature</label>
+            @if(auth()->user()->esignature)
+                <div class="mb-2 p-2 bg-white rounded inline-block">
+                    <img src="{{ asset('storage/' . auth()->user()->esignature) }}" alt="E-Signature" class="h-16">
+                </div>
+            @endif
+            <input type="file" name="esignature" accept="image/*"
+                   class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-blue-500">
+            <small class="text-gray-300 text-xs">Upload a PNG/JPG image of your signature (transparent background recommended)</small>
         </div>
 
         <div class="flex justify-end space-x-3 mt-6">

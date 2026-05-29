@@ -117,7 +117,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $car->departmentHeadApprover->name ?? '' }}</span>
                                 @if($car->departmentHeadApprover && $car->department_head_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $car->departmentHeadApprover])<br>
                                         {{ $car->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($car->department_head_approved_latitude && $car->department_head_approved_longitude)
                                             <br>Coords: {{ $car->department_head_approved_latitude }}, {{ $car->department_head_approved_longitude }}
@@ -132,7 +132,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $car->approver->name ?? '' }}</span>
                                 @if($car->approver && $car->approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $car->approver])<br>
                                         {{ $car->approved_at->format('d M Y | H:i') }}
                                         @if($car->approved_latitude && $car->approved_longitude)
                                             <br>Coords: {{ $car->approved_latitude }}, {{ $car->approved_longitude }}

@@ -239,7 +239,7 @@
             <div class="sig-subtitle">Department Head Signature over Printed Name</div>
             @if($car->dhApprover && $car->dh_approved_at)
             <div class="sig-detail">
-                Digitally Signed &middot; {{ $car->dh_approved_at->format('d M Y | H:i') }}
+                @include('partials.esignature', ['signer' => $car->dhApprover]) &middot; {{ $car->dh_approved_at->format('d M Y | H:i') }}
                 @if($car->dh_approved_location) &middot; {{ $car->dh_approved_location }} @endif
             </div>
             @endif
@@ -252,7 +252,7 @@
             <div class="sig-subtitle">Signature over Printed Name</div>
             @if($car->executiveApprover && $car->executive_approved_at)
             <div class="sig-detail">
-                Digitally Signed &middot; {{ $car->executive_approved_at->format('d M Y | H:i') }}
+                @include('partials.esignature', ['signer' => $car->executiveApprover]) &middot; {{ $car->executive_approved_at->format('d M Y | H:i') }}
                 @if($car->executive_approved_location) &middot; {{ $car->executive_approved_location }} @endif
             </div>
             @endif
@@ -274,7 +274,7 @@
             <div class="sig-subtitle">Signature over Printed Name</div>
             @if($car->creator && $car->created_at)
             <div class="sig-detail">
-                Digitally Signed &middot; {{ $car->created_at->format('d M Y | H:i') }}
+                @include('partials.esignature', ['signer' => $car->creator]) &middot; {{ $car->created_at->format('d M Y | H:i') }}
             </div>
             @endif
         </div>

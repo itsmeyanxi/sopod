@@ -132,7 +132,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $reimbursement->departmentHeadApprover->name ?? '' }}</span>
                                 @if($reimbursement->departmentHeadApprover && $reimbursement->department_head_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $reimbursement->departmentHeadApprover])<br>
                                         {{ $reimbursement->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($reimbursement->department_head_approved_latitude && $reimbursement->department_head_approved_longitude)
                                             <br>Coords: {{ $reimbursement->department_head_approved_latitude }}, {{ $reimbursement->department_head_approved_longitude }}
@@ -147,7 +147,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $reimbursement->executiveApprover->name ?? '' }}</span>
                                 @if($reimbursement->executiveApprover && $reimbursement->executive_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $reimbursement->executiveApprover])<br>
                                         {{ $reimbursement->executive_approved_at->format('d M Y | H:i') }}
                                         @if($reimbursement->executive_approved_latitude && $reimbursement->executive_approved_longitude)
                                             <br>Coords: {{ $reimbursement->executive_approved_latitude }}, {{ $reimbursement->executive_approved_longitude }}

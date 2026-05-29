@@ -195,14 +195,14 @@
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->creator->name ?? ($checkVoucher->prepared_by ?? '') }}</div>
                         @if($checkVoucher->creator && $checkVoucher->created_at)
-                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $checkVoucher->creator])</div>
                             <div class="e-signature-detail">Date/Time: {{ $checkVoucher->created_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                         @endif
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->accountingReviewer->name ?? ($checkVoucher->reviewed_by ?? '') }}</div>
                         @if($checkVoucher->accountingReviewer && $checkVoucher->accounting_reviewed_at)
-                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $checkVoucher->accountingReviewer])</div>
                             <div class="e-signature-detail">Date/Time: {{ $checkVoucher->accounting_reviewed_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                             @if($checkVoucher->accounting_reviewed_latitude && $checkVoucher->accounting_reviewed_longitude)
                                 <div class="e-signature-detail">Coords: {{ $checkVoucher->accounting_reviewed_latitude }}, {{ $checkVoucher->accounting_reviewed_longitude }}@if($checkVoucher->accounting_reviewed_location) ({{ $checkVoucher->accounting_reviewed_location }})@endif</div>
@@ -212,7 +212,7 @@
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->approvalUser->name ?? ($checkVoucher->approved_by ?? '') }}</div>
                         @if($checkVoucher->approvalUser && $checkVoucher->approval_date)
-                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $checkVoucher->approvalUser])</div>
                             <div class="e-signature-detail">Date/Time: {{ $checkVoucher->approval_date->format('d F Y | H:i') }} PHT (UTC+8)</div>
                             @if($checkVoucher->approved_latitude && $checkVoucher->approved_longitude)
                                 <div class="e-signature-detail">Coords: {{ $checkVoucher->approved_latitude }}, {{ $checkVoucher->approved_longitude }}@if($checkVoucher->approved_location) ({{ $checkVoucher->approved_location }})@endif</div>

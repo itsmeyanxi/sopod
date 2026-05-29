@@ -192,7 +192,7 @@
                         <p class="text-xs text-gray-300">Reviewed By (Dept Head)</p>
                         @if($invoice->departmentHeadApprover && $invoice->department_head_approved_at)
                             <p class="text-xs text-gray-300 italic mt-1">
-                                Digitally Signed<br>
+                                @include('partials.esignature', ['signer' => $invoice->departmentHeadApprover])<br>
                                 {{ $invoice->department_head_approved_at->format('d M Y | H:i') }}
                                 @if($invoice->department_head_approved_latitude && $invoice->department_head_approved_longitude)
                                     <br>Coords: {{ $invoice->department_head_approved_latitude }}, {{ $invoice->department_head_approved_longitude }}
@@ -201,21 +201,39 @@
                             </p>
                         @endif
                     </div>
-                    <div class="text-center">
-                        <div class="border-b-2 border-black h-16 mb-2"></div>
-                        <p class="font-semibold">{{ $invoice->approver->name ?? ($invoice->approved_by ?? '___________________') }}</p>
-                        <p class="text-xs text-gray-300">Approved By (Accounting Manager)</p>
-                        @if($invoice->approver && $invoice->approved_at)
-                            <p class="text-xs text-gray-300 italic mt-1">
-                                Digitally Signed<br>
-                                {{ $invoice->approved_at->format('d M Y | H:i') }}
-                                @if($invoice->approved_latitude && $invoice->approved_longitude)
-                                    <br>Coords: {{ $invoice->approved_latitude }}, {{ $invoice->approved_longitude }}
-                                    @if($invoice->approved_location) ({{ $invoice->approved_location }}) @endif
-                                @endif
-                            </p>
+                   <div class="text-center">
+                    <div class="border-b-2 border-black h-16 mb-2 flex items-center justify-center">
+                        @if($invoice->approver && $invoice->approver->esignature)
+                            <img 
+                                src="{{ asset('storage/' . $invoice->approver->esignature) }}" 
+                                alt="E-Signature" 
+                                class="h-14 object-contain"
+                            >
                         @endif
                     </div>
+
+                    <p class="font-semibold">
+                        {{ $invoice->approver->name ?? ($invoice->approved_by ?? '___________________') }}
+                    </p>
+                    <p class="text-xs text-gray-300">Approved By (Accounting Manager)</p>
+
+                    @if($invoice->approver && $invoice->approved_at)
+                        <p class="text-xs text-gray-300 italic mt-1">
+                            
+                            {{-- Show fallback ONLY if no signature --}}
+                            @if(!$invoice->approver->esignature)
+                                @include('partials.esignature', ['signer' => $invoice->approver])<br>
+                            @endif
+
+                            {{ $invoice->approved_at->format('d M Y | H:i') }}
+
+                            @if($invoice->approved_latitude && $invoice->approved_longitude)
+                                <br>Coords: {{ $invoice->approved_latitude }}, {{ $invoice->approved_longitude }}
+                                @if($invoice->approved_location) ({{ $invoice->approved_location }}) @endif
+                            @endif
+                        </p>
+                    @endif
+                </div>
                 </div>
             </div>
 

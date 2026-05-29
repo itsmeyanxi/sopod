@@ -303,7 +303,7 @@
                         {{ $purchaseOrder->creator->name ?? '' }}
                         @if($purchaseOrder->creator && $purchaseOrder->created_at)
                             <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
-                                Digitally Signed<br>
+                                @include('partials.esignature', ['signer' => $purchaseOrder->creator])<br>
                                 {{ $purchaseOrder->created_at->format('d M Y | H:i') }}
                             </div>
                         @endif
@@ -312,7 +312,7 @@
                         {{ $purchaseOrder->departmentHeadApprover->name ?? '' }}
                         @if($purchaseOrder->departmentHeadApprover && $purchaseOrder->department_head_approved_at)
                             <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
-                                Digitally Signed<br>
+                                @include('partials.esignature', ['signer' => $purchaseOrder->departmentHeadApprover])<br>
                                 {{ $purchaseOrder->department_head_approved_at->format('d M Y | H:i') }}
                                 @if($purchaseOrder->department_head_approved_latitude && $purchaseOrder->department_head_approved_longitude)
                                     <br>Coords: {{ $purchaseOrder->department_head_approved_latitude }}, {{ $purchaseOrder->department_head_approved_longitude }}
@@ -325,7 +325,7 @@
                         {{ $purchaseOrder->managementApprover->name ?? '' }}
                         @if($purchaseOrder->managementApprover && $purchaseOrder->management_approved_at)
                             <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
-                                Digitally Signed<br>
+                                @include('partials.esignature', ['signer' => $purchaseOrder->managementApprover])<br>
                                 {{ $purchaseOrder->management_approved_at->format('d M Y | H:i') }}
                                 @if($purchaseOrder->management_approved_latitude && $purchaseOrder->management_approved_longitude)
                                     <br>Coords: {{ $purchaseOrder->management_approved_latitude }}, {{ $purchaseOrder->management_approved_longitude }}
@@ -339,7 +339,7 @@
                         {{ $purchaseOrder->approver->name ?? '' }}
                         @if($purchaseOrder->approver && $purchaseOrder->approved_at)
                             <div style="font-size: 7px; font-weight: normal; color: #666; font-style: italic; margin-top: 2px;">
-                                Digitally Signed<br>
+                                @include('partials.esignature', ['signer' => $purchaseOrder->approver])<br>
                                 {{ $purchaseOrder->approved_at->format('d M Y | H:i') }}
                                 @if($purchaseOrder->approved_latitude && $purchaseOrder->approved_longitude)
                                     <br>Coords: {{ $purchaseOrder->approved_latitude }}, {{ $purchaseOrder->approved_longitude }}

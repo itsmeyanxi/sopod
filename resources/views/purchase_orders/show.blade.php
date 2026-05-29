@@ -417,7 +417,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $purchaseOrder->departmentHeadApprover->name ?? '' }}</span>
                                 @if($purchaseOrder->departmentHeadApprover && $purchaseOrder->department_head_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $purchaseOrder->departmentHeadApprover])<br>
                                         {{ $purchaseOrder->department_head_approved_at->format('d M Y | H:i') }}
                                         @if($purchaseOrder->department_head_approved_latitude && $purchaseOrder->department_head_approved_longitude)
                                             <br>Coords: {{ $purchaseOrder->department_head_approved_latitude }}, {{ $purchaseOrder->department_head_approved_longitude }}
@@ -430,7 +430,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $purchaseOrder->managementApprover->name ?? '' }}</span>
                                 @if($purchaseOrder->managementApprover && $purchaseOrder->management_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $purchaseOrder->managementApprover])<br>
                                         {{ $purchaseOrder->management_approved_at->format('d M Y | H:i') }}
                                         @if($purchaseOrder->management_approved_latitude && $purchaseOrder->management_approved_longitude)
                                             <br>Coords: {{ $purchaseOrder->management_approved_latitude }}, {{ $purchaseOrder->management_approved_longitude }}
@@ -444,7 +444,7 @@
                                 <span class="text-white font-semibold text-sm">{{ $purchaseOrder->approver->name ?? '' }}</span>
                                 @if($purchaseOrder->approver && $purchaseOrder->approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        Digitally Signed<br>
+                                        @include('partials.esignature', ['signer' => $purchaseOrder->approver])<br>
                                         {{ $purchaseOrder->approved_at->format('d M Y | H:i') }}
                                         @if($purchaseOrder->approved_latitude && $purchaseOrder->approved_longitude)
                                             <br>Coords: {{ $purchaseOrder->approved_latitude }}, {{ $purchaseOrder->approved_longitude }}

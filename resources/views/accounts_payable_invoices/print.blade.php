@@ -198,14 +198,14 @@
                     <td>
                         <div class="sig-name">{{ $apv->creator->name ?? '' }}</div>
                         @if($apv->creator && $apv->created_at)
-                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $apv->creator])</div>
                             <div class="e-signature-detail">Date/Time: {{ $apv->created_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                         @endif
                     </td>
                     <td>
                         <div class="sig-name">{{ $apv->departmentHeadApprover->name ?? '' }}</div>
                         @if($apv->departmentHeadApprover && $apv->department_head_approved_at)
-                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $apv->departmentHeadApprover])</div>
                             <div class="e-signature-detail">Date/Time: {{ $apv->department_head_approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                             @if($apv->department_head_approved_latitude && $apv->department_head_approved_longitude)
                                 <div class="e-signature-detail">Coords: {{ $apv->department_head_approved_latitude }}, {{ $apv->department_head_approved_longitude }}@if($apv->department_head_approved_location) ({{ $apv->department_head_approved_location }})@endif</div>
@@ -215,7 +215,7 @@
                     <td>
                         <div class="sig-name">{{ $apv->approver->name ?? '' }}</div>
                         @if($apv->approver && $apv->approved_at)
-                            <div class="e-signature">Digitally Signed</div>
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $apv->approver])</div>
                             <div class="e-signature-detail">Date/Time: {{ $apv->approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
                             @if($apv->approved_latitude && $apv->approved_longitude)
                                 <div class="e-signature-detail">Coords: {{ $apv->approved_latitude }}, {{ $apv->approved_longitude }}@if($apv->approved_location) ({{ $apv->approved_location }})@endif</div>
