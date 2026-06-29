@@ -282,6 +282,8 @@ class UserController extends Controller
             ]);
             $user->name  = $request->name;
             $user->email = $request->email;
+
+
             $user->save();
             return redirect()->route('profile')->with('success', 'Profile info updated!');
         } catch (\Exception $e) {

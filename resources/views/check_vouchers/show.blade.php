@@ -191,11 +191,27 @@
             <div class="grid grid-cols-3 gap-8 mb-6 text-sm">
                 <div class="text-center">
                     <p class="mb-8">Prepared by:</p>
-                    <p class="font-bold border-t border-black pt-1">&nbsp;</p>
+                    <p class="font-bold border-t border-black pt-1">{{ $voucher->creator->name ?? ($voucher->prepared_by ?? '___________________') }}</p>
+                    @if($voucher->creator && $voucher->created_at)
+                        <p class="text-xs text-gray-300 italic mt-1">
+                            @include('partials.esignature', ['signer' => $voucher->creator])<br>
+                            {{ $voucher->created_at->format('d M Y | H:i') }}
+                        </p>
+                    @endif
                 </div>
                 <div class="text-center">
                     <p class="mb-8">Reviewed by:</p>
-                    <p class="font-bold border-t border-black pt-1">&nbsp;</p>
+                    <p class="font-bold border-t border-black pt-1">{{ $voucher->accountingReviewer->name ?? ($voucher->reviewed_by ?? '___________________') }}</p>
+                    @if($voucher->accountingReviewer && $voucher->accounting_reviewed_at)
+                        <p class="text-xs text-gray-300 italic mt-1">
+                            @include('partials.esignature', ['signer' => $voucher->accountingReviewer])<br>
+                            {{ $voucher->accounting_reviewed_at->format('d M Y | H:i') }}
+                            @if($voucher->accounting_reviewed_latitude && $voucher->accounting_reviewed_longitude)
+                                <br>Coords: {{ $voucher->accounting_reviewed_latitude }}, {{ $voucher->accounting_reviewed_longitude }}
+                                @if($voucher->accounting_reviewed_location) ({{ $voucher->accounting_reviewed_location }}) @endif
+                            @endif
+                        </p>
+                    @endif
                 </div>
                 <div class="text-center">
                     <p class="mb-8">Approved by:</p>

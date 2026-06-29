@@ -273,6 +273,132 @@
                 <div class="sig-role">Accounting Supervisor</div>
             </div>
         </div>
+
+        <!-- Vendor Information -->
+        <div class="section-title">VENDOR INFORMATION</div>
+        <div class="info-grid">
+            @if($apv->vendor_code)
+                <div class="info-item"><strong>Vendor Code:</strong> {{ $apv->vendor_code }}</div>
+            @endif
+            <div class="info-item"><strong>Vendor Name:</strong> {{ $apv->vendor_name }}</div>
+            @if($apv->vendor_address)
+                <div class="info-item"><strong>Address:</strong> {{ $apv->vendor_address }}</div>
+            @endif
+            @if($apv->vendor_tin)
+                <div class="info-item"><strong>TIN:</strong> {{ $apv->vendor_tin }}</div>
+            @endif
+            <div class="info-item"><strong>Currency:</strong> {{ $apv->currency }}
+                @if($apv->forex_rate && $apv->currency !== 'PHP')
+                    (Rate: {{ number_format($apv->forex_rate, 4) }})
+                @endif
+            </div>
+            @if($apv->payment_terms)
+                <div class="info-item"><strong>Payment Terms:</strong> {{ $apv->payment_terms }}</div>
+            @endif
+        </div>
+
+        <!-- Particulars -->
+        <div class="section-title">PARTICULARS</div>
+        <div style="border: 1px solid #999; padding: 8px; min-height: 40px; font-size: 10px; margin-bottom: 12px;">
+            {{ $apv->particulars ?? '' }}
+        </div>
+
+        <!-- Amount Breakdown -->
+        <div class="section-title">AMOUNT BREAKDOWN</div>
+        <table>
+            <tbody>
+                <tr>
+                    <td style="text-align: right; font-weight: bold;">Total Amount:</td>
+                    <td class="amount" style="width: 30%;">{{ $apv->currency }} {{ number_format($apv->total, 2) }}</td>
+                </tr>
+                @if($apv->payment_type === 'downpayment' && $apv->downpayment_amount)
+                <tr>
+                    <td style="text-align: right; font-weight: bold;">Downpayment Amount:</td>
+                    <td class="amount">{{ $apv->currency }} {{ number_format($apv->downpayment_amount, 2) }}</td>
+                </tr>
+                @endif
+                <tr>
+                    <td style="text-align: right; font-weight: bold;">Total Before VAT:</td>
+                    <td class="amount">{{ $apv->currency }} {{ number_format($apv->total_before_vat, 2) }}</td>
+                </tr>
+                <tr>
+                    <td style="text-align: right; font-weight: bold;">VAT Amount:</td>
+                    <td class="amount">{{ $apv->currency }} {{ number_format($apv->vat_amount, 2) }}</td>
+                </tr>
+                <tr>
+                    <td style="text-align: right; font-weight: bold;">Total After VAT:</td>
+                    <td class="amount">{{ $apv->currency }} {{ number_format($apv->total_after_vat, 2) }}</td>
+                </tr>
+                <tr>
+                    <td style="text-align: right; font-weight: bold;">Withholding Tax:</td>
+                    <td class="amount">({{ $apv->currency }} {{ number_format($apv->w_tax_amount, 2) }})</td>
+                </tr>
+                <tr style="background: #f0f0f0; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold; font-size: 12px;">GRAND TOTAL:</td>
+                    <td class="amount" style="font-size: 12px;">{{ $apv->currency }} {{ number_format($apv->grand_total, 2) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        @if($apv->remarks)
+        <div class="section-title">REMARKS</div>
+        <div style="border: 1px solid #999; padding: 8px; min-height: 25px; font-size: 10px; margin-bottom: 12px;">
+            {{ $apv->remarks }}
+        </div>
+        @endif
+
+        <!-- Signature Table -->
+        <table class="sig-table">
+            <thead>
+                <tr>
+                    <th style="width: 33.33%;">Prepared By:</th>
+                    <th style="width: 33.33%;">Reviewed By:</th>
+                    <th style="width: 33.33%;">Approved By:</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="sig-name">{{ $apv->creator->name ?? '' }}</div>
+                        @if($apv->creator && $apv->created_at)
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $apv->creator])</div>
+                            <div class="e-signature-detail">Date/Time: {{ $apv->created_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                        @endif
+                    </td>
+                    <td>
+                        <div class="sig-name">{{ $apv->departmentHeadApprover->name ?? '' }}</div>
+                        @if($apv->departmentHeadApprover && $apv->department_head_approved_at)
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $apv->departmentHeadApprover])</div>
+                            <div class="e-signature-detail">Date/Time: {{ $apv->department_head_approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                            @if($apv->department_head_approved_latitude && $apv->department_head_approved_longitude)
+                                <div class="e-signature-detail">Coords: {{ $apv->department_head_approved_latitude }}, {{ $apv->department_head_approved_longitude }}@if($apv->department_head_approved_location) ({{ $apv->department_head_approved_location }})@endif</div>
+                            @endif
+                        @endif
+                    </td>
+                    <td>
+                        <div class="sig-name">{{ $apv->approver->name ?? '' }}</div>
+                        @if($apv->approver && $apv->approved_at)
+                            <div class="e-signature">@include('partials.esignature', ['signer' => $apv->approver])</div>
+                            <div class="e-signature-detail">Date/Time: {{ $apv->approved_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
+                            @if($apv->approved_latitude && $apv->approved_longitude)
+                                <div class="e-signature-detail">Coords: {{ $apv->approved_latitude }}, {{ $apv->approved_longitude }}@if($apv->approved_location) ({{ $apv->approved_location }})@endif</div>
+                            @endif
+                        @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td class="sig-role">Creator</td>
+                    <td class="sig-role">Department Head</td>
+                    <td class="sig-role">Accounting Manager</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Status: {{ strtoupper($apv->status) }}</p>
+            <p>Print Date/Time: {{ now()->format('m/d/Y h:i A') }}</p>
+        </div>
     </div>
 
     <div class="footer">This document is not valid for claiming Input Tax</div>
