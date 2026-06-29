@@ -127,4 +127,38 @@ class DashboardController extends Controller
 
         return view('recent_activities.index', compact('recentActivities', 'pageTitle', 'backRoute'));
     }
+
+    public function exportEmployeeList()
+    {
+        if (!auth()->user()->isAdminUser()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $users = \App\Models\User::orderBy('name')->get(['id', 'name', 'email', 'role', 'is_locked', 'created_at']);
+
+        $filename = 'employee_list_' . now()->format('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($users) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['#', 'Name', 'Email', 'Role', 'Status', 'Date Created']);
+            foreach ($users as $index => $user) {
+                fputcsv($handle, [
+                    $index + 1,
+                    $user->name,
+                    $user->email,
+                    $user->role ?? 'N/A',
+                    $user->is_locked ? 'Locked' : 'Active',
+                    $user->created_at->format('Y-m-d'),
+                ]);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

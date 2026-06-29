@@ -670,6 +670,7 @@ Route::prefix('accounting/journal-vouchers')->name('journal_vouchers.')->middlew
     Route::match(['get', 'post'], '/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/po-dashboard', [DashboardController::class, 'poDashboard'])->name('po_dashboard');
     Route::get('/recent-activities', [DashboardController::class, 'viewAllActivities'])->name('recent_activities.index');
+    Route::get('/dashboard/export-employees', [DashboardController::class, 'exportEmployeeList'])->name('dashboard.export_employees');
 
     // In routes/web.php
     Route::get('/sales-report', [DashboardController::class, 'salesReport'])->name('sales.report');
