@@ -54,7 +54,7 @@ class SupplierReceivingReportController extends Controller
 
     public function create()
     {
-        $srrCode = $this->generateSrrCode();
+        $srrCode = 'Auto-assigned on save';
         $suppliers = Supplier::where('status', 'active')->orderBy('supplier_name')->get();
         // ✅ NEW: Fetch storages from database instead of hardcoded list
         $storages = Storage::where('status', 'active')->with('warehouse')->orderBy('storage_name')->get();
@@ -75,10 +75,9 @@ class SupplierReceivingReportController extends Controller
         DB::beginTransaction();
         try {
             $supplier = $request->supplier_id ? Supplier::find($request->supplier_id) : null;
-            $srrCode = $this->generateSrrCode();
 
             $report = SupplierReceivingReport::create([
-                'srr_code' => $srrCode,
+                'srr_code' => '',
                 'report_date' => $request->report_date,
                 'supplier_id' => $request->supplier_id,
                 'supplier_name' => $supplier?->supplier_name,
@@ -95,6 +94,8 @@ class SupplierReceivingReportController extends Controller
                 'status' => $request->has('save_final') ? 'saved' : 'draft',
                 'created_by' => Auth::id(),
             ]);
+            $report->srr_code = 'SRR-' . date('Ym') . '-' . $report->id;
+            $report->save();
 
             foreach ($request->items as $index => $item) {
                 SupplierReceivingReportItem::create([
@@ -433,22 +434,15 @@ class SupplierReceivingReportController extends Controller
 
         $poTotalQty = $items->sum('qty');
 
-        // Check if this PO is linked to a live chicken record
-        $liveChicken = LiveChicken::where('po_no', $poNo)->first();
-        $blocked = $liveChicken && (float) $liveChicken->actual_qty < (float) $poTotalQty;
-
         return response()->json([
-            'po_qty'            => $poTotalQty,
-            'lc_actual_qty'     => $liveChicken ? (float) $liveChicken->actual_qty : null,
-            'supplier_id'       => $po->supplier_id,
-            'supplier_name'     => $po->supplierModel->supplier_name ?? $po->supplier,
-            'note'              => $po->remarks,
-            'items'             => $items->values(),
-            'reference_number'  => $po->reference_number,
-            'blocked'           => $blocked,
-            'blocked_message'   => $blocked
-                ? "PO {$poNo} is blocked: Live Chicken actual qty ({$liveChicken->actual_qty}) is less than PO qty ({$poTotalQty}). Update the Live Chicken record or adjust the PO qty first."
-                : null,
+            'po_qty'           => $poTotalQty,
+            'supplier_id'      => $po->supplier_id,
+            'supplier_name'    => $po->supplierModel->supplier_name ?? $po->supplier,
+            'note'             => $po->remarks,
+            'items'            => $items->values(),
+            'reference_number' => $po->reference_number,
+            'blocked'          => false,
+            'blocked_message'  => null,
         ]);
     }
 }

@@ -31,8 +31,7 @@ class RequestForPaymentController extends Controller
      */
     public function create(Request $request)
     {
-        // Generate RFP number
-        $rfpNo = 'RFP-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        $rfpNo = 'Auto-assigned on save';
 
         // Define companies
         $companies = [
@@ -229,12 +228,8 @@ class RequestForPaymentController extends Controller
 
         DB::beginTransaction();
         try {
-            // Generate RFP number
-            $rfpNo = 'RFP-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-
-            // Create request for payment
             $rfp = RequestForPayment::create([
-                'rfp_no' => $rfpNo,
+                'rfp_no' => '',
                 'purchase_order_id' => $request->purchase_order_id ?: null,
                 'srr_id' => $request->srr_id ?: null,
                 'live_chicken_id' => $request->live_chicken_id ?: null,
@@ -256,6 +251,8 @@ class RequestForPaymentController extends Controller
                 'status' => 'pending',
                 'created_by' => Auth::id(),
             ]);
+            $rfp->rfp_no = 'RFP-' . date('Ym') . '-' . $rfp->id;
+            $rfp->save();
 
             DB::commit();
 
@@ -465,7 +462,10 @@ class RequestForPaymentController extends Controller
             return redirect()->route('request_for_payments.index')->with('error', 'Unauthorized.');
         }
 
-        $rfp = RequestForPayment::where('approval_stage', 'pending_dh')->findOrFail($id);
+        $rfp = RequestForPayment::findOrFail($id);
+        if ($rfp->approval_stage !== 'pending_dh') {
+            return redirect()->back()->with('error', 'This RFP is not awaiting Department Head approval.');
+        }
         $rfp->update([
             'approval_stage' => 'pending_accounting',
             'department_head_approved_by' => Auth::id(),
@@ -498,7 +498,10 @@ class RequestForPaymentController extends Controller
             return redirect()->route('request_for_payments.index')->with('error', 'Unauthorized.');
         }
 
-        $rfp = RequestForPayment::where('approval_stage', 'pending_accounting')->findOrFail($id);
+        $rfp = RequestForPayment::findOrFail($id);
+        if ($rfp->approval_stage !== 'pending_accounting') {
+            return redirect()->back()->with('error', 'This RFP is not awaiting Accounting approval.');
+        }
         $rfp->update([
             'approval_stage' => 'pending_executive',
             'accounting_approved_by' => Auth::id(),
@@ -531,7 +534,10 @@ class RequestForPaymentController extends Controller
             return redirect()->route('request_for_payments.index')->with('error', 'Unauthorized.');
         }
 
-        $rfp = RequestForPayment::where('approval_stage', 'pending_executive')->findOrFail($id);
+        $rfp = RequestForPayment::findOrFail($id);
+        if ($rfp->approval_stage !== 'pending_executive') {
+            return redirect()->back()->with('error', 'This RFP is not awaiting Executive approval.');
+        }
         $rfp->update([
             'status' => 'approved',
             'approval_stage' => 'approved',

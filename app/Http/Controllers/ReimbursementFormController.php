@@ -49,7 +49,7 @@ class ReimbursementFormController extends Controller
             'items' => 'required|array|min:1',
             'items.*.particulars' => 'required|string',
             'items.*.cost' => 'required|numeric|min:0',
-            'items.*.date' => 'nullable|date',
+            'items.*.date' => 'nullable|string|max:100',
             'proof_documents' => 'nullable|array',
             'proof_documents.*' => 'nullable|file|mimes:doc,docx,odf,jpg,jpeg,png,gif,bmp,webp|max:10240',
         ]);
@@ -153,7 +153,7 @@ class ReimbursementFormController extends Controller
             'items' => 'required|array|min:1',
             'items.*.particulars' => 'required|string',
             'items.*.cost' => 'required|numeric|min:0',
-            'items.*.date' => 'nullable|date',
+            'items.*.date' => 'nullable|string|max:100',
             'proof_documents' => 'nullable|array',
             'proof_documents.*' => 'nullable|file|mimes:doc,docx,odf,jpg,jpeg,png,gif,bmp,webp|max:10240',
         ]);
@@ -255,7 +255,10 @@ class ReimbursementFormController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $reimbursement = ReimbursementForm::where('approval_stage', 'pending_dh')->findOrFail($id);
+        $reimbursement = ReimbursementForm::findOrFail($id);
+        if ($reimbursement->approval_stage !== 'pending_dh') {
+            return redirect()->back()->with('error', 'This reimbursement is no longer pending DH approval (current stage: ' . $reimbursement->approval_stage . ').');
+        }
         $reimbursement->update([
             'approval_stage' => 'pending_executive',
             'dh_approved_by' => Auth::id(),
@@ -285,7 +288,10 @@ class ReimbursementFormController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $reimbursement = ReimbursementForm::where('approval_stage', 'pending_executive')->findOrFail($id);
+        $reimbursement = ReimbursementForm::findOrFail($id);
+        if ($reimbursement->approval_stage !== 'pending_executive') {
+            return redirect()->back()->with('error', 'This reimbursement is not yet ready for executive approval (current stage: ' . $reimbursement->approval_stage . ').');
+        }
         $reimbursement->update([
             'status' => 'approved',
             'approval_stage' => 'approved',

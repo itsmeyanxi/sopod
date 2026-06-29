@@ -8,7 +8,7 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-white">Accounts Receivable Dashboard</h1>
-                <p class="text-gray-400 text-sm mt-1">Last updated: {{ now()->format('M d, Y • h:i A') }}</p>
+                <p class="text-gray-300 text-sm mt-1">Last updated: {{ now()->format('M d, Y • h:i A') }}</p>
             </div>
             <div class="flex gap-3">
                 <button onclick="downloadExport('{{ route('ar_dashboard.export_summary') }}')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2" title="Download CSV summary report">
@@ -23,19 +23,19 @@
         <!-- Summary Statistics -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-red-900/40 rounded-lg p-4 border-l-4 border-red-500">
-                <p class="text-gray-300 text-sm font-semibold">Overdue Count</p>
+                <p class="text-white text-sm font-semibold">Overdue Count</p>
                 <p class="text-3xl font-bold text-red-400">{{ $overdueCount }}</p>
             </div>
             <div class="bg-red-900/40 rounded-lg p-4 border-l-4 border-red-500">
-                <p class="text-gray-300 text-sm font-semibold">Total Overdue Amount</p>
+                <p class="text-white text-sm font-semibold">Total Overdue Amount</p>
                 <p class="text-2xl font-bold text-red-400">₱{{ number_format($totalOverdue, 2) }}</p>
             </div>
             <div class="bg-yellow-900/40 rounded-lg p-4 border-l-4 border-yellow-500">
-                <p class="text-gray-300 text-sm font-semibold">Upcoming Due Count</p>
+                <p class="text-white text-sm font-semibold">Upcoming Due Count</p>
                 <p class="text-3xl font-bold text-yellow-400">{{ $upcomingCount }}</p>
             </div>
             <div class="bg-yellow-900/40 rounded-lg p-4 border-l-4 border-yellow-500">
-                <p class="text-gray-300 text-sm font-semibold">Total Upcoming Amount</p>
+                <p class="text-white text-sm font-semibold">Total Upcoming Amount</p>
                 <p class="text-2xl font-bold text-yellow-400">₱{{ number_format($totalUpcoming, 2) }}</p>
             </div>
         </div>
@@ -67,8 +67,8 @@
                                         {{ $invoice->apv_no }}
                                     </a>
                                 </td>
-                                <td class="border border-gray-700 px-4 py-2 text-gray-200">{{ $invoice->vendor_name }}</td>
-                                <td class="border border-gray-700 px-4 py-2 text-sm text-gray-300">{{ $invoice->document_date?->format('M d, Y') ?? 'N/A' }}</td>
+                                <td class="border border-gray-700 px-4 py-2 text-white">{{ $invoice->vendor_name }}</td>
+                                <td class="border border-gray-700 px-4 py-2 text-sm text-white">{{ $invoice->document_date?->format('M d, Y') ?? 'N/A' }}</td>
                                 <td class="border border-gray-700 px-4 py-2 text-sm font-semibold text-white">{{ $invoice->due_date->format('M d, Y') }}</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">
                                     <span class="bg-red-900/60 text-red-300 font-bold px-2 py-1 rounded">{{ now()->diffInDays($invoice->due_date) }}</span>
@@ -117,8 +117,8 @@
                                         {{ $invoice->apv_no }}
                                     </a>
                                 </td>
-                                <td class="border border-gray-700 px-4 py-2 text-gray-200">{{ $invoice->vendor_name }}</td>
-                                <td class="border border-gray-700 px-4 py-2 text-sm text-gray-300">{{ $invoice->document_date?->format('M d, Y') ?? 'N/A' }}</td>
+                                <td class="border border-gray-700 px-4 py-2 text-white">{{ $invoice->vendor_name }}</td>
+                                <td class="border border-gray-700 px-4 py-2 text-sm text-white">{{ $invoice->document_date?->format('M d, Y') ?? 'N/A' }}</td>
                                 <td class="border border-gray-700 px-4 py-2 text-sm font-semibold text-white">{{ $invoice->due_date->format('M d, Y') }}</td>
                                 <td class="border border-gray-700 px-4 py-2 text-center">
                                     <span class="bg-yellow-900/60 text-yellow-300 font-bold px-2 py-1 rounded">{{ $invoice->days_until_due }}</span>

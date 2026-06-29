@@ -2373,6 +2373,7 @@ Route::prefix('items')->name('items.')->group(function () {
     Route::prefix('accounts_payable_invoices')->name('accounts_payable_invoices.')->group(function () {
 
         Route::get('/ewt-register', [AccountsPayableInvoiceController::class, 'ewtRegister'])->name('ewt_register');
+        Route::get('/ewt-register/export', [AccountsPayableInvoiceController::class, 'ewtExport'])->name('ewt_export');
         Route::get('/ewt-register/{vendorName}', [AccountsPayableInvoiceController::class, 'ewtDetail'])->name('ewt_detail')->where('vendorName', '.*');
 
         // Search Vendors (AJAX — vendors table)
@@ -3207,6 +3208,20 @@ Route::middleware('auth')->prefix('live-chickens')->name('live_chickens.')->grou
         }
         return response()->json([]);
     })->name('searchPOs');
+
+    Route::get('/search-srrs', function () {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->searchSRRs(request());
+        }
+        return response()->json([]);
+    })->name('searchSRRs');
+
+    Route::get('/search-rfps', function () {
+        if (auth()->user()->canManageLiveChicken()) {
+            return app(LiveChickenController::class)->searchRFPs(request());
+        }
+        return response()->json([]);
+    })->name('searchRFPs');
 
     Route::get('/search', function () {
         $q = trim(request('q', ''));

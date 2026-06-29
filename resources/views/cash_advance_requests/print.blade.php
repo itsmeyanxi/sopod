@@ -14,7 +14,7 @@
         @media print {
             .page { padding: 15px 40px; margin: 0; width: 100%; page-break-after: avoid; }
             .no-print { display: none !important; }
-            @page { size: A4 landscape; margin: 15mm 25mm; }
+            @page { size: A4 portrait; margin: 15mm 25mm; }
         }
 
         /* Header */

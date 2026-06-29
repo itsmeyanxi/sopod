@@ -11,7 +11,7 @@ class ReimbursementFormItem extends Model
 
     protected $fillable = ['reimbursement_form_id', 'date', 'particulars', 'cost'];
 
-    protected $casts = ['date' => 'date', 'cost' => 'decimal:2'];
+    protected $casts = ['cost' => 'decimal:2'];
 
     public function reimbursementForm()
     {

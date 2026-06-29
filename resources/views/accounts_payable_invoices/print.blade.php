@@ -181,7 +181,7 @@
             <tr style="{{ $loop->even ? 'background:#f7f7f7;':'' }}">
                 <td>{{ $item->particulars }}</td>
                 <td>{{ $item->item_code }}</td>
-                <td>{{ $item->division }}</td>
+                <td>{{ $ccNames[$item->division] ?? $item->division }}</td>
                 <td>{{ $item->account_code }}</td>
                 <td class="acct-name">{{ $item->account_name }}</td>
                 <td class="amt">{{ $amt>0 ? number_format($amt,2) : '' }}</td>
@@ -201,10 +201,10 @@
             @endif
             <tr>
                 <td></td><td></td><td></td>
-                <td>{{ $apv->account_code ?? '211100004' }}</td>
-                <td class="acct-name">{{ $apv->account_name ?? 'Accounts Payable' }}</td>
+                <td>211100004</td>
+                <td class="acct-name">Accounts Payable</td>
                 <td class="amt"></td>
-                <td class="amt">{{ number_format($apv->grand_total, 2) }}</td>
+                <td class="amt">{{ number_format($apv->total_before_vat, 2) }}</td>
             </tr>
             @php $crRows = ($apv->w_tax_amount > 0 ? 1 : 0) + 1; @endphp
             @for($r=count($apv->items)+$crRows;$r<9;$r++)
@@ -238,11 +238,11 @@
             <div class="sum-row"><span class="lbl">Total Before VAT:</span><span class="val">{{ number_format($apv->total_before_vat,2) }}</span></div>
             <div class="sum-row"><span class="lbl">VAT Amount:</span><span class="val">{{ number_format($apv->vat_amount,2) }}</span></div>
             <div class="sum-row wtax"><span class="lbl">Wtax Amount:</span><span class="val">({{ number_format($apv->w_tax_amount,2) }})</span></div>
-            <div class="sum-row grand"><span class="lbl">Grand Total {{ $apv->currency !== 'PHP' ? $apv->currency : '' }}:</span><span class="val">{{ number_format($apv->grand_total,2) }}</span></div>
+            <div class="sum-row grand"><span class="lbl">Grand Total {{ $apv->currency !== 'PHP' ? $apv->currency : '' }}:</span><span class="val">{{ number_format($apv->total_before_vat,2) }}</span></div>
             @if($apv->currency !== 'PHP')
             <div class="sum-row" style="margin-top:4px;padding-top:2px;border-top:1px dashed #aaa;">
                 <span class="lbl" style="color:#0070c0;">Philippine Peso:</span>
-                <span class="val" style="color:#0070c0;font-weight:bold;">₱{{ number_format($apv->grand_total * $liveRate, 2) }}</span>
+                <span class="val" style="color:#0070c0;font-weight:bold;">₱{{ number_format($apv->total_before_vat * $liveRate, 2) }}</span>
             </div>
             @endif
         </div>
@@ -272,17 +272,6 @@
                 <div class="sig-name">{{ $apv->departmentHeadApprover->name ?? '' }}</div>
                 <div class="sig-role">Accounting Supervisor</div>
             </div>
-        </div>
-        <div class="sig-center">
-            <div class="sig-label-center">Approved by:</div>
-            <div class="sig-space">
-                @if($apv->approver)
-                    <div class="sig-stamp">@include('partials.esignature',['signer'=>$apv->approver])</div>
-                    @if($apv->approved_at)<div class="sig-stamp">{{ $apv->approved_at->format('d F Y | H:i') }}</div>@endif
-                @endif
-            </div>
-            <div class="sig-name">{{ $apv->approver->name ?? '' }}</div>
-            <div class="sig-role">Accounting Manager</div>
         </div>
     </div>
 

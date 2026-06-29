@@ -57,7 +57,7 @@
                             @foreach($reimbursement->items as $index => $item)
                                 <tr>
                                     <td class="border border-gray-700 px-2 py-2">
-                                        <input type="date" name="items[{{ $index }}][date]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('items.'.$index.'.date', $item->date ? \Carbon\Carbon::parse($item->date)->format('Y-m-d') : '') }}">
+                                        <input type="text" name="items[{{ $index }}][date]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="e.g. Jan 15, 2026" value="{{ old('items.'.$index.'.date', $item->date ?? '') }}">
                                     </td>
                                     <td class="border border-gray-700 px-2 py-2">
                                         <input type="text" name="items[{{ $index }}][particulars]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter description" value="{{ old('items.'.$index.'.particulars', $item->particulars) }}">
@@ -174,7 +174,7 @@ document.getElementById('addRowBtn').addEventListener('click', function() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
         <td class="border border-gray-700 px-2 py-2">
-            <input type="date" name="items[${rowIndex}][date]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <input type="text" name="items[${rowIndex}][date]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="e.g. Jan 15, 2026">
         </td>
         <td class="border border-gray-700 px-2 py-2">
             <input type="text" name="items[${rowIndex}][particulars]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter description">

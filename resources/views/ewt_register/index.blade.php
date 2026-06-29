@@ -28,6 +28,10 @@
         <div class="flex gap-2">
             <button class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded text-sm">Filter</button>
             <a href="{{ route('accounts_payable_invoices.ewt_register') }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500 text-sm">Clear</a>
+            <a href="{{ route('accounts_payable_invoices.ewt_export') }}?date_from={{ $dateFrom }}&date_to={{ $dateTo }}{{ $status ? '&status='.$status : '' }}"
+               class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded text-sm flex items-center gap-1">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
         </div>
     </form>
 
@@ -39,6 +43,7 @@
             <thead class="bg-orange-700 text-white uppercase text-xs">
                 <tr>
                     <th class="border border-gray-600 px-3 py-2 text-left">Vendor Name</th>
+                    <th class="border border-gray-600 px-3 py-2 text-left">Date</th>
                     <th class="border border-gray-600 px-3 py-2 text-right">Items</th>
                     <th class="border border-gray-600 px-3 py-2 text-right">Gross</th>
                     <th class="border border-gray-600 px-3 py-2 text-right">VAT (12%)</th>
@@ -56,6 +61,14 @@
                         <a href="{{ route('accounts_payable_invoices.ewt_detail', rawurlencode($name)) }}?date_from={{ $dateFrom }}&date_to={{ $dateTo }}{{ $status ? '&status='.$status : '' }}"
                            class="text-orange-400 hover:text-orange-300 font-semibold">{{ $name }}</a>
                     </td>
+                    <td class="border border-gray-700 px-3 py-2 text-gray-300 text-xs whitespace-nowrap">
+                        @if($v['earliest_date'])
+                            {{ $v['earliest_date']->format('M d, Y') }}
+                            @if($v['latest_date'] && !$v['earliest_date']->isSameDay($v['latest_date']))
+                                <br><span class="text-gray-500">–</span> {{ $v['latest_date']->format('M d, Y') }}
+                            @endif
+                        @endif
+                    </td>
                     <td class="border border-gray-700 px-3 py-2 text-right text-gray-300">{{ $v['count'] }}</td>
                     <td class="border border-gray-700 px-3 py-2 text-right">₱{{ number_format($v['gross'],2) }}</td>
                     <td class="border border-gray-700 px-3 py-2 text-right text-yellow-400">₱{{ number_format($v['vat'],2) }}</td>
@@ -67,7 +80,7 @@
             </tbody>
             <tfoot class="bg-gray-700 font-bold text-white text-sm">
                 <tr>
-                    <td class="border border-gray-600 px-3 py-2" colspan="2">TOTAL</td>
+                    <td class="border border-gray-600 px-3 py-2" colspan="3">TOTAL</td>
                     <td class="border border-gray-600 px-3 py-2 text-right">₱{{ number_format($tGross,2) }}</td>
                     <td class="border border-gray-600 px-3 py-2 text-right text-yellow-300">₱{{ number_format($tVat,2) }}</td>
                     <td class="border border-gray-600 px-3 py-2 text-right text-blue-300">₱{{ number_format($tNet,2) }}</td>

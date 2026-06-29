@@ -276,7 +276,10 @@ class LiquidationFormController extends Controller
 
     public function approveDH(Request $request, $id)
     {
-        $liquidation = LiquidationForm::where('approval_stage', 'pending_dh')->findOrFail($id);
+        $liquidation = LiquidationForm::findOrFail($id);
+        if ($liquidation->approval_stage !== 'pending_dh') {
+            return redirect()->back()->with('error', 'This Liquidation Form is not awaiting Immediate Superior approval.');
+        }
         $liquidation->update([
             'approval_stage' => 'pending_executive',
             'dh_approved_by' => Auth::id(),
@@ -301,7 +304,10 @@ class LiquidationFormController extends Controller
 
     public function approve(Request $request, $id)
     {
-        $liquidation = LiquidationForm::where('approval_stage', 'pending_executive')->findOrFail($id);
+        $liquidation = LiquidationForm::findOrFail($id);
+        if ($liquidation->approval_stage !== 'pending_executive') {
+            return redirect()->back()->with('error', 'This Liquidation Form is not awaiting Executive approval.');
+        }
         $liquidation->update([
             'status' => 'approved',
             'approval_stage' => 'approved',

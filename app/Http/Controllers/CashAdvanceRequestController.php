@@ -255,7 +255,10 @@ class CashAdvanceRequestController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $car = CashAdvanceRequest::where('approval_stage', 'pending_dh')->findOrFail($id);
+        $car = CashAdvanceRequest::findOrFail($id);
+        if ($car->approval_stage !== 'pending_dh') {
+            return redirect()->back()->with('error', 'This Cash Advance Request is not awaiting Department Head approval.');
+        }
         $car->update([
             'approval_stage' => 'pending_executive',
             'dh_approved_by' => Auth::id(),
@@ -285,7 +288,10 @@ class CashAdvanceRequestController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $car = CashAdvanceRequest::where('approval_stage', 'pending_executive')->findOrFail($id);
+        $car = CashAdvanceRequest::findOrFail($id);
+        if ($car->approval_stage !== 'pending_executive') {
+            return redirect()->back()->with('error', 'This Cash Advance Request is not awaiting Executive approval.');
+        }
         $car->update([
             'status' => 'approved',
             'approval_stage' => 'approved',

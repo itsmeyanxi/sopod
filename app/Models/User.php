@@ -122,9 +122,9 @@ class User extends Authenticatable
 
     public function canManageItems()
     {
-        if ($this->isDeliveryOnlyRole()) {
-            return false;
-        }
+        if ($this->isAdminUser()) return true;
+        if ($this->hasModuleGrant('items')) return true;
+        if ($this->isDeliveryOnlyRole()) return false;
         return $this->canAccessModule('items');
     }
 
@@ -155,10 +155,9 @@ class User extends Authenticatable
 
     public function canManageCustomers()
     {
-        if ($this->isDeliveryOnlyRole()) {
-            return false;
-        }
         if ($this->isAdminUser()) return true;
+        if ($this->hasModuleGrant('customers')) return true;
+        if ($this->isDeliveryOnlyRole()) return false;
         return $this->canAccessModule('customers');
     }
 
@@ -295,9 +294,9 @@ class User extends Authenticatable
 
     public function canManageSuppliers()
     {
-        if ($this->hasRole(['Credit & Collection', 'Delivery'])) {
-            return false;
-        }
+        if ($this->isAdminUser()) return true;
+        if ($this->hasModuleGrant('suppliers')) return true;
+        if ($this->hasRole(['Credit & Collection', 'Delivery'])) return false;
         return $this->canAccessModule('suppliers');
     }
 
@@ -310,7 +309,7 @@ class User extends Authenticatable
 
     public function isCCRole()
     {
-        return in_array($this->role, ['CC_Approver', 'CC_Creator'])
+        return $this->hasRole('Credit & Collection')
             || $this->userRoles()->where('sub_department_id', 15)->exists();
     }
 
@@ -374,9 +373,9 @@ class User extends Authenticatable
 
     public function canManagePurchaseRequests()
     {
-        if ($this->isDeliveryOnlyRole()) {
-            return false;
-        }
+        if ($this->isAdminUser()) return true;
+        if ($this->hasModuleGrant('purchase_requests')) return true;
+        if ($this->isDeliveryOnlyRole()) return false;
         return $this->canAccessModule('purchase_requests');
     }
 
@@ -411,12 +410,10 @@ class User extends Authenticatable
 
     public function canManagePurchaseOrders()
     {
-        if ($this->isDeliveryOnlyRole()) {
-            return false;
-        }
-        if ($this->isPOCreatorRole()) {
-            return true;
-        }
+        if ($this->isAdminUser()) return true;
+        if ($this->hasModuleGrant('purchase_orders')) return true;
+        if ($this->isDeliveryOnlyRole()) return false;
+        if ($this->isPOCreatorRole()) return true;
         return $this->canAccessModule('purchase_orders');
     }
 
@@ -466,9 +463,9 @@ class User extends Authenticatable
 
     public function canManageRequestForPayments()
     {
-        if ($this->isDeliveryOnlyRole()) {
-            return false;
-        }
+        if ($this->isAdminUser()) return true;
+        if ($this->hasModuleGrant('rfp')) return true;
+        if ($this->isDeliveryOnlyRole()) return false;
         return $this->canAccessModule('rfp');
     }
 
@@ -542,8 +539,7 @@ class User extends Authenticatable
 
     public function canApproveCustomerChange()
     {
-        return $this->hasRole(['IT', 'Admin', 'Information System'])
-            || in_array($this->role, ['IT', 'Admin', 'Information System']);
+        return $this->isAdminUser();
     }
 
     // ==================== RELATIONSHIPS ====================
@@ -692,6 +688,16 @@ class User extends Authenticatable
      * 3. Explicit grant override by IT/Admin → extra access on top
      * 4. No match → denied
      */
+
+    /**
+     * Returns true if the user has an explicit grant override for a module.
+     * Use this BEFORE role blocks so grants can override role restrictions.
+     */
+    public function hasModuleGrant(string $module): bool
+    {
+        return $this->moduleOverrides()->where('module', $module)->where('allowed', true)->exists();
+    }
+
     public function canAccessModule(string $module): bool
     {
         // 1. IT/Admin unconditionally passes — overrides cannot block admins

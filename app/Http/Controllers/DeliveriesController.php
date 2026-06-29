@@ -427,10 +427,11 @@ public function fixExistingTotals()
         
         foreach ($deliveries as $delivery) {
             $items = DeliveryItem::where('delivery_id', $delivery->id)->get();
-            
+            $rolledUpTotal = 0;
+
             foreach ($items as $item) {
                 $correctTotal = round(($item->quantity ?? 0) * ($item->unit_price ?? 0), 3);
-                
+
                 if (abs($item->total_amount - $correctTotal) > 0.01) {
                     Log::info('🔧 Fixing total for item', [
                         'delivery_id' => $delivery->id,
@@ -439,16 +440,23 @@ public function fixExistingTotals()
                         'old_total' => $item->total_amount,
                         'new_total' => $correctTotal,
                     ]);
-                    
+
                     $item->update(['total_amount' => $correctTotal]);
                     $fixedCount++;
                 }
+
+                $rolledUpTotal += $correctTotal;
+            }
+
+            // Roll up to deliveries.total_amount
+            if ($items->isNotEmpty() && abs((float)$delivery->total_amount - $rolledUpTotal) > 0.01) {
+                $delivery->update(['total_amount' => $rolledUpTotal]);
             }
         }
-        
+
         return response()->json([
             'success' => true,
-            'message' => "Fixed {$fixedCount} item total(s)",
+            'message' => "Fixed {$fixedCount} item total(s) and synced delivery totals",
         ]);
         
     } catch (\Exception $e) {

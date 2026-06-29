@@ -65,8 +65,8 @@
                     <h3 class="text-sm font-semibold text-blue-700">Total AR</h3>
                     <i class="fas fa-dollar-sign text-blue-700 text-xl"></i>
                 </div>
-                <p class="text-white text-2xl font-bold">₱{{ number_format($metrics['total_ar'], 2) }}</p>
-                <p class="text-gray-300 text-xs mt-1">Outstanding balance</p>
+                <p class="text-gray-900 text-2xl font-bold">₱{{ number_format($metrics['total_ar'], 2) }}</p>
+                <p class="text-gray-600 text-xs mt-1">Outstanding balance</p>
             </div>
 
             <div class="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -74,8 +74,8 @@
                     <h3 class="text-sm font-semibold text-green-700">Total Collected</h3>
                     <i class="fas fa-check-circle text-green-700 text-xl"></i>
                 </div>
-                <p class="text-white text-2xl font-bold">₱{{ number_format($metrics['total_collected'], 2) }}</p>
-                <p class="text-gray-300 text-xs mt-1">Payments received</p>
+                <p class="text-gray-900 text-2xl font-bold">₱{{ number_format($metrics['total_collected'], 2) }}</p>
+                <p class="text-gray-600 text-xs mt-1">Payments received</p>
             </div>
 
             <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
@@ -83,8 +83,8 @@
                     <h3 class="text-sm font-semibold text-purple-700">Total Invoiced</h3>
                     <i class="fas fa-file-invoice text-purple-700 text-xl"></i>
                 </div>
-                <p class="text-white text-2xl font-bold">₱{{ number_format($metrics['total_invoiced'], 2) }}</p>
-                <p class="text-gray-300 text-xs mt-1">All invoices</p>
+                <p class="text-gray-900 text-2xl font-bold">₱{{ number_format($metrics['total_invoiced'], 2) }}</p>
+                <p class="text-gray-600 text-xs mt-1">All invoices</p>
             </div>
 
             <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -92,8 +92,8 @@
                     <h3 class="text-sm font-semibold text-orange-700">Outstanding</h3>
                     <i class="fas fa-hourglass-half text-orange-700 text-xl"></i>
                 </div>
-                <p class="text-white text-2xl font-bold">{{ $metrics['outstanding_count'] }}</p>
-                <p class="text-gray-300 text-xs mt-1">Unpaid invoices</p>
+                <p class="text-gray-900 text-2xl font-bold">{{ $metrics['outstanding_count'] }}</p>
+                <p class="text-gray-600 text-xs mt-1">Unpaid invoices</p>
             </div>
         </div>
 

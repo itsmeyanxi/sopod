@@ -1427,6 +1427,18 @@ public function adjustments()
             'gross_ar_balance' => $record->gross_ar_balance,
         ];
 
+        // When invoice_amount is edited but net_ar_balance is not explicitly provided,
+        // recalculate net_ar_balance so the payment application reflects the correct amount.
+        // net_ar_balance is the "original baseline" (invoice_amount minus pre-system settlements);
+        // system payments from the payments table are deducted dynamically at query time.
+        if (isset($validated['invoice_amount']) && !isset($validated['net_ar_balance'])) {
+            $newInvoiceAmount  = (float)$validated['invoice_amount'];
+            $settledAmount     = isset($validated['settled_invoice_amount'])
+                ? (float)$validated['settled_invoice_amount']
+                : (float)($record->settled_invoice_amount ?? 0);
+            $validated['net_ar_balance'] = max(0, $newInvoiceAmount - $settledAmount);
+        }
+
         $record->update($validated);
 
         \App\Models\Activity::create([

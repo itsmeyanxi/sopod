@@ -14,7 +14,7 @@
         @media print {
             .page { padding: 15px 20px; margin: 0; width: 100%; page-break-after: avoid; }
             .no-print { display: none !important; }
-            @page { size: A4 landscape; margin: 8mm; }
+            @page { size: A4 portrait; margin: 8mm; }
         }
 
         /* Header */
@@ -242,7 +242,7 @@
         <tbody>
             @foreach($reimbursement->items as $item)
             <tr>
-                <td class="col-date">{{ $item->date ? \Carbon\Carbon::parse($item->date)->format('M d, Y') : '' }}</td>
+                <td class="col-date">{{ $item->date ?? '' }}</td>
                 <td>{{ $item->particulars }}</td>
                 <td class="col-cost">&#8369;{{ number_format($item->cost, 2) }}</td>
             </tr>

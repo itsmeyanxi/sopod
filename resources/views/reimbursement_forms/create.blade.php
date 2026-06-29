@@ -55,7 +55,7 @@
                         <tbody id="itemsBody">
                             <tr>
                                 <td class="border border-gray-700 px-2 py-2">
-                                    <input type="date" name="items[0][date]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('items.0.date') }}">
+                                    <input type="text" name="items[0][date]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="e.g. Jan 15, 2026" value="{{ old('items.0.date') }}">
                                 </td>
                                 <td class="border border-gray-700 px-2 py-2">
                                     <input type="text" name="items[0][particulars]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter description" value="{{ old('items.0.particulars') }}">
@@ -95,7 +95,7 @@
                 <label class="block font-semibold text-gray-300 mb-2">AMOUNT TO BE REIMBURSED: <span class="text-red-700">*</span></label>
                 <div class="relative">
                     <span class="absolute left-3 top-2.5 text-gray-300">&#8369;</span>
-                    <input type="number" step="0.01" name="amount_to_be_reimbursed" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount_to_reimburse') }}" required placeholder="0.00">
+                    <input type="number" step="0.01" name="amount_to_be_reimbursed" class="w-full bg-gray-800 border border-gray-700 rounded pl-8 pr-3 py-2 text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount_to_be_reimbursed') }}" required placeholder="0.00">
                 </div>
             </div>
 
@@ -156,7 +156,7 @@ document.getElementById('addRowBtn').addEventListener('click', function() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
         <td class="border border-gray-700 px-2 py-2">
-            <input type="date" name="items[${rowIndex}][date]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <input type="text" name="items[${rowIndex}][date]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="e.g. Jan 15, 2026">
         </td>
         <td class="border border-gray-700 px-2 py-2">
             <input type="text" name="items[${rowIndex}][particulars]" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter description">

@@ -64,6 +64,9 @@
             <div class="bg-gray-900 rounded p-4">
                 <div class="text-xs text-gray-400 mb-1">PO Number</div>
                 <div class="text-purple-300 font-mono font-semibold">{{ $record->po_no ?? '—' }}</div>
+                @if($record->rfp_no)
+                    <div class="text-xs text-green-400 mt-1">RFP: {{ $record->rfp_no }}</div>
+                @endif
                 @if($record->po_no)
                     @php $poQty = $record->getPoQty(); @endphp
                     <div class="text-xs mt-1 {{ $record->isPoQtyMet() ? 'text-green-400' : 'text-red-400' }}">

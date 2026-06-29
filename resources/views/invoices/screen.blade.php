@@ -56,8 +56,8 @@
                         <h3 class="text-sm font-semibold text-blue-700">Total Records</h3>
                         <i class="fas fa-users text-blue-700 text-xl"></i>
                     </div>
-                    <p class="text-white text-3xl font-bold" id="trader_balance">-</p>
-                    <p class="text-gray-300 text-xs mt-1">Active AR records</p>
+                    <p class="text-gray-900 text-3xl font-bold" id="trader_balance">-</p>
+                    <p class="text-gray-600 text-xs mt-1">Active AR records</p>
                 </div>
 
                 <div class="bg-green-50 border border-green-200 rounded-lg p-6">
@@ -65,8 +65,8 @@
                         <h3 class="text-sm font-semibold text-green-700">Outstanding AR</h3>
                         <i class="fas fa-dollar-sign text-green-700 text-xl"></i>
                     </div>
-                    <p class="text-white text-3xl font-bold" id="credit_balance">-</p>
-                    <p class="text-gray-300 text-xs mt-1">Total outstanding receivables</p>
+                    <p class="text-gray-900 text-3xl font-bold" id="credit_balance">-</p>
+                    <p class="text-gray-600 text-xs mt-1">Total outstanding receivables</p>
                 </div>
 
                 <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
@@ -74,8 +74,8 @@
                         <h3 class="text-sm font-semibold text-purple-700">Total AR</h3>
                         <i class="fas fa-chart-bar text-purple-700 text-xl"></i>
                     </div>
-                    <p class="text-white text-3xl font-bold" id="total_ar">-</p>
-                    <p class="text-gray-300 text-xs mt-1">As of <span id="ar_date">{{ now()->format('F j, Y') }}</span></p>
+                    <p class="text-gray-900 text-3xl font-bold" id="total_ar">-</p>
+                    <p class="text-gray-600 text-xs mt-1">As of <span id="ar_date">{{ now()->format('F j, Y') }}</span></p>
                 </div>
             </div>
 

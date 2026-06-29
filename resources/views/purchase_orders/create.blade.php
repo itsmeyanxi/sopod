@@ -621,7 +621,7 @@ function calculateRowTotal(row) {
     const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
     const vat   = row.querySelector('.item-vat')?.checked || false;
     const taxInput = row.querySelector('.item-tax');
-    if (taxInput) taxInput.value = vat ? (qty * price * 0.12).toFixed(2) : '0.00';
+    if (taxInput) taxInput.value = vat ? (qty * price / 1.12 * 0.12).toFixed(2) : '0.00';
     const total = row.querySelector('.item-total');
     if (total) total.value = (qty * price).toFixed(2);
 }

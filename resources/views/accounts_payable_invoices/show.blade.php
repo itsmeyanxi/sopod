@@ -188,8 +188,8 @@
                                 <td class="border border-gray-600 px-2 py-1 text-center text-gray-400">{{ $i+1 }}</td>
                                 <td class="border border-gray-600 px-2 py-1">{{ $item->particulars }}</td>
                                 <td class="border border-gray-600 px-2 py-1 font-mono">{{ $item->item_code ?? '—' }}</td>
-                                <td class="border border-gray-600 px-2 py-1">{{ $item->department ?? '—' }}</td>
-                                <td class="border border-gray-600 px-2 py-1">{{ $item->division ?? '—' }}</td>
+                                <td class="border border-gray-600 px-2 py-1">{{ $ccNames[$item->department] ?? $item->department ?? '—' }}</td>
+                                <td class="border border-gray-600 px-2 py-1">{{ $ccNames[$item->division] ?? $item->division ?? '—' }}</td>
                                 <td class="border border-gray-600 px-2 py-1 text-center">{{ $item->vat ? '✓' : '—' }}</td>
                                 <td class="border border-gray-600 px-2 py-1 text-center font-mono">{{ $item->tax_code ?? '—' }}</td>
                                 <td class="border border-gray-600 px-2 py-1 font-mono">{{ $item->account_code ?? '—' }}</td>
@@ -223,10 +223,10 @@
                                 <td class="border border-gray-600 px-2 py-1">—</td>
                                 <td class="border border-gray-600 px-2 py-1">—</td>
                                 <td class="border border-gray-600 px-2 py-1">—</td>
-                                <td class="border border-gray-600 px-2 py-1 font-mono text-green-300">{{ $invoice->account_code ?? '211100004' }}</td>
-                                <td class="border border-gray-600 px-2 py-1 text-green-300">{{ $invoice->account_name ?? 'Accounts Payable' }}</td>
+                                <td class="border border-gray-600 px-2 py-1 font-mono text-green-300">211100004</td>
+                                <td class="border border-gray-600 px-2 py-1 text-green-300">Accounts Payable</td>
                                 <td class="border border-gray-600 px-2 py-1 text-right text-gray-400">—</td>
-                                <td class="border border-gray-600 px-2 py-1 text-right text-green-300">{{ number_format($invoice->grand_total, 2) }}</td>
+                                <td class="border border-gray-600 px-2 py-1 text-right text-green-300">{{ number_format($invoice->total_before_vat, 2) }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -281,21 +281,6 @@
                             </p>
                         @endif
                     </div>
-                    <div class="text-center">
-                        <div class="border-b-2 border-black h-16 mb-2"></div>
-                        <p class="font-semibold">{{ $invoice->approver->name ?? ($invoice->approved_by ?? '___________________') }}</p>
-                        <p class="text-xs text-gray-300">Approved By (Accounting Manager)</p>
-                        @if($invoice->approver && $invoice->approved_at)
-                            <p class="text-xs text-gray-300 italic mt-1">
-                                @include('partials.esignature', ['signer' => $invoice->approver])<br>
-                                {{ $invoice->approved_at->format('d M Y | H:i') }}
-                                @if($invoice->approved_latitude && $invoice->approved_longitude)
-                                    <br>Coords: {{ $invoice->approved_latitude }}, {{ $invoice->approved_longitude }}
-                                    @if($invoice->approved_location) ({{ $invoice->approved_location }}) @endif
-                                @endif
-                            </p>
-                        @endif
-                    </div>
                 </div>
             </div>
 
@@ -345,46 +330,10 @@
                                 <br>
                                 <small class="text-gray-300">
                                     {{ $invoice->departmentHeadApprover->name }}
-                                    on {{ $invoice->department_head_approved_at->format('M d, Y h:i A') }}
+                                    on {{ $invoice->department_head_approved_at?->format('M d, Y h:i A') ?? '—' }}
                                 </small>
                             @else
                                 <span class="text-yellow-700">Pending</span>
-                            @endif
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Accounting Manager Level -->
-                <div class="flex items-start gap-4 p-3 bg-gray-800 rounded">
-                    <div class="flex-shrink-0">
-                        @if($invoice->status === 'approved' && $invoice->approver)
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-600">
-                                <i class="fas fa-check text-white"></i>
-                            </div>
-                        @elseif($invoice->department_head_approved_by)
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
-                                <i class="fas fa-clock text-gray-300"></i>
-                            </div>
-                        @else
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-700">
-                                <i class="fas fa-lock text-gray-300"></i>
-                            </div>
-                        @endif
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-gray-300">
-                            <span class="font-semibold">Accounting Manager Approval</span>
-                            @if($invoice->status === 'approved' && $invoice->approver)
-                                <span class="text-green-700">✓ Approved</span>
-                                <br>
-                                <small class="text-gray-300">
-                                    {{ $invoice->approver->name }}
-                                    on {{ $invoice->approved_at->format('M d, Y h:i A') }}
-                                </small>
-                            @elseif($invoice->department_head_approved_by)
-                                <span class="text-yellow-700">Pending</span>
-                            @else
-                                <span class="text-gray-300">Locked</span>
                             @endif
                         </p>
                     </div>
@@ -422,13 +371,7 @@
                     </button>
                 @endif
 
-                @if($invoice->approval_stage === 'pending_accounting' && auth()->user()->canApproveAPV())
-                    <button type="button" onclick="showApproveModal()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
-                        <i class="fas fa-check mr-1"></i> Approve as Accounting Manager
-                    </button>
-                @endif
-
-                @if(auth()->user()->canApproveAPV() || auth()->user()->canApproveAPVAsDH())
+                @if(auth()->user()->canApproveAPVAsDH())
                     <button type="button" onclick="showRejectModal()" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition">
                         <i class="fas fa-times mr-1"></i> Reject
                     </button>
@@ -456,31 +399,6 @@
                     Cancel
                 </button>
                 <button type="submit" id="dh_submit_btn" class="bg-gray-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
-                    <i class="fas fa-spinner fa-spin mr-1"></i> Waiting for location...
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Accounting Manager Approval Modal -->
-<div id="approveModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-gray-800 rounded-lg p-6 w-96">
-        <h3 class="text-xl font-bold text-white mb-4">Approve as Accounting Manager</h3>
-        <form action="{{ route('accounts_payable_invoices.approve', $invoice->id) }}" method="POST">
-            @csrf
-            <input type="hidden" name="latitude" id="acct_latitude">
-            <input type="hidden" name="longitude" id="acct_longitude">
-            <input type="hidden" name="location" id="acct_location">
-            <div class="mb-4">
-                <p class="text-gray-300 mb-2">Geolocation will be captured automatically.</p>
-                <div id="acct_geolocation_status" class="text-sm text-gray-300">Waiting for location...</div>
-            </div>
-            <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeApproveModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-                    Cancel
-                </button>
-                <button type="submit" id="acct_submit_btn" class="bg-gray-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>
                     <i class="fas fa-spinner fa-spin mr-1"></i> Waiting for location...
                 </button>
             </div>
@@ -518,15 +436,6 @@ function showApproveDHModal() {
 }
 function closeApproveDHModal() {
     document.getElementById('approveDHModal').classList.add('hidden');
-}
-
-// Accounting Manager Approval
-function showApproveModal() {
-    document.getElementById('approveModal').classList.remove('hidden');
-    captureGeolocation('acct');
-}
-function closeApproveModal() {
-    document.getElementById('approveModal').classList.add('hidden');
 }
 
 // Reject
@@ -641,7 +550,8 @@ function getLocationName(lat, lng, prefix) {
     }
 }
 </style>
-
+PMAI-20260601-0052-C1|2026-06-01 07:22:45
+2
 <!-- Delete Confirmation Modal -->
 @if(auth()->user()->canApproveAPVAsDH() || auth()->user()->canApproveAPV())
 <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

@@ -39,10 +39,26 @@
         </div>
         @endif
 
+        <!-- CAR Reference Selector -->
+        <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
+            <h3 class="font-semibold text-white mb-3">LINK TO CASH ADVANCE REQUEST <span class="text-gray-400 text-xs font-normal">(optional)</span></h3>
+            <div id="carSearchSection">
+                <label class="block text-gray-300 text-sm mb-1">Search Approved Cash Advance Request</label>
+                <div class="relative">
+                    <input type="text" id="carSearchInput"
+                        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Search by CAR No, Payee, or Department..." />
+                    <div id="carSearchResults" class="hidden absolute z-10 w-full mt-2 bg-gray-800 border border-gray-700 rounded shadow-lg max-h-96 overflow-y-auto"></div>
+                </div>
+            </div>
+            <div id="linkedCarBadge"></div>
+        </div>
+
         <form action="{{ route('accounts_payable_invoices.store') }}" method="POST" id="apvForm">
             @csrf
 
             <input type="hidden" name="request_for_payment_id" id="rfpId" value="{{ old('request_for_payment_id', $selectedRFP->id ?? '') }}">
+            <input type="hidden" name="cash_advance_request_id" id="carId" value="{{ old('cash_advance_request_id') }}">
             <input type="hidden" id="maxInvoiceAmount" value="{{ $selectedRFP->amount ?? '' }}">
 
             <!-- APV Date and Payment Type -->
@@ -105,7 +121,7 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">REFERENCE NO.:</label>
-                        <input type="text" name="reference_no" id="reference_no_vendor" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reference_no') }}" placeholder="Manual entry">
+                        <input type="text" name="reference_no" id="reference_no_vendor" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('reference_no', $supplierInfo['reference_no'] ?? '') }}" placeholder="Manual entry">
                     </div>
                 </div>
             </div>
@@ -329,9 +345,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('apvItemsBody').innerHTML = '';
                                 apvRowCount = 0;
                                 if (poItems.length) {
-                                    poItems.forEach(i => addApvRow({ particulars: i.description, item_code: i.item_code }));
+                                    poItems.forEach(i => addApvRow({ item_code: i.item_code }));
                                 } else {
-                                    addApvRow({ particulars: this.dataset.serviceDescription || this.dataset.particulars || '' });
+                                    addApvRow();
+                                }
+
+                                // Auto-fill remarks with RFP particulars
+                                const remarksField = document.querySelector('textarea[name="remarks"]');
+                                if (remarksField && !remarksField.value.trim()) {
+                                    remarksField.value = this.dataset.serviceDescription || this.dataset.particulars || '';
                                 }
 
                                 document.getElementById('maxInvoiceAmount').value = parseFloat(this.dataset.amount).toFixed(2);
@@ -371,6 +393,95 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // CAR Search
+    const carSearchInput = document.getElementById('carSearchInput');
+    const carSearchResults = document.getElementById('carSearchResults');
+    let carSearchTimer;
+
+    if (carSearchInput) {
+        carSearchInput.addEventListener('input', function() {
+            clearTimeout(carSearchTimer);
+            const searchTerm = this.value.trim();
+            if (searchTerm.length < 2) {
+                carSearchResults.classList.add('hidden');
+                return;
+            }
+            carSearchTimer = setTimeout(() => {
+                fetch(`{{ route('accounts_payable_invoices.search_cars') }}?search=${encodeURIComponent(searchTerm)}`)
+                    .then(r => r.json())
+                    .then(cars => {
+                        if (cars.length === 0) {
+                            carSearchResults.innerHTML = '<div class="p-4 text-gray-300">No approved CARs found</div>';
+                            carSearchResults.classList.remove('hidden');
+                            return;
+                        }
+                        let html = '';
+                        cars.forEach(car => {
+                            html += `
+                                <div class="car-result-item block p-3 hover:bg-gray-700 transition cursor-pointer"
+                                     data-id="${car.id}"
+                                     data-car-no="${(car.car_no || '').replace(/"/g, '&quot;')}"
+                                     data-payee="${(car.payee || '').replace(/"/g, '&quot;')}"
+                                     data-department="${(car.department || '').replace(/"/g, '&quot;')}"
+                                     data-amount="${car.amount || 0}"
+                                     data-purpose="${(car.purpose || '').replace(/"/g, '&quot;')}">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <div class="font-semibold text-purple-400">${car.car_no}</div>
+                                            <div class="text-sm text-gray-300">${car.payee || car.department}</div>
+                                            <div class="text-xs text-gray-400">${car.purpose || ''}</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm text-green-400">₱${parseFloat(car.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                                        </div>
+                                    </div>
+                                </div>`;
+                        });
+                        carSearchResults.innerHTML = html;
+                        carSearchResults.classList.remove('hidden');
+
+                        carSearchResults.querySelectorAll('.car-result-item').forEach(item => {
+                            item.addEventListener('click', function() {
+                                document.getElementById('carId').value = this.dataset.id;
+
+                                // Auto-fill vendor if not already filled
+                                const vendorNameEl = document.getElementById('vendor_name');
+                                if (vendorNameEl && !vendorNameEl.value) {
+                                    vendorNameEl.value = this.dataset.payee;
+                                }
+
+                                // Show linked badge
+                                const badge = document.createElement('div');
+                                badge.className = 'mt-3 p-2 bg-green-900 border border-green-700 rounded flex items-center gap-2 text-green-300 text-sm';
+                                badge.innerHTML = `
+                                    <i class="fas fa-link"></i>
+                                    <span class="font-semibold">Linked to CAR: ${this.dataset.carNo}</span>
+                                    <span class="text-sm text-gray-300">${this.dataset.payee || this.dataset.department} | ₱${parseFloat(this.dataset.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                                `;
+                                const badge2 = document.getElementById('linkedCarBadge');
+                                badge2.innerHTML = '';
+                                badge2.appendChild(badge);
+
+                                carSearchResults.classList.add('hidden');
+                                carSearchInput.value = this.dataset.carNo;
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('CAR search error:', error);
+                        carSearchResults.innerHTML = '<div class="p-4 text-red-400">Error searching CARs</div>';
+                        carSearchResults.classList.remove('hidden');
+                    });
+            }, 300);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (carSearchInput && !carSearchInput.contains(e.target) && !carSearchResults.contains(e.target)) {
+                carSearchResults.classList.add('hidden');
+            }
+        });
+    }
+
     // Payment Type Toggle
     document.querySelectorAll('input[name="payment_type"]').forEach(r => r.addEventListener('change', function() {
         const dp = document.getElementById('downpaymentField');
@@ -378,7 +489,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }));
 
     // Init one empty row
-    addApvRow({ particulars: '{{ addslashes($selectedRFP->particulars ?? '') }}' });
+    addApvRow();
+    @if($selectedRFP?->particulars)
+    const _remarksField = document.querySelector('textarea[name="remarks"]');
+    if (_remarksField && !_remarksField.value.trim()) _remarksField.value = '{{ addslashes($selectedRFP->particulars) }}';
+    @endif
 
     // Apply currency rules on initial load
     apvUpdateCurrencySymbols();
@@ -459,7 +574,20 @@ function apvUpdateCurrencySymbols() {
 }
 
 // ── APV Items Table ───────────────────────────────────────────────────────────
-const GL_ACCOUNTS = @json($glAccounts);
+const GL_ACCOUNTS  = @json($glAccounts);
+const DEPT_CODES   = @json($deptCodes);
+const DIV_CODES    = @json($divCodes);
+function buildCcOptions(codes, selected) {
+    let opts = '<option value="">—</option>';
+    let found = false;
+    codes.forEach(c => {
+        const sel = selected && (c.name === selected || c.code === selected) ? 'selected' : '';
+        if (sel) found = true;
+        opts += `<option value="${c.name}" ${sel}>${c.name}</option>`;
+    });
+    if (selected && !found) opts += `<option value="${selected}" selected>${selected}</option>`;
+    return opts;
+}
 let apvRowCount = 0;
 
 function addApvRow(data) {
@@ -482,14 +610,16 @@ function addApvRow(data) {
                 placeholder="Item code" value="${data.item_code || ''}">
         </td>
         <td class="border border-gray-600 px-1 py-1">
-            <input type="text" name="items[${idx}][department]"
-                class="w-full px-2 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs placeholder-gray-400"
-                placeholder="Dept" value="${data.department || ''}" list="dept-list" autocomplete="off">
+            <select name="items[${idx}][department]"
+                class="w-full px-1 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs">
+                ${buildCcOptions(DEPT_CODES, data.department || '')}
+            </select>
         </td>
         <td class="border border-gray-600 px-1 py-1">
-            <input type="text" name="items[${idx}][division]"
-                class="w-full px-2 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs placeholder-gray-400"
-                placeholder="Div" value="${data.division || ''}" list="div-list" autocomplete="off">
+            <select name="items[${idx}][division]"
+                class="w-full px-1 py-1.5 bg-gray-700 border border-gray-500 rounded text-white text-xs">
+                ${buildCcOptions(DIV_CODES, data.division || '')}
+            </select>
         </td>
         <td class="border border-gray-600 px-1 py-1 text-center apv-vat-td" style="display:${isPhp ? '' : 'none'}">
             <input type="checkbox" name="items[${idx}][vat]" value="1"
@@ -728,21 +858,4 @@ function toggleServiceMode(isService) {
 })();
 </script>
 
-<datalist id="dept-list">
-    <option>Accounting</option><option>Administration</option><option>Credit &amp; Collection</option>
-    <option>Delivery</option><option>Executive</option><option>Finance</option>
-    <option>Finance &amp; Accounting</option><option>HR &amp; Administration</option>
-    <option>Information System</option><option>Procurement</option><option>Purchasing</option>
-    <option>Sales</option><option>Supply Chain</option><option>Treasury</option><option>Warehouse</option>
-</datalist>
-<datalist id="div-list">
-    <option>Accounting</option><option>Benefits</option><option>Category</option><option>CFO</option>
-    <option>Credit &amp; Collection</option><option>Customer Service</option><option>Delivery</option>
-    <option>Employee Relations</option><option>Finance Management</option><option>General Administration</option>
-    <option>General Manager</option><option>Imports</option><option>IT Operations</option>
-    <option>Logistics</option><option>Procurement Approver</option><option>Purchasing</option>
-    <option>Quality Assurance</option><option>Recruitment</option><option>Sales</option>
-    <option>Trade Local/Imports</option><option>Training and Development</option>
-    <option>Treasury Operations</option><option>Vice President</option><option>Warehouse Operations</option>
-</datalist>
 @endsection

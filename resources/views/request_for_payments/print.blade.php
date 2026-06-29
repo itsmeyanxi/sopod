@@ -495,26 +495,13 @@
                 @if(($rfp->currency ?? 'PHP') === 'USD' && optional($po)->exchange_rate)
                 <tr style="background:#fffbe6;">
                     <td colspan="7" style="text-align:right;font-weight:bold;">PHP Equivalent (Rate: {{ $po->exchange_rate }}):</td>
-                    <td class="amount" style="font-weight:bold;">₱{{ number_format($items->sum('total') * $po->exchange_rate, 2) }}</td>
+                    <td class="amount" style="font-weight:bold;">{{ number_format($items->sum('total') * $po->exchange_rate, 2) }}</td>
                 </tr>
                 @endif
             </tbody>
         </table>
         @endif
 
-        @if($poTotal > 0)
-        <div style="margin:8px 0;padding:8px 10px;border:1px solid #ccc;border-radius:4px;font-size:9pt;">
-            <div style="font-weight:bold;margin-bottom:4px;">Payment Progress (vs PO Total: {{ $currSym }}{{ number_format($poTotal,2) }})</div>
-            <div style="display:flex;gap:16px;">
-                @if($paidBefore > 0)
-                <span>Previously Paid: <strong>{{ $currSym }}{{ number_format($paidBefore,2) }}</strong></span>
-                @endif
-                <span>This RFP: <strong>{{ $currSym }}{{ number_format($thisAmount,2) }}</strong></span>
-                <span>Total Paid: <strong>{{ $currSym }}{{ number_format($paidBefore + $thisAmount,2) }}</strong></span>
-                <span>Remaining: <strong>{{ $currSym }}{{ number_format($remaining,2) }}</strong></span>
-            </div>
-        </div>
-        @endif
 
         <!-- Info Fields -->
         <div class="info-grid">

@@ -74,7 +74,10 @@
                 <label class="block font-semibold text-gray-300 mb-2">AMOUNT ADVANCED: <span class="text-red-700">*</span></label>
                 <div class="relative">
                     <span class="absolute left-3 top-2.5 text-gray-300">&#8369;</span>
-                    <input type="number" step="0.01" name="amount_advanced" class="w-full bg-gray-900 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('amount_advanced', $car->amount_advanced) }}" required>
+                    <input type="text" id="amount_display" inputmode="decimal"
+                        class="w-full bg-gray-900 border border-gray-700 rounded pl-8 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="0.00" autocomplete="off" required>
+                    <input type="hidden" name="amount_advanced" id="amount_advanced" value="{{ old('amount_advanced', $car->amount_advanced) }}">
                 </div>
             </div>
 
@@ -202,6 +205,45 @@
             @endif
         }
     });
+})();
+
+// Thousands separator for amount field
+(function() {
+    const display = document.getElementById('amount_display');
+    const hidden  = document.getElementById('amount_advanced');
+
+    function formatNumber(val) {
+        val = val.replace(/[^0-9.]/g, '');
+        const parts = val.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        if (parts.length > 2) parts.splice(2);
+        if (parts[1] !== undefined) parts[1] = parts[1].slice(0, 2);
+        return parts.join('.');
+    }
+
+    function rawNumber(val) {
+        return val.replace(/,/g, '');
+    }
+
+    display.addEventListener('input', function() {
+        const raw = rawNumber(this.value);
+        this.value = formatNumber(this.value);
+        hidden.value = raw;
+    });
+
+    display.addEventListener('blur', function() {
+        const raw = parseFloat(rawNumber(this.value));
+        if (!isNaN(raw)) {
+            this.value = raw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            hidden.value = raw.toFixed(2);
+        }
+    });
+
+    // Pre-fill from existing value
+    if (hidden.value) {
+        const raw = parseFloat(hidden.value);
+        if (!isNaN(raw)) display.value = raw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 })();
 </script>
 @endsection

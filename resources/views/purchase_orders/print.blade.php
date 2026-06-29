@@ -150,14 +150,6 @@
                     <div class="lbl">Reference No.</div>
                     <div>{{ $purchaseOrder->reference_number ?? '' }}</div>
                 </td>
-                <td style="width:20%">
-                    <div class="lbl">Currency</div>
-                    <div>{{ $purchaseOrder->currency ?? 'PHP' }}
-                        @if(($purchaseOrder->currency ?? 'PHP') !== 'PHP')
-                            <span style="font-size:9px; color:#555;">(Rate: {{ number_format($purchaseOrder->exchange_rate, 4) }} PHP)</span>
-                        @endif
-                    </div>
-                </td>
             </tr>
             <tr>
                 <td>
@@ -280,11 +272,20 @@
 
         <!-- Instructions -->
         <div class="instructions">
+            <p style="font-weight:bold; margin-bottom:3px;">INSTRUCTIONS:</p>
             <p>1. Materials must be not in excess of quantity ordered unless so indicated and must be of required quality and specifications, otherwise they will be returned at the seller's expense.</p>
             <p>2. Corresponding invoice(s) for this order must contain full description of goods/services without abbreviations and must show terms of purchase, PO number and correct price.</p>
-            <p>3. The company reserves the right to cancel this order without any obligation on its part due to the failure of the supplier to meet delivery terms and or to fill up order within the specified time.</p>
+            <p>3. The company reserves the right to cancel this order without any obligations on its part due to the failure of the supplier to meet delivery terms and or to fill up order within the specified time.</p>
             <p>4. The acceptance of this order implies acceptance of the conditions and instructions herein stipulated.</p>
             <p>5. No account shall be paid unless sales invoices and or delivery receipts are accompanied by this purchase order.</p>
+            <p>6. For local suppliers, Bring COM1, Delivery Receipt &amp; Sales Invoice during delivery to our Warehouse Storage.</p>
+            <p>7. For Imported Suppliers, list of Documents needed below:</p>
+            <p style="padding-left:12px;">7.1 Bill of Lading, Cert of Origin, Health Certificate, Commercial Invoice, Packing List, and Insurance Cert.</p>
+            <p style="padding-left:12px;">7.2 (if available) Halal Cert. and Certificate of Analysis.</p>
+            <p style="padding-left:12px;">7.3 CIF Incoterms — Importer to Pay with the following destination charges:</p>
+            <p style="padding-left:24px;">1. THC</p>
+            <p style="padding-left:24px;">2. DICS &amp; BL Fee</p>
+            <p style="padding-left:24px;">3. Container Cleaning</p>
         </div>
 
         <!-- Remarks -->

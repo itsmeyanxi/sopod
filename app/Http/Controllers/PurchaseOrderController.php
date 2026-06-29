@@ -61,10 +61,7 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $today = date('Ymd');
-        $lastToday = PurchaseOrder::where('po_no', 'like', "PO-{$today}-%")->orderByDesc('po_no')->value('po_no');
-        $nextSeq = $lastToday ? (intval(explode('-', $lastToday)[2]) + 1) : 1;
-        $poNo = 'PO-' . $today . '-' . str_pad($nextSeq, 3, '0', STR_PAD_LEFT);
+        $poNo = 'Auto-assigned on save';
 
         $companies = [
             'North Breeders Corporation',
@@ -284,18 +281,13 @@ class PurchaseOrderController extends Controller
 
         DB::beginTransaction();
         try {
-            $today = date('Ymd');
-            $lastToday = PurchaseOrder::where('po_no', 'like', "PO-{$today}-%")->orderByDesc('po_no')->lockForUpdate()->value('po_no');
-            $nextSeq = $lastToday ? (intval(explode('-', $lastToday)[2]) + 1) : 1;
-            $poNo = 'PO-' . $today . '-' . str_pad($nextSeq, 3, '0', STR_PAD_LEFT);
-
             $quotationPath = null;
             if ($request->hasFile('quotation')) {
                 $quotationPath = $request->file('quotation')->store('quotations', 'public');
             }
 
             $purchaseOrder = PurchaseOrder::create([
-                'po_no'                  => $poNo,
+                'po_no'                  => '',
                 'reference_number'       => $request->reference_number ?: null,
                 'purchase_request_id'    => $request->purchase_request_id ?: null,
                 'company'                => $request->company,
@@ -328,6 +320,9 @@ class PurchaseOrderController extends Controller
                 'approval_stage'         => 'pending_dh',
                 'created_by'             => Auth::id(),
             ]);
+
+            $purchaseOrder->po_no = 'PO-' . date('Ym') . '-' . $purchaseOrder->id;
+            $purchaseOrder->save();
 
             if ($request->po_type !== 'service') {
                 foreach ($request->items as $index => $item) {
@@ -541,7 +536,7 @@ class PurchaseOrderController extends Controller
                 \Log::info('PO wasApproved block running', ['id' => $purchaseOrder->id]);
                 DB::table('purchase_orders')->where('id', $purchaseOrder->id)->update([
                     'status'                           => 'pending',
-                    'approval_stage'                   => 'pending',
+                    'approval_stage'                   => 'pending_dh',
                     'approved_by'                      => null,
                     'approved_at'                      => null,
                     'approved_latitude'                => null,
@@ -713,7 +708,10 @@ class PurchaseOrderController extends Controller
                 ->with('error', 'Unauthorized to approve Purchase Orders.');
         }
 
-        $purchaseOrder = PurchaseOrder::where('approval_stage', 'pending_dh')->findOrFail($id);
+        $purchaseOrder = PurchaseOrder::findOrFail($id);
+        if ($purchaseOrder->approval_stage !== 'pending_dh') {
+            return redirect()->back()->with('error', 'This PO is not awaiting Department Head approval.');
+        }
 
         $purchaseOrder->update([
             'approval_stage'                    => 'pending_management',
@@ -749,7 +747,10 @@ class PurchaseOrderController extends Controller
                 ->with('error', 'Unauthorized to approve Purchase Orders.');
         }
 
-        $purchaseOrder = PurchaseOrder::where('approval_stage', 'pending_management')->findOrFail($id);
+        $purchaseOrder = PurchaseOrder::findOrFail($id);
+        if ($purchaseOrder->approval_stage !== 'pending_management') {
+            return redirect()->back()->with('error', 'This PO is not awaiting Management approval.');
+        }
 
         if ($this->isPMAI($purchaseOrder->company) && !$user->isAdminUser() && !$user->canApprovePurchaseOrdersAsManagement()) {
             return redirect()->route('purchase_orders.show', $id)
@@ -790,7 +791,10 @@ class PurchaseOrderController extends Controller
                 ->with('error', 'Unauthorized to approve Purchase Orders.');
         }
 
-        $purchaseOrder = PurchaseOrder::where('approval_stage', 'pending_executive')->findOrFail($id);
+        $purchaseOrder = PurchaseOrder::findOrFail($id);
+        if ($purchaseOrder->approval_stage !== 'pending_executive') {
+            return redirect()->back()->with('error', 'This PO is not awaiting Executive approval.');
+        }
 
         $purchaseOrder->update([
             'approval_stage'    => 'approved',
@@ -802,6 +806,34 @@ class PurchaseOrderController extends Controller
             'approved_location'  => $request->input('location'),
             'rejection_reason'  => null,
         ]);
+
+        // Restore invalidated RFPs, APVs (that were approved), and CVs linked to this PO
+        DB::table('request_for_payments')
+            ->where('purchase_order_id', $purchaseOrder->id)
+            ->where('status', 'invalidated')
+            ->update(['status' => 'approved']);
+
+        $rfpIds = DB::table('request_for_payments')
+            ->where('purchase_order_id', $purchaseOrder->id)
+            ->pluck('id');
+
+        if ($rfpIds->isNotEmpty()) {
+            $apvIds = DB::table('accounts_payable_invoices')
+                ->whereIn('request_for_payment_id', $rfpIds)
+                ->where('status', 'invalidated')
+                ->where('approval_stage', 'approved')
+                ->pluck('id');
+
+            if ($apvIds->isNotEmpty()) {
+                DB::table('accounts_payable_invoices')
+                    ->whereIn('id', $apvIds)
+                    ->update(['status' => 'approved']);
+                DB::table('check_vouchers')
+                    ->whereIn('accounts_payable_invoice_id', $apvIds)
+                    ->where('status', 'invalidated')
+                    ->update(['status' => 'approved']);
+            }
+        }
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',

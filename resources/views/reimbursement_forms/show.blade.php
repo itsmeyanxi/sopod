@@ -63,7 +63,7 @@
                     <tbody class="text-gray-200">
                         @foreach($reimbursement->items as $item)
                             <tr class="hover:bg-gray-700/40">
-                                <td class="border border-gray-700 px-4 py-3">{{ $item->date ? \Carbon\Carbon::parse($item->date)->format('M d, Y') : '' }}</td>
+                                <td class="border border-gray-700 px-4 py-3">{{ $item->date ?? '' }}</td>
                                 <td class="border border-gray-700 px-4 py-3">{{ $item->particulars }}</td>
                                 <td class="border border-gray-700 px-4 py-3 text-right">&#8369;{{ number_format($item->cost, 2) }}</td>
                             </tr>
@@ -82,7 +82,7 @@
         <!-- Amount to be Reimbursed -->
         <div class="mb-6 bg-gray-900 border border-gray-700 rounded p-4">
             <label class="block font-semibold text-gray-300 mb-1">AMOUNT TO BE REIMBURSED:</label>
-            <p class="text-2xl font-bold text-green-700">&#8369;{{ number_format($reimbursement->amount_to_reimburse, 2) }}</p>
+            <p class="text-2xl font-bold text-green-700">&#8369;{{ number_format($reimbursement->amount_to_be_reimbursed, 2) }}</p>
         </div>
 
         <!-- Submitted By -->
@@ -129,15 +129,15 @@
                                 <span class="text-white font-semibold text-sm">{{ $reimbursement->submitted_by ?? ($reimbursement->creator->name ?? '') }}</span>
                             </td>
                             <td class="border border-gray-700 px-4 py-8 text-center align-bottom">
-                                <span class="text-white font-semibold text-sm">{{ $reimbursement->departmentHeadApprover->name ?? '' }}</span>
-                                @if($reimbursement->departmentHeadApprover && $reimbursement->department_head_approved_at)
+                                <span class="text-white font-semibold text-sm">{{ $reimbursement->dhApprover->name ?? '' }}</span>
+                                @if($reimbursement->dhApprover && $reimbursement->dh_approved_at)
                                     <div class="text-xs text-gray-300 italic mt-1">
-                                        @include('partials.esignature', ['signer' => $reimbursement->departmentHeadApprover])<br>
-                                        {{ $reimbursement->department_head_approved_at->format('d M Y | H:i') }}
-                                        @if($reimbursement->department_head_approved_latitude && $reimbursement->department_head_approved_longitude)
-                                            <br>Coords: {{ $reimbursement->department_head_approved_latitude }}, {{ $reimbursement->department_head_approved_longitude }}
-                                            @if($reimbursement->department_head_approved_location)
-                                                ({{ $reimbursement->department_head_approved_location }})
+                                        @include('partials.esignature', ['signer' => $reimbursement->dhApprover])<br>
+                                        {{ $reimbursement->dh_approved_at->format('d M Y | H:i') }}
+                                        @if($reimbursement->dh_approved_latitude && $reimbursement->dh_approved_longitude)
+                                            <br>Coords: {{ $reimbursement->dh_approved_latitude }}, {{ $reimbursement->dh_approved_longitude }}
+                                            @if($reimbursement->dh_approved_location)
+                                                ({{ $reimbursement->dh_approved_location }})
                                             @endif
                                         @endif
                                     </div>
@@ -176,7 +176,7 @@
                 <!-- Department Head Level -->
                 <div class="flex items-start gap-4 p-3 bg-gray-800 rounded">
                     <div class="flex-shrink-0">
-                        @if($reimbursement->department_head_approved_by)
+                        @if($reimbursement->dh_approved_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-600">
                                 <i class="fas fa-check text-white"></i>
                             </div>
@@ -189,12 +189,12 @@
                     <div class="flex-1">
                         <p class="text-gray-300">
                             <span class="font-semibold">Department Head Check</span>
-                            @if($reimbursement->department_head_approved_by && $reimbursement->departmentHeadApprover)
+                            @if($reimbursement->dh_approved_by && $reimbursement->dhApprover)
                                 <span class="text-green-700">&#10003; Checked</span>
                                 <br>
                                 <small class="text-gray-300">
-                                    {{ $reimbursement->departmentHeadApprover->name }}
-                                    on {{ $reimbursement->department_head_approved_at->format('M d, Y h:i A') }}
+                                    {{ $reimbursement->dhApprover->name }}
+                                    on {{ $reimbursement->dh_approved_at->format('M d, Y h:i A') }}
                                 </small>
                             @else
                                 <span class="text-yellow-700">Pending</span>
@@ -210,7 +210,7 @@
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-600">
                                 <i class="fas fa-check text-white"></i>
                             </div>
-                        @elseif($reimbursement->department_head_approved_by)
+                        @elseif($reimbursement->dh_approved_by)
                             <div class="flex items-center justify-center h-8 w-8 rounded-full bg-gray-600">
                                 <i class="fas fa-clock text-gray-300"></i>
                             </div>
@@ -230,7 +230,7 @@
                                     {{ $reimbursement->executiveApprover->name }}
                                     on {{ $reimbursement->executive_approved_at->format('M d, Y h:i A') }}
                                 </small>
-                            @elseif($reimbursement->department_head_approved_by)
+                            @elseif($reimbursement->dh_approved_by)
                                 <span class="text-yellow-700">Pending</span>
                             @else
                                 <span class="text-gray-300">Locked</span>

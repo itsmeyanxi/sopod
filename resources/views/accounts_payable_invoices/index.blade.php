@@ -113,7 +113,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-2 border-b border-gray-700 text-right text-gray-300">
-                                {{ $invoice->currency }} {{ number_format($invoice->grand_total, 2) }}
+                                {{ $invoice->currency }} {{ number_format($invoice->total_before_vat, 2) }}
                             </td>
                             <td class="px-4 py-2 border-b border-gray-700 text-center">
                                 @if($invoice->status === 'pending')

@@ -75,8 +75,8 @@
                 <h3 class="font-semibold text-white mb-4">SUPPLIER INFORMATION</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-2">SUPPLIER CODE:</label>
-                        <input type="text" name="supplier_code" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('supplier_code', $selectedAPV->vendor_code ?? '') }}">
+                        <label class="block font-semibold text-gray-300 mb-2">VENDOR CODE:</label>
+                        <input type="text" name="vendor_code" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_code', $selectedAPV->vendor_code ?? '') }}">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-300 mb-2">SUPPLIER NAME: <span class="text-red-700">*</span></label>
@@ -87,8 +87,8 @@
                         <textarea name="supplier_address" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">{{ old('supplier_address', $selectedAPV->vendor_address ?? '') }}</textarea>
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-300 mb-2">SUPPLIER TIN:</label>
-                        <input type="text" name="supplier_tin" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('supplier_tin', $selectedAPV->vendor_tin ?? '') }}">
+                        <label class="block font-semibold text-gray-300 mb-2">VENDOR TIN:</label>
+                        <input type="text" name="vendor_tin" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('vendor_tin', $selectedAPV->vendor_tin ?? '') }}">
                     </div>
                 </div>
             </div>
@@ -218,7 +218,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
                     <label class="block font-semibold text-gray-300 mb-2">PREPARED BY:</label>
-                    <input type="text" name="prepared_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('prepared_by', Auth::user()->name) }}">
+                    <input type="text" name="prepared_by" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" value="{{ old('prepared_by') }}">
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-300 mb-2">REVIEWED BY:</label>
@@ -286,7 +286,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                      data-currency="${(invoice.currency || 'PHP')}"
                                      data-grand-total="${invoice.grand_total || 0}"
                                      data-reference-no="${(invoice.reference_no || '').replace(/"/g, '&quot;')}"
-                                     data-particulars="${(invoice.particulars || '').replace(/"/g, '&quot;')}">
+                                     data-particulars="${(invoice.particulars || '').replace(/"/g, '&quot;')}"
+                                     data-remarks="${(invoice.remarks || '').replace(/"/g, '&quot;')}">
                                     <div class="flex justify-between items-center">
                                         <div>
                                             <div class="font-semibold text-purple-700">${invoice.apv_no}</div>
@@ -312,10 +313,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('cvSubmitBtn').disabled = false;
 
                                 // Fill supplier info
-                                const supplierCode = document.querySelector('input[name="supplier_code"]');
+                                const supplierCode = document.querySelector('input[name="vendor_code"]');
                                 const supplierName = document.querySelector('input[name="supplier_name"]');
                                 const supplierAddress = document.querySelector('textarea[name="supplier_address"]');
-                                const supplierTin = document.querySelector('input[name="supplier_tin"]');
+                                const supplierTin = document.querySelector('input[name="vendor_tin"]');
                                 if (supplierCode) supplierCode.value = this.dataset.vendorCode;
                                 if (supplierName) supplierName.value = this.dataset.vendorName;
                                 if (supplierAddress) supplierAddress.value = this.dataset.vendorAddress;
@@ -335,10 +336,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (refNo) refNo.value = this.dataset.referenceNo;
                                 if (apvNo) apvNo.value = this.dataset.apvNo;
 
-                                // Fill particulars
+                                // Fill particulars from APV remarks
                                 const particulars = document.querySelector('textarea[name="particulars"]');
-                                if (particulars && !particulars.value.trim()) {
-                                    particulars.value = this.dataset.particulars;
+                                if (particulars) {
+                                    particulars.value = this.dataset.remarks || this.dataset.particulars || '';
                                 }
 
                                 // Show linked APV badge

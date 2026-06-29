@@ -56,9 +56,17 @@ class CheckVoucherController extends Controller
                     ->orWhere('reference_no', 'LIKE', "%{$searchTerm}%");
             })
             ->select('id', 'apv_no', 'vendor_name', 'vendor_code', 'vendor_address', 'vendor_tin',
-                     'apv_date', 'currency', 'grand_total', 'reference_no', 'particulars')
+                     'apv_date', 'currency', 'grand_total', 'reference_no', 'particulars', 'remarks')
             ->limit(10)
-            ->get();
+            ->get()
+            ->map(function ($apv) {
+                if (!$apv->vendor_code || !$apv->vendor_tin) {
+                    $vendor = \DB::table('vendors')->where('vendor_name', $apv->vendor_name)->first();
+                    if (!$apv->vendor_code) $apv->vendor_code = $vendor->vendor_code ?? '';
+                    if (!$apv->vendor_tin)  $apv->vendor_tin  = $vendor->tin ?? '';
+                }
+                return $apv;
+            });
 
         return response()->json($apvs);
     }
@@ -118,10 +126,10 @@ class CheckVoucherController extends Controller
                 'accounts_payable_invoice_id' => $request->accounts_payable_invoice_id,
                 'cv_date' => $request->cv_date,
                 'check_date' => $request->check_date,
-                'supplier_code' => $request->supplier_code,
+                'vendor_code' => $request->vendor_code,
                 'supplier_name' => $request->supplier_name,
                 'supplier_address' => $request->supplier_address,
-                'supplier_tin' => $request->supplier_tin,
+                'vendor_tin' => $request->vendor_tin,
                 'check_no' => $request->check_no ?? '0',
                 'bank' => $request->bank,
                 'gl_account_id' => $request->gl_account_id,
@@ -237,10 +245,10 @@ class CheckVoucherController extends Controller
             $voucher->update([
                 'cv_date' => $request->cv_date,
                 'check_date' => $request->check_date,
-                'supplier_code' => $request->supplier_code,
+                'vendor_code' => $request->vendor_code,
                 'supplier_name' => $request->supplier_name,
                 'supplier_address' => $request->supplier_address,
-                'supplier_tin' => $request->supplier_tin,
+                'vendor_tin' => $request->vendor_tin,
                 'check_no' => $request->check_no,
                 'bank' => $request->bank,
                 'gl_account_id' => $request->gl_account_id,
@@ -320,7 +328,10 @@ class CheckVoucherController extends Controller
             return redirect()->route('check_vouchers.index')->with('error', 'Unauthorized.');
         }
 
-        $voucher = CheckVoucher::where('approval_stage', 'pending_accounting')->findOrFail($id);
+        $voucher = CheckVoucher::findOrFail($id);
+        if ($voucher->approval_stage !== 'pending_accounting') {
+            return redirect()->back()->with('error', 'This CV is not awaiting Accounting review.');
+        }
         $voucher->update([
             'approval_stage' => 'pending_odm',
             'accounting_reviewed_by' => Auth::id(),
@@ -353,7 +364,10 @@ class CheckVoucherController extends Controller
             return redirect()->route('check_vouchers.index')->with('error', 'Unauthorized.');
         }
 
-        $voucher = CheckVoucher::where('approval_stage', 'pending_odm')->findOrFail($id);
+        $voucher = CheckVoucher::findOrFail($id);
+        if ($voucher->approval_stage !== 'pending_odm') {
+            return redirect()->back()->with('error', 'This CV is not awaiting ODM/FDM approval.');
+        }
 
         DB::transaction(function () use ($voucher, $request) {
             $voucher->update([

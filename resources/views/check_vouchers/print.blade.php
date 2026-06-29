@@ -83,7 +83,7 @@
         <div class="detail-box">
             <div class="detail-row">
                 <div class="detail-label">Supplier Code:</div>
-                <div class="detail-value">{{ $checkVoucher->supplier_code ?? '' }}</div>
+                <div class="detail-value">{{ $checkVoucher->vendor_code ?? '' }}</div>
             </div>
             <div class="detail-row">
                 <div class="detail-label">Supplier Name:</div>
@@ -95,7 +95,7 @@
             </div>
             <div class="detail-row">
                 <div class="detail-label">Supplier TIN:</div>
-                <div class="detail-value">{{ $checkVoucher->supplier_tin ?? '' }}</div>
+                <div class="detail-value">{{ $checkVoucher->vendor_tin ?? '' }}</div>
             </div>
         </div>
 
@@ -193,21 +193,10 @@
                 </tr>
                 <tr>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
-                        <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->creator->name ?? ($checkVoucher->prepared_by ?? '') }}</div>
-                        @if($checkVoucher->creator && $checkVoucher->created_at)
-                            <div class="e-signature">@include('partials.esignature', ['signer' => $checkVoucher->creator])</div>
-                            <div class="e-signature-detail">Date/Time: {{ $checkVoucher->created_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
-                        @endif
+                        <div style="border-top: 1px solid #000; font-size: 8px;">&nbsp;</div>
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
-                        <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->accountingReviewer->name ?? ($checkVoucher->reviewed_by ?? '') }}</div>
-                        @if($checkVoucher->accountingReviewer && $checkVoucher->accounting_reviewed_at)
-                            <div class="e-signature">@include('partials.esignature', ['signer' => $checkVoucher->accountingReviewer])</div>
-                            <div class="e-signature-detail">Date/Time: {{ $checkVoucher->accounting_reviewed_at->format('d F Y | H:i') }} PHT (UTC+8)</div>
-                            @if($checkVoucher->accounting_reviewed_latitude && $checkVoucher->accounting_reviewed_longitude)
-                                <div class="e-signature-detail">Coords: {{ $checkVoucher->accounting_reviewed_latitude }}, {{ $checkVoucher->accounting_reviewed_longitude }}@if($checkVoucher->accounting_reviewed_location) ({{ $checkVoucher->accounting_reviewed_location }})@endif</div>
-                            @endif
-                        @endif
+                        <div style="border-top: 1px solid #000; font-size: 8px;">&nbsp;</div>
                     </td>
                     <td style="height: 50px; padding-bottom: 4px; vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; font-size: 8px;">{{ $checkVoucher->approvalUser->name ?? ($checkVoucher->approved_by ?? '') }}</div>

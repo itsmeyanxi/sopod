@@ -72,7 +72,7 @@ class PurchaseRequestController extends Controller
      */
     public function create()
     {
-        $prNo = 'PR-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        $prNo = 'Auto-assigned on save';
 
         $companies = [
             'North Breeders Corporation',
@@ -257,8 +257,6 @@ class PurchaseRequestController extends Controller
 
         DB::beginTransaction();
         try {
-            $prNo = 'PR-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-
             // Load BOM data if linked
             $bomData = [];
             if ($request->bom_id) {
@@ -273,7 +271,7 @@ class PurchaseRequestController extends Controller
             }
 
             $purchaseRequest = PurchaseRequest::create(array_merge([
-                'pr_no' => $prNo,
+                'pr_no' => '',
                 'company' => $request->company,
                 'requisitioner' => $request->requisitioner,
                 'department' => $request->department,
@@ -292,6 +290,8 @@ class PurchaseRequestController extends Controller
                 'status' => 'pending',
                 'created_by' => Auth::id(),
             ], $bomData));
+            $purchaseRequest->pr_no = 'PR-' . date('Ym') . '-' . $purchaseRequest->id;
+            $purchaseRequest->save();
 
             foreach ($request->items as $index => $item) {
                 PurchaseRequestItem::create([
@@ -493,7 +493,7 @@ class PurchaseRequestController extends Controller
             if ($wasApproved) {
                 DB::table('purchase_requests')->where('id', $purchaseRequest->id)->update([
                     'status'                            => 'pending',
-                    'approval_stage'                    => 'pending',
+                    'approval_stage'                    => 'pending_dh',
                     'approved_by'                       => null,
                     'approved_at'                       => null,
                     'department_head_approved_by'       => null,
@@ -729,6 +729,16 @@ class PurchaseRequestController extends Controller
             'approved_location' => $request->input('location'),
             'rejection_reason' => null,
         ]);
+
+        // Restore invalidated POs linked to this PR back to pending so they can be re-approved
+        // (Re-approving each PO will in turn restore their linked RFPs, APVs, and CVs)
+        DB::table('purchase_orders')
+            ->where('purchase_request_id', $purchaseRequest->id)
+            ->where('status', 'invalidated')
+            ->update([
+                'status'         => 'pending',
+                'approval_stage' => 'pending_dh',
+            ]);
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',

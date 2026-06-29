@@ -96,7 +96,7 @@ class AccountsPayableInvoiceController extends Controller
                     $inv->vendor_name,
                     $inv->payment_type === 'downpayment' ? 'Downpayment' : 'Full Payment',
                     $inv->currency,
-                    number_format($inv->grand_total, 2),
+                    number_format($inv->total_before_vat, 2),
                     ucfirst($inv->status),
                     $inv->due_date ? $inv->due_date->format('Y-m-d') : '',
                     $inv->creator->name ?? 'N/A',
@@ -116,26 +116,45 @@ class AccountsPayableInvoiceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $apvNo = 'APV-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        $apvNo = 'Auto-assigned on save';
 
         $selectedRFP  = null;
         $supplierInfo = null;
 
         if ($request->has('rfp_id')) {
-            $selectedRFP = RequestForPayment::with(['purchaseOrder.supplierModel'])->find($request->rfp_id);
-            if ($selectedRFP && $selectedRFP->purchaseOrder) {
-                $supplier     = $selectedRFP->purchaseOrder->supplierModel;
+            $selectedRFP = RequestForPayment::with(['purchaseOrder.supplierModel', 'grpo'])->find($request->rfp_id);
+            if ($selectedRFP) {
+                $po           = $selectedRFP->purchaseOrder;
+                $grpo         = $selectedRFP->grpo;
+                $supplier     = $po?->supplierModel ?? null;
+
+                $vendorCode    = $supplier?->supplier_code ?? '';
+                $vendorAddress = $po?->supplier_address ?? $supplier?->address ?? '';
+                $vendorTin     = $po?->supplier_tin ?? $supplier?->tin ?? '';
+                $referenceNo   = $po?->reference_number ?? $grpo?->reference_number ?? '';
+
+                // Fallback: match vendor by payee name
+                if (!$vendorCode || !$vendorTin) {
+                    $vendorMatch = \App\Models\Vendor::where('vendor_name', $selectedRFP->payee)->first()
+                        ?? \App\Models\Supplier::where('supplier_name', $selectedRFP->payee)->first();
+                    if (!$vendorCode) $vendorCode = $vendorMatch?->vendor_code ?? $vendorMatch?->supplier_code ?? '';
+                    if (!$vendorTin)  $vendorTin  = $vendorMatch?->tin ?? '';
+                    if (!$vendorAddress) $vendorAddress = $vendorMatch?->address ?? '';
+                }
+
                 $supplierInfo = [
-                    'address' => $supplier->address ?? $selectedRFP->purchaseOrder->supplier_address ?? '',
-                    'tin'     => $supplier->tin ?? '',
-                    'code'    => $supplier->supplier_code ?? '',
+                    'code'         => $vendorCode,
+                    'address'      => $vendorAddress,
+                    'tin'          => $vendorTin,
+                    'reference_no' => $referenceNo,
                 ];
             }
         }
 
         $glAccounts = $this->getGlAccounts();
+        [$deptCodes, $divCodes] = $this->getCostCenterCodes();
 
-        return view('accounts_payable_invoices.create', compact('apvNo', 'selectedRFP', 'supplierInfo', 'glAccounts'));
+        return view('accounts_payable_invoices.create', compact('apvNo', 'selectedRFP', 'supplierInfo', 'glAccounts', 'deptCodes', 'divCodes'));
     }
 
     /**
@@ -145,7 +164,7 @@ class AccountsPayableInvoiceController extends Controller
     {
         $searchTerm = $request->input('search', '');
 
-        $rfps = RequestForPayment::with(['purchaseOrder.supplierModel', 'purchaseOrder.items'])
+        $rfps = RequestForPayment::with(['purchaseOrder.supplierModel', 'purchaseOrder.items', 'grpo'])
             ->where('status', 'approved')
             ->where(function ($query) use ($searchTerm) {
                 $query->where('rfp_no', 'LIKE', "%{$searchTerm}%")
@@ -156,17 +175,19 @@ class AccountsPayableInvoiceController extends Controller
             ->limit(10)
             ->get()
             ->map(function ($rfp) {
-                $supplier = $rfp->purchaseOrder->supplierModel ?? null;
-                $po = $rfp->purchaseOrder;
-                $vendorAddress = $po->supplier_address ?? $supplier->address ?? '';
-                $vendorTin     = $po->supplier_tin ?? $supplier->tin ?? '';
+                $po       = $rfp->purchaseOrder;
+                $grpo     = $rfp->grpo;
+                $supplier = $po?->supplierModel ?? null;
+                $vendorAddress = $po?->supplier_address ?? $supplier?->address ?? '';
+                $vendorTin     = $po?->supplier_tin ?? $supplier?->tin ?? '';
+                $vendorCode    = $supplier?->supplier_code ?? '';
+                $referenceNo   = $po?->reference_number ?? $grpo?->reference_number ?? '';
 
-                // Resolve vendor_code: try supplier first, then vendor table by payee name
-                $vendorCode = $supplier->supplier_code ?? '';
-                if (!$vendorCode) {
+                if (!$vendorCode || !$vendorTin) {
                     $vendorMatch = \App\Models\Vendor::where('vendor_name', $rfp->payee)->first()
                         ?? \App\Models\Supplier::where('supplier_name', $rfp->payee)->first();
-                    $vendorCode = $vendorMatch->vendor_code ?? $vendorMatch->supplier_code ?? '';
+                    if (!$vendorCode) $vendorCode = $vendorMatch?->vendor_code ?? $vendorMatch?->supplier_code ?? '';
+                    if (!$vendorTin)  $vendorTin  = $vendorMatch?->tin ?? '';
                 }
 
                 return [
@@ -178,7 +199,7 @@ class AccountsPayableInvoiceController extends Controller
                     'amount'           => (float) $rfp->amount,
                     'particulars'      => $rfp->particulars,
                     'purchase_order_no'   => $po->po_no ?? '',
-                    'po_reference_number' => $po->reference_number ?? '',
+                    'po_reference_number' => $referenceNo,
                     'vendor_address'      => $vendorAddress,
                     'vendor_tin'          => $vendorTin,
                     'vendor_code'         => $vendorCode,
@@ -334,10 +355,8 @@ class AccountsPayableInvoiceController extends Controller
 
         DB::beginTransaction();
         try {
-            $apvNo = 'APV-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-
             $invoice = AccountsPayableInvoice::create([
-                'apv_no'                  => $apvNo,
+                'apv_no'                  => '',
                 'request_for_payment_id'  => $request->request_for_payment_id,
                 'cash_advance_request_id' => $request->cash_advance_request_id,
                 'reimbursement_form_id'   => $request->reimbursement_form_id,
@@ -388,6 +407,9 @@ class AccountsPayableInvoiceController extends Controller
                 ]);
             }
 
+            $invoice->apv_no = 'APV-' . date('Ym') . '-' . $invoice->id;
+            $invoice->save();
+
             DB::commit();
 
             Activity::create([
@@ -422,7 +444,11 @@ class AccountsPayableInvoiceController extends Controller
         $po    = $invoice->requestForPayment?->purchaseOrder ?? null;
         $grpos = $po ? \App\Models\LiveChicken::where('po_no', $po->po_no)->orderBy('date')->get() : collect();
 
-        return view('accounts_payable_invoices.show', compact('invoice', 'grpos'));
+        $ccNames = \DB::table('cost_centers')
+            ->whereIn('dimension', ['Department', 'Division'])
+            ->pluck('cost_center_name', 'cost_center_code');
+
+        return view('accounts_payable_invoices.show', compact('invoice', 'grpos', 'ccNames'));
     }
 
     /**
@@ -436,9 +462,10 @@ class AccountsPayableInvoiceController extends Controller
 
         $invoice    = AccountsPayableInvoice::findOrFail($id);
 
-
         $glAccounts = $this->getGlAccounts();
-        return view('accounts_payable_invoices.edit', compact('invoice', 'glAccounts'));
+        [$deptCodes, $divCodes] = $this->getCostCenterCodes();
+
+        return view('accounts_payable_invoices.edit', compact('invoice', 'glAccounts', 'deptCodes', 'divCodes'));
     }
 
     /**
@@ -543,9 +570,10 @@ class AccountsPayableInvoiceController extends Controller
                 'total_after_vat'   => $netOfVat,
                 'w_tax_amount'      => $wTaxAmount,
                 'grand_total'       => $grandTotal,
-                'prepared_by'       => $request->prepared_by,
-                'reviewed_by'       => $request->reviewed_by,
-                'remarks'           => $request->remarks,
+                'prepared_by'           => $request->prepared_by,
+                'reviewed_by'           => $request->reviewed_by,
+                'remarks'               => $request->remarks,
+                'cash_advance_request_id' => $request->cash_advance_request_id ?: $invoice->cash_advance_request_id,
             ]);
 
             // Replace all items (only save positive DR entries)
@@ -569,7 +597,7 @@ class AccountsPayableInvoiceController extends Controller
             if ($wasApproved) {
                 DB::table('accounts_payable_invoices')->where('id', $invoice->id)->update([
                     'status'                            => 'pending',
-                    'approval_stage'                    => 'pending',
+                    'approval_stage'                    => 'pending_dh',
                     'approved_by'                       => null,
                     'approved_at'                       => null,
                     'department_head_approved_by'       => null,
@@ -653,9 +681,13 @@ class AccountsPayableInvoiceController extends Controller
             return redirect()->route('accounts_payable_invoices.index')->with('error', 'Unauthorized.');
         }
 
-        $invoice = AccountsPayableInvoice::where('approval_stage', 'pending_dh')->findOrFail($id);
+        $invoice = AccountsPayableInvoice::findOrFail($id);
+        if ($invoice->approval_stage !== 'pending_dh') {
+            return redirect()->back()->with('error', 'This APV is no longer pending DH approval (current stage: ' . $invoice->approval_stage . ').');
+        }
         $invoice->update([
-            'approval_stage'                    => 'pending_accounting',
+            'status'                            => 'approved',
+            'approval_stage'                    => 'approved',
             'department_head_approved_by'       => Auth::id(),
             'department_head_approved_at'       => now(),
             'department_head_approved_latitude' => $request->input('latitude'),
@@ -666,14 +698,14 @@ class AccountsPayableInvoiceController extends Controller
 
         Activity::create([
             'user_name' => Auth::user()->name ?? 'System',
-            'action'    => 'Reviewed (DH)',
+            'action'    => 'Approved',
             'item'      => $invoice->apv_no,
             'target'    => $invoice->vendor_name,
             'type'      => 'Accounts Payable Invoice',
-            'message'   => 'Department Head reviewed Accounts Payable Invoice ' . $invoice->apv_no,
+            'message'   => 'Approved Accounts Payable Invoice ' . $invoice->apv_no,
         ]);
 
-        return redirect()->back()->with('success', 'APV reviewed by Department Head. Forwarded to Accounting Manager.');
+        return redirect()->back()->with('success', 'APV approved!');
     }
 
     /**
@@ -686,7 +718,10 @@ class AccountsPayableInvoiceController extends Controller
             return redirect()->route('accounts_payable_invoices.index')->with('error', 'Unauthorized.');
         }
 
-        $invoice = AccountsPayableInvoice::where('approval_stage', 'pending_accounting')->findOrFail($id);
+        $invoice = AccountsPayableInvoice::findOrFail($id);
+        if ($invoice->approval_stage !== 'pending_accounting') {
+            return redirect()->back()->with('error', 'This APV is not pending accounting approval (current stage: ' . $invoice->approval_stage . ').');
+        }
         $invoice->update([
             'status'            => 'approved',
             'approval_stage'    => 'approved',
@@ -749,7 +784,25 @@ class AccountsPayableInvoiceController extends Controller
         $liveRate = \App\Models\Currency::phpRate($apv->currency ?? 'PHP');
         $po    = $apv->requestForPayment->purchaseOrder ?? null;
         $grpos = $po ? \App\Models\LiveChicken::where('po_no', $po->po_no)->orderBy('date')->get() : collect();
-        return view('accounts_payable_invoices.print', ['apv' => $apv, 'liveRate' => $liveRate, 'grpos' => $grpos]);
+
+        $ccNames = \DB::table('cost_centers')
+            ->whereIn('dimension', ['Department', 'Division'])
+            ->pluck('cost_center_name', 'cost_center_code');
+
+        return view('accounts_payable_invoices.print', ['apv' => $apv, 'liveRate' => $liveRate, 'grpos' => $grpos, 'ccNames' => $ccNames]);
+    }
+
+    private function getCostCenterCodes(): array
+    {
+        $all = \DB::table('cost_centers')
+            ->whereIn('dimension', ['Department', 'Division'])
+            ->orderBy('cost_center_code')
+            ->get(['cost_center_code', 'cost_center_name', 'dimension']);
+
+        $dept = $all->where('dimension', 'Department')->map(fn($r) => ['code' => $r->cost_center_code, 'name' => $r->cost_center_name])->values()->toArray();
+        $div  = $all->where('dimension', 'Division')->map(fn($r) => ['code' => $r->cost_center_code, 'name' => $r->cost_center_name])->values()->toArray();
+
+        return [$dept, $div];
     }
 
     private function getGlAccounts(): array
@@ -777,14 +830,15 @@ class AccountsPayableInvoiceController extends Controller
         $items = \App\Models\ApvItem::with('apv')
             ->whereNotNull('tax_code')->where('tax_code', '!=', '')
             ->whereHas('apv', function($q) use ($dateFrom, $dateTo, $status) {
-                $q->whereDate('apv_date', '>=', $dateFrom)->whereDate('apv_date', '<=', $dateTo);
+                $q->whereDate('apv_date', '>=', $dateFrom)->whereDate('apv_date', '<=', $dateTo)
+                  ->where('status', '!=', 'invalidated');
                 if ($status) $q->where('status', $status);
             })->get();
 
         $vendors = [];
         foreach ($items as $item) {
             $name = $item->apv->vendor_name ?? 'Unknown';
-            if (!isset($vendors[$name])) $vendors[$name] = ['gross'=>0,'vat'=>0,'net'=>0,'ewt'=>0,'amount_due'=>0,'count'=>0];
+            if (!isset($vendors[$name])) $vendors[$name] = ['gross'=>0,'vat'=>0,'net'=>0,'ewt'=>0,'amount_due'=>0,'count'=>0,'earliest_date'=>null,'latest_date'=>null];
             $gross = abs((float)$item->gross_amount);
             $vatAmt = $item->vat ? $gross * 12/112 : 0;
             $net    = $gross - $vatAmt;
@@ -795,6 +849,12 @@ class AccountsPayableInvoiceController extends Controller
             $vendors[$name]['ewt']        += $ewt;
             $vendors[$name]['amount_due'] += ($net - $ewt);
             $vendors[$name]['count']++;
+            $apvDate = $item->apv->apv_date;
+            if ($apvDate) {
+                $d = $apvDate instanceof \Carbon\Carbon ? $apvDate : \Carbon\Carbon::parse($apvDate);
+                if (!$vendors[$name]['earliest_date'] || $d->lt($vendors[$name]['earliest_date'])) $vendors[$name]['earliest_date'] = $d->copy();
+                if (!$vendors[$name]['latest_date']   || $d->gt($vendors[$name]['latest_date']))   $vendors[$name]['latest_date']   = $d->copy();
+            }
         }
         ksort($vendors);
 
@@ -818,7 +878,8 @@ class AccountsPayableInvoiceController extends Controller
             ->whereHas('apv', function($q) use ($vendorName, $dateFrom, $dateTo, $status) {
                 $q->where('vendor_name', $vendorName)
                   ->whereDate('apv_date', '>=', $dateFrom)
-                  ->whereDate('apv_date', '<=', $dateTo);
+                  ->whereDate('apv_date', '<=', $dateTo)
+                  ->where('status', '!=', 'invalidated');
                 if ($status) $q->where('status', $status);
             })->get();
 
@@ -853,5 +914,92 @@ class AccountsPayableInvoiceController extends Controller
         ];
 
         return view('ewt_register.detail', compact('vendorName','rows','totals','dateFrom','dateTo','status'));
+    }
+
+    public function ewtExport(Request $request)
+    {
+        if (!Auth::user()->canAccessAPV()) abort(403);
+
+        $dateFrom = $request->date_from ?? now()->startOfYear()->format('Y-m-d');
+        $dateTo   = $request->date_to   ?? now()->format('Y-m-d');
+        $status   = $request->status;
+
+        $ewtRates = ['C158'=>0.01,'158'=>0.01,'C160'=>0.02,'160'=>0.02,'C100'=>0.05,'I010'=>0.05,'I011'=>0.10];
+
+        $items = \App\Models\ApvItem::with('apv')
+            ->whereNotNull('tax_code')->where('tax_code', '!=', '')
+            ->whereHas('apv', function($q) use ($dateFrom, $dateTo, $status) {
+                $q->whereDate('apv_date', '>=', $dateFrom)->whereDate('apv_date', '<=', $dateTo)
+                  ->where('status', '!=', 'invalidated');
+                if ($status) $q->where('status', $status);
+            })->get();
+
+        $filename = 'EWT_Register_' . $dateFrom . '_to_' . $dateTo . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control'       => 'no-cache, must-revalidate',
+        ];
+
+        $callback = function () use ($items, $ewtRates, $dateFrom, $dateTo) {
+            $file = fopen('php://output', 'w');
+            fwrite($file, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
+
+            fputcsv($file, ['EWT REGISTER', "Period: {$dateFrom} to {$dateTo}"]);
+            fputcsv($file, []);
+            fputcsv($file, [
+                'APV No', 'APV Date', 'Status', 'Vendor Name',
+                'Particulars', 'Tax Code', 'Rate (%)',
+                'Gross Amount', 'VAT Amount', 'Net of VAT', 'EWT', 'Amount Due',
+            ]);
+
+            foreach ($items as $item) {
+                $gross  = abs((float)$item->gross_amount);
+                $vatAmt = $item->vat ? $gross * 12/112 : 0;
+                $net    = $gross - $vatAmt;
+                $rate   = $ewtRates[$item->tax_code] ?? 0;
+                $ewt    = $net * $rate;
+
+                fputcsv($file, [
+                    $item->apv->apv_no ?? '',
+                    $item->apv->apv_date ? $item->apv->apv_date->format('Y-m-d') : '',
+                    ucfirst($item->apv->status ?? ''),
+                    $item->apv->vendor_name ?? '',
+                    $item->particulars ?? '',
+                    $item->tax_code,
+                    ($rate * 100) . '%',
+                    number_format($gross, 2),
+                    number_format($vatAmt, 2),
+                    number_format($net, 2),
+                    number_format($ewt, 2),
+                    number_format($net - $ewt, 2),
+                ]);
+            }
+
+            // Totals row
+            $tGross = $items->sum(fn($i) => abs((float)$i->gross_amount));
+            $tVat   = $items->sum(fn($i) => $i->vat ? abs((float)$i->gross_amount) * 12/112 : 0);
+            $tNet   = $tGross - $tVat;
+            $tEwt   = $items->sum(function($i) use ($ewtRates) {
+                $gross = abs((float)$i->gross_amount);
+                $net   = $i->vat ? $gross * 100/112 : $gross;
+                return $net * ($ewtRates[$i->tax_code] ?? 0);
+            });
+
+            fputcsv($file, []);
+            fputcsv($file, [
+                'TOTAL', '', '', '', '', '', '',
+                number_format($tGross, 2),
+                number_format($tVat, 2),
+                number_format($tNet, 2),
+                number_format($tEwt, 2),
+                number_format($tNet - $tEwt, 2),
+            ]);
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

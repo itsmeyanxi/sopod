@@ -231,7 +231,10 @@
         <!-- =================== SUPPLIERS =================== -->
         @php
             $u = auth()->user();
-            $canSeeSupplyChain = !$u->isCCRole() && (
+            $ccRoleButGranted = $u->isCCRole() && (
+                $u->hasModuleGrant('suppliers') || $u->hasModuleGrant('non_trade_items') || $u->hasModuleGrant('trade_items')
+            );
+            $canSeeSupplyChain = (!$u->isCCRole() || $ccRoleButGranted) && (
                 ($u->canManageSuppliers()              && $u->navAccess('supply_chain.supplier_list', fn() => true))
                 || ($u->canManageSupplierReceivingReports() && $u->navAccess('supply_chain.receiving_reports', fn() => true))
                 || ($u->canManageIssueSlips()              && $u->navAccess('supply_chain.issue_slips', fn() => true))
@@ -419,7 +422,14 @@
 
         <!-- =================== PURCHASE ORDER =================== -->
         @php
-            $canSeeFinance = !auth()->user()->isDeliveryOnlyRole();
+            $fu = auth()->user();
+            $canSeeFinance = !$fu->isDeliveryOnlyRole()
+                || $fu->hasModuleGrant('purchase_requests')
+                || $fu->hasModuleGrant('purchase_orders')
+                || $fu->hasModuleGrant('rfp')
+                || $fu->hasModuleGrant('apv')
+                || $fu->hasModuleGrant('cash_advance')
+                || $fu->hasModuleGrant('reimbursement_forms');
         @endphp
         @if($canSeeFinance)
             <div>

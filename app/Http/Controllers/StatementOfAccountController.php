@@ -38,20 +38,22 @@ class StatementOfAccountController extends Controller
             $paid = $sumAmount + $sumDiscount + $sumEwt;
         }
 
-        // Detect missing/unrecorded EWT and EWT recalculation residuals
+        // Detect missing/unrecorded EWT/CWT and recalculation residuals.
+        // Standard withholding rates: CWT 1%, EWT 1%, 2%, 2.5%, 5%.
+        // Widen upper bound to 5.5% to cover all standard rates plus rounding.
         if ($sumAmount > 0 && $invoiceAmount > 0) {
             $gap = $invoiceAmount - $paid;
             if ($gap > 0) {
                 $gapPercent = ($gap / $invoiceAmount) * 100;
 
                 if ($sumEwt == 0) {
-                    // EWT not recorded: gap matches standard EWT rate (1% or 2%)
-                    if (($gapPercent >= 0.9 && $gapPercent <= 1.2) || ($gapPercent >= 1.9 && $gapPercent <= 2.6)) {
+                    // EWT/CWT not recorded — gap matches any standard withholding rate
+                    if ($gapPercent >= 0.9 && $gapPercent <= 5.5) {
                         $paid = $invoiceAmount;
                     }
                 } else {
-                    // EWT was recorded but recalculation leaves a small residual (under 1%)
-                    if ($gapPercent <= 1.0) {
+                    // EWT was recorded but recalculation leaves a residual under 3%
+                    if ($gapPercent <= 3.0) {
                         $paid = $invoiceAmount;
                     }
                 }
@@ -82,12 +84,12 @@ class StatementOfAccountController extends Controller
                 DB::raw('COUNT(DISTINCT deliveries.customer_code) as branch_count'),
                 DB::raw('SUM(
                     CASE WHEN (
-                        COALESCE(NULLIF(CAST(deliveries.total_amount AS DECIMAL(15,2)), 0), COALESCE(di.items_total, 0))
-                        - COALESCE(paid.sum_amount + paid.sum_discount + CASE WHEN paid.sum_ewt > 0 AND paid.sum_amount > 0 THEN COALESCE(NULLIF(CAST(deliveries.total_amount AS DECIMAL(15,2)), 0), COALESCE(di.items_total, 0)) * (paid.sum_ewt / paid.sum_amount) ELSE paid.sum_ewt END, 0)
+                        COALESCE(NULLIF(CAST(di.items_total AS DECIMAL(15,2)), 0), CAST(deliveries.total_amount AS DECIMAL(15,2)))
+                        - COALESCE(paid.sum_amount + paid.sum_discount + CASE WHEN paid.sum_ewt > 0 AND paid.sum_amount > 0 THEN COALESCE(NULLIF(CAST(di.items_total AS DECIMAL(15,2)), 0), CAST(deliveries.total_amount AS DECIMAL(15,2))) * (paid.sum_ewt / paid.sum_amount) ELSE paid.sum_ewt END, 0)
                         + COALESCE(adj.net_adjustment, 0)
-                    ) > COALESCE(NULLIF(CAST(deliveries.total_amount AS DECIMAL(15,2)), 0), COALESCE(di.items_total, 0)) * 0.03 THEN (
-                        COALESCE(NULLIF(CAST(deliveries.total_amount AS DECIMAL(15,2)), 0), COALESCE(di.items_total, 0))
-                        - COALESCE(paid.sum_amount + paid.sum_discount + CASE WHEN paid.sum_ewt > 0 AND paid.sum_amount > 0 THEN COALESCE(NULLIF(CAST(deliveries.total_amount AS DECIMAL(15,2)), 0), COALESCE(di.items_total, 0)) * (paid.sum_ewt / paid.sum_amount) ELSE paid.sum_ewt END, 0)
+                    ) > COALESCE(NULLIF(CAST(di.items_total AS DECIMAL(15,2)), 0), CAST(deliveries.total_amount AS DECIMAL(15,2))) * 0.03 THEN (
+                        COALESCE(NULLIF(CAST(di.items_total AS DECIMAL(15,2)), 0), CAST(deliveries.total_amount AS DECIMAL(15,2)))
+                        - COALESCE(paid.sum_amount + paid.sum_discount + CASE WHEN paid.sum_ewt > 0 AND paid.sum_amount > 0 THEN COALESCE(NULLIF(CAST(di.items_total AS DECIMAL(15,2)), 0), CAST(deliveries.total_amount AS DECIMAL(15,2))) * (paid.sum_ewt / paid.sum_amount) ELSE paid.sum_ewt END, 0)
                         + COALESCE(adj.net_adjustment, 0)
                     ) ELSE 0 END
                 ) as outstanding_balance')
@@ -107,7 +109,7 @@ class StatementOfAccountController extends Controller
             ->whereNotNull('deliveries.customer_code')
             ->where('deliveries.customer_code', '!=', '')
             ->groupBy('deliveries.customer_name')
-            ->havingRaw('outstanding_balance > 0');
+            ->havingRaw('outstanding_balance > 150');
 
         if (!empty($search)) {
             $deliveryQuery->where('deliveries.customer_name', 'LIKE', "%{$search}%");
@@ -330,19 +332,46 @@ class StatementOfAccountController extends Controller
             ->get()
             ->keyBy(function($a) { return trim($a->dr_no); });
 
+        // Pre-fetch delivery_items totals for all deliveries at once (avoid N+1 queries).
+        // delivery_items is the authoritative source — deliveries.total_amount can be stale.
+        $deliveryIds = $deliveries->pluck('id')->toArray();
+        $itemsTotals = DB::table('delivery_items')
+            ->whereIn('delivery_id', $deliveryIds)
+            ->select('delivery_id', DB::raw('SUM(total_amount) as items_total'))
+            ->groupBy('delivery_id')
+            ->get()
+            ->keyBy('delivery_id');
+
+        // Pre-fetch ar_aging paid status per DR — if ar_aging marks a DR as Paid
+        // and the collection module has recorded payment, skip it from SOA entirely.
+        $drNosForStatus = $deliveries->pluck('dr_no')->map(fn($d) => trim($d))->filter()->toArray();
+        $arPaidStatus = collect();
+        if (!empty($drNosForStatus)) {
+            $arPaidStatus = DB::table('ar_aging')
+                ->whereIn(DB::raw('TRIM(dr_no)'), $drNosForStatus)
+                ->select(DB::raw('TRIM(dr_no) as dr_no'), 'net_ar_balance', 'status')
+                ->get()
+                ->keyBy(fn($r) => trim($r->dr_no));
+        }
+
         // Build detail rows
         $totalCurrent = 0;
         $totalPastDue = 0;
         $detailRows = [];
 
         foreach ($deliveries as $delivery) {
-            $invoiceAmount = (float) $delivery->total_amount;
-            if ($invoiceAmount <= 0) {
-                $invoiceAmount = (float) DB::table('delivery_items')
-                    ->where('delivery_id', $delivery->id)
-                    ->sum('total_amount');
-            }
             $drNo = trim($delivery->dr_no);
+
+            // Skip DRs that ar_aging has already marked Paid AND a payment exists
+            $arStatus = $arPaidStatus[$drNo] ?? null;
+            if ($arStatus && isset($paidPerDr[$drNo]) &&
+                ((float)$arStatus->net_ar_balance <= 0 || strtolower(trim($arStatus->status ?? '')) === 'paid')) {
+                continue;
+            }
+
+            // Use delivery_items total as authoritative amount; fall back to total_amount
+            $itemsTotal = (float)($itemsTotals[$delivery->id]->items_total ?? 0);
+            $invoiceAmount = $itemsTotal > 0 ? $itemsTotal : (float) $delivery->total_amount;
 
             $paidData = $paidPerDr[$drNo] ?? null;
 
@@ -354,7 +383,8 @@ class StatementOfAccountController extends Controller
                 $outstanding += (float) $adjustmentsPerDr[$drNo]->net_adjustment;
             }
             $outstanding = max(0, $outstanding);
-            if ($outstanding <= 10) continue; // ₱10 leeway — treat small balances as fully paid
+            // ₱150 leeway — absorbs EWT/CWT rounding differences across standard rates
+            if ($outstanding <= 150) continue;
 
             // Use counter_date for aging if available, otherwise fall back to delivery date
             $baseDate = $delivery->counter_date

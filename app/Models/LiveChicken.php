@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class LiveChicken extends Model
 {
     protected $fillable = [
-        'grpo_no', 'date', 'po_no', 'reference_number', 'items_data', 'container_no', 'pallet_no', 'storage_name',
+        'grpo_no', 'date', 'po_no', 'rfp_no', 'reference_number', 'items_data', 'container_no', 'pallet_no', 'storage_name',
         'storage_reference_no', 'shipping_type',
         'supplier', 'items', 'brand', 'price', 'actual_qty',
         'delivery_date', 'docs_required_type', 'docs_required_file', 'docs_required_date',
@@ -39,20 +39,9 @@ class LiveChicken extends Model
         'No Documents' => 'red',
     ];
 
-    public static function generateGrpoNo(): string
+    public static function generateGrpoNo(int $id): string
     {
-        $year = date('Y');
-        $last = self::whereYear('created_at', $year)
-            ->whereNotNull('grpo_no')
-            ->orderByDesc('id')->first();
-
-        $seq = 1;
-        if ($last && $last->grpo_no) {
-            $parts = explode('-', $last->grpo_no);
-            $seq = ((int) end($parts)) + 1;
-        }
-
-        return 'GRPO-' . $year . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+        return 'GRPO-' . date('Ym') . '-' . $id;
     }
 
     public function purchaseOrder()
