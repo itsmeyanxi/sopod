@@ -67,6 +67,7 @@
         .print-date { text-align: right; font-size: 9px; color: #777; margin-top: 6px; }
 
         @media print {
+            @page { size: A4 portrait; margin: 8mm; }
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .no-print { display: none; }
         }

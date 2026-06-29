@@ -273,7 +273,7 @@
         <!-- Approval Buttons -->
         @if($reimbursement->status === 'pending' && $reimbursement->approval_stage !== 'rejected')
             <div class="flex gap-3 mb-4 mt-6">
-                @if($reimbursement->approval_stage === 'pending_dh' && auth()->user()->canApproveRFPAsDH() || auth()->user()->canPerformInModule('can_approve', 'rfp'))
+                @if($reimbursement->approval_stage === 'pending_dh' && (auth()->user()->canApproveRFPAsDH() || auth()->user()->canPerformInModule('can_approve', 'rfp')))
                     <button type="button" onclick="showApproveDHModal()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
                         <i class="fas fa-check mr-1"></i> Approve as Department Head
                     </button>
