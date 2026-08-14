@@ -183,52 +183,78 @@
                 </button>
             </div>
 
-            <!-- Service Description (shown only for service POs) -->
-            <div id="serviceDescSection" class="hidden mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-                <label class="block font-semibold text-white mb-2">SERVICE DESCRIPTION: <span class="text-red-500">*</span></label>
-                <textarea name="service_description" id="serviceDescription" rows="4"
-                    class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Describe the service to be rendered...">{{ old('service_description') }}</textarea>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-1">QUANTITY</label>
-                        <input type="number" step="any" name="service_qty" id="service_qty"
-                            class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            placeholder="0" value="{{ old('service_qty') }}" oninput="calcServiceTotal()">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-1">UOM</label>
-                        <input type="text" name="service_uom" id="service_uom"
-                            class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            placeholder="e.g. hrs, units" value="{{ old('service_uom') }}">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-1">UNIT AMOUNT</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
-                            <input type="number" step="0.01" name="service_amount" id="service_amount"
-                                class="w-full bg-gray-800 border border-gray-700 rounded pl-7 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                placeholder="0.00" value="{{ old('service_amount') }}" oninput="calcServiceTotal()">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-1">VAT (12%)</label>
-                        <div class="flex items-center gap-2 mt-2">
-                            <input type="checkbox" name="service_vat" id="service_vat" value="1"
-                                class="w-4 h-4 accent-purple-500" onchange="calcServiceTotal()"
-                                {{ old('service_vat') ? 'checked' : '' }}>
-                            <span class="text-sm text-gray-300">Include 12% VAT</span>
-                        </div>
-                    </div>
+            <!-- Service Items Table (shown only for service POs) -->
+            <div id="serviceItemsSection" class="hidden mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold text-white"><i class="fas fa-tools mr-2"></i>Services</h3>
+                    <button type="button" onclick="addServiceRow()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <i class="fas fa-plus mr-1"></i> Add Row
+                    </button>
                 </div>
-                <div class="mt-3" id="service_total_wrapper">
-                    <label class="block text-sm font-semibold text-gray-300 mb-1" id="service_total_label">TOTAL AMOUNT</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
-                        <input type="number" step="0.01" id="service_total_display"
-                            class="w-full bg-gray-700 border border-gray-600 rounded pl-7 pr-3 py-2 text-green-400 font-bold focus:outline-none"
-                            placeholder="0.00" readonly>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="border-collapse border border-gray-700" id="serviceTable" style="min-width:1200px; width:100%;">
+                        <thead class="bg-red-700 text-white">
+                            <tr>
+                                <th class="border border-gray-700 px-2 py-2" style="width:70px">ACTION</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:40px">NO.</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:320px">DESCRIPTION</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:120px">QTY</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:80px">UOM</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:130px">BRAND</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:140px">DATE NEEDED</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:110px">UNIT PRICE</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:110px">VAT (12%)</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:110px">TOTAL</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:150px">REMARKS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="serviceBody">
+                            <tr>
+                                <td class="border border-gray-700 px-2 py-2 text-center">
+                                    <button type="button" onclick="removeServiceRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition">
+                                        <i class="fas fa-trash mr-1"></i>Delete
+                                    </button>
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">1</td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <div class="relative">
+                                        <input type="text" name="service_items[0][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" autocomplete="off">
+                                        <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                                    </div>
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <input type="number" step="any" name="service_items[0][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <input type="text" name="service_items[0][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="e.g. hrs, units">
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <input type="text" name="service_items[0][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" placeholder="Brand">
+                                </td>
+                                <input type="hidden" name="service_items[0][supplier_id]" class="supplier-id-input" value="">
+                                <input type="hidden" name="service_items[0][supplier_name]" class="supplier-name-input" value="">
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <input type="date" name="service_items[0][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <input type="number" step="0.01" name="service_items[0][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2 text-center">
+                                    <label class="flex items-center justify-center gap-1 cursor-pointer mb-1">
+                                        <input type="checkbox" name="service_items[0][vat]" class="item-vat" value="1" onchange="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
+                                        <span class="text-xs text-gray-300">VAT</span>
+                                    </label>
+                                    <input type="number" step="0.01" name="service_items[0][tax]" class="w-full px-1 py-1 bg-gray-800 border border-gray-700 rounded text-green-400 item-tax text-xs text-center" readonly value="0" placeholder="0.00">
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <input type="number" step="0.01" name="service_items[0][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly>
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <input type="text" name="service_items[0][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="Remarks...">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -412,6 +438,25 @@
                 </div>
             </div>
 
+            <!-- Additional Attachments (invoices, etc.) -->
+            <div class="mb-6">
+                <label class="block font-semibold text-white mb-2">ADDITIONAL ATTACHMENTS:</label>
+                <p class="text-gray-400 text-sm mb-2">Attach invoices and other files. Click <span class="text-purple-300">“+ Add another file”</span> to attach more than one. (PDF, Word, Excel, Image)</p>
+                <div id="attachmentsContainer" class="space-y-2">
+                    <div class="flex items-center gap-2 attachment-row">
+                        <input type="file" name="attachments[]" multiple
+                               class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                        <button type="button" onclick="removeAttachmentRow(this)" class="text-red-400 hover:text-red-300 text-sm px-2 py-1">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" onclick="addAttachmentRow()" class="mt-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm">
+                    <i class="fas fa-plus mr-1"></i> Add another file
+                </button>
+            </div>
+
             <!-- Signature Section -->
             <div class="mb-6">
                 <div class="border border-gray-700 rounded">
@@ -454,6 +499,7 @@
 
 <script>
 let rowCount = {{ ($items ? $items->count() : 1) }};
+let serviceRowCount = 1;
 
 const availablePRs      = @json($purchaseRequests);
 const prSearchInput     = document.getElementById('prSearchInput');
@@ -608,6 +654,102 @@ function reorderRows() {
     rowCount = document.querySelectorAll('#itemsBody tr').length;
 }
 
+// ======================== ATTACHMENT ROWS ========================
+function addAttachmentRow() {
+    const container = document.getElementById('attachmentsContainer');
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 attachment-row';
+    row.innerHTML = `
+        <input type="file" name="attachments[]" multiple
+               class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+        <button type="button" onclick="removeAttachmentRow(this)" class="text-red-400 hover:text-red-300 text-sm px-2 py-1">
+            <i class="fas fa-times"></i>
+        </button>`;
+    container.appendChild(row);
+}
+
+function removeAttachmentRow(btn) {
+    const rows = document.querySelectorAll('#attachmentsContainer .attachment-row');
+    if (rows.length > 1) {
+        btn.closest('.attachment-row').remove();
+    } else {
+        // Keep at least one row; just clear its selection
+        btn.closest('.attachment-row').querySelector('input[type="file"]').value = '';
+    }
+}
+
+// ======================== SERVICE ROW MANAGEMENT ========================
+function addServiceRow() {
+    const tbody  = document.getElementById('serviceBody');
+    const newRow = tbody.insertRow();
+    const i = serviceRowCount;
+    newRow.innerHTML = `
+        <td class="border border-gray-700 px-2 py-2 text-center">
+            <button type="button" onclick="removeServiceRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition">
+                <i class="fas fa-trash mr-1"></i>Delete
+            </button>
+        </td>
+        <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">${i + 1}</td>
+        <td class="border border-gray-700 px-2 py-2">
+            <div class="relative">
+                <input type="text" name="service_items[${i}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" autocomplete="off" required>
+                <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+            </div>
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="number" step="any" name="service_items[${i}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" required>
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="text" name="service_items[${i}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="e.g. hrs, units">
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="text" name="service_items[${i}][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" placeholder="Brand">
+        </td>
+        <input type="hidden" name="service_items[${i}][supplier_id]" class="supplier-id-input" value="">
+        <input type="hidden" name="service_items[${i}][supplier_name]" class="supplier-name-input" value="">
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="date" name="service_items[${i}][date_needed]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white">
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="number" step="0.01" name="service_items[${i}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
+        </td>
+        <td class="border border-gray-700 px-2 py-2 text-center">
+            <label class="flex items-center justify-center gap-1 cursor-pointer mb-1">
+                <input type="checkbox" name="service_items[${i}][vat]" class="item-vat" value="1" onchange="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
+                <span class="text-xs text-gray-300">VAT</span>
+            </label>
+            <input type="number" step="0.01" name="service_items[${i}][tax]" class="w-full px-1 py-1 bg-gray-800 border border-gray-700 rounded text-green-400 item-tax text-xs text-center" readonly value="0" placeholder="0.00">
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="number" step="0.01" name="service_items[${i}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly>
+        </td>
+        <td class="border border-gray-700 px-2 py-2">
+            <input type="text" name="service_items[${i}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="Remarks...">
+        </td>
+    `;
+    serviceRowCount++;
+    const newDesc = newRow.querySelector('.desc-input');
+    if (newDesc) attachDescAutocomplete(newDesc);
+}
+
+function removeServiceRow(btn) {
+    btn.closest('tr').remove();
+    reorderServiceRows();
+    updateCurrencySummary();
+}
+
+function reorderServiceRows() {
+    document.querySelectorAll('#serviceBody tr').forEach((row, index) => {
+        row.cells[1].textContent = index + 1;
+        row.querySelectorAll('input').forEach(input => {
+            const name = input.getAttribute('name');
+            if (name) input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+        });
+    });
+    serviceRowCount = document.querySelectorAll('#serviceBody tr').length;
+}
+
 // ======================== CALCULATION ========================
 function attachCalculationListeners() {
     document.querySelectorAll('.item-qty, .item-price').forEach(input => {
@@ -652,32 +794,6 @@ function onCurrencyChange() {
         document.getElementById('rate_label').textContent = `(1 ${code} = ? PHP)`;
     }
     updateCurrencySummary();
-    calcServiceTotal();
-}
-
-function calcServiceTotal() {
-    const qty     = parseFloat(document.getElementById('service_qty')?.value) || 0;
-    const amt     = parseFloat(document.getElementById('service_amount')?.value) || 0;
-    const vatChk  = document.getElementById('service_vat')?.checked || false;
-    const code    = document.getElementById('currency_select').value;
-    const rate    = parseFloat(document.getElementById('exchange_rate').value) || 1;
-    const label   = document.getElementById('service_total_label');
-    const disp    = document.getElementById('service_total_display');
-
-    const subtotal   = qty * amt;
-    const vatAmt     = vatChk ? subtotal * 0.12 : 0;
-    const grandTotal = subtotal + vatAmt;
-
-    if (disp) {
-        if (code === 'PHP') {
-            disp.value = grandTotal.toFixed(2);
-            if (label) label.textContent = 'TOTAL AMOUNT' + (vatChk ? ' (incl. VAT)' : '');
-        } else {
-            disp.value = (grandTotal * rate).toFixed(2);
-            if (label) label.textContent = `TOTAL (PHP equiv. @ ${rate.toFixed(4)})` + (vatChk ? ' incl. VAT' : '');
-        }
-    }
-    updateCurrencySummary();
 }
 
 function updateCurrencySummary() {
@@ -687,15 +803,10 @@ function updateCurrencySummary() {
     if (code === 'PHP') { summary.classList.add('hidden'); return; }
 
     const isService = document.getElementById('poTypeInput')?.value === 'service';
+    const activeBody = document.getElementById(isService ? 'serviceBody' : 'itemsBody');
     let foreignTotal = 0;
-    if (isService) {
-        const sQty    = parseFloat(document.getElementById('service_qty')?.value) || 0;
-        const sAmt    = parseFloat(document.getElementById('service_amount')?.value) || 0;
-        const sVat    = document.getElementById('service_vat')?.checked || false;
-        const subtotal = sQty * sAmt;
-        foreignTotal  = subtotal + (sVat ? subtotal * 0.12 : 0);
-    } else {
-        document.querySelectorAll('.item-total').forEach(inp => foreignTotal += parseFloat(inp.value) || 0);
+    if (activeBody) {
+        activeBody.querySelectorAll('.item-total').forEach(inp => foreignTotal += parseFloat(inp.value) || 0);
     }
 
     summary.classList.remove('hidden');
@@ -706,7 +817,7 @@ function updateCurrencySummary() {
     document.getElementById('summary_php_total').textContent     = (foreignTotal * rate).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-document.getElementById('exchange_rate').addEventListener('input', () => { updateCurrencySummary(); calcServiceTotal(); });
+document.getElementById('exchange_rate').addEventListener('input', () => { updateCurrencySummary(); });
 
 // ======================== DROPDOWN POSITIONING ========================
 function positionFixedDropdown(inputEl, dropdownEl) {
@@ -1134,29 +1245,27 @@ document.addEventListener('DOMContentLoaded', function () {
 function setPOType(type) {
     document.getElementById('poTypeInput').value = type;
     const itemsSection = document.getElementById('itemsTableSection');
-    const serviceSection = document.getElementById('serviceDescSection');
-    const serviceDesc = document.getElementById('serviceDescription');
+    const serviceSection = document.getElementById('serviceItemsSection');
     const btnItems = document.getElementById('btnTypeItems');
     const btnService = document.getElementById('btnTypeService');
-    const brandWrapper = document.getElementById('brandFieldWrapper');
 
     if (type === 'service') {
         itemsSection.classList.add('hidden');
         serviceSection.classList.remove('hidden');
-        serviceDesc.required = true;
-        if (brandWrapper) brandWrapper.classList.add('hidden');
+        // Only the visible table's required fields should block submission
         itemsSection.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+        serviceSection.querySelectorAll('.item-qty, .desc-input').forEach(el => el.setAttribute('required', ''));
         btnService.className = 'px-5 py-2 rounded font-semibold transition bg-purple-600 text-white';
         btnItems.className = 'px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600';
     } else {
         itemsSection.classList.remove('hidden');
         serviceSection.classList.add('hidden');
-        serviceDesc.required = false;
-        if (brandWrapper) brandWrapper.classList.remove('hidden');
+        serviceSection.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
         itemsSection.querySelectorAll('.item-qty, .desc-input').forEach(el => el.setAttribute('required', ''));
         btnItems.className = 'px-5 py-2 rounded font-semibold transition bg-purple-600 text-white';
         btnService.className = 'px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600';
     }
+    updateCurrencySummary();
 }
 </script>
 @endsection

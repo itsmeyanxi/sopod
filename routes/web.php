@@ -2093,6 +2093,15 @@ Route::prefix('items')->name('items.')->group(function () {
             return view('errors.noaccess');
         })->name('reopen');
 
+        // Delete a single attachment
+        Route::delete('/{id}/attachments/{attachmentId}', function ($id, $attachmentId) {
+            $user = auth()->user();
+            if ($user->canManagePurchaseOrders()) {
+                return app(PurchaseOrderController::class)->deleteAttachment($id, $attachmentId);
+            }
+            return view('errors.noaccess');
+        })->name('attachments.delete');
+
         // Show (must be last)
         Route::get('/{id}', function ($id) {
             $user = auth()->user();

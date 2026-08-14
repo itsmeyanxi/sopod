@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Models\PurchaseOrderAttachment;
 use App\Models\PurchaseRequest;
 use App\Models\Supplier;
 use App\Models\Vendor;
@@ -263,21 +264,29 @@ class PurchaseOrderController extends Controller
         }
 
         // ── Validate ────────────────────────────────────────────────────────
+        // Item POs use the `items[]` table; Service POs use the `service_items[]`
+        // table (same columns minus Item Code). Both are stored as PO items.
         $poType = $request->input('po_type', 'items');
-        $itemsRules = $poType === 'service' ? [] : [
-            'items'                 => 'required|array|min:1',
-            'items.*.qty'           => 'required|numeric|min:0',
-            'items.*.description'   => 'required|string',
-            'items.*.supplier_id'   => 'nullable',
-            'items.*.supplier_name' => 'nullable|string',
-            'items.*.note'          => 'nullable|string',
+        $rowKey = $poType === 'service' ? 'service_items' : 'items';
+        $itemsRules = [
+            "{$rowKey}"                 => 'required|array|min:1',
+            "{$rowKey}.*.qty"           => 'required|numeric|min:0',
+            "{$rowKey}.*.description"   => 'required|string',
+            "{$rowKey}.*.supplier_id"   => 'nullable',
+            "{$rowKey}.*.supplier_name" => 'nullable|string',
+            "{$rowKey}.*.note"          => 'nullable|string',
         ];
         $validated = $request->validate(array_merge([
             'company'               => 'required|string',
             'order_date'            => 'required|date',
             'po_type'               => 'required|in:items,service',
-            'service_description'   => $poType === 'service' ? 'required|string' : 'nullable|string',
         ], $itemsRules));
+
+        // Normalized line rows + a service-description summary for backward compat
+        $rows = $request->input($rowKey, []);
+        $serviceDescription = $poType === 'service'
+            ? collect($rows)->pluck('description')->filter()->implode("\n")
+            : null;
 
         DB::beginTransaction();
         try {
@@ -308,11 +317,11 @@ class PurchaseOrderController extends Controller
                 'lc_price'               => $request->lc_price ?: null,
                 'remarks'                => $request->remarks ?: null,
                 'po_type'                => $request->po_type ?? 'items',
-                'service_description'    => $request->po_type === 'service' ? $request->service_description : null,
-                'service_qty'            => $request->po_type === 'service' ? $request->service_qty : null,
-                'service_amount'         => $request->po_type === 'service' ? $request->service_amount : null,
-                'service_uom'            => $request->po_type === 'service' ? ($request->service_uom ?: null) : null,
-                'service_vat'            => $request->po_type === 'service' ? (!empty($request->service_vat) ? 1 : 0) : 0,
+                'service_description'    => $serviceDescription,
+                'service_qty'            => null,
+                'service_amount'         => null,
+                'service_uom'            => null,
+                'service_vat'            => 0,
                 'quotation'              => $quotationPath,
                 'currency'               => $request->currency ?? 'PHP',
                 'exchange_rate'          => $request->exchange_rate ?? 1,
@@ -324,8 +333,7 @@ class PurchaseOrderController extends Controller
             $purchaseOrder->po_no = 'PO-' . date('Ym') . '-' . $purchaseOrder->id;
             $purchaseOrder->save();
 
-            if ($request->po_type !== 'service') {
-                foreach ($request->items as $index => $item) {
+            foreach ($rows as $index => $item) {
                     $supplierId = isset($item['supplier_id']) && is_numeric($item['supplier_id']) && $item['supplier_id'] > 0
                         ? (int) $item['supplier_id']
                         : null;
@@ -349,8 +357,10 @@ class PurchaseOrderController extends Controller
                         'total'                    => !empty($item['total']) ? $item['total'] : null,
                         'note'                     => !empty($item['note']) ? $item['note'] : null,
                     ]);
-                }
             }
+
+            // ── Additional attachments (invoices, etc.) ─────────────────────
+            $this->storeAttachments($request, $purchaseOrder);
 
             DB::commit();
 
@@ -380,11 +390,56 @@ class PurchaseOrderController extends Controller
     }
 
     /**
+     * Store additional PO attachments (invoices, etc.) from an `attachments[]`
+     * file input. Keeps the existing single `quotation` field untouched.
+     */
+    private function storeAttachments(Request $request, PurchaseOrder $purchaseOrder): void
+    {
+        if (!$request->hasFile('attachments')) {
+            return;
+        }
+
+        foreach ($request->file('attachments') as $file) {
+            if (!$file || !$file->isValid()) {
+                continue;
+            }
+
+            $path = $file->store('po_attachments', 'public');
+
+            PurchaseOrderAttachment::create([
+                'purchase_order_id' => $purchaseOrder->id,
+                'path'              => $path,
+                'original_name'     => $file->getClientOriginalName(),
+                'mime_type'         => $file->getClientMimeType(),
+                'size'              => $file->getSize(),
+                'uploaded_by'       => Auth::id(),
+            ]);
+        }
+    }
+
+    /**
+     * Delete a single PO attachment (removes the stored file and the record).
+     */
+    public function deleteAttachment($id, $attachmentId)
+    {
+        $purchaseOrder = PurchaseOrder::findOrFail($id);
+        $attachment = $purchaseOrder->attachments()->findOrFail($attachmentId);
+
+        if ($attachment->path && \Storage::disk('public')->exists($attachment->path)) {
+            \Storage::disk('public')->delete($attachment->path);
+        }
+
+        $attachment->delete();
+
+        return back()->with('success', 'Attachment deleted successfully.');
+    }
+
+    /**
      * Display the specified purchase order
      */
     public function show($id)
     {
-        $purchaseOrder = PurchaseOrder::with(['items', 'creator', 'purchaseRequest', 'approver', 'departmentHeadApprover'])
+        $purchaseOrder = PurchaseOrder::with(['items', 'creator', 'purchaseRequest', 'approver', 'departmentHeadApprover', 'attachments'])
             ->findOrFail($id);
 
         return view('purchase_orders.show', compact('purchaseOrder'));
@@ -403,7 +458,7 @@ class PurchaseOrderController extends Controller
      */
     public function edit($id)
     {
-        $purchaseOrder = PurchaseOrder::with('items')->findOrFail($id);
+        $purchaseOrder = PurchaseOrder::with('items', 'attachments')->findOrFail($id);
 
         // Check if user can create/edit purchase orders
         if (!Auth::user()->canCreatePurchaseOrders()) {
@@ -442,20 +497,26 @@ class PurchaseOrderController extends Controller
         }
 
         $poType = $request->input('po_type', 'items');
-        $itemsRulesUpdate = $poType === 'service' ? [] : [
-            'items'                    => 'required|array|min:1',
-            'items.*.qty'              => 'required|numeric|min:0',
-            'items.*.description'      => 'required|string',
-            'items.*.supplier_id'      => 'nullable',
-            'items.*.supplier_name'    => 'nullable|string',
-            'items.*.note'             => 'nullable|string',
+        $rowKey = $poType === 'service' ? 'service_items' : 'items';
+        $itemsRulesUpdate = [
+            "{$rowKey}"                 => 'required|array|min:1',
+            "{$rowKey}.*.qty"           => 'required|numeric|min:0',
+            "{$rowKey}.*.description"   => 'required|string',
+            "{$rowKey}.*.supplier_id"   => 'nullable',
+            "{$rowKey}.*.supplier_name" => 'nullable|string',
+            "{$rowKey}.*.note"          => 'nullable|string',
         ];
         $request->validate(array_merge([
             'company'                  => 'required|string',
             'order_date'               => 'required|date',
             'po_type'                  => 'required|in:items,service',
-            'service_description'      => $poType === 'service' ? 'required|string' : 'nullable|string',
         ], $itemsRulesUpdate));
+
+        // Normalized line rows + a service-description summary for backward compat
+        $rows = $request->input($rowKey, []);
+        $serviceDescription = $poType === 'service'
+            ? collect($rows)->pluck('description')->filter()->implode("\n")
+            : null;
 
         DB::beginTransaction();
         try {
@@ -485,11 +546,11 @@ class PurchaseOrderController extends Controller
                 'lc_price'               => $request->lc_price ?: null,
                 'remarks'                => $request->remarks ?: null,
                 'po_type'                => $request->po_type ?? 'items',
-                'service_description'    => $request->po_type === 'service' ? $request->service_description : null,
-                'service_qty'            => $request->po_type === 'service' ? $request->service_qty : null,
-                'service_amount'         => $request->po_type === 'service' ? $request->service_amount : null,
-                'service_uom'            => $request->po_type === 'service' ? ($request->service_uom ?: null) : null,
-                'service_vat'            => $request->po_type === 'service' ? (!empty($request->service_vat) ? 1 : 0) : 0,
+                'service_description'    => $serviceDescription,
+                'service_qty'            => null,
+                'service_amount'         => null,
+                'service_uom'            => null,
+                'service_vat'            => 0,
                 'currency'               => $request->currency ?? 'PHP',
                 'exchange_rate'          => $request->exchange_rate ?? 1,
             ];
@@ -504,8 +565,7 @@ class PurchaseOrderController extends Controller
             $purchaseOrder->update($updateData);
             $purchaseOrder->items()->delete();
 
-            if ($request->po_type !== 'service') {
-            foreach ($request->items as $index => $item) {
+            foreach ($rows as $index => $item) {
                 $supplierId = isset($item['supplier_id']) && is_numeric($item['supplier_id']) && $item['supplier_id'] > 0
                     ? (int) $item['supplier_id']
                     : null;
@@ -516,21 +576,23 @@ class PurchaseOrderController extends Controller
                     'supplier_id'              => $supplierId,
                     'supplier_name'            => !empty($item['supplier_name']) ? $item['supplier_name'] : null,
                     'item_no'                  => $index + 1,
-                    'item_code'                => $item['item_code'] ?: null,
+                    'item_code'                => !empty($item['item_code']) ? $item['item_code'] : null,
                     'date_needed'              => ($item['date_needed'] ?? null) ?: null,
                     'qty'                      => $item['qty'],
                     'uom'                      => $item['uom'] ?? null,
                     'description'              => $item['description'],
                     'brand'                    => !empty($item['brand']) ? $item['brand'] : null,
-                    'unit_price'               => $item['unit_price'] ?: null,
+                    'unit_price'               => !empty($item['unit_price']) ? $item['unit_price'] : null,
                     'vat'                      => !empty($item['vat']) ? 1 : 0,
                     'tax_code'                 => !empty($item['tax_code']) ? $item['tax_code'] : null,
                     'tax'                      => $item['tax'] ?? 0,
-                    'total'                    => $item['total'] ?: null,
-                    'note'                     => $item['note'] ?: null,
+                    'total'                    => !empty($item['total']) ? $item['total'] : null,
+                    'note'                     => !empty($item['note']) ? $item['note'] : null,
                 ]);
             }
-            } // end if not service
+
+            // ── Additional attachments (invoices, etc.) ─────────────────────
+            $this->storeAttachments($request, $purchaseOrder);
 
             if ($wasApproved) {
                 \Log::info('PO wasApproved block running', ['id' => $purchaseOrder->id]);

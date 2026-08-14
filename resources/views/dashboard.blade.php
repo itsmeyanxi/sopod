@@ -6,12 +6,6 @@
 <div class="bg-gray-800 p-6">
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-yellow text-2xl font-bold">Dashboard</h1>
-        @if(auth()->user()->isAdminUser())
-            <a href="{{ route('dashboard.export_employees') }}"
-               class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded text-sm flex items-center gap-2">
-                <i class="fas fa-file-excel"></i> Export Employee List
-            </a>
-        @endif
     </div>
 
     {{-- ========================================================= --}}

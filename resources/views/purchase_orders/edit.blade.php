@@ -239,56 +239,95 @@
             </div>
 
             <!-- Service Description -->
-            <div id="serviceDescSection" class="{{ ($purchaseOrder->po_type ?? 'items') === 'service' ? '' : 'hidden' }} mb-6 bg-gray-900 border border-gray-700 rounded p-4">
-                <label class="block font-semibold text-white mb-2">SERVICE DESCRIPTION: <span class="text-red-500">*</span></label>
-                <textarea name="service_description" id="serviceDescription" rows="4"
-                    class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Describe the service to be rendered...">{{ old('service_description', $purchaseOrder->service_description) }}</textarea>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-1">QUANTITY</label>
-                        <input type="number" step="any" name="service_qty" id="service_qty"
-                            class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            placeholder="0" value="{{ old('service_qty', $purchaseOrder->service_qty) }}" oninput="calcServiceTotal()">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-1">UOM</label>
-                        <input type="text" name="service_uom" id="service_uom"
-                            class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            placeholder="e.g. hrs, units" value="{{ old('service_uom', $purchaseOrder->service_uom) }}">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-1">UNIT AMOUNT</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
-                            <input type="number" step="0.01" name="service_amount" id="service_amount"
-                                class="w-full bg-gray-800 border border-gray-700 rounded pl-7 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                placeholder="0.00" value="{{ old('service_amount', $purchaseOrder->service_amount) }}" oninput="calcServiceTotal()">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-300 mb-1">VAT (12%)</label>
-                        <div class="flex items-center gap-2 mt-2">
-                            <input type="checkbox" name="service_vat" id="service_vat" value="1"
-                                class="w-4 h-4 accent-purple-500" onchange="calcServiceTotal()"
-                                {{ old('service_vat', $purchaseOrder->service_vat ?? 0) ? 'checked' : '' }}>
-                            <span class="text-sm text-gray-300">Include 12% VAT</span>
-                        </div>
-                    </div>
+            @php
+                $isServicePO = ($purchaseOrder->po_type ?? 'items') === 'service';
+                // Service line rows are stored as PO items (item_code null). When
+                // editing an items PO the service table gets one blank starter row,
+                // and vice versa, so switching type always has a row to work with.
+                $itemRows    = $isServicePO ? collect([null]) : $purchaseOrder->items;
+                $serviceRows = $isServicePO ? $purchaseOrder->items : collect([null]);
+                // Legacy service POs stored a single service_* record instead of
+                // item rows — seed one row from those fields so they stay editable.
+                if ($isServicePO && $serviceRows->isEmpty()) {
+                    $serviceRows = collect([(object)[
+                        'description'   => $purchaseOrder->service_description,
+                        'qty'           => $purchaseOrder->service_qty,
+                        'uom'           => $purchaseOrder->service_uom,
+                        'brand'         => null,
+                        'supplier_id'   => $purchaseOrder->supplier_id,
+                        'supplier_name' => $purchaseOrder->supplier,
+                        'unit_price'    => $purchaseOrder->service_amount,
+                        'vat'           => $purchaseOrder->service_vat,
+                        'tax'           => null,
+                        'total'         => null,
+                        'note'          => null,
+                    ]]);
+                }
+            @endphp
+
+            <!-- Service Items Table (shown only for service POs) -->
+            <div id="serviceItemsSection" class="mb-6" {{ $isServicePO ? '' : 'style=display:none' }}>
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold text-white"><i class="fas fa-tools mr-2"></i>Services</h3>
+                    <button type="button" onclick="addServiceRow()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <i class="fas fa-plus mr-1"></i> Add Row
+                    </button>
                 </div>
-                <div class="mt-3" id="service_total_wrapper">
-                    <label class="block text-sm font-semibold text-gray-300 mb-1" id="service_total_label">TOTAL AMOUNT</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-2.5 text-gray-300">₱</span>
-                        <input type="number" step="0.01" id="service_total_display"
-                            class="w-full bg-gray-700 border border-gray-600 rounded pl-7 pr-3 py-2 text-green-400 font-bold focus:outline-none"
-                            placeholder="0.00" readonly>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="border-collapse border border-gray-700" id="serviceTable" style="min-width:1100px; width:100%;">
+                        <thead class="bg-red-700 text-white">
+                            <tr>
+                                <th class="border border-gray-700 px-2 py-2" style="width:70px">ACTION</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:40px">NO.</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:320px">DESCRIPTION</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:120px">QTY</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:80px">UOM</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:130px">BRAND</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:110px">UNIT PRICE</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:110px">VAT (12%)</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:110px">TOTAL</th>
+                                <th class="border border-gray-700 px-2 py-2" style="width:180px">REMARKS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="serviceBody">
+                            @foreach($serviceRows as $index => $sitem)
+                            <tr>
+                                <td class="border border-gray-700 px-2 py-2 text-center">
+                                    <button type="button" onclick="removeServiceRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition" title="Delete row">
+                                        <i class="fas fa-trash mr-1"></i>Delete
+                                    </button>
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">{{ $index + 1 }}</td>
+                                <td class="border border-gray-700 px-2 py-2">
+                                    <div class="relative">
+                                        <input type="text" name="service_items[{{ $index }}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" value="{{ $sitem?->description }}" autocomplete="off">
+                                        <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+                                    </div>
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="any" name="service_items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $sitem?->qty }}"></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="service_items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $sitem?->uom }}" placeholder="e.g. hrs, units"></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="service_items[{{ $index }}][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" value="{{ $sitem?->brand }}" placeholder="Brand"></td>
+                                <input type="hidden" name="service_items[{{ $index }}][supplier_id]" class="supplier-id-input" value="{{ $sitem?->supplier_id ?? $purchaseOrder->supplier_id }}">
+                                <input type="hidden" name="service_items[{{ $index }}][supplier_name]" class="supplier-name-input" value="{{ $sitem?->supplier_name ?? $purchaseOrder->supplier }}">
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="service_items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $sitem?->unit_price }}"></td>
+                                <td class="border border-gray-700 px-2 py-2 text-center">
+                                    <label class="flex items-center justify-center gap-1 cursor-pointer mb-1">
+                                        <input type="checkbox" name="service_items[{{ $index }}][vat]" class="item-vat" value="1" {{ $sitem?->vat ? 'checked' : '' }} onchange="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
+                                        <span class="text-xs text-gray-300">VAT</span>
+                                    </label>
+                                    <input type="number" step="0.01" name="service_items[{{ $index }}][tax]" class="w-full px-1 py-1 bg-gray-800 border border-gray-700 rounded text-green-400 item-tax text-xs text-center" readonly value="{{ $sitem?->tax ?? 0 }}" placeholder="0.00">
+                                </td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="service_items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" value="{{ $sitem?->total }}" readonly></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="service_items[{{ $index }}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $sitem?->note }}" placeholder="Remarks..."></td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Items Table -->
-            <div class="mb-6" id="itemsTableSection" {{ ($purchaseOrder->po_type ?? 'items') === 'service' ? 'style=display:none' : '' }}>
+            <div class="mb-6" id="itemsTableSection" {{ $isServicePO ? 'style=display:none' : '' }}>
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-lg font-semibold text-white">Items</h3>
                     <button type="button" onclick="addRow()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -313,7 +352,7 @@
                             </tr>
                         </thead>
                         <tbody id="itemsBody">
-                            @foreach($purchaseOrder->items as $index => $item)
+                            @foreach($itemRows as $index => $item)
                             <tr>
                                 <td class="border border-gray-700 px-2 py-2 text-center">
                                     <button type="button" onclick="removeRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition" title="Delete row">
@@ -322,32 +361,32 @@
                                 </td>
                                 <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">{{ $index + 1 }}</td>
                                 <td class="border border-gray-700 px-2 py-2">
-                                    <input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" value="{{ $item->item_code }}" autocomplete="off">
-                                    <input type="hidden" name="items[{{ $index }}][purchase_request_item_id]" value="{{ $item->purchase_request_item_id }}">
+                                    <input type="text" name="items[{{ $index }}][item_code]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-code-input" value="{{ $item?->item_code }}" autocomplete="off">
+                                    <input type="hidden" name="items[{{ $index }}][purchase_request_item_id]" value="{{ $item?->purchase_request_item_id }}">
                                 </td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="any" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->qty }}" required></td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->uom }}" required></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="any" name="items[{{ $index }}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item?->qty }}" required></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item?->uom }}" required></td>
                                 <td class="border border-gray-700 px-2 py-2">
                                     <div class="relative">
-                                        <input type="text" name="items[{{ $index }}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" value="{{ $item->description }}" required autocomplete="off">
+                                        <input type="text" name="items[{{ $index }}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" value="{{ $item?->description }}" required autocomplete="off">
                                         <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
                                     </div>
                                 </td>
                                 <td class="border border-gray-700 px-2 py-2">
-                                    <input type="text" name="items[{{ $index }}][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" value="{{ $item->brand }}" placeholder="Brand">
+                                    <input type="text" name="items[{{ $index }}][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" value="{{ $item?->brand }}" placeholder="Brand">
                                 </td>
-                                <input type="hidden" name="items[{{ $index }}][supplier_id]" class="supplier-id-input" value="{{ $item->supplier_id ?? $purchaseOrder->supplier_id }}">
-                                <input type="hidden" name="items[{{ $index }}][supplier_name]" class="supplier-name-input" value="{{ $item->supplier_name ?? $purchaseOrder->supplier }}">
-                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item->unit_price }}"></td>
+                                <input type="hidden" name="items[{{ $index }}][supplier_id]" class="supplier-id-input" value="{{ $item?->supplier_id ?? $purchaseOrder->supplier_id }}">
+                                <input type="hidden" name="items[{{ $index }}][supplier_name]" class="supplier-name-input" value="{{ $item?->supplier_name ?? $purchaseOrder->supplier }}">
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" value="{{ $item?->unit_price }}"></td>
                                 <td class="border border-gray-700 px-2 py-2 text-center">
                                     <label class="flex items-center justify-center gap-1 cursor-pointer mb-1">
-                                        <input type="checkbox" name="items[{{ $index }}][vat]" class="item-vat" value="1" {{ $item->vat ? 'checked' : '' }} onchange="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
+                                        <input type="checkbox" name="items[{{ $index }}][vat]" class="item-vat" value="1" {{ $item?->vat ? 'checked' : '' }} onchange="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
                                         <span class="text-xs text-gray-300">VAT</span>
                                     </label>
-                                    <input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-1 py-1 bg-gray-800 border border-gray-700 rounded text-green-400 item-tax text-xs text-center" readonly value="{{ $item->tax }}" placeholder="0.00">
+                                    <input type="number" step="0.01" name="items[{{ $index }}][tax]" class="w-full px-1 py-1 bg-gray-800 border border-gray-700 rounded text-green-400 item-tax text-xs text-center" readonly value="{{ $item?->tax }}" placeholder="0.00">
                                 </td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" value="{{ $item->total }}" readonly></td>
-                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item->note }}" placeholder="Note..."></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="items[{{ $index }}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" value="{{ $item?->total }}" readonly></td>
+                                <td class="border border-gray-700 px-2 py-2"><input type="text" name="items[{{ $index }}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" value="{{ $item?->note }}" placeholder="Note..."></td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -401,6 +440,38 @@
                 </div>
             </div>
 
+            <!-- Additional Attachments (invoices, etc.) -->
+            <div class="mb-6">
+                <label class="block font-semibold text-white mb-2">ADDITIONAL ATTACHMENTS:</label>
+                @if($purchaseOrder->attachments && $purchaseOrder->attachments->count())
+                    <div class="mb-3 space-y-2">
+                        @foreach($purchaseOrder->attachments as $attachment)
+                            <div class="flex items-center justify-between p-3 bg-gray-900 border border-gray-700 rounded">
+                                <a href="{{ asset('storage/' . $attachment->path) }}" target="_blank" class="text-blue-400 hover:underline flex items-center gap-2">
+                                    <i class="fas fa-file-download"></i>
+                                    {{ $attachment->original_name }}
+                                </a>
+                                <button type="button"
+                                        onclick="deletePoAttachment('{{ route('purchase_orders.attachments.delete', [$purchaseOrder->id, $attachment->id]) }}')"
+                                        class="text-red-500 hover:text-red-400 text-sm">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+                <p class="text-gray-400 text-sm mb-2">Click <span class="text-purple-300">“+ Add another file”</span> to attach more than one. (PDF, Word, Excel, Image)</p>
+                <div id="attachmentsContainer" class="space-y-2">
+                    <div class="flex items-center gap-2 attachment-row">
+                        <input type="file" name="attachments[]" multiple class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                        <button type="button" onclick="removeAttachmentRow(this)" class="text-red-400 hover:text-red-300 text-sm px-2 py-1"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <button type="button" onclick="addAttachmentRow()" class="mt-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm">
+                    <i class="fas fa-plus mr-1"></i> Add another file
+                </button>
+            </div>
+
             <!-- Signature Section -->
             <div class="mb-6">
                 <div class="border border-gray-700 rounded">
@@ -444,7 +515,8 @@
 
 @if(!$notesOnly)
 <script>
-let rowCount = {{ $purchaseOrder->items->count() }};
+let rowCount = {{ $isServicePO ? 1 : $purchaseOrder->items->count() }};
+let serviceRowCount = {{ $isServicePO ? max(1, $purchaseOrder->items->count()) : 1 }};
 
 function addRow() {
     const tbody = document.getElementById('itemsBody');
@@ -511,6 +583,63 @@ function reorderRows() {
     rowCount = rows.length;
 }
 
+// ==================== SERVICE ROW MANAGEMENT ====================
+function addServiceRow() {
+    const tbody  = document.getElementById('serviceBody');
+    const newRow = tbody.insertRow();
+    const i = serviceRowCount;
+    newRow.innerHTML = `
+        <td class="border border-gray-700 px-2 py-2 text-center">
+            <button type="button" onclick="removeServiceRow(this)" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-semibold transition" title="Delete row">
+                <i class="fas fa-trash mr-1"></i>Delete
+            </button>
+        </td>
+        <td class="border border-gray-700 px-2 py-2 text-center text-gray-400">${i + 1}</td>
+        <td class="border border-gray-700 px-2 py-2">
+            <div class="relative">
+                <input type="text" name="service_items[${i}][description]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white desc-input" autocomplete="off" required>
+                <div class="desc-dropdown hidden absolute z-20 left-0 right-0 bg-gray-800 border border-gray-600 rounded shadow-lg max-h-40 overflow-y-auto" style="top:100%"></div>
+            </div>
+        </td>
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="any" name="service_items[${i}][qty]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-qty" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();" required></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="text" name="service_items[${i}][uom]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="e.g. hrs, units"></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="text" name="service_items[${i}][brand]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white brand-input" placeholder="Brand"></td>
+        <input type="hidden" name="service_items[${i}][supplier_id]" class="supplier-id-input" value="">
+        <input type="hidden" name="service_items[${i}][supplier_name]" class="supplier-name-input" value="">
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="service_items[${i}][unit_price]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-price" oninput="calculateRowTotal(this.closest('tr'));updateCurrencySummary();"></td>
+        <td class="border border-gray-700 px-2 py-2 text-center">
+            <label class="flex items-center justify-center gap-1 cursor-pointer mb-1">
+                <input type="checkbox" name="service_items[${i}][vat]" class="item-vat" value="1" onchange="calculateRowTotal(this.closest('tr'));updateCurrencySummary();">
+                <span class="text-xs text-gray-300">VAT</span>
+            </label>
+            <input type="number" step="0.01" name="service_items[${i}][tax]" class="w-full px-1 py-1 bg-gray-800 border border-gray-700 rounded text-green-400 item-tax text-xs text-center" readonly value="0" placeholder="0.00">
+        </td>
+        <td class="border border-gray-700 px-2 py-2"><input type="number" step="0.01" name="service_items[${i}][total]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white item-total" readonly></td>
+        <td class="border border-gray-700 px-2 py-2"><input type="text" name="service_items[${i}][note]" class="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white" placeholder="Remarks..."></td>
+    `;
+    serviceRowCount++;
+    const newDesc = newRow.querySelector('.desc-input');
+    if (newDesc) attachDescAutocomplete(newDesc);
+}
+
+function removeServiceRow(btn) {
+    btn.closest('tr').remove();
+    reorderServiceRows();
+    updateCurrencySummary();
+}
+
+function reorderServiceRows() {
+    const rows = document.querySelectorAll('#serviceBody tr');
+    rows.forEach((row, index) => {
+        row.cells[1].textContent = index + 1;
+        row.querySelectorAll('input').forEach(input => {
+            const name = input.getAttribute('name');
+            if (name) input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+        });
+    });
+    serviceRowCount = rows.length;
+}
+
 function attachCalculationListeners() {
     document.querySelectorAll('.item-qty, .item-price').forEach(input => {
         input.removeEventListener('input', calculateTotal);
@@ -534,7 +663,7 @@ function calculateTotal(e) {
 }
 
 function recalculateAllTotals() {
-    document.querySelectorAll('#itemsBody tr').forEach(row => calculateRowTotal(row));
+    document.querySelectorAll('#itemsBody tr, #serviceBody tr').forEach(row => calculateRowTotal(row));
     updateCurrencySummary();
 }
 
@@ -555,32 +684,6 @@ function onCurrencyChange() {
         rateLabel.textContent = `(1 ${code} = ? PHP)`;
     }
     updateCurrencySummary();
-    calcServiceTotal();
-}
-
-function calcServiceTotal() {
-    const qty     = parseFloat(document.getElementById('service_qty')?.value) || 0;
-    const amt     = parseFloat(document.getElementById('service_amount')?.value) || 0;
-    const vatChk  = document.getElementById('service_vat')?.checked || false;
-    const code    = document.getElementById('currency_select').value;
-    const rate    = parseFloat(document.getElementById('exchange_rate').value) || 1;
-    const label   = document.getElementById('service_total_label');
-    const disp    = document.getElementById('service_total_display');
-
-    const subtotal   = qty * amt;
-    const vatAmt     = vatChk ? subtotal * 0.12 : 0;
-    const grandTotal = subtotal + vatAmt;
-
-    if (disp) {
-        if (code === 'PHP') {
-            disp.value = grandTotal.toFixed(2);
-            if (label) label.textContent = 'TOTAL AMOUNT' + (vatChk ? ' (incl. VAT)' : '');
-        } else {
-            disp.value = (grandTotal * rate).toFixed(2);
-            if (label) label.textContent = `TOTAL (PHP equiv. @ ${rate.toFixed(4)})` + (vatChk ? ' incl. VAT' : '');
-        }
-    }
-    updateCurrencySummary();
 }
 
 function updateCurrencySummary() {
@@ -590,15 +693,10 @@ function updateCurrencySummary() {
     if (code === 'PHP') { summary.classList.add('hidden'); return; }
 
     const isService = document.getElementById('poTypeInput')?.value === 'service';
+    const activeBody = document.getElementById(isService ? 'serviceBody' : 'itemsBody');
     let foreignTotal = 0;
-    if (isService) {
-        const sQty    = parseFloat(document.getElementById('service_qty')?.value) || 0;
-        const sAmt    = parseFloat(document.getElementById('service_amount')?.value) || 0;
-        const sVat    = document.getElementById('service_vat')?.checked || false;
-        const subtotal = sQty * sAmt;
-        foreignTotal  = subtotal + (sVat ? subtotal * 0.12 : 0);
-    } else {
-        document.querySelectorAll('.item-total').forEach(inp => foreignTotal += parseFloat(inp.value) || 0);
+    if (activeBody) {
+        activeBody.querySelectorAll('.item-total').forEach(inp => foreignTotal += parseFloat(inp.value) || 0);
     }
 
     summary.classList.remove('hidden');
@@ -609,7 +707,7 @@ function updateCurrencySummary() {
     document.getElementById('summary_php_total').textContent = (foreignTotal * rate).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
-document.getElementById('exchange_rate').addEventListener('input', () => { updateCurrencySummary(); calcServiceTotal(); });
+document.getElementById('exchange_rate').addEventListener('input', () => { updateCurrencySummary(); });
 
 // ==================== FIXED-POSITION DROPDOWN HELPER ====================
 const SUPPLIER_SEARCH_URL = '{{ route("purchase_orders.search_suppliers") }}';
@@ -931,9 +1029,10 @@ document.addEventListener('DOMContentLoaded', function() {
     attachCalculationListeners();
     attachItemCodeListeners();
     recalculateAllTotals();
-    calcServiceTotal();
     document.querySelectorAll('.desc-input').forEach(attachDescAutocomplete);
     initTopSupplierSearch();
+    // Ensure required attributes match the active PO type on load
+    setPOType(document.getElementById('poTypeInput').value || 'items');
 
     document.getElementById('poForm').addEventListener('submit', function() {
         syncSupplierToItems();
@@ -943,27 +1042,61 @@ document.addEventListener('DOMContentLoaded', function() {
 function setPOType(type) {
     document.getElementById('poTypeInput').value = type;
     const itemsSection = document.getElementById('itemsTableSection');
-    const serviceSection = document.getElementById('serviceDescSection');
-    const serviceDesc = document.getElementById('serviceDescription');
+    const serviceSection = document.getElementById('serviceItemsSection');
     const btnItems = document.getElementById('btnTypeItems');
     const btnService = document.getElementById('btnTypeService');
     const brandWrapper = document.getElementById('brandFieldWrapper');
 
     if (type === 'service') {
-        itemsSection.classList.add('hidden');
-        serviceSection.classList.remove('hidden');
-        serviceDesc.required = true;
-        if (brandWrapper) brandWrapper.classList.add('hidden');
+        itemsSection.style.display = 'none';
+        serviceSection.style.display = '';
+        if (brandWrapper) brandWrapper.style.display = 'none';
+        // Only the visible table's required fields should block submission
+        itemsSection.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+        serviceSection.querySelectorAll('.item-qty, .desc-input').forEach(el => el.setAttribute('required', ''));
         btnService.className = 'px-5 py-2 rounded font-semibold transition bg-purple-600 text-white';
         btnItems.className = 'px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600';
     } else {
-        itemsSection.classList.remove('hidden');
-        serviceSection.classList.add('hidden');
-        serviceDesc.required = false;
-        if (brandWrapper) brandWrapper.classList.remove('hidden');
+        itemsSection.style.display = '';
+        serviceSection.style.display = 'none';
+        if (brandWrapper) brandWrapper.style.display = '';
+        serviceSection.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+        itemsSection.querySelectorAll('.item-qty, .desc-input, input[name*="[uom]"]').forEach(el => el.setAttribute('required', ''));
         btnItems.className = 'px-5 py-2 rounded font-semibold transition bg-purple-600 text-white';
         btnService.className = 'px-5 py-2 rounded font-semibold transition bg-gray-700 text-gray-300 hover:bg-gray-600';
     }
+    updateCurrencySummary();
+}
+
+// ==================== ATTACHMENT ROWS ====================
+function addAttachmentRow() {
+    const container = document.getElementById('attachmentsContainer');
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 attachment-row';
+    row.innerHTML = `
+        <input type="file" name="attachments[]" multiple class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+        <button type="button" onclick="removeAttachmentRow(this)" class="text-red-400 hover:text-red-300 text-sm px-2 py-1"><i class="fas fa-times"></i></button>`;
+    container.appendChild(row);
+}
+
+function removeAttachmentRow(btn) {
+    const rows = document.querySelectorAll('#attachmentsContainer .attachment-row');
+    if (rows.length > 1) {
+        btn.closest('.attachment-row').remove();
+    } else {
+        btn.closest('.attachment-row').querySelector('input[type="file"]').value = '';
+    }
+}
+
+// Delete a PO attachment via a standalone form (avoids nesting inside the edit form)
+function deletePoAttachment(url) {
+    if (!confirm('Remove this attachment? This cannot be undone.')) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.innerHTML = '@csrf' + '<input type="hidden" name="_method" value="DELETE">';
+    document.body.appendChild(form);
+    form.submit();
 }
 </script>
 @endif

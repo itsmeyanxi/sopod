@@ -336,63 +336,73 @@
             </div>
         </div>
 
-        <!-- Items / Service Description -->
+        <!-- Items / Services -->
+        @php
+            $isService = ($purchaseOrder->po_type ?? 'items') === 'service';
+            $displayItems = $purchaseOrder->items;
+            // Legacy service POs stored a single service_* record instead of items.
+            if ($isService && $displayItems->isEmpty()) {
+                $lNet = (float)($purchaseOrder->service_qty ?? 1) * (float)($purchaseOrder->service_amount ?? 0);
+                $lVat = ($purchaseOrder->service_vat ?? 0) ? round($lNet * 0.12, 2) : 0;
+                $displayItems = collect([(object)[
+                    'item_no' => 1, 'item_code' => null, 'description' => $purchaseOrder->service_description,
+                    'brand' => null, 'supplier_name' => $purchaseOrder->supplier, 'qty' => $purchaseOrder->service_qty ?? 1,
+                    'uom' => $purchaseOrder->service_uom, 'unit_price' => $purchaseOrder->service_amount, 'date_needed' => null,
+                    'tax' => $lVat, 'total' => $lNet + $lVat, 'note' => null,
+                ]]);
+            }
+        @endphp
         <div class="mb-6">
-            @if(($purchaseOrder->po_type ?? 'items') === 'service')
-                <h3 class="text-lg font-semibold text-white mb-2"><i class="fas fa-tools mr-2"></i>Service Description</h3>
-                <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-gray-200 min-h-[80px] whitespace-pre-line">
-                    {{ $purchaseOrder->service_description ?? 'No description provided.' }}
-                </div>
-            @else
-                <h3 class="text-lg font-semibold text-white mb-2">Items</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full border-collapse border border-gray-700">
-                        <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
-                            <tr>
-                                <th class="border border-gray-700 px-4 py-3">NO.</th>
-                                <th class="border border-gray-700 px-4 py-3">ITEM CODE</th>
-                                <th class="border border-gray-700 px-4 py-3">QTY</th>
-                                <th class="border border-gray-700 px-4 py-3">UOM</th>
-                                <th class="border border-gray-700 px-4 py-3">DESCRIPTION</th>
-                                <th class="border border-gray-700 px-4 py-3">BRAND</th>
-                                <th class="border border-gray-700 px-4 py-3">SUPPLIER</th>
-                                <th class="border border-gray-700 px-4 py-3">DATE NEEDED</th>
-                                <th class="border border-gray-700 px-4 py-3">UNIT PRICE</th>
-                                <th class="border border-gray-700 px-4 py-3">TAX</th>
-                                <th class="border border-gray-700 px-4 py-3">TOTAL</th>
-                                <th class="border border-gray-700 px-4 py-3">NOTE</th>
+            <h3 class="text-lg font-semibold text-white mb-2">
+                @if($isService)<i class="fas fa-tools mr-2"></i>Services @else Items @endif
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-gray-700">
+                    <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
+                        <tr>
+                            <th class="border border-gray-700 px-4 py-3">NO.</th>
+                            @unless($isService)<th class="border border-gray-700 px-4 py-3">ITEM CODE</th>@endunless
+                            <th class="border border-gray-700 px-4 py-3">QTY</th>
+                            <th class="border border-gray-700 px-4 py-3">UOM</th>
+                            <th class="border border-gray-700 px-4 py-3">DESCRIPTION</th>
+                            <th class="border border-gray-700 px-4 py-3">BRAND</th>
+                            <th class="border border-gray-700 px-4 py-3">SUPPLIER</th>
+                            <th class="border border-gray-700 px-4 py-3">DATE NEEDED</th>
+                            <th class="border border-gray-700 px-4 py-3">UNIT PRICE</th>
+                            <th class="border border-gray-700 px-4 py-3">TAX</th>
+                            <th class="border border-gray-700 px-4 py-3">TOTAL</th>
+                            <th class="border border-gray-700 px-4 py-3">NOTE</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-200 divide-y divide-gray-700">
+                        @foreach($displayItems as $item)
+                            <tr class="hover:bg-gray-700/40">
+                                <td class="border border-gray-700 px-4 py-3 text-center">{{ $item->item_no }}</td>
+                                @unless($isService)<td class="border border-gray-700 px-4 py-3">{{ $item->item_code ?? 'N/A' }}</td>@endunless
+                                <td class="border border-gray-700 px-4 py-3">{{ number_format($item->qty, 2) }}</td>
+                                <td class="border border-gray-700 px-4 py-3">{{ $item->uom }}</td>
+                                <td class="border border-gray-700 px-4 py-3">{{ $item->description }}</td>
+                                <td class="border border-gray-700 px-4 py-3">{{ $item->brand ?? '—' }}</td>
+                                <td class="border border-gray-700 px-4 py-3">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? 'N/A' }}</td>
+                                <td class="border border-gray-700 px-4 py-3 text-center">
+                                    {{ $item->date_needed ? \Carbon\Carbon::parse($item->date_needed)->format('M d, Y') : 'N/A' }}
+                                </td>
+                                <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->unit_price ? '₱' . number_format($item->unit_price, 2) : 'N/A' }}</td>
+                                <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->tax ? '₱' . number_format($item->tax, 2) : '—' }}</td>
+                                <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->total ? '₱' . number_format($item->total, 2) : 'N/A' }}</td>
+                                <td class="border border-gray-700 px-4 py-3">{{ $item->note ?? '' }}</td>
                             </tr>
-                        </thead>
-                        <tbody class="text-gray-200 divide-y divide-gray-700">
-                            @foreach($purchaseOrder->items as $item)
-                                <tr class="hover:bg-gray-700/40">
-                                    <td class="border border-gray-700 px-4 py-3 text-center">{{ $item->item_no }}</td>
-                                    <td class="border border-gray-700 px-4 py-3">{{ $item->item_code ?? 'N/A' }}</td>
-                                    <td class="border border-gray-700 px-4 py-3">{{ number_format($item->qty, 2) }}</td>
-                                    <td class="border border-gray-700 px-4 py-3">{{ $item->uom }}</td>
-                                    <td class="border border-gray-700 px-4 py-3">{{ $item->description }}</td>
-                                    <td class="border border-gray-700 px-4 py-3">{{ $item->brand ?? '—' }}</td>
-                                    <td class="border border-gray-700 px-4 py-3">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? 'N/A' }}</td>
-                                    <td class="border border-gray-700 px-4 py-3 text-center">
-                                        {{ $item->date_needed ? \Carbon\Carbon::parse($item->date_needed)->format('M d, Y') : 'N/A' }}
-                                    </td>
-                                    <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->unit_price ? '₱' . number_format($item->unit_price, 2) : 'N/A' }}</td>
-                                    <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->tax ? '₱' . number_format($item->tax, 2) : '—' }}</td>
-                                    <td class="border border-gray-700 px-4 py-3 text-right">{{ $item->total ? '₱' . number_format($item->total, 2) : 'N/A' }}</td>
-                                    <td class="border border-gray-700 px-4 py-3">{{ $item->note ?? '' }}</td>
-                                </tr>
-                            @endforeach
-                            @if($purchaseOrder->items->count() > 0)
-                                <tr class="bg-gray-700 font-semibold">
-                                    <td colspan="9" class="border border-gray-700 px-4 py-3 text-right text-white">TOTAL:</td>
-                                    <td class="border border-gray-700 px-4 py-3 text-right text-green-400">₱{{ number_format($purchaseOrder->items->sum('total'), 2) }}</td>
-                                    <td class="border border-gray-700"></td>
-                                </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
-            @endif
+                        @endforeach
+                        @if($displayItems->count() > 0)
+                            <tr class="bg-gray-700 font-semibold">
+                                <td colspan="{{ $isService ? 8 : 9 }}" class="border border-gray-700 px-4 py-3 text-right text-white">TOTAL:</td>
+                                <td class="border border-gray-700 px-4 py-3 text-right text-green-400">₱{{ number_format($displayItems->sum('total'), 2) }}</td>
+                                <td class="border border-gray-700"></td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Remarks -->
@@ -416,6 +426,35 @@
             @else
                 <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-gray-300">
                     No quotation file uploaded
+                </div>
+            @endif
+        </div>
+
+        <!-- Additional Attachments -->
+        <div class="mb-6">
+            <label class="block font-semibold text-white mb-2">ADDITIONAL ATTACHMENTS:</label>
+            @if($purchaseOrder->attachments && $purchaseOrder->attachments->count())
+                <div class="space-y-2">
+                    @foreach($purchaseOrder->attachments as $attachment)
+                        <div class="flex items-center justify-between px-4 py-3 bg-gray-900 border border-gray-700 rounded">
+                            <a href="{{ asset('storage/' . $attachment->path) }}" target="_blank" class="text-blue-400 hover:underline flex items-center gap-2">
+                                <i class="fas fa-file-download"></i>
+                                {{ $attachment->original_name }}
+                            </a>
+                            <form action="{{ route('purchase_orders.attachments.delete', [$purchaseOrder->id, $attachment->id]) }}" method="POST"
+                                  onsubmit="return confirm('Remove this attachment? This cannot be undone.');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-500 hover:text-red-400 text-sm">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="px-4 py-3 bg-gray-900 border border-gray-700 rounded text-gray-300">
+                    No additional attachments uploaded
                 </div>
             @endif
         </div>

@@ -193,7 +193,21 @@
         </p>
 
         <!-- Items Table -->
-        @php $isService = ($purchaseOrder->po_type ?? 'items') === 'service'; @endphp
+        @php
+            $isService = ($purchaseOrder->po_type ?? 'items') === 'service';
+            $displayItems = $purchaseOrder->items;
+            // Legacy service POs stored a single service_* record instead of items.
+            if ($isService && $displayItems->isEmpty()) {
+                $lNet = (float)($purchaseOrder->service_qty ?? 1) * (float)($purchaseOrder->service_amount ?? 0);
+                $lVat = ($purchaseOrder->service_vat ?? 0) ? round($lNet * 0.12, 2) : 0;
+                $displayItems = collect([(object)[
+                    'item_code' => null, 'description' => $purchaseOrder->service_description,
+                    'brand' => null, 'supplier_name' => $purchaseOrder->supplier, 'qty' => $purchaseOrder->service_qty ?? 1,
+                    'uom' => $purchaseOrder->service_uom, 'unit_price' => $purchaseOrder->service_amount,
+                    'tax' => $lVat, 'total' => $lNet + $lVat,
+                ]]);
+            }
+        @endphp
         <table class="items-table">
             <thead>
                 <tr>
@@ -209,49 +223,34 @@
                 </tr>
             </thead>
             <tbody>
-                @if($isService)
-                    @php $svcTotal = (float)($purchaseOrder->service_qty ?? 1) * (float)($purchaseOrder->service_amount ?? 0); @endphp
+                @foreach($displayItems as $item)
                     <tr>
-                        <td>1</td>
-                        <td class="text-left">{{ $purchaseOrder->service_description ?? '' }}</td>
-                        <td class="text-left" style="font-size:9px;">{{ $purchaseOrder->supplier ?? '' }}</td>
-                        <td>{{ $purchaseOrder->service_qty ? number_format($purchaseOrder->service_qty, 2) : '' }}</td>
-                        <td>{{ $purchaseOrder->service_uom ?? '' }}</td>
-                        <td class="text-right">{{ $purchaseOrder->service_amount ? number_format($purchaseOrder->service_amount, 2) : '' }}</td>
-                        <td class="text-right">{{ $svcTotal ? number_format($svcTotal, 2) : '' }}</td>
+                        <td>{{ $loop->iteration }}</td>
+                        @if(!$isService)<td class="text-left">{{ $item->item_code ?? '' }}</td>@endif
+                        <td class="text-left">{{ $item->description }}</td>
+                        @if(!$isService)<td class="text-left" style="font-size:9px;">{{ $item->brand ?? '' }}</td>@endif
+                        <td class="text-left" style="font-size:9px;">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? '' }}</td>
+                        <td>{{ number_format($item->qty, 2) }}</td>
+                        <td>{{ $item->uom }}</td>
+                        <td class="text-right">{{ $item->unit_price ? number_format($item->unit_price, 2) : '' }}</td>
+                        <td class="text-right">{{ $item->total ? number_format($item->total, 2) : '' }}</td>
                     </tr>
-                @else
-                    @foreach($purchaseOrder->items as $item)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td class="text-left">{{ $item->item_code ?? '' }}</td>
-                            <td class="text-left">{{ $item->description }}</td>
-                            <td class="text-left" style="font-size:9px;">{{ $item->brand ?? '' }}</td>
-                            <td class="text-left" style="font-size:9px;">{{ $item->supplier_name ?? $purchaseOrder->supplier ?? '' }}</td>
-                            <td>{{ number_format($item->qty, 2) }}</td>
-                            <td>{{ $item->uom }}</td>
-                            <td class="text-right">{{ $item->unit_price ? number_format($item->unit_price, 2) : '' }}</td>
-                            <td class="text-right">{{ $item->total ? number_format($item->total, 2) : '' }}</td>
-                        </tr>
-                    @endforeach
-                    @for($i = $purchaseOrder->items->count(); $i < 8; $i++)
-                        <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-                    @endfor
-                @endif
+                @endforeach
+                @php $emptyCols = $isService ? 7 : 9; @endphp
+                @for($i = $displayItems->count(); $i < 8; $i++)
+                    <tr>@for($c = 0; $c < $emptyCols; $c++)<td>&nbsp;</td>@endfor</tr>
+                @endfor
             </tbody>
         </table>
 
         <!-- Totals -->
         @php
-            if (($purchaseOrder->po_type ?? 'items') === 'service') {
-                $netTotal   = (float)($purchaseOrder->service_qty ?? 1) * (float)($purchaseOrder->service_amount ?? 0);
-                $totalVat   = ($purchaseOrder->service_vat ?? 0) ? round($netTotal * 0.12, 2) : 0;
-                $grandTotal = $netTotal + $totalVat;
-            } else {
-                $netTotal   = $purchaseOrder->items->sum('total');
-                $totalVat   = $purchaseOrder->items->sum('tax');
-                $grandTotal = $netTotal + $totalVat;
-            }
+            // Unit prices are entered VAT-inclusive. Each item's `total` is the
+            // gross (payable) line amount and `tax` is the VAT embedded within it.
+            // Grand Total = sum of gross line totals; Before-VAT = Grand − VAT.
+            $grandTotal = $displayItems->sum('total');
+            $totalVat   = $displayItems->sum('tax');
+            $netTotal   = $grandTotal - $totalVat;
         @endphp
         <div class="clearfix">
             <table class="totals-box">

@@ -101,7 +101,15 @@
       "Bash(php -l c:/xampp/htdocs/sopod/app/Http/Controllers/AccountsPayableInvoiceController.php)",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(list\\(d[0].keys\\(\\)\\)\\)\")",
       "Bash(php -l c:/xampp/htdocs/sopod/app/Http/Controllers/CashAdvanceRequestController.php)",
-      "Bash(php -r \"echo 'OK';\")"
+      "Bash(php -r \"echo 'OK';\")",
+      "Bash(php -r \"echo 'checking PR controller';\")",
+      "Bash(php -r '$pdo=new PDO\\('\\\\''mysql:host=localhost;dbname=sopod'\\\\'','\\\\''root'\\\\'','\\\\'''\\\\''\\); echo implode\\('\\\\'', '\\\\'',$pdo->query\\('\\\\''DESCRIBE purchase_orders'\\\\''\\)->fetchAll\\(PDO::FETCH_COLUMN\\)\\);')",
+      "Bash(php -r '$pdo=new PDO\\('\\\\''mysql:host=localhost;dbname=sopod'\\\\'','\\\\''root'\\\\'','\\\\'''\\\\''\\); echo '\\\\''suppliers: '\\\\''.implode\\('\\\\'', '\\\\'',$pdo->query\\('\\\\''DESCRIBE suppliers'\\\\''\\)->fetchAll\\(PDO::FETCH_COLUMN\\)\\);')",
+      "Bash(php -r '$pdo=new PDO\\('\\\\''mysql:host=localhost;dbname=sopod'\\\\'','\\\\''root'\\\\'','\\\\'''\\\\''\\); $r=$pdo->query\\('\\\\''SELECT DISTINCT category FROM vendors'\\\\''\\)->fetchAll\\(PDO::FETCH_COLUMN\\); print_r\\($r\\);')",
+      "Bash(php -r '$pdo=new PDO\\('\\\\''mysql:host=localhost;dbname=sopod'\\\\'','\\\\''root'\\\\'','\\\\'''\\\\''\\); echo implode\\('\\\\'', '\\\\'',$pdo->query\\('\\\\''DESCRIBE request_for_payments'\\\\''\\)->fetchAll\\(PDO::FETCH_COLUMN\\)\\);')",
+      "Bash(php -r '$pdo=new PDO\\('\\\\''mysql:host=localhost;dbname=sopod'\\\\'','\\\\''root'\\\\'','\\\\'''\\\\''\\); echo implode\\('\\\\'', '\\\\'',$pdo->query\\('\\\\''DESCRIBE supplier_receiving_reports'\\\\''\\)->fetchAll\\(PDO::FETCH_COLUMN\\)\\);')",
+      "Bash(php import_vendors_temp.php)",
+      "Bash(php -l c:/xampp/htdocs/sopod/resources/views/accounts_payable_invoices/print.blade.php)"
     ],
     "additionalDirectories": [
       "c:\\Windows\\System32\\drivers\\etc"

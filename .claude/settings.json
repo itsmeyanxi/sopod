@@ -101,7 +101,11 @@
       "Read(//dev/**)",
       "Bash(head -20 grep -rn \"ar_aging\\\\|ArAging\" /c/sopod/routes/web.php)",
       "Bash(git checkout:*)",
-      "Bash(1 grep:*)"
+      "Bash(1 grep:*)",
+      "Bash(ls -la /c/xampp/mysql/data/ 2>/dev/null | head -50)",
+      "Read(//c/xampp/mysql/data//**)",
+      "Read(//c/Users/WIN11SOPOD/SOPOD_BACKUP_SCRIPT/**)",
+      "Bash(php \"C:/Users/WIN11S~1/AppData/Local/Temp/claude/c--xampp-htdocs-sopod/703d8629-f51e-4096-bd98-c642abf5f27b/scratchpad/verify_edit.php\")"
     ],
     "additionalDirectories": [
       "c:\\xampp\\apache\\conf\\extra",
